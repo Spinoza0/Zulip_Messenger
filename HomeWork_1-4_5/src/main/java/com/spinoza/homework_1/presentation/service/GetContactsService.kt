@@ -24,16 +24,11 @@ class GetContactsService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         CoroutineScope(Dispatchers.Default).launch {
-            var resultIntent = Intent(ERROR_SERVICE_ACTION).putExtra(EXTRA_ERROR_TEXT, "")
-            runCatching {
+            val resultIntent = runCatching {
                 val contactsList = ContactsList(requestContacts())
-                resultIntent =
-                    Intent(CONTACTS_SERVICE_ACTION).putExtra(EXTRA_CONTACTS_LIST, contactsList)
-
-            }.onFailure {
-                resultIntent =
-                    Intent(ERROR_SERVICE_ACTION).putExtra(EXTRA_ERROR_TEXT, it.localizedMessage)
-
+                Intent(CONTACTS_SERVICE_ACTION).putExtra(EXTRA_CONTACTS_LIST, contactsList)
+            }.getOrElse {
+                Intent(ERROR_SERVICE_ACTION).putExtra(EXTRA_ERROR_TEXT, it.localizedMessage)
             }
             localBroadcastManager.sendBroadcast(resultIntent)
             stopSelf()
@@ -55,7 +50,7 @@ class GetContactsService : Service() {
             sortOrder
         )
         cursorContacts?.use {
-            while (cursorContacts.moveToNext() && contacts.size < 5) {
+            while (cursorContacts.moveToNext() && contacts.size < NUMBER_OF_CONTACTS_TO_RECEIVE) {
                 val id = cursorContacts.getString(
                     cursorContacts.getColumnIndexOrThrow(ContactsContract.Contacts._ID)
                 )
@@ -93,6 +88,7 @@ class GetContactsService : Service() {
     }
 
     companion object {
+        private const val NUMBER_OF_CONTACTS_TO_RECEIVE = 5
         fun newIntent(context: Context) = Intent(context, GetContactsService::class.java)
     }
 }
