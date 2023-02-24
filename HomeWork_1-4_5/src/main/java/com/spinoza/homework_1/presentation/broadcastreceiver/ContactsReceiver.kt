@@ -29,14 +29,12 @@ class ContactsReceiver(
     }
 
     fun register(context: Context) {
-        if (localBroadcastManager == null) {
-            IntentFilter().apply {
-                addAction(CONTACTS_SERVICE_ACTION)
-                addAction(ERROR_SERVICE_ACTION)
-                localBroadcastManager = LocalBroadcastManager.getInstance(context)
-                localBroadcastManager?.registerReceiver(contactsReceiver, this)
-            }
+        val filter = IntentFilter().apply {
+            addAction(CONTACTS_SERVICE_ACTION)
+            addAction(ERROR_SERVICE_ACTION)
         }
+        localBroadcastManager = LocalBroadcastManager.getInstance(context)
+        localBroadcastManager?.registerReceiver(contactsReceiver, filter)
     }
 
     fun unregister() {
