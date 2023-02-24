@@ -2,33 +2,40 @@
 <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    style="@style/ContactItemStyle"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     app:cardCornerRadius="8dp"
     app:cardElevation="2dp"
     app:cardUseCompatPadding="true">
 
     <LinearLayout
-        style="@style/ContactItemStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_margin="4dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="8dp">
 
         <TextView
-            style="@style/ContactItemStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="@string/name" />
 
         <TextView
             android:id="@+id/textViewName"
-            style="@style/ContactItemStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:textStyle="bold"
             tools:text="@tools:sample/first_names" />
 
         <TextView
-            style="@style/ContactItemStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="@string/mobile_phone_number" />
 
         <TextView
             android:id="@+id/textViewPhone"
-            style="@style/ContactItemStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:textStyle="bold"
             tools:text="@tools:sample/us_phones" />
     </LinearLayout>
