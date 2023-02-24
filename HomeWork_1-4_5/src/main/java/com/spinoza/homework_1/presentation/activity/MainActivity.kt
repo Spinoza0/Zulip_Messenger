@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.spinoza.homework_1.R
 import com.spinoza.homework_1.databinding.ActivityMainBinding
 import com.spinoza.homework_1.domain.Contact
-import com.spinoza.homework_1.domain.ContactsList
 import com.spinoza.homework_1.presentation.adapter.ContactsAdapter
 import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_CONTACTS_LIST
 import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_ERROR_TEXT
@@ -63,20 +62,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putParcelable(EXTRA_CONTACTS_LIST, ContactsList(contactsAdapter.currentList))
+        outState.putParcelableArrayList(EXTRA_CONTACTS_LIST, ArrayList(contactsAdapter.currentList))
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        contactsAdapter.submitList(getContactsListFromBundle(savedInstanceState).value)
+        contactsAdapter.submitList(getContactsListFromBundle(savedInstanceState))
     }
 
-    private fun getContactsListFromBundle(bundle: Bundle): ContactsList {
+    private fun getContactsListFromBundle(bundle: Bundle): List<Contact> {
         val contactsList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            bundle.getParcelable(EXTRA_CONTACTS_LIST, ContactsList::class.java)
+            bundle.getParcelableArrayList(EXTRA_CONTACTS_LIST, Contact::class.java)
         } else {
             @Suppress("deprecation")
-            bundle.getParcelable<ContactsList>(EXTRA_CONTACTS_LIST) as ContactsList
+            bundle.getParcelableArrayList(EXTRA_CONTACTS_LIST)
         }
 
         return contactsList ?: throw RuntimeException("Parameter ContactsList not found in bundle")
@@ -94,10 +93,10 @@ class MainActivity : AppCompatActivity() {
         if (data == null) {
             showError()
         } else if (result.resultCode == Activity.RESULT_OK) {
-            val contactsList = getContactsListFromIntent(data)
-            if (contactsList.value.isNotEmpty()) {
+            val contacts = getContactsListFromIntent(data)
+            if (contacts.isNotEmpty()) {
                 setupVisibility(View.VISIBLE, View.GONE)
-                contactsAdapter.submitList(contactsList.value)
+                contactsAdapter.submitList(contacts)
             } else {
                 showError(getString(R.string.no_contacts))
             }

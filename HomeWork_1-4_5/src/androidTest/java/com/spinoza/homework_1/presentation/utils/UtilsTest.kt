@@ -3,7 +3,6 @@ package com.spinoza.homework_1.presentation.utils
 import android.content.Intent
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.spinoza.homework_1.domain.Contact
-import com.spinoza.homework_1.domain.ContactsList
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -13,11 +12,13 @@ class UtilsTest {
 
     @Test
     fun whenGetContactsListFromIntentResultIsEqualToSourceValue() {
-        val contactsList = ContactsList(
+        val contactsList =
             listOf(Contact("John", "123"), Contact("Mary", "456"))
-        )
 
-        val intent = Intent().putExtra(Constants.EXTRA_CONTACTS_LIST, contactsList)
+        val intent = Intent().putParcelableArrayListExtra(
+            Constants.EXTRA_CONTACTS_LIST,
+            ArrayList(contactsList)
+        )
         val result = getContactsListFromIntent(intent)
 
         assertEquals(contactsList, result)
@@ -25,17 +26,18 @@ class UtilsTest {
 
     @Test
     fun whenGetContactsListFromIntentReturnedValueIsDifferent() {
-        val contactsList1 = ContactsList(
+        val contactsList1 =
             listOf(Contact("John", "123"), Contact("Mary", "456"))
-        )
-        val contactsList2 = ContactsList(
+        val contactsList2 =
             listOf(Contact("Peter", "123"), Contact("Jack", "456"))
+
+        val intent = Intent().putParcelableArrayListExtra(
+            Constants.EXTRA_CONTACTS_LIST,
+            ArrayList(contactsList1)
         )
+        val result = getContactsListFromIntent(intent)
 
-        val intent1 = Intent().putExtra(Constants.EXTRA_CONTACTS_LIST, contactsList1)
-        val result1 = getContactsListFromIntent(intent1)
-
-        assertNotEquals(contactsList2, result1)
+        assertNotEquals(contactsList2, result)
     }
 
     @Test(expected = RuntimeException::class)

@@ -2,14 +2,14 @@ package com.spinoza.homework_1.presentation.utils
 
 import android.content.Intent
 import android.os.Build
-import com.spinoza.homework_1.domain.ContactsList
+import com.spinoza.homework_1.domain.Contact
 
-fun getContactsListFromIntent(intent: Intent): ContactsList {
+fun getContactsListFromIntent(intent: Intent): List<Contact> {
     val contactsList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        intent.getParcelableExtra(Constants.EXTRA_CONTACTS_LIST, ContactsList::class.java)
+        intent.getParcelableArrayListExtra(Constants.EXTRA_CONTACTS_LIST, Contact::class.java)
     } else {
         @Suppress("deprecation")
-        intent.getParcelableExtra<ContactsList>(Constants.EXTRA_CONTACTS_LIST) as ContactsList
+        intent.getParcelableArrayListExtra(Constants.EXTRA_CONTACTS_LIST)
     }
 
     return contactsList ?: throw RuntimeException("Parameter ContactsList not found in intent")

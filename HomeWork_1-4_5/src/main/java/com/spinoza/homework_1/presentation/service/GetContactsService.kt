@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.spinoza.homework_1.domain.ContactsList
 import com.spinoza.homework_1.presentation.broadcastreceiver.ContactsReceiver.Companion.CONTACTS_SERVICE_ACTION
 import com.spinoza.homework_1.presentation.broadcastreceiver.ContactsReceiver.Companion.ERROR_SERVICE_ACTION
 import com.spinoza.homework_1.presentation.repository.ContactsRepository
@@ -25,8 +24,11 @@ class GetContactsService : Service() {
         CoroutineScope(Dispatchers.Default).launch {
             val resultIntent = runCatching {
                 val contactsRepository = ContactsRepository(this@GetContactsService)
-                val contactsList = ContactsList(contactsRepository.requestContacts())
-                Intent(CONTACTS_SERVICE_ACTION).putExtra(EXTRA_CONTACTS_LIST, contactsList)
+                val contacts = contactsRepository.requestContacts()
+                Intent(CONTACTS_SERVICE_ACTION).putParcelableArrayListExtra(
+                    EXTRA_CONTACTS_LIST,
+                    ArrayList(contacts)
+                )
             }.getOrElse {
                 Intent(ERROR_SERVICE_ACTION).putExtra(EXTRA_ERROR_TEXT, it.localizedMessage)
             }
