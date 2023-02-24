@@ -2,15 +2,16 @@ package com.spinoza.homework_1.presentation.utils
 
 import android.content.Intent
 import android.os.Build
-import com.spinoza.homework_1.domain.Contact
+import com.spinoza.homework_1.domain.GetContactsResult
+import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_RESULT
 
-fun getContactsListFromIntent(intent: Intent): List<Contact> {
-    val contactsList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        intent.getParcelableArrayListExtra(Constants.EXTRA_CONTACTS_LIST, Contact::class.java)
+fun getContactsResultFromIntent(intent: Intent): GetContactsResult {
+    val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        intent.getParcelableExtra(EXTRA_RESULT, GetContactsResult::class.java)
     } else {
         @Suppress("deprecation")
-        intent.getParcelableArrayListExtra(Constants.EXTRA_CONTACTS_LIST)
+        intent.getParcelableExtra(EXTRA_RESULT)
     }
 
-    return contactsList ?: throw RuntimeException("Parameter ContactsList not found in intent")
+    return result ?: throw RuntimeException("Parameter GetContactsResult not found in intent")
 }

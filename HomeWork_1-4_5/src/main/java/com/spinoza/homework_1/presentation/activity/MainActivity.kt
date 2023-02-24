@@ -1,21 +1,16 @@
 package com.spinoza.homework_1.presentation.activity
 
-import android.app.Activity
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.spinoza.homework_1.R
 import com.spinoza.homework_1.databinding.ActivityMainBinding
 import com.spinoza.homework_1.domain.Contact
+import com.spinoza.homework_1.domain.GetContactsResult
 import com.spinoza.homework_1.presentation.adapter.ContactsAdapter
-import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_CONTACTS_LIST
-import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_ERROR_TEXT
-import com.spinoza.homework_1.presentation.utils.getContactsListFromIntent
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     private val contactsAdapter = ContactsAdapter()
 
     private val getContactsLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
+        GetContactsContract(),
         ::handleGetContactsResult
     )
 
@@ -45,7 +40,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.buttonStartWork.setOnClickListener {
-            getContactsLauncher.launch(GetContactsActivity.newIntent(this))
+            getContactsLauncher.launch(null)
         }
     }
 
@@ -88,20 +83,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun handleGetContactsResult(result: ActivityResult) {
-        val data: Intent? = result.data
-        if (data == null) {
-            showError()
-        } else if (result.resultCode == Activity.RESULT_OK) {
-            val contacts = getContactsListFromIntent(data)
-            if (contacts.isNotEmpty()) {
-                setupVisibility(View.VISIBLE, View.GONE)
-                contactsAdapter.submitList(contacts)
-            } else {
-                showError(getString(R.string.no_contacts))
+    private fun handleGetContactsResult(getContactsResult: GetContactsResult) {
+        when (getContactsResult) {
+            is GetContactsResult.Error -> {
+                showError(getContactsResult.message)
             }
-        } else if (result.resultCode == Activity.RESULT_CANCELED) {
-            showError(data.getStringExtra(EXTRA_ERROR_TEXT) ?: "")
+            is GetContactsResult.Success -> {
+                val contacts = getContactsResult.contacts
+                if (contacts.isNotEmpty()) {
+                    setupVisibility(View.VISIBLE, View.GONE)
+                    contactsAdapter.submitList(contacts)
+                } else {
+                    showError(getString(R.string.no_contacts))
+                }
+            }
         }
+    }
+
+    companion object {
+        private const val EXTRA_CONTACTS_LIST = "contacts"
     }
 }

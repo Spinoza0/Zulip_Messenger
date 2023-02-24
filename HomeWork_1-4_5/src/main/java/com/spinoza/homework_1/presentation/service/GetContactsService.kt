@@ -5,11 +5,11 @@ import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.spinoza.homework_1.domain.GetContactsResult
 import com.spinoza.homework_1.presentation.broadcastreceiver.ContactsReceiver.Companion.CONTACTS_SERVICE_ACTION
 import com.spinoza.homework_1.presentation.broadcastreceiver.ContactsReceiver.Companion.ERROR_SERVICE_ACTION
 import com.spinoza.homework_1.presentation.repository.ContactsRepository
-import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_CONTACTS_LIST
-import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_ERROR_TEXT
+import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_RESULT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,12 +25,15 @@ class GetContactsService : Service() {
             val resultIntent = runCatching {
                 val contactsRepository = ContactsRepository(this@GetContactsService)
                 val contacts = contactsRepository.requestContacts()
-                Intent(CONTACTS_SERVICE_ACTION).putParcelableArrayListExtra(
-                    EXTRA_CONTACTS_LIST,
-                    ArrayList(contacts)
+                Intent(CONTACTS_SERVICE_ACTION).putExtra(
+                    EXTRA_RESULT,
+                    GetContactsResult.Success(contacts)
                 )
             }.getOrElse {
-                Intent(ERROR_SERVICE_ACTION).putExtra(EXTRA_ERROR_TEXT, it.localizedMessage)
+                Intent(ERROR_SERVICE_ACTION).putExtra(
+                    EXTRA_RESULT,
+                    GetContactsResult.Error(it.localizedMessage ?: it.message ?: it.toString())
+                )
             }
             localBroadcastManager.sendBroadcast(resultIntent)
             stopSelf()

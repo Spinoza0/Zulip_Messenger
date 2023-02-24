@@ -8,9 +8,10 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.spinoza.homework_1.R
 import com.spinoza.homework_1.databinding.ActivityGetContactsBinding
+import com.spinoza.homework_1.domain.GetContactsResult
 import com.spinoza.homework_1.presentation.broadcastreceiver.ContactsReceiver
 import com.spinoza.homework_1.presentation.service.GetContactsService
-import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_ERROR_TEXT
+import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_RESULT
 import com.spinoza.homework_1.presentation.utils.ReadContactsPermission
 
 class GetContactsActivity : AppCompatActivity() {
@@ -54,8 +55,8 @@ class GetContactsActivity : AppCompatActivity() {
             startGetContactService()
         } else {
             val intent = Intent().putExtra(
-                EXTRA_ERROR_TEXT,
-                getString(R.string.no_permission)
+                EXTRA_RESULT,
+                GetContactsResult.Error(getString(R.string.no_permission))
             )
             finishActivity(Activity.RESULT_CANCELED, intent)
         }
