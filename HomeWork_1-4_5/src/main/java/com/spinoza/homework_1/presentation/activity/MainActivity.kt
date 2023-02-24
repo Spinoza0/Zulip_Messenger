@@ -95,21 +95,16 @@ class MainActivity : AppCompatActivity() {
         val data: Intent? = result.data
         if (data == null) {
             showError()
-        }
-        if (result.resultCode == Activity.RESULT_OK) {
-            data?.let {
-                val contactsList = getContactsListFromIntent(data)
-                setupVisibility(View.VISIBLE, View.GONE)
-                if (contactsList.value.isNotEmpty()) {
-                    contactsAdapter.submitList(contactsList.value)
-                } else {
-                    showError(getString(R.string.no_contacts))
-                }
+        } else if (result.resultCode == Activity.RESULT_OK) {
+            val contactsList = getContactsListFromIntent(data)
+            setupVisibility(View.VISIBLE, View.GONE)
+            if (contactsList.value.isNotEmpty()) {
+                contactsAdapter.submitList(contactsList.value)
+            } else {
+                showError(getString(R.string.no_contacts))
             }
         } else if (result.resultCode == Activity.RESULT_CANCELED) {
-            data?.let {
-                showError(data.getStringExtra(EXTRA_ERROR_TEXT) ?: "")
-            }
+            showError(data.getStringExtra(EXTRA_ERROR_TEXT) ?: "")
         }
     }
 }
