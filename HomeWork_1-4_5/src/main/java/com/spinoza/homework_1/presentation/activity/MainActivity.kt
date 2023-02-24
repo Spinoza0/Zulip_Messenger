@@ -23,14 +23,6 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    private val unknownError by lazy {
-        getString(R.string.unknown_error)
-    }
-
-    private val noContacts by lazy {
-        getString(R.string.no_contacts)
-    }
-
     private val contactsAdapter by lazy { ContactsAdapter() }
 
     private val getContacts =
@@ -39,7 +31,7 @@ class MainActivity : AppCompatActivity() {
         ) { result: ActivityResult ->
             val data: Intent? = result.data
             if (data == null) {
-                showError(unknownError)
+                showError()
             }
             if (result.resultCode == Activity.RESULT_OK) {
                 data?.let {
@@ -48,24 +40,15 @@ class MainActivity : AppCompatActivity() {
                     if (contactsList.value.isNotEmpty()) {
                         contactsAdapter.submitList(contactsList.value)
                     } else {
-                        showError(noContacts)
+                        showError(getString(R.string.no_contacts))
                     }
                 }
             } else if (result.resultCode == Activity.RESULT_CANCELED) {
                 data?.let {
-                    var error = data.getStringExtra(EXTRA_ERROR_TEXT)
-                    if (error == null || error.isEmpty()) {
-                        error = unknownError
-                    }
-                    showError(error)
+                    showError(data.getStringExtra(EXTRA_ERROR_TEXT) ?: "")
                 }
             }
         }
-
-    private fun showError(error: String) {
-        setupVisibility(View.GONE, View.VISIBLE)
-        binding.textViewError.text = error
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,5 +102,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         throw RuntimeException("Parameter ContactsList not found in bundle")
+    }
+
+    private fun showError(error: String = "") {
+        setupVisibility(View.GONE, View.VISIBLE)
+        binding.textViewError.text = error.ifEmpty {
+            getString(R.string.unknown_error)
+        }
     }
 }
