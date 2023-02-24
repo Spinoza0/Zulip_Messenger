@@ -23,32 +23,12 @@ class MainActivity : AppCompatActivity() {
         ActivityMainBinding.inflate(layoutInflater)
     }
 
-    private val contactsAdapter by lazy { ContactsAdapter() }
+    private val contactsAdapter = ContactsAdapter()
 
-    private val getContacts =
-        registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result: ActivityResult ->
-            val data: Intent? = result.data
-            if (data == null) {
-                showError()
-            }
-            if (result.resultCode == Activity.RESULT_OK) {
-                data?.let {
-                    val contactsList = getContactsListFromIntent(data)
-                    setupVisibility(View.VISIBLE, View.GONE)
-                    if (contactsList.value.isNotEmpty()) {
-                        contactsAdapter.submitList(contactsList.value)
-                    } else {
-                        showError(getString(R.string.no_contacts))
-                    }
-                }
-            } else if (result.resultCode == Activity.RESULT_CANCELED) {
-                data?.let {
-                    showError(data.getStringExtra(EXTRA_ERROR_TEXT) ?: "")
-                }
-            }
-        }
+    private val getContactsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+        ::handleGetContactsResult
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,7 +45,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         binding.buttonStartWork.setOnClickListener {
-            getContacts.launch(GetContactsActivity.newIntent(this))
+            getContactsLauncher.launch(GetContactsActivity.newIntent(this))
         }
     }
 
@@ -108,6 +88,28 @@ class MainActivity : AppCompatActivity() {
         setupVisibility(View.GONE, View.VISIBLE)
         binding.textViewError.text = error.ifEmpty {
             getString(R.string.unknown_error)
+        }
+    }
+
+    private fun handleGetContactsResult(result: ActivityResult) {
+        val data: Intent? = result.data
+        if (data == null) {
+            showError()
+        }
+        if (result.resultCode == Activity.RESULT_OK) {
+            data?.let {
+                val contactsList = getContactsListFromIntent(data)
+                setupVisibility(View.VISIBLE, View.GONE)
+                if (contactsList.value.isNotEmpty()) {
+                    contactsAdapter.submitList(contactsList.value)
+                } else {
+                    showError(getString(R.string.no_contacts))
+                }
+            }
+        } else if (result.resultCode == Activity.RESULT_CANCELED) {
+            data?.let {
+                showError(data.getStringExtra(EXTRA_ERROR_TEXT) ?: "")
+            }
         }
     }
 }
