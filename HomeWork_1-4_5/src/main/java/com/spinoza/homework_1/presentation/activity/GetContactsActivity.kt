@@ -3,16 +3,15 @@ package com.spinoza.homework_1.presentation.activity
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import com.spinoza.homework_1.R
 import com.spinoza.homework_1.databinding.ActivityGetContactsBinding
 import com.spinoza.homework_1.presentation.broadcastreceiver.ContactsReceiver
 import com.spinoza.homework_1.presentation.service.GetContactsService
 import com.spinoza.homework_1.presentation.utils.Constants.Companion.EXTRA_ERROR_TEXT
+import com.spinoza.homework_1.presentation.utils.ReadContactsPermission
 
 class GetContactsActivity : AppCompatActivity() {
 
@@ -20,10 +19,12 @@ class GetContactsActivity : AppCompatActivity() {
         ActivityGetContactsBinding.inflate(layoutInflater)
     }
 
-    private val contactsReceiver by lazy {
-        ContactsReceiver { resultCode, intent ->
-            finishActivity(resultCode, intent)
-        }
+    private val contactsReceiver = ContactsReceiver { resultCode, intent ->
+        finishActivity(resultCode, intent)
+    }
+
+    private val readContactsPermission by lazy {
+        ReadContactsPermission(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,14 +33,10 @@ class GetContactsActivity : AppCompatActivity() {
 
         contactsReceiver.register(this)
 
-        if (!checkPermissionAndRequestContacts(
-                ActivityCompat.checkSelfPermission(
-                    this,
-                    android.Manifest.permission.READ_CONTACTS
-                )
-            )
-        ) {
-            requestPermission()
+        if (!readContactsPermission.isGranted()) {
+            readContactsPermission.request()
+        } else {
+            startGetContactService()
         }
     }
 
@@ -48,38 +45,26 @@ class GetContactsActivity : AppCompatActivity() {
         contactsReceiver.unregister()
     }
 
-    private fun checkPermissionAndRequestContacts(permissions: Int): Boolean {
-        if (permissions == PackageManager.PERMISSION_GRANTED) {
-            binding.progressBar.visibility = View.VISIBLE
-            startService(GetContactsService.newIntent(this))
-            return true
-        }
-        return false
-    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray,
     ) {
-        if (requestCode == READ_CONTACTS_REQUEST_CODE && grantResults.isNotEmpty()) {
-            if (!checkPermissionAndRequestContacts(grantResults[0])) {
-                val intent = Intent().putExtra(
-                    EXTRA_ERROR_TEXT,
-                    getString(R.string.no_permission)
-                )
-                finishActivity(Activity.RESULT_CANCELED, intent)
-            }
+        if (readContactsPermission.isGranted(requestCode, grantResults)) {
+            startGetContactService()
+        } else {
+            val intent = Intent().putExtra(
+                EXTRA_ERROR_TEXT,
+                getString(R.string.no_permission)
+            )
+            finishActivity(Activity.RESULT_CANCELED, intent)
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
-    private fun requestPermission() {
-        ActivityCompat.requestPermissions(
-            this,
-            arrayOf(android.Manifest.permission.READ_CONTACTS),
-            READ_CONTACTS_REQUEST_CODE
-        )
+    private fun startGetContactService() {
+        binding.progressBar.visibility = View.VISIBLE
+        startService(GetContactsService.newIntent(this))
     }
 
     private fun finishActivity(resultCode: Int, intent: Intent) {
@@ -88,8 +73,6 @@ class GetContactsActivity : AppCompatActivity() {
     }
 
     companion object {
-        private const val READ_CONTACTS_REQUEST_CODE = 100
-
         fun newIntent(context: Context) = Intent(context, GetContactsActivity::class.java)
     }
 }
