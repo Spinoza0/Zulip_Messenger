@@ -11,9 +11,6 @@ fun getContactsListFromIntent(intent: Intent): ContactsList {
         @Suppress("deprecation")
         intent.getParcelableExtra<ContactsList>(Constants.EXTRA_CONTACTS_LIST) as ContactsList
     }
-    contactsList?.let { value ->
-        return value
-    }
 
-    throw RuntimeException("Parameter ContactsList not found in intent")
+    return contactsList ?: throw RuntimeException("Parameter ContactsList not found in intent")
 }

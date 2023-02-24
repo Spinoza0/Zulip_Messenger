@@ -65,9 +65,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        getContactsListFromBundle(savedInstanceState).apply {
-            contactsAdapter.submitList(this.value)
-        }
+        contactsAdapter.submitList(getContactsListFromBundle(savedInstanceState).value)
     }
 
     private fun getContactsListFromBundle(bundle: Bundle): ContactsList {
@@ -77,11 +75,8 @@ class MainActivity : AppCompatActivity() {
             @Suppress("deprecation")
             bundle.getParcelable<ContactsList>(EXTRA_CONTACTS_LIST) as ContactsList
         }
-        contactsList?.let { value ->
-            return value
-        }
 
-        throw RuntimeException("Parameter ContactsList not found in bundle")
+        return contactsList ?: throw RuntimeException("Parameter ContactsList not found in bundle")
     }
 
     private fun showError(error: String = "") {
@@ -97,8 +92,8 @@ class MainActivity : AppCompatActivity() {
             showError()
         } else if (result.resultCode == Activity.RESULT_OK) {
             val contactsList = getContactsListFromIntent(data)
-            setupVisibility(View.VISIBLE, View.GONE)
             if (contactsList.value.isNotEmpty()) {
+                setupVisibility(View.VISIBLE, View.GONE)
                 contactsAdapter.submitList(contactsList.value)
             } else {
                 showError(getString(R.string.no_contacts))
