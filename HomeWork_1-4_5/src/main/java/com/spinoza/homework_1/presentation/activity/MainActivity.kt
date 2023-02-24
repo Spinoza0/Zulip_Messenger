@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.spinoza.homework_1.R
 import com.spinoza.homework_1.databinding.ActivityMainBinding
+import com.spinoza.homework_1.domain.Contact
 import com.spinoza.homework_1.domain.ContactsList
 import com.spinoza.homework_1.domain.getContactsListFromIntent
 import com.spinoza.homework_1.presentation.adapter.ContactsAdapter
@@ -51,11 +52,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         binding.recyclerViewResult.adapter = contactsAdapter
-        contactsAdapter.openDialer = { openDialer(it) }
+        contactsAdapter.onItemClick = ::openDialer
     }
 
-    private fun openDialer(phone: String) {
-        startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${phone}")))
+    private fun openDialer(contact: Contact) {
+        if (contact.phone.isNotEmpty()) {
+            startActivity(Intent(Intent.ACTION_DIAL, Uri.parse("tel:${contact.phone}")))
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

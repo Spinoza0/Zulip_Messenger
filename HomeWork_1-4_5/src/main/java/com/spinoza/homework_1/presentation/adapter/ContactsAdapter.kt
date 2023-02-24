@@ -7,7 +7,7 @@ import com.spinoza.homework_1.databinding.ContactItemBinding
 import com.spinoza.homework_1.domain.Contact
 
 class ContactsAdapter : ListAdapter<Contact, ContactViewHolder>(ContactsDiffCallback()) {
-    var openDialer: ((String) -> Unit)? = null
+    var onItemClick: ((Contact) -> Unit) = {}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
         val binding = ContactItemBinding.inflate(
@@ -19,16 +19,6 @@ class ContactsAdapter : ListAdapter<Contact, ContactViewHolder>(ContactsDiffCall
     }
 
     override fun onBindViewHolder(holder: ContactViewHolder, position: Int) {
-        with(holder) {
-            with(getItem(position)) {
-                binding.textViewName.text = this.name
-                binding.textViewPhone.text = this.phone
-                openDialer?.let { dialer ->
-                    if (this.phone.isNotEmpty()) {
-                        itemView.setOnClickListener { dialer.invoke(this.phone) }
-                    }
-                }
-            }
-        }
+        holder.bind(getItem(position), onItemClick)
     }
 }
