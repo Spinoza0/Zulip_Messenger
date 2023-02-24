@@ -8,10 +8,10 @@ import android.provider.ContactsContract
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.spinoza.homework_1.domain.Contact
 import com.spinoza.homework_1.domain.ContactsList
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.CONTACTS_SERVICE_ACTION
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.ERROR_SERVICE_ACTION
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.EXTRA_CONTACTS_LIST
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.EXTRA_ERROR_TEXT
+import com.spinoza.homework_1.presentation.broadcastreceiver.ContactsReceiver.Companion.CONTACTS_SERVICE_ACTION
+import com.spinoza.homework_1.presentation.broadcastreceiver.ContactsReceiver.Companion.ERROR_SERVICE_ACTION
+import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_CONTACTS_LIST
+import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_ERROR_TEXT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

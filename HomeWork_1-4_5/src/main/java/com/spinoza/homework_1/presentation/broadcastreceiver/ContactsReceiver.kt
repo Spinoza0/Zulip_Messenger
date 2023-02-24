@@ -6,8 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.CONTACTS_SERVICE_ACTION
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.ERROR_SERVICE_ACTION
 
 class ContactsReceiver(
     private val sendResultToConsumer: ((Int, Intent) -> Unit),
@@ -40,5 +38,10 @@ class ContactsReceiver(
     fun unregister() {
         localBroadcastManager?.unregisterReceiver(contactsReceiver)
         localBroadcastManager = null
+    }
+
+    companion object {
+        const val CONTACTS_SERVICE_ACTION = "contacts"
+        const val ERROR_SERVICE_ACTION = "error"
     }
 }

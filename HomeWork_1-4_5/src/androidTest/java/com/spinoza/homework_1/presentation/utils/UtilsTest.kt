@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.spinoza.homework_1.domain.Contact
 import com.spinoza.homework_1.domain.ContactsList
-import com.spinoza.homework_1.domain.getContactsListFromIntent
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -13,7 +12,19 @@ import org.junit.runner.RunWith
 class UtilsTest {
 
     @Test
-    fun getContactsListFromIntentReturnCorrectObject() {
+    fun whenGetContactsListFromIntentResultIsEqualToSourceValue() {
+        val contactsList = ContactsList(
+            listOf(Contact("John", "123"), Contact("Mary", "456"))
+        )
+
+        val intent = Intent().putExtra(Constants.EXTRA_CONTACTS_LIST, contactsList)
+        val result = getContactsListFromIntent(intent)
+
+        assertEquals(contactsList, result)
+    }
+
+    @Test
+    fun whenGetContactsListFromIntentReturnedValueIsDifferent() {
         val contactsList1 = ContactsList(
             listOf(Contact("John", "123"), Contact("Mary", "456"))
         )
@@ -22,16 +33,9 @@ class UtilsTest {
         )
 
         val intent1 = Intent().putExtra(Constants.EXTRA_CONTACTS_LIST, contactsList1)
-        val intent2 = Intent().putExtra(Constants.EXTRA_CONTACTS_LIST, contactsList2)
-
         val result1 = getContactsListFromIntent(intent1)
-        val result2 = getContactsListFromIntent(intent2)
 
-        assertEquals(contactsList1, result1)
         assertNotEquals(contactsList2, result1)
-
-        assertEquals(contactsList2, result2)
-        assertNotEquals(contactsList1, result2)
     }
 
     @Test(expected = RuntimeException::class)

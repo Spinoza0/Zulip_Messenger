@@ -1,8 +1,8 @@
-package com.spinoza.homework_1.domain
+package com.spinoza.homework_1.presentation.utils
 
 import android.content.Intent
 import android.os.Build
-import com.spinoza.homework_1.presentation.utils.Constants
+import com.spinoza.homework_1.domain.ContactsList
 
 fun getContactsListFromIntent(intent: Intent): ContactsList {
     val contactsList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

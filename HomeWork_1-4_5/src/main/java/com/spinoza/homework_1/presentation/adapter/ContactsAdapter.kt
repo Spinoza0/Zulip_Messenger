@@ -10,11 +10,8 @@ class ContactsAdapter : ListAdapter<Contact, ContactViewHolder>(ContactsDiffCall
     var onItemClick: ((Contact) -> Unit) = {}
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ContactViewHolder {
-        val binding = ContactItemBinding.inflate(
-            LayoutInflater.from(parent.context),
-            parent,
-            false
-        )
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = ContactItemBinding.inflate(inflater, parent, false)
         return ContactViewHolder(binding)
     }
 

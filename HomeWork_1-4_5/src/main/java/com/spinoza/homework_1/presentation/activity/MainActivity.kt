@@ -13,10 +13,10 @@ import com.spinoza.homework_1.R
 import com.spinoza.homework_1.databinding.ActivityMainBinding
 import com.spinoza.homework_1.domain.Contact
 import com.spinoza.homework_1.domain.ContactsList
-import com.spinoza.homework_1.domain.getContactsListFromIntent
 import com.spinoza.homework_1.presentation.adapter.ContactsAdapter
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.EXTRA_CONTACTS_LIST
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.EXTRA_ERROR_TEXT
+import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_CONTACTS_LIST
+import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_ERROR_TEXT
+import com.spinoza.homework_1.presentation.utils.getContactsListFromIntent
 
 class MainActivity : AppCompatActivity() {
 

@@ -10,7 +10,7 @@ import com.spinoza.homework_1.R
 import com.spinoza.homework_1.databinding.ActivityGetContactsBinding
 import com.spinoza.homework_1.presentation.broadcastreceiver.ContactsReceiver
 import com.spinoza.homework_1.presentation.service.GetContactsService
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.EXTRA_ERROR_TEXT
+import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_ERROR_TEXT
 import com.spinoza.homework_1.presentation.utils.ReadContactsPermission
 
 class GetContactsActivity : AppCompatActivity() {
