@@ -1,0 +1,5 @@
+<resources>
+    <string name="no_permission">No permission to read contact list!</string>
+    <string name="unknown_error">Unknown error.</string>
+    <string name="no_contacts">No contacts with phone number</string>
+</resources>
