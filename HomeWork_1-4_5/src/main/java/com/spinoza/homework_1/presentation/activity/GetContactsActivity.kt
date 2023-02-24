@@ -64,10 +64,11 @@ class GetContactsActivity : AppCompatActivity() {
     ) {
         if (requestCode == READ_CONTACTS_REQUEST_CODE && grantResults.isNotEmpty()) {
             if (!checkPermissionAndRequestContacts(grantResults[0])) {
-                Intent().apply {
-                    putExtra(EXTRA_ERROR_TEXT, getString(R.string.no_permission))
-                    finishActivity(Activity.RESULT_CANCELED, this)
-                }
+                val intent = Intent().putExtra(
+                    EXTRA_ERROR_TEXT,
+                    getString(R.string.no_permission)
+                )
+                finishActivity(Activity.RESULT_CANCELED, intent)
             }
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)

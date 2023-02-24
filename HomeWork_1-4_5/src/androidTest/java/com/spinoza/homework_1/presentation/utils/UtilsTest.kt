@@ -21,13 +21,8 @@ class UtilsTest {
             listOf(Contact("Peter", "123"), Contact("Jack", "456"))
         )
 
-        val intent1 = Intent().apply {
-            putExtra(Constants.EXTRA_CONTACTS_LIST, contactsList1)
-        }
-
-        val intent2 = Intent().apply {
-            putExtra(Constants.EXTRA_CONTACTS_LIST, contactsList2)
-        }
+        val intent1 = Intent().putExtra(Constants.EXTRA_CONTACTS_LIST, contactsList1)
+        val intent2 = Intent().putExtra(Constants.EXTRA_CONTACTS_LIST, contactsList2)
 
         val result1 = getContactsListFromIntent(intent1)
         val result2 = getContactsListFromIntent(intent2)

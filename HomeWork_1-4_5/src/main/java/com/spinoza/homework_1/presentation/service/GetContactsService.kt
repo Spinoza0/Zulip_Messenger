@@ -24,19 +24,16 @@ class GetContactsService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         CoroutineScope(Dispatchers.Default).launch {
-//            delay(5000)
-            var resultIntent = Intent(ERROR_SERVICE_ACTION).apply {
-                putExtra(EXTRA_ERROR_TEXT, "")
-            }
+            var resultIntent = Intent(ERROR_SERVICE_ACTION).putExtra(EXTRA_ERROR_TEXT, "")
             runCatching {
                 val contactsList = ContactsList(requestContacts())
-                resultIntent = Intent(CONTACTS_SERVICE_ACTION).apply {
-                    putExtra(EXTRA_CONTACTS_LIST, contactsList)
-                }
+                resultIntent =
+                    Intent(CONTACTS_SERVICE_ACTION).putExtra(EXTRA_CONTACTS_LIST, contactsList)
+
             }.onFailure {
-                resultIntent = Intent(ERROR_SERVICE_ACTION).apply {
-                    putExtra(EXTRA_ERROR_TEXT, it.localizedMessage)
-                }
+                resultIntent =
+                    Intent(ERROR_SERVICE_ACTION).putExtra(EXTRA_ERROR_TEXT, it.localizedMessage)
+
             }
             localBroadcastManager.sendBroadcast(resultIntent)
             stopSelf()

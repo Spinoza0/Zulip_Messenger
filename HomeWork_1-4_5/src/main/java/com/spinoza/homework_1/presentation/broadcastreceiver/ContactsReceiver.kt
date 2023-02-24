@@ -6,11 +6,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.spinoza.homework_1.domain.getContactsListFromIntent
-import com.spinoza.homework_1.presentation.utils.Constants
 import com.spinoza.homework_1.presentation.utils.Constants.Companion.CONTACTS_SERVICE_ACTION
 import com.spinoza.homework_1.presentation.utils.Constants.Companion.ERROR_SERVICE_ACTION
-import com.spinoza.homework_1.presentation.utils.Constants.Companion.EXTRA_ERROR_TEXT
 
 class ContactsReceiver(
     private val sendResultToConsumer: ((Int, Intent) -> Unit),
@@ -22,20 +19,10 @@ class ContactsReceiver(
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 CONTACTS_SERVICE_ACTION -> {
-                    val contacts = getContactsListFromIntent(intent)
-                    Intent().apply {
-                        putExtra(Constants.EXTRA_CONTACTS_LIST, contacts)
-                        sendResultToConsumer.invoke(Activity.RESULT_OK, this)
-                    }
+                    sendResultToConsumer.invoke(Activity.RESULT_OK, intent)
                 }
                 ERROR_SERVICE_ACTION -> {
-                    Intent().apply {
-                        putExtra(
-                            EXTRA_ERROR_TEXT,
-                            intent.getStringExtra(EXTRA_ERROR_TEXT)
-                        )
-                        sendResultToConsumer.invoke(Activity.RESULT_CANCELED, this)
-                    }
+                    sendResultToConsumer.invoke(Activity.RESULT_CANCELED, intent)
                 }
             }
         }
