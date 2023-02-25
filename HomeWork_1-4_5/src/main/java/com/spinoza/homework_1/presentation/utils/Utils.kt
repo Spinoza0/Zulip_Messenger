@@ -6,6 +6,7 @@ import com.spinoza.homework_1.domain.GetContactsResult
 import com.spinoza.homework_1.presentation.utils.Constants.EXTRA_RESULT
 
 fun getContactsResultFromIntent(intent: Intent): GetContactsResult {
+
     val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         intent.getParcelableExtra(EXTRA_RESULT, GetContactsResult::class.java)
     } else {

@@ -7,6 +7,7 @@ import com.spinoza.homework_1.domain.Contact
 class ContactViewHolder(
     private val binding: ContactItemBinding,
 ) : RecyclerView.ViewHolder(binding.root) {
+
     fun bind(contact: Contact, onItemClick: (Contact) -> Unit) {
         binding.textViewName.text = contact.name
         binding.textViewPhone.text = contact.phone

@@ -4,6 +4,7 @@ import androidx.recyclerview.widget.DiffUtil
 import com.spinoza.homework_1.domain.Contact
 
 class ContactsDiffCallback : DiffUtil.ItemCallback<Contact>() {
+
     override fun areItemsTheSame(oldItem: Contact, newItem: Contact): Boolean {
         return oldItem.name == newItem.name
     }

@@ -24,9 +24,7 @@ class GetContactsActivity : AppCompatActivity() {
         finishActivity(resultCode, intent)
     }
 
-    private val readContactsPermission by lazy {
-        ReadContactsPermission(this)
-    }
+    private val readContactsPermission = ReadContactsPermission(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,10 +32,10 @@ class GetContactsActivity : AppCompatActivity() {
 
         contactsReceiver.register(this)
 
-        if (!readContactsPermission.isGranted()) {
-            readContactsPermission.request()
-        } else {
+        if (readContactsPermission.isGranted()) {
             startGetContactService()
+        } else {
+            readContactsPermission.request()
         }
     }
 

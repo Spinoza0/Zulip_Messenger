@@ -9,11 +9,12 @@ class ContactsRepository(private val context: Context) {
     fun requestContacts(): List<Contact> {
         val contacts = mutableListOf<Contact>()
 
-        val selection = ContactsContract.Contacts.HAS_PHONE_NUMBER + " > 0"
-        val sortOrder = ContactsContract.Contacts.DISPLAY_NAME + " ASC LIMIT 10"
+        val selection = ContactsContract.CommonDataKinds.Phone.HAS_PHONE_NUMBER + " > 0"
+        val sortOrder = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME +
+                " ASC LIMIT $NUMBER_OF_CONTACTS_TO_RECEIVE"
 
         val cursorContacts = context.contentResolver.query(
-            ContactsContract.Contacts.CONTENT_URI,
+            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
             null,
             selection,
             null,
@@ -21,36 +22,16 @@ class ContactsRepository(private val context: Context) {
         )
         cursorContacts?.use {
             while (cursorContacts.moveToNext() && contacts.size < NUMBER_OF_CONTACTS_TO_RECEIVE) {
-                val id = cursorContacts.getString(
-                    cursorContacts.getColumnIndexOrThrow(ContactsContract.Contacts._ID)
-                )
                 val name = cursorContacts.getString(
-                    cursorContacts.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME)
+                    cursorContacts.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
                 )
-                val phone = getPhoneNumber(id)
+                val phone = cursorContacts.getString(
+                    cursorContacts.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                )
                 contacts.add(Contact(name, phone))
             }
         }
         return contacts
-    }
-
-    private fun getPhoneNumber(id: String): String {
-        var result = ""
-        val cursorPhones = context.contentResolver.query(
-            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-            null,
-            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
-            arrayOf<String>(id),
-            null
-        )
-        cursorPhones?.use {
-            if (cursorPhones.moveToNext()) {
-                result = cursorPhones.getString(
-                    cursorPhones.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)
-                )
-            }
-        }
-        return result
     }
 
     companion object {

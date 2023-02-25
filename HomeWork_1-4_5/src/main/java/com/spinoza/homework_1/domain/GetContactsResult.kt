@@ -5,6 +5,8 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 sealed class GetContactsResult : Parcelable {
+
     class Success(val contacts: List<Contact>) : GetContactsResult()
+
     class Error(val message: String) : GetContactsResult()
 }

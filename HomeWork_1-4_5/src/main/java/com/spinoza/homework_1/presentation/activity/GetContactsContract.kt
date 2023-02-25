@@ -7,6 +7,7 @@ import com.spinoza.homework_1.domain.GetContactsResult
 import com.spinoza.homework_1.presentation.utils.getContactsResultFromIntent
 
 class GetContactsContract : ActivityResultContract<Unit?, GetContactsResult>() {
+
     override fun createIntent(context: Context, input: Unit?): Intent =
         GetContactsActivity.newIntent(context)
 
