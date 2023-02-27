@@ -1,0 +1,86 @@
+[versions]
+
+android = "7.4.1"
+kotlin = "1.8.0"
+
+sdk_min = "26"
+sdk_compile = "33"
+sdk_target = "33"
+
+androidx_activity = "1.6.1"
+androidx_constraint = "2.1.4"
+androidx_core = "1.9.0"
+androidx_fragment = "1.5.5"
+androidx_lifecycle = "2.5.1"
+androidx_navigation = "2.5.3"
+
+google_material = "1.7.0"
+
+javapoet = "1.13.0"
+hilt = "2.44.2"
+
+timber = "5.0.1"
+
+ktlint = "0.48.1"
+ktlint_gradle = "11.0.0"
+
+leakcanary = "2.10"
+
+detekt = "1.22.0"
+dokka = "1.7.20"
+benmanes = "0.44.0"
+
+
+[libraries]
+
+agp = { module = "com.android.tools.build:gradle", version.ref = "android" }
+kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+androidx_activity_ktx = { module = "androidx.activity:activity-ktx", version.ref = "androidx.activity" }
+androidx_constraint = { module = "androidx.constraintlayout:constraintlayout", version.ref = "androidx.constraint" }
+androidx_core_ktx = { module = "androidx.core:core-ktx", version.ref = "androidx.core" }
+androidx_fragment_ktx = { module = "androidx.fragment:fragment-ktx", version.ref = "androidx.fragment" }
+androidx_lifecycle_runtime_ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidx.lifecycle" }
+androidx_lifecycle_viewmodel_ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "androidx.lifecycle" }
+androidx_navigation_fragment_ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "androidx.navigation" }
+androidx_navigation_ui_ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "androidx.navigation" }
+
+google_material = { module = "com.google.android.material:material", version.ref = "google.material" }
+
+javapoet = { module = "com.squareup:javapoet", version.ref = "javapoet" }
+
+hilt_android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt_compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
+detekt = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+leakcanary = { module = "com.squareup.leakcanary:leakcanary-android", version.ref = "leakcanary" }
+
+dokka_core = { module = "org.jetbrains.dokka:dokka-core", version.ref = "dokka" }
+dokka_gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
+
+
+[bundles]
+
+androidx = [
+    "androidx.activity.ktx",
+    "androidx.constraint",
+    "androidx.core.ktx",
+    "androidx.fragment.ktx",
+    "androidx.lifecycle.runtime.ktx",
+    "androidx.lifecycle.viewmodel.ktx",
+    "androidx.navigation.fragment.ktx",
+    "androidx.navigation.ui.ktx"
+]
+
+
+[plugins]
+
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "androidx.navigation" }
+
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+ktlint = { id = "org.jlleitchuh.gradle.ktlint", version.ref = "ktlint.gradle" }
+versions = { id = "com.github.ben-manes.versions", version.ref = "benmanes" }
+
