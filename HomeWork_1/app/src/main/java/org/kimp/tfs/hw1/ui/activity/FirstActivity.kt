@@ -52,7 +52,7 @@ class FirstActivity: AppCompatActivity() {
     }
 
     private fun connectActions() {
-        binding.requestDataButton.setOnClickListener {
+        binding.nextButtonCard.requestDataButton.setOnClickListener {
             secondActivityResult.launch(
                 Intent(this, SecondActivity::class.java)
             )
