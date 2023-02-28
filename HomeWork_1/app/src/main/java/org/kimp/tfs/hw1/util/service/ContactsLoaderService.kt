@@ -6,9 +6,11 @@ import android.content.Intent
 import android.database.Cursor
 import android.os.IBinder
 import android.provider.ContactsContract
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import dagger.hilt.android.AndroidEntryPoint
 import org.kimp.tfs.hw1.HomeworkApplication
 import org.kimp.tfs.hw1.data.model.ContactInfo
+import org.kimp.tfs.hw1.util.broadcast.ContactsReceiver
 import timber.log.Timber
 import kotlin.concurrent.thread
 
@@ -34,6 +36,14 @@ class ContactsLoaderService: Service() {
 
             Timber.tag(HomeworkApplication.TAG)
                 .i("Loaded ${loadedData.size} contacts")
+
+            Intent(ContactsReceiver.ACTION)
+                .putExtra("contacts", loadedData.toTypedArray())
+                .also { intent ->
+                    LocalBroadcastManager.getInstance(this)
+                        .sendBroadcast(intent)
+                }
+            stopSelf()
         }
 
         return START_NOT_STICKY
