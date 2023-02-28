@@ -1,5 +1,6 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <resources>
     <string name="app_name">TFS HW1</string>
+    <string name="first_activity_request_data_button_text">Request data</string>
 
 </resources>
