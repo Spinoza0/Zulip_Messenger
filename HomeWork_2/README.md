@@ -22,8 +22,6 @@
 
 Ссылка на дизайн https://www.figma.com/file/cTA9Cy4ix1VjiW7MgYy5tL/TFS-ANDROID?node-id=141%3A408
 
-Ссылка на проект с кастомными view которые были сделаны на семинаре https://gitlab.com/android-tfs-mentors/tfs-spring-2022-view-viewgroup-seminar
-
 **Пожалуйста**:
 Это ваша первая домашка, которая будет частью курсовой, поэтому позаботьесь о следующем:
 - Чистота оформления build.gradle-файла (не добавляйте лишние зависимости, удаляйте ненужные)
