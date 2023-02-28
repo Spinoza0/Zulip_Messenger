@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="org.kimp.tfs.hw1">
 
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <application
         android:name=".HomeworkApplication"
         android:allowBackup="true"
