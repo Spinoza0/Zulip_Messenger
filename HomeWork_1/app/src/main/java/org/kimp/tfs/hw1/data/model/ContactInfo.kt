@@ -21,6 +21,8 @@ data class ContactInfo(
 
     override fun describeContents(): Int = 0
 
+    override fun hashCode(): Int = id.toInt()
+
     companion object CREATOR : Parcelable.Creator<ContactInfo> {
         override fun createFromParcel(parcel: Parcel): ContactInfo {
             return ContactInfo(parcel)
