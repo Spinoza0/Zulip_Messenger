@@ -2,5 +2,8 @@
 <resources>
     <string name="app_name">TFS HW1</string>
     <string name="first_activity_request_data_button_text">Request data</string>
-
+    <string name="second_activity_load_contacts_button_text">Load contacts</string>
+    <string name="contacts_permission_request_rationale">To get list of your contacts the app needs some permissions</string>
+    <string name="contacts_permission_request_grant">Grant</string>
+    <string name="contacts_permission_request_deny">Deny</string>
 </resources>

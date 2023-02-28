@@ -33,6 +33,13 @@
 
             </activity>
 
+            <service
+                android:name=".util.service.ContactsLoaderService"
+                android:enabled="true"
+                android:exported="false">
+
+            </service>
+
     </application>
 
 </manifest>
