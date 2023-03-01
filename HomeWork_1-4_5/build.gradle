@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'com.spinoza.homework_1'
-    compileSdk 33
+    compileSdk Integer.parseInt(libs.versions.compileSdk.get())
 
     defaultConfig {
         applicationId "com.spinoza.homework_1"
-        minSdk 24
-        targetSdk 33
+        minSdk Integer.parseInt(libs.versions.minSdk.get())
+        targetSdk Integer.parseInt(libs.versions.targetSdk.get())
         versionCode 1
         versionName "1.0"
 
@@ -38,19 +38,20 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.9.0'
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.8.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.core:core-ktx:' + libs.versions.androidxCore.get()
+    implementation 'androidx.appcompat:appcompat:' + libs.versions.androidxAppCompat.get()
+    implementation 'com.google.android.material:material:' + libs.versions.androidMaterial.get()
+    implementation 'androidx.constraintlayout:constraintlayout:' + libs.versions.androidxConstraintlayout.get()
 
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:' + libs.versions.kotlinxCoroutines.get()
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:' + libs.versions.kotlinxCoroutines.get()
 
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'junit:junit:' + libs.versions.junit4.get()
 
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.10'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:' + libs.versions.leakcanary.get()
 
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.5.1'
+    androidTestImplementation 'androidx.test.ext:junit:' + libs.versions.androidxTestExt.get()
+
+    androidTestImplementation 'androidx.test.espresso:espresso-core:' + libs.versions.androidxEspresso.get()
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:' + libs.versions.androidxEspresso.get()
 }
