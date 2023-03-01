@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "tfs-android-spring-2023"
 include ':HomeWork_1-4_5'
+include ':messenger-tfs'
