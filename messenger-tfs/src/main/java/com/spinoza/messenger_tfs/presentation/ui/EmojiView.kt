@@ -5,6 +5,8 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
@@ -33,9 +35,6 @@ class EmojiView @JvmOverloads constructor(
     private var fullEmoji: String = ""
     private var emojiWidth = 0f
 
-    // TODO: save state (destroy activity)
-    private var emojiIsSelected: Boolean = false
-
     private var cornerRadius = getCornerRadius()
     private val emojiPadding = EMOJI_PADDING.spToPx()
 
@@ -63,7 +62,7 @@ class EmojiView @JvmOverloads constructor(
         super.onDraw(canvas)
 
         backgroundPaint.color =
-            if (emojiIsSelected) selectedBackgroundColor else unselectedBackgroundColor
+            if (isSelected) selectedBackgroundColor else unselectedBackgroundColor
 
         backgroundRect.apply {
             left = 0f
@@ -77,14 +76,27 @@ class EmojiView @JvmOverloads constructor(
         canvas.drawText(fullEmoji, x, y, emojiPaint)
     }
 
-
-    override fun setSelected(selected: Boolean) {
-        emojiIsSelected = selected
-        invalidate()
+    override fun performClick(): Boolean {
+        isSelected = !isSelected
+        return super.performClick()
     }
 
-    override fun isSelected(): Boolean {
-        return emojiIsSelected
+    override fun onSaveInstanceState(): Parcelable {
+        val state = SavedState(super.onSaveInstanceState())
+        state.selected = isSelected
+        state.count = count
+        return state
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable) {
+        if (state is SavedState) {
+            super.onRestoreInstanceState(state)
+            isSelected = state.selected
+            count = state.count
+
+        } else {
+            super.onRestoreInstanceState(state)
+        }
     }
 
     private fun Float.spToPx(): Float {
@@ -111,6 +123,32 @@ class EmojiView @JvmOverloads constructor(
     }
 
     private fun getCornerRadius(): Float = (size * EMOJI_SCALE / CORNER_RADIUS_SCALE).spToPx()
+
+    private class SavedState : BaseSavedState, Parcelable {
+
+        var selected = false
+        var count = 0
+
+        constructor(superState: Parcelable?) : super(superState)
+
+        private constructor(source: Parcel) : super(source) {
+            selected = source.readInt() == 1
+            count = source.readInt()
+        }
+
+        override fun writeToParcel(destination: Parcel, flags: Int) {
+            super.writeToParcel(destination, flags)
+            destination.writeInt(if (selected) 1 else 0)
+            destination.writeInt(count)
+        }
+
+        override fun describeContents() = 0
+
+        companion object CREATOR : Parcelable.Creator<SavedState> {
+            override fun createFromParcel(parcel: Parcel) = SavedState(parcel)
+            override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
+        }
+    }
 
     companion object {
         private const val EMOJI_SIZE = 14f

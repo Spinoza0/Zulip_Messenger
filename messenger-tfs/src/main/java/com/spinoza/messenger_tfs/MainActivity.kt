@@ -17,14 +17,14 @@ class MainActivity : AppCompatActivity() {
         val emojiView2 = findViewById<EmojiView>(R.id.emojiView2)
         setupEmojiView(emojiView1)
         setupEmojiView(emojiView2)
+        emojiView2.size = 40f
     }
 
     private fun setupEmojiView(emojiView: EmojiView) {
         emojiView.emoji = "\uD83D\uDE0D"
         emojiView.count = 1
         emojiView.setOnClickListener {
-            //emojiView1.count++
-            emojiView.isSelected = !emojiView.isSelected()
+            emojiView.count++
         }
     }
 }
