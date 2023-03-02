@@ -10,6 +10,8 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.dpToPx
+import com.spinoza.messenger_tfs.spToPx
 
 class EmojiView @JvmOverloads constructor(
     context: Context,
@@ -36,14 +38,14 @@ class EmojiView @JvmOverloads constructor(
     private var emojiWidth = 0f
 
     private var cornerRadius = getCornerRadius()
-    private val emojiPadding = EMOJI_PADDING.spToPx()
+    private val emojiPadding = EMOJI_PADDING.dpToPx(this)
 
     private val selectedBackgroundColor = getThemeColor(R.attr.emojiViewSelectedBackgroundColor)
     private val unselectedBackgroundColor = getThemeColor(R.attr.emojiViewUnselectedBackgroundColor)
     private val textColor = getThemeColor(R.attr.emojiViewTextColor)
 
     private val emojiPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = size.spToPx()
+        textSize = size.spToPx(this@EmojiView)
         color = textColor
         textAlign = Paint.Align.CENTER
     }
@@ -52,7 +54,7 @@ class EmojiView @JvmOverloads constructor(
     private val backgroundRect = RectF()
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val emojiHeight = (size * EMOJI_SCALE).spToPx()
+        val emojiHeight = (size * EMOJI_SCALE).spToPx(this)
         val width = resolveSize(emojiWidth.toInt(), widthMeasureSpec)
         val height = resolveSize(emojiHeight.toInt(), heightMeasureSpec)
         setMeasuredDimension(width, height)
@@ -99,14 +101,6 @@ class EmojiView @JvmOverloads constructor(
         }
     }
 
-    private fun Float.spToPx(): Float {
-        return TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_SP,
-            this,
-            resources.displayMetrics
-        )
-    }
-
     private fun getThemeColor(attr: Int): Int {
         val typedValue = TypedValue()
         context.theme.resolveAttribute(attr, typedValue, true)
@@ -115,13 +109,14 @@ class EmojiView @JvmOverloads constructor(
 
     private fun updateEmoji() {
         fullEmoji = "$emoji $count"
-        emojiPaint.textSize = size.spToPx()
+        emojiPaint.textSize = size.spToPx(this)
         cornerRadius = getCornerRadius()
         emojiWidth = emojiPadding + emojiPaint.measureText(fullEmoji) + emojiPadding
         requestLayout()
     }
 
-    private fun getCornerRadius(): Float = (size * EMOJI_SCALE / CORNER_RADIUS_SCALE).spToPx()
+    private fun getCornerRadius(): Float =
+        (size * EMOJI_SCALE / CORNER_RADIUS_SCALE).dpToPx(this)
 
     private class SavedState : BaseSavedState, Parcelable {
 
@@ -149,10 +144,10 @@ class EmojiView @JvmOverloads constructor(
         }
     }
 
-    companion object {
-        private const val EMOJI_SIZE = 14f
-        private const val CORNER_RADIUS_SCALE = 3f
-        private const val EMOJI_SCALE = 2f
-        private const val EMOJI_PADDING = EMOJI_SIZE
+    private companion object {
+        const val EMOJI_SIZE = 14f
+        const val CORNER_RADIUS_SCALE = 3f
+        const val EMOJI_SCALE = 2f
+        const val EMOJI_PADDING = EMOJI_SIZE
     }
 }
