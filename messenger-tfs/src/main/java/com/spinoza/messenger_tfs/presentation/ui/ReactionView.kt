@@ -58,10 +58,14 @@ class ReactionView @JvmOverloads constructor(
             count = this.getInt(R.styleable.EmojiView_count, 0)
             size = this.getFloat(R.styleable.EmojiView_size, EMOJI_SIZE)
         }
-        val newPaddingLeft = max(paddingLeft, DEFAULT_HORIZONTAL_PADDING)
-        val newPaddingRight = max(paddingLeft, DEFAULT_HORIZONTAL_PADDING)
-        val newPaddingTop = max(paddingLeft, DEFAULT_VERTICAL_PADDING)
-        val newPaddingBottom = max(paddingLeft, DEFAULT_VERTICAL_PADDING)
+        val newPaddingLeft =
+            max(paddingLeft, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
+        val newPaddingRight =
+            max(paddingLeft, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
+        val newPaddingTop =
+            max(paddingLeft, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
+        val newPaddingBottom =
+            max(paddingLeft, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
         setPadding(newPaddingLeft, newPaddingTop, newPaddingRight, newPaddingBottom)
     }
 
@@ -91,7 +95,7 @@ class ReactionView @JvmOverloads constructor(
         )
 
         val offsetX = width.toFloat() / 2
-        val offsetY = height/2 - textBounds.exactCenterY()
+        val offsetY = height / 2 - textBounds.exactCenterY()
 
         canvas.drawText(reaction, offsetX, offsetY, reactionPaint)
     }
@@ -165,7 +169,7 @@ class ReactionView @JvmOverloads constructor(
         const val EMOJI_SIZE = 14f
         const val CORNER_RADIUS_SCALE = 3f
         const val EMOJI_SCALE = 2
-        const val DEFAULT_HORIZONTAL_PADDING = EMOJI_SIZE.toInt()
-        const val DEFAULT_VERTICAL_PADDING = (EMOJI_SIZE / EMOJI_SCALE).toInt()
+        const val DEFAULT_HORIZONTAL_PADDING = EMOJI_SIZE
+        const val DEFAULT_VERTICAL_PADDING = EMOJI_SIZE / EMOJI_SCALE
     }
 }
