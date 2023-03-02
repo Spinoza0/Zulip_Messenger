@@ -11,9 +11,9 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- EmojiView colors -->
-        <item name="emojiViewSelectedBackgroundColor">@color/emojiViewSelectedBackgroundColor</item>
-        <item name="emojiViewUnselectedBackgroundColor">@color/emojiViewUnselectedBackgroundColor</item>
-        <item name="emojiViewTextColor">@color/emojiViewTextColor</item>
+        <!-- ReactionView colors -->
+        <item name="reaction_selected_background_color">@color/reaction_selected_background</item>
+        <item name="reaction_unselected_background_color">@color/reaction_unselected_background</item>
+        <item name="reaction_text_color">@color/reaction_text</item>
     </style>
 </resources>

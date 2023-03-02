@@ -3,18 +3,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     android:padding="8dp"
     tools:context=".MainActivity">
 
-    <com.spinoza.messenger_tfs.presentation.ui.EmojiView
-        android:id="@+id/emojiView1"
+    <com.spinoza.messenger_tfs.presentation.ui.ReactionView
+        android:id="@+id/emojiView"
+        app:emoji="😀"
+        app:count="15"
+        app:size="40"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="16dp"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"/>
 
-    <com.spinoza.messenger_tfs.presentation.ui.EmojiView
-        android:id="@+id/emojiView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
+        android:id="@+id/flexBoxLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>

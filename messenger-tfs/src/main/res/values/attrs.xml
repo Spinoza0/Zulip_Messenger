@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="EmojiView">
-        <attr name="emojiViewSelectedBackgroundColor" format="color"/>
-        <attr name="emojiViewUnselectedBackgroundColor" format="color"/>
-        <attr name="emojiViewTextColor" format="color"/>
+        <attr name="reaction_selected_background_color" format="color" />
+        <attr name="reaction_unselected_background_color" format="color" />
+        <attr name="reaction_text_color" format="color" />
+        <attr name="emoji" format="string" />
+        <attr name="count" format="integer" />
+        <attr name="size" format="float" />
     </declare-styleable>
 </resources>

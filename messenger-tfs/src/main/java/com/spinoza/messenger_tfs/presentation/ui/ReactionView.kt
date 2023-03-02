@@ -3,17 +3,19 @@ package com.spinoza.messenger_tfs.presentation.ui
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.RectF
+import android.graphics.Rect
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.dpToPx
 import com.spinoza.messenger_tfs.spToPx
+import kotlin.math.max
 
-class EmojiView @JvmOverloads constructor(
+class ReactionView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
@@ -22,41 +24,53 @@ class EmojiView @JvmOverloads constructor(
     var emoji = ""
         set(value) {
             field = value
-            updateEmoji()
+            makeReaction()
         }
     var count = 0
         set(value) {
             field = value
-            updateEmoji()
+            makeReaction()
         }
-    var size = EMOJI_SIZE
+    var size = 0f
         set(value) {
             field = value
-            updateEmoji()
+            makeReaction()
         }
-    private var fullEmoji: String = ""
-    private var emojiWidth = 0f
-
+    private var reaction = ""
     private var cornerRadius = getCornerRadius()
-    private val emojiPadding = EMOJI_PADDING.dpToPx(this)
 
-    private val selectedBackgroundColor = getThemeColor(R.attr.emojiViewSelectedBackgroundColor)
-    private val unselectedBackgroundColor = getThemeColor(R.attr.emojiViewUnselectedBackgroundColor)
-    private val textColor = getThemeColor(R.attr.emojiViewTextColor)
+    private val selectedBackgroundColor = getThemeColor(R.attr.reaction_selected_background_color)
+    private val unselectedBackgroundColor =
+        getThemeColor(R.attr.reaction_unselected_background_color)
+    private val textColor = getThemeColor(R.attr.reaction_text_color)
 
-    private val emojiPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = size.spToPx(this@EmojiView)
+    private val reactionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = textColor
         textAlign = Paint.Align.CENTER
     }
 
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val backgroundRect = RectF()
+    private val textBounds = Rect()
+
+    init {
+        context.withStyledAttributes(attrs, R.styleable.EmojiView) {
+            emoji = this.getString(R.styleable.EmojiView_emoji) ?: ""
+            count = this.getInt(R.styleable.EmojiView_count, 0)
+            size = this.getFloat(R.styleable.EmojiView_size, EMOJI_SIZE)
+        }
+        val newPaddingLeft = max(paddingLeft, DEFAULT_HORIZONTAL_PADDING)
+        val newPaddingRight = max(paddingLeft, DEFAULT_HORIZONTAL_PADDING)
+        val newPaddingTop = max(paddingLeft, DEFAULT_VERTICAL_PADDING)
+        val newPaddingBottom = max(paddingLeft, DEFAULT_VERTICAL_PADDING)
+        setPadding(newPaddingLeft, newPaddingTop, newPaddingRight, newPaddingBottom)
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val emojiHeight = (size * EMOJI_SCALE).spToPx(this)
-        val width = resolveSize(emojiWidth.toInt(), widthMeasureSpec)
-        val height = resolveSize(emojiHeight.toInt(), heightMeasureSpec)
+        reactionPaint.getTextBounds(reaction, 0, reaction.length, textBounds)
+        val textWidth = textBounds.width()
+        val textHeight = textBounds.height()
+        val width = resolveSize(textWidth + paddingLeft + paddingRight, widthMeasureSpec)
+        val height = resolveSize(textHeight + paddingTop + paddingBottom, heightMeasureSpec)
         setMeasuredDimension(width, height)
     }
 
@@ -66,16 +80,20 @@ class EmojiView @JvmOverloads constructor(
         backgroundPaint.color =
             if (isSelected) selectedBackgroundColor else unselectedBackgroundColor
 
-        backgroundRect.apply {
-            left = 0f
-            top = 0f
-            right = width.toFloat()
-            bottom = height.toFloat()
-        }
-        canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, backgroundPaint)
-        val x = width.toFloat() / EMOJI_SCALE
-        val y = (height - (emojiPaint.descent() + emojiPaint.ascent())) / EMOJI_SCALE
-        canvas.drawText(fullEmoji, x, y, emojiPaint)
+        canvas.drawRoundRect(
+            0f,
+            0f,
+            width.toFloat(),
+            height.toFloat(),
+            cornerRadius,
+            cornerRadius,
+            backgroundPaint
+        )
+
+        val offsetX = width.toFloat() / 2
+        val offsetY = height/2 - textBounds.exactCenterY()
+
+        canvas.drawText(reaction, offsetX, offsetY, reactionPaint)
     }
 
     override fun performClick(): Boolean {
@@ -107,11 +125,10 @@ class EmojiView @JvmOverloads constructor(
         return typedValue.data
     }
 
-    private fun updateEmoji() {
-        fullEmoji = "$emoji $count"
-        emojiPaint.textSize = size.spToPx(this)
+    private fun makeReaction() {
+        reaction = "$emoji $count"
+        reactionPaint.textSize = size.spToPx(this)
         cornerRadius = getCornerRadius()
-        emojiWidth = emojiPadding + emojiPaint.measureText(fullEmoji) + emojiPadding
         requestLayout()
     }
 
@@ -147,7 +164,8 @@ class EmojiView @JvmOverloads constructor(
     private companion object {
         const val EMOJI_SIZE = 14f
         const val CORNER_RADIUS_SCALE = 3f
-        const val EMOJI_SCALE = 2f
-        const val EMOJI_PADDING = EMOJI_SIZE
+        const val EMOJI_SCALE = 2
+        const val DEFAULT_HORIZONTAL_PADDING = EMOJI_SIZE.toInt()
+        const val DEFAULT_VERTICAL_PADDING = (EMOJI_SIZE / EMOJI_SCALE).toInt()
     }
 }
