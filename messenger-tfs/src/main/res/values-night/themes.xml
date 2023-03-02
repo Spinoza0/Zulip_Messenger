@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Theme.Tfsandroidspring2023" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
@@ -11,6 +11,9 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+        <!-- EmojiView colors -->
+        <item name="emojiViewSelectedBackgroundColor">@color/emojiViewSelectedBackgroundColorNight</item>
+        <item name="emojiViewUnselectedBackgroundColor">@color/emojiViewUnselectedBackgroundColorNight</item>
+        <item name="emojiViewTextColor">@color/emojiViewTextColorNight</item>
     </style>
 </resources>

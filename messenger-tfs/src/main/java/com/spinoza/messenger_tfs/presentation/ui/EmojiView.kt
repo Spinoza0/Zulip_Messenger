@@ -2,7 +2,6 @@ package com.spinoza.messenger_tfs.presentation.ui
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.os.Parcel
@@ -10,6 +9,7 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import com.spinoza.messenger_tfs.R
 
 class EmojiView @JvmOverloads constructor(
     context: Context,
@@ -38,9 +38,9 @@ class EmojiView @JvmOverloads constructor(
     private var cornerRadius = getCornerRadius()
     private val emojiPadding = EMOJI_PADDING.spToPx()
 
-    private val selectedBackgroundColor = Color.parseColor("#3A3A3A")
-    private val unselectedBackgroundColor = Color.parseColor("#1C1C1C")
-    private val textColor = Color.parseColor("#CCCCCC")
+    private val selectedBackgroundColor = getThemeColor(R.attr.emojiViewSelectedBackgroundColor)
+    private val unselectedBackgroundColor = getThemeColor(R.attr.emojiViewUnselectedBackgroundColor)
+    private val textColor = getThemeColor(R.attr.emojiViewTextColor)
 
     private val emojiPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = size.spToPx()
@@ -107,7 +107,6 @@ class EmojiView @JvmOverloads constructor(
         )
     }
 
-    // TODO: add theme support
     private fun getThemeColor(attr: Int): Int {
         val typedValue = TypedValue()
         context.theme.resolveAttribute(attr, typedValue, true)
