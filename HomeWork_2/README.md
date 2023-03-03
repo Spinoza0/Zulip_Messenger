@@ -21,6 +21,7 @@
 - Emoji-реакции(FlexBoxLayout с кастомными вьюхами внутри)
 
 Ссылка на дизайн https://www.figma.com/file/cTA9Cy4ix1VjiW7MgYy5tL/TFS-ANDROID?node-id=141%3A408
+
 Репозиторий семинара https://gitlab.com/android-tfs-mentors/tfs-android-spring-2023-view-viewgroup-seminar/
 
 **Пожалуйста**:
