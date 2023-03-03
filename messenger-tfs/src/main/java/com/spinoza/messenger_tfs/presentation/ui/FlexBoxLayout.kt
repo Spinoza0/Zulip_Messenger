@@ -5,13 +5,15 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.*
-import kotlin.math.max
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr) {
+
+    // TODO: work with onAddButtonListener
+    var onAddButtonListener: (() -> Unit)? = null
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         processChildren(
@@ -35,7 +37,6 @@ class FlexBoxLayout @JvmOverloads constructor(
         )
     }
 
-    // TODO: zero margin support
     private fun processChildren(
         layoutWidth: Int,
         parentWidthMeasureSpec: Int,
@@ -44,61 +45,91 @@ class FlexBoxLayout @JvmOverloads constructor(
         setChildDimension: ((Int, Int) -> Unit)? = null,
         childLayout: ((View, Int, Int, Int, Int) -> Unit)? = null,
     ) {
-        val leftDeltaX = marginLeft + paddingLeft
-        val rightDeltaX = marginRight + paddingRight
-        val startDeltaY = marginTop + paddingTop
-
-        var offsetX = leftDeltaX
-        var offsetY = startDeltaY
-        var rowHeight = 0
-
-        var maxWidth = 0
-        var maxHeight = 0
+        // val offset = Offset()
+        var rowHeight: Int = 0
+        var maxHeight: Int = 0
+        var maxWidth: Int = 0
+        val leftDeltaX: Int = marginLeft + paddingLeft
+        val topDeltaY: Int = marginTop + paddingTop
+        val rightDeltaX: Int = marginRight + paddingRight
+        var offsetX: Int = leftDeltaX
+        var offsetY: Int = topDeltaY
 
         children.forEach { child ->
             if (child.visibility != View.GONE) {
+
                 prepareChildSize?.let {
                     prepareChildSize(
                         child,
                         parentWidthMeasureSpec,
-                        offsetX,
+                        0,
                         parentHeightMeasureSpec,
                         offsetY
+                        //offset.y
                     )
+                    val maxChildWidth = getChildWidth(child)
+                    prepareChildSize(
+                        child,
+                        parentWidthMeasureSpec,
+                        offsetX,
+                        // offset.x,
+                        parentHeightMeasureSpec,
+                        offsetY
+                        //offset.y
+                    )
+
+                    if (getChildWidth(child) < maxChildWidth) {
+                        offsetX = leftDeltaX
+                        val deltaY = rowHeight + marginTop
+                        offsetY += deltaY
+                        maxHeight += deltaY
+                        rowHeight = getChildHeight(child)
+                        //offset.moveToNextLine(getChildHeight(child))
+                        prepareChildSize(
+                            child,
+                            parentWidthMeasureSpec,
+                            offsetX,
+                            //offset.x,
+                            parentHeightMeasureSpec,
+                            offsetY
+                            //offset.y
+                        )
+                    }
                 }
+
                 val childWidth = getChildWidth(child)
                 val childHeight = getChildHeight(child)
-
                 if (offsetX + childWidth + rightDeltaX > layoutWidth) {
+                    //if (offset.x + childWidth + offset.rightDeltaX > layoutWidth) {
                     offsetX = leftDeltaX
                     val deltaY = rowHeight + marginTop
                     offsetY += deltaY
                     maxHeight += deltaY
                     rowHeight = childHeight
+//                    offset.moveToNextLine(childHeight)
                 } else {
-                    rowHeight = max(rowHeight, childHeight)
+                    rowHeight = maxOf(rowHeight, childHeight)
+//                    offset.updateRowHeight(childHeight)
                 }
 
-                childLayout?.let {
-                    childLayout(
-                        child,
-                        offsetX,
-                        offsetY,
-                        offsetX + childWidth,
-                        offsetY + childHeight
-                    )
+                childLayout?.let { draw ->
+                    draw(child, offsetX, offsetY, offsetX + childWidth, offsetY + childHeight)
+//                    draw(child, offset.x, offset.y, offset.x + childWidth, offset.y + childHeight)
                 }
                 offsetX += childWidth + marginRight
-                maxWidth = max(maxWidth, offsetX)
+                maxWidth = maxOf(maxWidth, offsetX)
+//                offset.increaseX(childWidth)
             }
         }
 
         setChildDimension?.let {
-            maxHeight +=
-                rowHeight + marginTop + paddingTop + paddingBottom + paddingTop + paddingBottom
-            maxWidth += paddingLeft + paddingRight + marginLeft + marginRight
+            maxHeight += marginTop + marginBottom + paddingTop + paddingBottom + rowHeight
+            maxWidth += marginLeft + marginRight + paddingLeft + paddingRight
             val width = resolveSize(maxWidth, parentWidthMeasureSpec)
             val height = resolveSize(maxHeight, parentHeightMeasureSpec)
+//            offset.addBounds()
+//            val width = resolveSize(offset.maxWidth, parentWidthMeasureSpec)
+//            val height = resolveSize(offset.maxHeight, parentHeightMeasureSpec)
             setChildDimension(width, height)
         }
     }
@@ -121,8 +152,39 @@ class FlexBoxLayout @JvmOverloads constructor(
         return MarginLayoutParams(p)
     }
 
-    private companion object {
-        const val MARGIN_VERTICAL = 7f
-        const val MARGIN_HORIZONTAL = 10f
-    }
+//    private inner class Offset(
+//        private var rowHeight: Int = 0,
+//        private var _maxHeight: Int = 0,
+//        private var _maxWidth: Int = 0,
+//        private val leftDeltaX: Int = marginLeft + paddingLeft,
+//        private val topDeltaY: Int = marginTop + paddingTop,
+//        val rightDeltaX: Int = marginRight + paddingRight,
+//        var x: Int = leftDeltaX,
+//        var y: Int = topDeltaY,
+//        val maxHeight: Int = _maxHeight,
+//        val maxWidth: Int = _maxWidth,
+//    ) {
+//
+//        fun moveToNextLine(newRowHeight: Int) {
+//            x = leftDeltaX
+//            val deltaY = rowHeight + marginTop
+//            y += deltaY
+//            _maxHeight += deltaY
+//            rowHeight = newRowHeight
+//        }
+//
+//        fun updateRowHeight(newRowHeight: Int) {
+//            rowHeight = maxOf(rowHeight, newRowHeight)
+//        }
+//
+//        fun increaseX(offsetWidth: Int) {
+//            x += offsetWidth + marginRight
+//            _maxWidth = maxOf(_maxWidth, x)
+//        }
+//
+//        fun addBounds() {
+//            _maxHeight += marginTop + marginBottom + paddingTop + paddingBottom + rowHeight
+//            _maxWidth += marginLeft + marginRight + paddingLeft + paddingRight
+//        }
+//    }
 }

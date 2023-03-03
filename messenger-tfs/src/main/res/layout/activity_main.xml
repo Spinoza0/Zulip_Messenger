@@ -1,25 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
-    android:padding="8dp"
     tools:context=".MainActivity">
 
     <com.spinoza.messenger_tfs.presentation.ui.ReactionView
         android:id="@+id/emojiView"
-        app:emoji="😀"
-        app:count="15"
-        app:size="40"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        app:count="15"
+        app:emoji="😀"
+        app:size="40" />
 
     <com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
         android:id="@+id/flexBoxLayout"
         android:layout_width="match_parent"
-        android:layout_margin="10dp"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp" />
+
+    <com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
+        android:id="@+id/flexBoxLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.spinoza.messenger_tfs.presentation.ui.ReactionView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:count="7"
+            app:emoji="😀" />
+
+    </com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout>
 
 </LinearLayout>
