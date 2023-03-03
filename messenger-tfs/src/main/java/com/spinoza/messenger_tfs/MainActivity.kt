@@ -18,7 +18,8 @@ class MainActivity : AppCompatActivity() {
     private fun test() {
 
         val messageLayout = findViewById<MessageLayout>(R.id.messageLayout)
-        val layoutParams = messageLayout.layoutParams as ViewGroup.MarginLayoutParams
+        val layoutParams =
+            messageLayout.layoutParams as ViewGroup.MarginLayoutParams
         val margin = 8f.dpToPx(messageLayout).toInt()
         layoutParams.setMargins(margin, margin, margin, margin)
         messageLayout.layoutParams = layoutParams
@@ -26,9 +27,10 @@ class MainActivity : AppCompatActivity() {
             messageLayout.reactionsGroup.addView(testGetReaction())
         }
         messageLayout.avatarResId = R.drawable.face
-        messageLayout.name = "Martin"
+        messageLayout.name = "John Dow"
         messageLayout.message =
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus."
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus." +
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus."
     }
 
     private fun testGetReaction(): ReactionView {

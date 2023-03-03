@@ -14,7 +14,6 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.dpToPx
 import com.spinoza.messenger_tfs.getThemeColor
 import com.spinoza.messenger_tfs.spToPx
-import kotlin.math.max
 
 class ReactionView @JvmOverloads constructor(
     context: Context,
@@ -25,7 +24,7 @@ class ReactionView @JvmOverloads constructor(
 
     private var reaction = ""
     private var cornerRadius = getCornerRadius()
-    private val symbolAdd = "\u2795"
+    private val symbolAdd = context.getString(R.string.symbol_add)
 
     var emoji = ""
         set(value) {
@@ -68,13 +67,13 @@ class ReactionView @JvmOverloads constructor(
             size = this.getFloat(R.styleable.EmojiView_size, EMOJI_SIZE)
         }
         val newPaddingLeft =
-            max(paddingLeft, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
+            maxOf(paddingLeft, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
         val newPaddingRight =
-            max(paddingLeft, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
+            maxOf(paddingLeft, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
         val newPaddingTop =
-            max(paddingLeft, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
+            maxOf(paddingLeft, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
         val newPaddingBottom =
-            max(paddingLeft, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
+            maxOf(paddingLeft, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
         setPadding(newPaddingLeft, newPaddingTop, newPaddingRight, newPaddingBottom)
         isClickable = true
     }

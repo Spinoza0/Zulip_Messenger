@@ -2,7 +2,6 @@ package com.spinoza.messenger_tfs.presentation.ui
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -10,10 +9,7 @@ import android.widget.TextView
 import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
 import androidx.core.view.marginTop
-import androidx.core.view.setMargins
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.dpToPx
-import com.spinoza.messenger_tfs.getThemeColor
 
 class MessageLayout @JvmOverloads constructor(
     context: Context,
@@ -25,6 +21,7 @@ class MessageLayout @JvmOverloads constructor(
     private val avatarImage: ImageView
     private val nameView: TextView
     private val messageView: TextView
+    val reactionsGroup: FlexBoxLayout
 
     var avatarResId: Int = 0
         set(value) {
@@ -36,30 +33,16 @@ class MessageLayout @JvmOverloads constructor(
         set(value) {
             field = value
             nameView.text = value
-            setTextParams(nameView, field, NAME_SIZE, nameColor, true)
         }
 
     var message: String = ""
         set(value) {
             field = value
-            setTextParams(messageView, field, MESSAGE_SIZE, textColor, false)
+            messageView.text = value
         }
 
-    private val messagePaddingLeft = MESSAGE_PADDING_LEFT.dpToPx(this).toInt()
-    private val messagePaddingRight = MESSAGE_PADDING_RIGHT.dpToPx(this).toInt()
-    private val messagePaddingVertical = MESSAGE_PADDING_VERTICAL.dpToPx(this).toInt()
-    private val reactionsMarginTop = REACTIONS_MARGIN_TOP.dpToPx(this).toInt()
-    private val avatarMarginRight = AVATAR_MARGIN_RIGHT.dpToPx(this).toInt()
-    private val namePaddingBottom = NAME_PADDING_BOTTOM.dpToPx(this).toInt()
     private var offsetX = 0
     private var offsetY = 0
-
-    val reactionsGroup = FlexBoxLayout(context).apply {
-        val newLayoutParams =
-            MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-        newLayoutParams.setMargins(0, reactionsMarginTop, 0, 0)
-        layoutParams = newLayoutParams
-    }
 
     var onReactionAddClickListener: (() -> Unit)? = null
         set(value) {
@@ -67,14 +50,12 @@ class MessageLayout @JvmOverloads constructor(
             reactionsGroup.onIconAddClickListener = value
         }
 
-    private val nameColor = getThemeColor(context, R.attr.message_name_color)
-    private val textColor = getThemeColor(context, R.attr.message_text_color)
-
     init {
         inflate(context, R.layout.message_layout, this)
         avatarImage = findViewById(R.id.avatar)
         nameView = findViewById(R.id.name)
         messageView = findViewById(R.id.message)
+        reactionsGroup = findViewById(R.id.reactions)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -110,7 +91,6 @@ class MessageLayout @JvmOverloads constructor(
         layoutFunc?.let { layoutFunc(messageView) }
 
         textWidth = maxOf(textWidth, messageView.measuredWidth)
-        offsetX -= messagePaddingLeft
         offsetY += messageView.measuredHeight
         measureFunc?.let {
             measureFunc(reactionsGroup, widthMeasureSpec, heightMeasureSpec)
@@ -139,45 +119,9 @@ class MessageLayout @JvmOverloads constructor(
         measureChildWithMargins(view, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
     }
 
-    private fun setTextParams(
-        textView: TextView,
-        text: String,
-        size: Float,
-        color: Int,
-        isName: Boolean,
-    ) {
-        val layoutParams = MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-        if (isName) {
-            textView.setPadding(
-                messagePaddingLeft,
-                messagePaddingVertical,
-                messagePaddingRight,
-                namePaddingBottom
-            )
-        } else {
-            textView.setPadding(
-                messagePaddingLeft,
-                0,
-                messagePaddingRight,
-                messagePaddingVertical
-            )
-        }
-        layoutParams.setMargins(0)
-        textView.setTextColor(color)
-        textView.layoutParams = layoutParams
-        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, size)
-        textView.text = text
-    }
-
     private fun setAvatarParams() {
-        val size = AVATAR_SIZE.dpToPx(this).toInt()
-        val layoutParams = MarginLayoutParams(size, size)
-        layoutParams.setMargins(0, 0, avatarMarginRight, 0)
-        avatarImage.layoutParams = layoutParams
-        avatarImage.scaleType = ImageView.ScaleType.CENTER_CROP
         avatarImage.setImageResource(avatarResId)
     }
-
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
         return MarginLayoutParams(context, attrs)
@@ -193,17 +137,5 @@ class MessageLayout @JvmOverloads constructor(
 
     override fun checkLayoutParams(p: LayoutParams): Boolean {
         return p is MarginLayoutParams
-    }
-
-    private companion object {
-        const val AVATAR_SIZE = 37f
-        const val AVATAR_MARGIN_RIGHT = 9f
-        const val NAME_SIZE = 14f
-        const val NAME_PADDING_BOTTOM = 4f
-        const val MESSAGE_SIZE = 16f
-        const val MESSAGE_PADDING_LEFT = 13f
-        const val MESSAGE_PADDING_RIGHT = 13f
-        const val MESSAGE_PADDING_VERTICAL = 8f
-        const val REACTIONS_MARGIN_TOP = 7f
     }
 }

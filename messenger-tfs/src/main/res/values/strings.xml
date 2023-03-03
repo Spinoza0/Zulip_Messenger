@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Messenger-TFS</string>
+
+    <!-- MessageLayout -->
     <string name="avatar">Avatar</string>
+
+    <!-- FlexBoxLayout -->
+    <string name="symbol_add">\u2795</string>
+
 </resources>
