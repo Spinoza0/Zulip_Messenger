@@ -22,18 +22,18 @@ class MainActivity : AppCompatActivity() {
         layoutParams.setMargins(margin, margin, margin, margin)
         flexBoxLayout.layoutParams = layoutParams
         flexBoxLayout.onIconAddClickListener = {
-
+            flexBoxLayout.addView(testGetReaction())
         }
-        repeat(25) {
-            val reaction = ReactionView(this)
-            reaction.emoji = "\uD83D\uDE0D"
-            reaction.count = 1
-            //reaction.size = Random.nextInt(14, 24).toFloat()
-            reaction.setOnClickListener {
-                reaction.count++
-            }
+    }
 
-            flexBoxLayout.addView(reaction)
+    private fun testGetReaction(): ReactionView {
+        val reaction = ReactionView(this)
+        reaction.emoji = "\uD83D\uDE0D"
+        reaction.count = 1
+        reaction.size = Random.nextInt(14, 24).toFloat()
+        reaction.setOnClickListener {
+            reaction.count++
         }
+        return reaction
     }
 }

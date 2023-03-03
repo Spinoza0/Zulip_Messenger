@@ -8,6 +8,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.dpToPx
@@ -21,6 +22,10 @@ class ReactionView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0,
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
+
+    private var reaction = ""
+    private var cornerRadius = getCornerRadius()
+    private val symbolAdd = "\u2795"
 
     var emoji = ""
         set(value) {
@@ -37,9 +42,6 @@ class ReactionView @JvmOverloads constructor(
             field = value
             makeReaction()
         }
-    private var reaction = ""
-    private var cornerRadius = getCornerRadius()
-    private val symbolAdd = "+"// "\u2795"
     var isAddSymbol = false
         set(value) {
             field = value
@@ -56,7 +58,6 @@ class ReactionView @JvmOverloads constructor(
     private val reactionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
     }
-
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textBounds = Rect()
 
@@ -75,6 +76,16 @@ class ReactionView @JvmOverloads constructor(
         val newPaddingBottom =
             max(paddingLeft, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
         setPadding(newPaddingLeft, newPaddingTop, newPaddingRight, newPaddingBottom)
+        isClickable = true
+    }
+
+    fun copyBoundsFrom(source: View) {
+        if (source.layoutParams is MarginLayoutParams) {
+            layoutParams = source.layoutParams
+            if (source is ReactionView) {
+                size = source.size
+            }
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -110,7 +121,6 @@ class ReactionView @JvmOverloads constructor(
 
         val offsetX = width.toFloat() / 2
         val offsetY = height / 2 - textBounds.exactCenterY()
-
         canvas.drawText(reaction, offsetX, offsetY, reactionPaint)
     }
 
@@ -146,8 +156,7 @@ class ReactionView @JvmOverloads constructor(
         requestLayout()
     }
 
-    private fun getCornerRadius(): Float =
-        (size * EMOJI_SCALE / CORNER_RADIUS_SCALE).dpToPx(this)
+    private fun getCornerRadius(): Float = CORNER_RADIUS.dpToPx(this)
 
     private class SavedState : BaseSavedState, Parcelable {
 
@@ -180,7 +189,7 @@ class ReactionView @JvmOverloads constructor(
 
     private companion object {
         const val EMOJI_SIZE = 14f
-        const val CORNER_RADIUS_SCALE = 3f
+        const val CORNER_RADIUS = 10f
         const val EMOJI_SCALE = 2
         const val DEFAULT_HORIZONTAL_PADDING = EMOJI_SIZE
         const val DEFAULT_VERTICAL_PADDING = EMOJI_SIZE / EMOJI_SCALE

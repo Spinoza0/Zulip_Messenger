@@ -13,30 +13,39 @@ class FlexBoxLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr) {
 
+    private val offset = Offset()
+
     var onIconAddClickListener: (() -> Unit)? = null
         set(value) {
-            field = value
-            requestLayout()
+            if (field == null) {
+                if (value != null) {
+                    addView(symbolAdd)
+                }
+                field = value
+            } else if (value != null) {
+                field = value
+            } else {
+                removeViewAt(childCount - 1)
+            }
         }
-
-    private val offset = Offset()
 
     private val symbolAdd =
         ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
             isAddSymbol = true
         }
-// {       val width = ICON_SIZE.dpToPx(this).toInt() * 3
-//        layoutParams = MarginLayoutParams(width, width)
-//        layoutParams.width = width * 2
-//        val unselectedBackgroundColor =
-//            getThemeColor(context, R.attr.reaction_unselected_background_color)
-//        val addColor = getThemeColor(context, R.attr.reaction_add_color)
-//        setBackgroundColor(unselectedBackgroundColor)
-//        setColorFilter(addColor)
-//}
 
     init {
-        addView(symbolAdd)
+        if (onIconAddClickListener != null) {
+            addView(symbolAdd)
+        }
+    }
+
+    override fun addView(child: View) {
+        if (onIconAddClickListener != null)
+            super.addView(child, childCount - 1)
+        else {
+            super.addView(child)
+        }
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
@@ -45,11 +54,6 @@ class FlexBoxLayout @JvmOverloads constructor(
         ) { child, left, top, right, bottom ->
             child.layout(left, top, right, bottom)
         }
-    }
-
-    override fun addView(child: View) {
-        super.addView(child, childCount)
-        //        super.addView(iconAdd)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -72,10 +76,15 @@ class FlexBoxLayout @JvmOverloads constructor(
         drawChild: ((View, Int, Int, Int, Int) -> Unit)? = null,
     ) {
         offset.reset()
-        var lastHeight = 0
         children.forEachIndexed { index, child ->
             if (child.visibility != View.GONE) {
                 if (makeMeasure) {
+                    if (onIconAddClickListener != null &&
+                        childCount > 1 &&
+                        childCount - 1 == index
+                    ) {
+                        symbolAdd.copyBoundsFrom(getChildAt(index - 1))
+                    }
                     makeChildMeasure(child, widthMeasureSpec, heightMeasureSpec)
                 }
                 processChild(child, layoutWidth, drawChild)
@@ -217,9 +226,5 @@ class FlexBoxLayout @JvmOverloads constructor(
             _maxHeight += marginTop + marginBottom + paddingTop + paddingBottom + rowHeight
             _maxWidth += marginLeft + marginRight + paddingLeft + paddingRight
         }
-    }
-
-    private companion object {
-        const val ICON_SIZE = 14f
     }
 }
