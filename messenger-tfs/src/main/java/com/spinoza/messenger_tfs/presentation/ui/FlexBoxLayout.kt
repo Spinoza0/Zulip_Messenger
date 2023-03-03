@@ -11,7 +11,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0,
-) : ViewGroup(context, attrs, defStyleAttr) {
+) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     private val offset = Offset()
 
