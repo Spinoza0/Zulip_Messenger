@@ -19,7 +19,8 @@ class ReactionView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-) : View(context, attrs, defStyleAttr) {
+    defStyleRes: Int = 0,
+) : View(context, attrs, defStyleAttr, defStyleRes) {
 
     var emoji = ""
         set(value) {
