@@ -7,11 +7,11 @@ import android.graphics.Rect
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
-import android.util.TypedValue
 import android.view.View
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.dpToPx
+import com.spinoza.messenger_tfs.getThemeColor
 import com.spinoza.messenger_tfs.spToPx
 import kotlin.math.max
 
@@ -39,14 +39,21 @@ class ReactionView @JvmOverloads constructor(
         }
     private var reaction = ""
     private var cornerRadius = getCornerRadius()
+    private val symbolAdd = "+"// "\u2795"
+    var isAddSymbol = false
+        set(value) {
+            field = value
+            makeReaction()
+        }
 
-    private val selectedBackgroundColor = getThemeColor(R.attr.reaction_selected_background_color)
+    private val selectedBackgroundColor =
+        getThemeColor(context, R.attr.reaction_selected_background_color)
     private val unselectedBackgroundColor =
-        getThemeColor(R.attr.reaction_unselected_background_color)
-    private val textColor = getThemeColor(R.attr.reaction_text_color)
+        getThemeColor(context, R.attr.reaction_unselected_background_color)
+    private val textColorEmoji = getThemeColor(context, R.attr.reaction_text_color)
+    private val textColorAdd = getThemeColor(context, R.attr.reaction_add_color)
 
     private val reactionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = textColor
         textAlign = Paint.Align.CENTER
     }
 
@@ -82,8 +89,14 @@ class ReactionView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        backgroundPaint.color =
-            if (isSelected) selectedBackgroundColor else unselectedBackgroundColor
+        if (isAddSymbol) {
+            reactionPaint.color = textColorAdd
+            backgroundPaint.color = unselectedBackgroundColor
+        } else {
+            reactionPaint.color = textColorEmoji
+            backgroundPaint.color =
+                if (isSelected) selectedBackgroundColor else unselectedBackgroundColor
+        }
 
         canvas.drawRoundRect(
             0f,
@@ -108,7 +121,8 @@ class ReactionView @JvmOverloads constructor(
 
     override fun onSaveInstanceState(): Parcelable {
         val state = SavedState(super.onSaveInstanceState())
-        state.selected = isSelected
+        state.isAddSymbol = isAddSymbol
+        state.isSelected = isSelected
         state.count = count
         return state
     }
@@ -116,7 +130,8 @@ class ReactionView @JvmOverloads constructor(
     override fun onRestoreInstanceState(state: Parcelable) {
         if (state is SavedState) {
             super.onRestoreInstanceState(state)
-            isSelected = state.selected
+            isAddSymbol = state.isAddSymbol
+            isSelected = state.isSelected
             count = state.count
 
         } else {
@@ -124,14 +139,8 @@ class ReactionView @JvmOverloads constructor(
         }
     }
 
-    private fun getThemeColor(attr: Int): Int {
-        val typedValue = TypedValue()
-        context.theme.resolveAttribute(attr, typedValue, true)
-        return typedValue.data
-    }
-
     private fun makeReaction() {
-        reaction = "$emoji $count"
+        reaction = if (isAddSymbol) symbolAdd else "$emoji $count"
         reactionPaint.textSize = size.spToPx(this)
         cornerRadius = getCornerRadius()
         requestLayout()
@@ -142,19 +151,22 @@ class ReactionView @JvmOverloads constructor(
 
     private class SavedState : BaseSavedState, Parcelable {
 
-        var selected = false
+        var isAddSymbol = false
+        var isSelected = false
         var count = 0
 
         constructor(superState: Parcelable?) : super(superState)
 
         private constructor(source: Parcel) : super(source) {
-            selected = source.readInt() == 1
+            isAddSymbol = source.readInt() == 1
+            isSelected = source.readInt() == 1
             count = source.readInt()
         }
 
         override fun writeToParcel(destination: Parcel, flags: Int) {
             super.writeToParcel(destination, flags)
-            destination.writeInt(if (selected) 1 else 0)
+            destination.writeInt(if (isAddSymbol) 1 else 0)
+            destination.writeInt(if (isSelected) 1 else 0)
             destination.writeInt(count)
         }
 

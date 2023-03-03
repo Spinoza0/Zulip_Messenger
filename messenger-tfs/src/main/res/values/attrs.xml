@@ -4,6 +4,7 @@
         <attr name="reaction_selected_background_color" format="color" />
         <attr name="reaction_unselected_background_color" format="color" />
         <attr name="reaction_text_color" format="color" />
+        <attr name="reaction_add_color" format="color" />
         <attr name="emoji" format="string" />
         <attr name="count" format="integer" />
         <attr name="size" format="float" />

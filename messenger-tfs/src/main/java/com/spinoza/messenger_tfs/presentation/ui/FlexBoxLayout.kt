@@ -10,18 +10,46 @@ class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
+    defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr) {
 
-    // TODO: work with onAddButtonListener
-    var onAddButtonListener: (() -> Unit)? = null
+    var onIconAddClickListener: (() -> Unit)? = null
+        set(value) {
+            field = value
+            requestLayout()
+        }
+
+    private val offset = Offset()
+
+    private val symbolAdd =
+        ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
+            isAddSymbol = true
+        }
+// {       val width = ICON_SIZE.dpToPx(this).toInt() * 3
+//        layoutParams = MarginLayoutParams(width, width)
+//        layoutParams.width = width * 2
+//        val unselectedBackgroundColor =
+//            getThemeColor(context, R.attr.reaction_unselected_background_color)
+//        val addColor = getThemeColor(context, R.attr.reaction_add_color)
+//        setBackgroundColor(unselectedBackgroundColor)
+//        setColorFilter(addColor)
+//}
+
+    init {
+        addView(symbolAdd)
+    }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         processChildren(
             layoutWidth = r - l - marginLeft - marginRight - paddingLeft - paddingRight,
-            childLayout = { child, left, top, right, bottom ->
-                child.layout(left, top, right, bottom)
-            }
-        )
+        ) { child, left, top, right, bottom ->
+            child.layout(left, top, right, bottom)
+        }
+    }
+
+    override fun addView(child: View) {
+        super.addView(child, childCount)
+        //        super.addView(iconAdd)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -30,7 +58,7 @@ class FlexBoxLayout @JvmOverloads constructor(
                     marginLeft - marginRight - paddingLeft - paddingRight,
             widthMeasureSpec = widthMeasureSpec,
             heightMeasureSpec = heightMeasureSpec,
-            prepareChildSize = ::measureChildWithMargins,
+            makeMeasure = true,
             setChildDimension = ::setMeasuredDimension
         )
     }
@@ -39,56 +67,23 @@ class FlexBoxLayout @JvmOverloads constructor(
         layoutWidth: Int,
         widthMeasureSpec: Int = 0,
         heightMeasureSpec: Int = 0,
-        prepareChildSize: ((View, Int, Int, Int, Int) -> Unit)? = null,
+        makeMeasure: Boolean = false,
         setChildDimension: ((Int, Int) -> Unit)? = null,
-        childLayout: ((View, Int, Int, Int, Int) -> Unit)? = null,
+        drawChild: ((View, Int, Int, Int, Int) -> Unit)? = null,
     ) {
-        val offset = Offset()
-        children.forEach { child ->
+        offset.reset()
+        var lastHeight = 0
+        children.forEachIndexed { index, child ->
             if (child.visibility != View.GONE) {
-
-                prepareChildSize?.let {
-                    prepareChildSize(
-                        child,
-                        widthMeasureSpec,
-                        0,
-                        heightMeasureSpec,
-                        offset.y
-                    )
-                    val maxChildWidth = getChildWidth(child)
-                    prepareChildSize(
-                        child,
-                        widthMeasureSpec,
-                        offset.x,
-                        heightMeasureSpec,
-                        offset.y
-                    )
-
-                    if (getChildWidth(child) < maxChildWidth) {
-                        offset.moveToNextLine(getChildHeight(child))
-                        prepareChildSize(
-                            child,
-                            widthMeasureSpec,
-                            offset.x,
-                            heightMeasureSpec,
-                            offset.y
-                        )
-                    }
+                if (makeMeasure) {
+                    makeChildMeasure(child, widthMeasureSpec, heightMeasureSpec)
                 }
-
-                val childWidth = getChildWidth(child)
-                val childHeight = getChildHeight(child)
-                if (offset.x + childWidth + offset.rightDeltaX > layoutWidth) {
-                    offset.moveToNextLine(childHeight)
-                } else {
-                    offset.updateRowHeight(childHeight)
-                }
-
-                childLayout?.let { draw ->
-                    draw(child, offset.x, offset.y, offset.x + childWidth, offset.y + childHeight)
-                }
-                offset.increaseX(childWidth)
+                processChild(child, layoutWidth, drawChild)
             }
+        }
+
+        onIconAddClickListener?.let { clickListener ->
+            symbolAdd.setOnClickListener { clickListener.invoke() }
         }
 
         setChildDimension?.let {
@@ -98,12 +93,6 @@ class FlexBoxLayout @JvmOverloads constructor(
             setChildDimension(width, height)
         }
     }
-
-    private fun getChildHeight(child: View) =
-        child.measuredHeight + child.marginTop + child.marginBottom
-
-    private fun getChildWidth(child: View) =
-        child.measuredWidth + child.marginLeft + child.marginRight
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
         return MarginLayoutParams(context, attrs)
@@ -117,6 +106,64 @@ class FlexBoxLayout @JvmOverloads constructor(
         return MarginLayoutParams(p)
     }
 
+    private fun getChildHeight(child: View) =
+        child.measuredHeight + child.marginTop + child.marginBottom
+
+    private fun getChildWidth(child: View) =
+        child.measuredWidth + child.marginLeft + child.marginRight
+
+    private fun makeChildMeasure(
+        child: View,
+        widthMeasureSpec: Int,
+        heightMeasureSpec: Int,
+    ) {
+        measureChildWithMargins(
+            child,
+            widthMeasureSpec,
+            0,
+            heightMeasureSpec,
+            offset.y
+        )
+        val maxChildWidth = getChildWidth(child)
+        measureChildWithMargins(
+            child,
+            widthMeasureSpec,
+            offset.x,
+            heightMeasureSpec,
+            offset.y
+        )
+
+        if (getChildWidth(child) < maxChildWidth) {
+            offset.moveToNextLine(getChildHeight(child))
+            measureChildWithMargins(
+                child,
+                widthMeasureSpec,
+                offset.x,
+                heightMeasureSpec,
+                offset.y
+            )
+        }
+    }
+
+    private fun processChild(
+        child: View,
+        layoutWidth: Int,
+        drawChild: ((View, Int, Int, Int, Int) -> Unit)?,
+    ) {
+        val childWidth = getChildWidth(child)
+        val childHeight = getChildHeight(child)
+        if (offset.x + childWidth + offset.rightDeltaX > layoutWidth) {
+            offset.moveToNextLine(childHeight)
+        } else {
+            offset.updateRowHeight(childHeight)
+        }
+
+        drawChild?.let { draw ->
+            draw(child, offset.x, offset.y, offset.x + childWidth, offset.y + childHeight)
+        }
+        offset.increaseX(childWidth)
+    }
+
     private inner class Offset {
 
         private var _maxHeight: Int = 0
@@ -128,11 +175,26 @@ class FlexBoxLayout @JvmOverloads constructor(
             get() = _maxWidth
 
         private var rowHeight: Int = 0
-        private val leftDeltaX: Int = marginLeft + paddingLeft
-        private val topDeltaY: Int = marginTop + paddingTop
-        val rightDeltaX: Int = marginRight + paddingRight
-        var x: Int = leftDeltaX
-        var y: Int = topDeltaY
+        private var leftDeltaX: Int = 0
+        private var topDeltaY: Int = 0
+        var rightDeltaX: Int = 0
+        var x: Int = 0
+        var y: Int = 0
+
+        init {
+            reset()
+        }
+
+        fun reset() {
+            _maxHeight = 0
+            _maxWidth = 0
+            rowHeight = 0
+            leftDeltaX = marginLeft + paddingLeft
+            topDeltaY = marginTop + paddingTop
+            rightDeltaX = marginRight + paddingRight
+            x = leftDeltaX
+            y = topDeltaY
+        }
 
         fun moveToNextLine(newRowHeight: Int) {
             x = leftDeltaX
@@ -155,5 +217,9 @@ class FlexBoxLayout @JvmOverloads constructor(
             _maxHeight += marginTop + marginBottom + paddingTop + paddingBottom + rowHeight
             _maxWidth += marginLeft + marginRight + paddingLeft + paddingRight
         }
+    }
+
+    private companion object {
+        const val ICON_SIZE = 14f
     }
 }

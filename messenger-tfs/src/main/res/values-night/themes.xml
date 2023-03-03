@@ -15,5 +15,6 @@
         <item name="reaction_selected_background_color">@color/reaction_selected_background_night</item>
         <item name="reaction_unselected_background_color">@color/reaction_unselected_background_night</item>
         <item name="reaction_text_color">@color/reaction_text_night</item>
+        <item name="reaction_add_color">@color/reaction_add</item>
     </style>
 </resources>

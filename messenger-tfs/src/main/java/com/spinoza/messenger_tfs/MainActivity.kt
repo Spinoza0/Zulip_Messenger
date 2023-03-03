@@ -12,25 +12,23 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        emojiViewTest()
+        test()
     }
 
-    private fun emojiViewTest() {
-        val reactionView = findViewById<ReactionView>(R.id.emojiView)
-        reactionView.setOnClickListener {
-            reactionView.count++
-        }
-
+    private fun test() {
         val flexBoxLayout = findViewById<FlexBoxLayout>(R.id.flexBoxLayout)
         val layoutParams = flexBoxLayout.layoutParams as ViewGroup.MarginLayoutParams
         val margin = 8f.dpToPx(flexBoxLayout).toInt()
         layoutParams.setMargins(margin, margin, margin, margin)
         flexBoxLayout.layoutParams = layoutParams
+        flexBoxLayout.onIconAddClickListener = {
+
+        }
         repeat(25) {
             val reaction = ReactionView(this)
             reaction.emoji = "\uD83D\uDE0D"
             reaction.count = 1
-            reaction.size = Random.nextInt(14, 24).toFloat()
+            //reaction.size = Random.nextInt(14, 24).toFloat()
             reaction.setOnClickListener {
                 reaction.count++
             }

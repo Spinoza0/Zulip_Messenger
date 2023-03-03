@@ -7,14 +7,6 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <com.spinoza.messenger_tfs.presentation.ui.ReactionView
-        android:id="@+id/emojiView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:count="15"
-        app:emoji="😀"
-        app:size="40" />
-
     <com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
         android:id="@+id/flexBoxLayout"
         android:layout_width="match_parent"
@@ -33,5 +25,10 @@
             app:emoji="😀" />
 
     </com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Text" />
 
 </LinearLayout>
