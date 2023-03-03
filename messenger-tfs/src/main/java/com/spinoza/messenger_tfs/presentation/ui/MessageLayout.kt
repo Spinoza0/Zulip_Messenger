@@ -120,18 +120,6 @@ class MessageLayout @JvmOverloads constructor(
         }
     }
 
-    override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
-        return MarginLayoutParams(context, attrs)
-    }
-
-    override fun generateDefaultLayoutParams(): LayoutParams {
-        return MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-    }
-
-    override fun generateLayoutParams(p: LayoutParams?): LayoutParams {
-        return MarginLayoutParams(p)
-    }
-
     private fun viewLayout(view: View) {
         view.layout(
             offsetX,
@@ -152,10 +140,6 @@ class MessageLayout @JvmOverloads constructor(
         color: Int,
         isName: Boolean,
     ) {
-        textView.text = text
-        textView.textSize = size.spToPx(this)
-        textView.setTextColor(color)
-        textView.setBackgroundColor(R.attr.reaction_unselected_background_color)
         val layoutParams = MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         if (isName) {
             textView.setPadding(
@@ -173,16 +157,37 @@ class MessageLayout @JvmOverloads constructor(
             )
         }
         layoutParams.setMargins(0)
+        textView.setTextColor(color)
+        textView.setBackgroundColor(R.attr.reaction_unselected_background_color)
         textView.layoutParams = layoutParams
+        textView.textSize = size.spToPx(this)
+        textView.text = text
     }
 
     private fun setAvatarParams() {
-        avatarImage.setImageResource(avatarResId)
         val size = AVATAR_SIZE.dpToPx(this).toInt()
         val layoutParams = MarginLayoutParams(size, size)
         layoutParams.setMargins(0, 0, avatarMarginRight, 0)
         avatarImage.layoutParams = layoutParams
         avatarImage.scaleType = ImageView.ScaleType.CENTER_CROP
+        avatarImage.setImageResource(avatarResId)
+    }
+
+
+    override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
+        return MarginLayoutParams(context, attrs)
+    }
+
+    override fun generateDefaultLayoutParams(): LayoutParams {
+        return MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+    }
+
+    override fun generateLayoutParams(p: LayoutParams?): LayoutParams {
+        return MarginLayoutParams(p)
+    }
+
+    override fun checkLayoutParams(p: LayoutParams): Boolean {
+        return p is MarginLayoutParams
     }
 
     private companion object {
