@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
+import com.spinoza.messenger_tfs.presentation.ui.MessageLayout
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 class MainActivity : AppCompatActivity() {
@@ -23,6 +24,15 @@ class MainActivity : AppCompatActivity() {
         flexBoxLayout.onIconAddClickListener = {
             flexBoxLayout.addView(testGetReaction())
         }
+
+        val messageLayout = findViewById<MessageLayout>(R.id.messageLayout)
+        messageLayout.layoutParams = layoutParams
+        messageLayout.onReactionAddClickListener = {
+            messageLayout.reactionsGroup.addView(testGetReaction())
+        }
+        messageLayout.name = "Martin"
+        messageLayout.message =
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus."
     }
 
     private fun testGetReaction(): ReactionView {

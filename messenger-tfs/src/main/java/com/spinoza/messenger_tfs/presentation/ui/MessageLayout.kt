@@ -21,9 +21,8 @@ class MessageLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var avatarImage = ImageView(context).apply {
-        setImageResource(R.drawable.face)
-    }
+    private val avatarImage = ImageView(context)
+    var avatarResId: Int = 0
         set(value) {
             field = value
             setAvatarParams()
@@ -34,29 +33,29 @@ class MessageLayout @JvmOverloads constructor(
         set(value) {
             field = value
             nameView.text = value
-            setTextParams(nameView, field, NAME_SIZE, R.attr.message_name_color)
+            setTextParams(nameView, field, NAME_SIZE, R.attr.message_name_color, true)
         }
 
     private val messageView = TextView(context)
     var message: String = ""
         set(value) {
             field = value
-            setTextParams(messageView, field, MESSAGE_SIZE, R.attr.message_text_color)
+            setTextParams(messageView, field, MESSAGE_SIZE, R.attr.message_text_color, false)
         }
 
     private val messagePaddingLeft = MESSAGE_PADDING_LEFT.dpToPx(this).toInt()
     private val messagePaddingRight = MESSAGE_PADDING_RIGHT.dpToPx(this).toInt()
     private val messagePaddingVertical = MESSAGE_PADDING_VERTICAL.dpToPx(this).toInt()
-    private val messageMarginVertical = MESSAGE_MARGIN_VERTICAL.dpToPx(this).toInt()
+    private val reactionsMarginTop = REACTIONS_MARGIN_TOP.dpToPx(this).toInt()
     private val avatarMarginRight = AVATAR_MARGIN_RIGHT.dpToPx(this).toInt()
-    private val nameMarginBottom = NAME_MARGIN_BOTTOM.dpToPx(this).toInt()
+    private val namePaddingBottom = NAME_PADDING_BOTTOM.dpToPx(this).toInt()
     private var offsetX = 0
     private var offsetY = 0
 
     val reactionsGroup = FlexBoxLayout(context).apply {
         val newLayoutParams =
             MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-        newLayoutParams.setMargins(0)
+        newLayoutParams.setMargins(0, reactionsMarginTop, 0, 0)
         layoutParams = newLayoutParams
     }
 
@@ -67,9 +66,9 @@ class MessageLayout @JvmOverloads constructor(
         }
 
     init {
-        setAvatarParams()
-        setTextParams(nameView, "", NAME_SIZE, R.attr.message_name_color)
-        setTextParams(messageView, "", MESSAGE_SIZE, R.attr.message_text_color)
+        avatarResId = R.drawable.face
+        name = ""
+        message = ""
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -92,31 +91,21 @@ class MessageLayout @JvmOverloads constructor(
     ) {
         offsetX = marginLeft + paddingLeft
         offsetY = marginTop + paddingTop
-        measureFunc?.let {
-            measureFunc(avatarImage, widthMeasureSpec, heightMeasureSpec)
-        }
+        measureFunc?.let { measureFunc(avatarImage, widthMeasureSpec, heightMeasureSpec) }
         layoutFunc?.let { layoutFunc(avatarImage) }
 
-        offsetX += avatarImage.measuredWidth + avatarMarginRight + messagePaddingLeft
-        offsetY += messagePaddingVertical
-        measureFunc?.let {
-            measureFunc(nameView, widthMeasureSpec, heightMeasureSpec)
-        }
+        offsetX += avatarImage.measuredWidth
+        measureFunc?.let { measureFunc(nameView, widthMeasureSpec, heightMeasureSpec) }
         layoutFunc?.let { layoutFunc(nameView) }
 
-        var textWidth = nameView.measuredWidth + messagePaddingLeft + messagePaddingRight
-        offsetY += nameView.measuredHeight + nameMarginBottom
-        measureFunc?.let {
-            measureFunc(messageView, widthMeasureSpec, heightMeasureSpec)
-        }
+        var textWidth = nameView.measuredWidth
+        offsetY += nameView.measuredHeight
+        measureFunc?.let { measureFunc(messageView, widthMeasureSpec, heightMeasureSpec) }
         layoutFunc?.let { layoutFunc(messageView) }
 
-        textWidth = maxOf(
-            textWidth,
-            messageView.measuredWidth + messagePaddingLeft + messagePaddingRight
-        )
+        textWidth = maxOf(textWidth, messageView.measuredWidth)
         offsetX -= messagePaddingLeft
-        offsetY += messageView.measuredHeight + messagePaddingVertical + messageMarginVertical
+        offsetY += messageView.measuredHeight
         measureFunc?.let {
             measureFunc(reactionsGroup, widthMeasureSpec, heightMeasureSpec)
         }
@@ -161,20 +150,37 @@ class MessageLayout @JvmOverloads constructor(
         text: String,
         size: Float,
         color: Int,
+        isName: Boolean,
     ) {
         textView.text = text
         textView.textSize = size.spToPx(this)
         textView.setTextColor(color)
         textView.setBackgroundColor(R.attr.reaction_unselected_background_color)
         val layoutParams = MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+        if (isName) {
+            textView.setPadding(
+                messagePaddingLeft,
+                messagePaddingVertical,
+                messagePaddingRight,
+                namePaddingBottom
+            )
+        } else {
+            textView.setPadding(
+                messagePaddingLeft,
+                0,
+                messagePaddingRight,
+                messagePaddingVertical
+            )
+        }
         layoutParams.setMargins(0)
         textView.layoutParams = layoutParams
     }
 
     private fun setAvatarParams() {
+        avatarImage.setImageResource(avatarResId)
         val size = AVATAR_SIZE.dpToPx(this).toInt()
         val layoutParams = MarginLayoutParams(size, size)
-        layoutParams.setMargins(0)
+        layoutParams.setMargins(0, 0, avatarMarginRight, 0)
         avatarImage.layoutParams = layoutParams
         avatarImage.scaleType = ImageView.ScaleType.CENTER_CROP
     }
@@ -183,11 +189,11 @@ class MessageLayout @JvmOverloads constructor(
         const val AVATAR_SIZE = 37f
         const val AVATAR_MARGIN_RIGHT = 9f
         const val NAME_SIZE = 14f
-        const val NAME_MARGIN_BOTTOM = 4f
+        const val NAME_PADDING_BOTTOM = 4f
         const val MESSAGE_SIZE = 16f
         const val MESSAGE_PADDING_LEFT = 13f
         const val MESSAGE_PADDING_RIGHT = 13f
         const val MESSAGE_PADDING_VERTICAL = 8f
-        const val MESSAGE_MARGIN_VERTICAL = 8f
+        const val REACTIONS_MARGIN_TOP = 7f
     }
 }
