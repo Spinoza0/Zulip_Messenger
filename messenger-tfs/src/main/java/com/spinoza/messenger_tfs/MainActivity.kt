@@ -25,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         messageLayout.onReactionAddClickListener = {
             messageLayout.reactionsGroup.addView(testGetReaction())
         }
+        messageLayout.avatarResId = R.drawable.face
         messageLayout.name = "Martin"
         messageLayout.message =
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus."

@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.ui
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -12,7 +13,7 @@ import androidx.core.view.marginTop
 import androidx.core.view.setMargins
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.dpToPx
-import com.spinoza.messenger_tfs.spToPx
+import com.spinoza.messenger_tfs.getThemeColor
 
 class MessageLayout @JvmOverloads constructor(
     context: Context,
@@ -21,26 +22,27 @@ class MessageLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    private val avatarImage = ImageView(context)
+    private val avatarImage: ImageView
+    private val nameView: TextView
+    private val messageView: TextView
+
     var avatarResId: Int = 0
         set(value) {
             field = value
             setAvatarParams()
         }
 
-    private val nameView = TextView(context)
     var name: String = ""
         set(value) {
             field = value
             nameView.text = value
-            setTextParams(nameView, field, NAME_SIZE, R.attr.message_name_color, true)
+            setTextParams(nameView, field, NAME_SIZE, nameColor, true)
         }
 
-    private val messageView = TextView(context)
     var message: String = ""
         set(value) {
             field = value
-            setTextParams(messageView, field, MESSAGE_SIZE, R.attr.message_text_color, false)
+            setTextParams(messageView, field, MESSAGE_SIZE, textColor, false)
         }
 
     private val messagePaddingLeft = MESSAGE_PADDING_LEFT.dpToPx(this).toInt()
@@ -65,10 +67,15 @@ class MessageLayout @JvmOverloads constructor(
             reactionsGroup.onIconAddClickListener = value
         }
 
+    private val backgroundColor = getThemeColor(context, R.attr.message_background_color)
+    private val nameColor = getThemeColor(context, R.attr.message_name_color)
+    private val textColor = getThemeColor(context, R.attr.message_text_color)
+
     init {
-        avatarResId = R.drawable.face
-        name = ""
-        message = ""
+        inflate(context, R.layout.message_layout, this)
+        avatarImage = findViewById(R.id.avatar)
+        nameView = findViewById(R.id.name)
+        messageView = findViewById(R.id.message)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -158,9 +165,9 @@ class MessageLayout @JvmOverloads constructor(
         }
         layoutParams.setMargins(0)
         textView.setTextColor(color)
-        textView.setBackgroundColor(R.attr.reaction_unselected_background_color)
+        textView.setBackgroundColor(backgroundColor)
         textView.layoutParams = layoutParams
-        textView.textSize = size.spToPx(this)
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, size)
         textView.text = text
     }
 
