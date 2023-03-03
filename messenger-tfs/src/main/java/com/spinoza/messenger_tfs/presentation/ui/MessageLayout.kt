@@ -67,7 +67,6 @@ class MessageLayout @JvmOverloads constructor(
             reactionsGroup.onIconAddClickListener = value
         }
 
-    private val backgroundColor = getThemeColor(context, R.attr.message_background_color)
     private val nameColor = getThemeColor(context, R.attr.message_name_color)
     private val textColor = getThemeColor(context, R.attr.message_text_color)
 
@@ -165,7 +164,6 @@ class MessageLayout @JvmOverloads constructor(
         }
         layoutParams.setMargins(0)
         textView.setTextColor(color)
-        textView.setBackgroundColor(backgroundColor)
         textView.layoutParams = layoutParams
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, size)
         textView.text = text
