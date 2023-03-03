@@ -7,6 +7,11 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Start" />
+
     <com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
         android:id="@+id/flexBoxLayout"
         android:layout_width="match_parent"
@@ -26,9 +31,15 @@
 
     </com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout>
 
+    <com.spinoza.messenger_tfs.presentation.ui.MessageLayout
+        android:id="@+id/messageLayout"
+        android:layout_width="match_parent"
+        android:layout_margin="8dp"
+        android:layout_height="wrap_content" />
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Text" />
+        android:text="End" />
 
 </LinearLayout>

@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
-import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +29,6 @@ class MainActivity : AppCompatActivity() {
         val reaction = ReactionView(this)
         reaction.emoji = "\uD83D\uDE0D"
         reaction.count = 1
-        reaction.size = Random.nextInt(14, 24).toFloat()
         reaction.setOnClickListener {
             reaction.count++
         }
