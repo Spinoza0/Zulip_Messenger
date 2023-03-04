@@ -24,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         layoutParams.setMargins(margin, margin, margin, margin)
         messageLayout.layoutParams = layoutParams
         messageLayout.onReactionAddClickListener = {
-            messageLayout.reactionsGroup.addView(testGetReaction())
+            messageLayout.reactions.addView(testGetReaction())
         }
         messageLayout.avatarResId = R.drawable.face
         messageLayout.name = "John Dow"

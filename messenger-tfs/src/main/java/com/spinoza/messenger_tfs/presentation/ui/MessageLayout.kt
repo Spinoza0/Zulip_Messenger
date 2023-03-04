@@ -8,6 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
+import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
 
@@ -18,10 +19,10 @@ class MessageLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    private val avatarImage: ImageView
+    private val avatar: ImageView
     private val nameView: TextView
     private val messageView: TextView
-    val reactionsGroup: FlexBoxLayout
+    val reactions: FlexBoxLayout
 
     var avatarResId: Int = 0
         set(value) {
@@ -41,21 +42,20 @@ class MessageLayout @JvmOverloads constructor(
             messageView.text = value
         }
 
-    private var offsetX = 0
-    private var offsetY = 0
+    private var cursor = CursorView()
 
     var onReactionAddClickListener: (() -> Unit)? = null
         set(value) {
             field = value
-            reactionsGroup.onIconAddClickListener = value
+            reactions.onIconAddClickListener = value
         }
 
     init {
         inflate(context, R.layout.message_layout, this)
-        avatarImage = findViewById(R.id.avatar)
+        avatar = findViewById(R.id.avatar)
         nameView = findViewById(R.id.name)
         messageView = findViewById(R.id.message)
-        reactionsGroup = findViewById(R.id.reactions)
+        reactions = findViewById(R.id.reactions)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -76,51 +76,94 @@ class MessageLayout @JvmOverloads constructor(
         measureFunc: ((View, Int, Int) -> Unit)? = null,
         layoutFunc: ((View) -> Unit)? = null,
     ) {
-        offsetX = marginLeft + paddingLeft
-        offsetY = marginTop + paddingTop
-        measureFunc?.let { measureFunc(avatarImage, widthMeasureSpec, heightMeasureSpec) }
-        layoutFunc?.let { layoutFunc(avatarImage) }
+        cursor.reset(marginLeft + paddingLeft, marginTop + paddingTop)
 
-        offsetX += avatarImage.measuredWidth
+        measureFunc?.let { measureFunc(avatar, widthMeasureSpec, heightMeasureSpec) }
+        layoutFunc?.let { layoutFunc(avatar) }
+
+        cursor.right(avatar.marginLeft + avatar.measuredWidth + avatar.marginRight)
         measureFunc?.let { measureFunc(nameView, widthMeasureSpec, heightMeasureSpec) }
         layoutFunc?.let { layoutFunc(nameView) }
 
-        var textWidth = nameView.measuredWidth
-        offsetY += nameView.measuredHeight
+        var textWidth = nameView.marginLeft + nameView.measuredWidth + nameView.marginRight
+        cursor.down(nameView.marginTop + nameView.measuredHeight + nameView.marginBottom)
         measureFunc?.let { measureFunc(messageView, widthMeasureSpec, heightMeasureSpec) }
         layoutFunc?.let { layoutFunc(messageView) }
 
-        textWidth = maxOf(textWidth, messageView.measuredWidth)
-        offsetY += messageView.measuredHeight
-        measureFunc?.let {
-            measureFunc(reactionsGroup, widthMeasureSpec, heightMeasureSpec)
-        }
-        layoutFunc?.let { layoutFunc(reactionsGroup) }
+        textWidth = maxOf(
+            textWidth,
+            messageView.marginLeft + messageView.measuredWidth + messageView.marginRight
+        )
+        cursor.down(
+            messageView.marginTop + messageView.measuredHeight + messageView.marginBottom
+        )
+        measureFunc?.let { measureFunc(reactions, widthMeasureSpec, heightMeasureSpec) }
+        layoutFunc?.let { layoutFunc(reactions) }
 
         measureFunc?.let {
-            textWidth = maxOf(textWidth, reactionsGroup.measuredWidth)
-            val totalWidth = offsetX + textWidth
-            val totalHeight =
-                offsetY + reactionsGroup.measuredHeight + marginBottom + paddingBottom
+            cursor.down(
+                reactions.marginTop + reactions.measuredHeight + reactions.marginBottom
+            )
+            textWidth = maxOf(
+                textWidth,
+                reactions.marginLeft + reactions.measuredWidth + reactions.marginRight
+            )
+            val totalWidth = cursor.x + textWidth
+            val totalHeight = cursor.y + marginBottom + paddingBottom
             setMeasuredDimension(totalWidth, totalHeight)
         }
     }
 
     private fun viewLayout(view: View) {
+        cursor.right(view.marginLeft)
+        cursor.down(view.marginTop)
         view.layout(
-            offsetX,
-            offsetY,
-            offsetX + view.measuredWidth,
-            offsetY + view.measuredHeight
+            cursor.x,
+            cursor.y,
+            cursor.x + view.measuredWidth,
+            cursor.y + view.measuredHeight
         )
+        cursor.left(view.marginLeft)
+        cursor.up(view.marginTop)
+    }
+
+    private inner class CursorView() {
+        private var _x = 0
+        val x: Int
+            get() = _x
+
+        private var _y = 0
+        val y: Int
+            get() = _y
+
+        fun reset(x: Int, y: Int) {
+            _x = x
+            _y = y
+        }
+
+        fun left(offset: Int) {
+            _x -= offset
+        }
+
+        fun right(offset: Int) {
+            _x += offset
+        }
+
+        fun up(offset: Int) {
+            _y -= offset
+        }
+
+        fun down(offset: Int) {
+            _y += offset
+        }
     }
 
     private fun measureView(view: View, widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        measureChildWithMargins(view, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
+        measureChildWithMargins(view, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
     }
 
     private fun setAvatarParams() {
-        avatarImage.setImageResource(avatarResId)
+        avatar.setImageResource(avatarResId)
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {

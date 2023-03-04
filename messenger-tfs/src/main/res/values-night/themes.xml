@@ -19,7 +19,7 @@
             @color/reaction_unselected_background_night
         </item>
         <item name="reaction_text_color">@color/reaction_text_night</item>
-        <item name="reaction_add_color">@color/reaction_add</item>
+        <item name="reaction_add_color">@color/reaction_add_night</item>
         <!-- MessageLayout colors -->
         <item name="message_background_color">@color/message_background_night</item>
         <item name="message_name_color">@color/message_name_night</item>

@@ -16,6 +16,7 @@
     <color name="reaction_text">#CCCCCC</color>
     <color name="reaction_text_night">#CCCCCC</color>
     <color name="reaction_add">#FFFFFF</color>
+    <color name="reaction_add_night">#FFFFFF</color>
 
     <!-- MessageLayout colors -->
     <color name="message_background">#3700B3</color>
