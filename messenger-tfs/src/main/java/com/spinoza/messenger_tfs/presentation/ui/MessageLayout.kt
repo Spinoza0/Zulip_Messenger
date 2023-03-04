@@ -127,6 +127,30 @@ class MessageLayout @JvmOverloads constructor(
         cursor.up(view.marginTop)
     }
 
+    private fun measureView(view: View, widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        measureChildWithMargins(view, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
+    }
+
+    private fun setAvatarParams() {
+        avatar.setImageResource(avatarResId)
+    }
+
+    override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
+        return MarginLayoutParams(context, attrs)
+    }
+
+    override fun generateDefaultLayoutParams(): LayoutParams {
+        return MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+    }
+
+    override fun generateLayoutParams(p: LayoutParams?): LayoutParams {
+        return MarginLayoutParams(p)
+    }
+
+    override fun checkLayoutParams(p: LayoutParams): Boolean {
+        return p is MarginLayoutParams
+    }
+
     private inner class CursorView() {
         private var _x = 0
         val x: Int
@@ -156,29 +180,5 @@ class MessageLayout @JvmOverloads constructor(
         fun down(offset: Int) {
             _y += offset
         }
-    }
-
-    private fun measureView(view: View, widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        measureChildWithMargins(view, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
-    }
-
-    private fun setAvatarParams() {
-        avatar.setImageResource(avatarResId)
-    }
-
-    override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
-        return MarginLayoutParams(context, attrs)
-    }
-
-    override fun generateDefaultLayoutParams(): LayoutParams {
-        return MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-    }
-
-    override fun generateLayoutParams(p: LayoutParams?): LayoutParams {
-        return MarginLayoutParams(p)
-    }
-
-    override fun checkLayoutParams(p: LayoutParams): Boolean {
-        return p is MarginLayoutParams
     }
 }
