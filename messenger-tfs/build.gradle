@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace 'com.spinoza.messenger_tfs'
-    compileSdk Integer.parseInt(libs.versions.compileSdk.get())
+    compileSdk project.compileSdk
 
     defaultConfig {
         applicationId "com.spinoza.messenger_tfs"
-        minSdk Integer.parseInt(libs.versions.minSdk.get())
-        targetSdk Integer.parseInt(libs.versions.targetSdk.get())
+        minSdk project.minSdk
+        targetSdk project.targetSdk
         versionCode 1
         versionName "1.0"
 
@@ -24,17 +24,19 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility project.sourceCompatibility
+        targetCompatibility project.targetCompatibility
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = project.jvmTarget
     }
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:' + libs.versions.androidxCore.get()
-    implementation 'androidx.appcompat:appcompat:' + libs.versions.androidxAppCompat.get()
-    implementation 'com.google.android.material:material:' + libs.versions.androidMaterial.get()
-    implementation 'androidx.constraintlayout:constraintlayout:' + libs.versions.androidxConstraintlayout.get()
+    implementation "androidx.core:core-ktx:${project.androidxCore}"
+    implementation "androidx.appcompat:appcompat:${project.androidxAppCompat}"
+
+    implementation "com.google.android.material:material:${project.androidMaterial}"
+
+    implementation "androidx.constraintlayout:constraintlayout:${project.androidxConstraintlayout}"
 }
