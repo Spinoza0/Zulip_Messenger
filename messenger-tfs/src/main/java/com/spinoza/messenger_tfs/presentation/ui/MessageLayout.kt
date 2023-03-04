@@ -13,6 +13,7 @@ import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.CursorXY
 import com.spinoza.messenger_tfs.dpToPx
 import com.spinoza.messenger_tfs.getRoundImage
 
@@ -40,7 +41,7 @@ class MessageLayout @JvmOverloads constructor(
             messageView.text = value
         }
 
-    private var cursor = CursorView()
+    private var cursor = CursorXY()
 
     var onReactionAddClickListener: (() -> Unit)? = null
         set(value) {
@@ -161,36 +162,5 @@ class MessageLayout @JvmOverloads constructor(
     fun setRoundAvatar(bitmap: Bitmap) {
         val size = avatar.layoutParams.width.toFloat().dpToPx(this)
         setAvatar(getRoundImage(bitmap, size))
-    }
-
-    private inner class CursorView {
-        private var _x = 0
-        val x: Int
-            get() = _x
-
-        private var _y = 0
-        val y: Int
-            get() = _y
-
-        fun reset(x: Int, y: Int) {
-            _x = x
-            _y = y
-        }
-
-        fun left(offset: Int) {
-            _x -= offset
-        }
-
-        fun right(offset: Int) {
-            _x += offset
-        }
-
-        fun up(offset: Int) {
-            _y -= offset
-        }
-
-        fun down(offset: Int) {
-            _y += offset
-        }
     }
 }

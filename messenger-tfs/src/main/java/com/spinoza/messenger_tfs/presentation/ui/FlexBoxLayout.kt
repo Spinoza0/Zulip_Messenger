@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.*
+import com.spinoza.messenger_tfs.domain.CursorXY
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
@@ -75,7 +76,7 @@ class FlexBoxLayout @JvmOverloads constructor(
         setChildDimension: ((Int, Int) -> Unit)? = null,
         drawChild: ((View, Int, Int, Int, Int) -> Unit)? = null,
     ) {
-        offset.reset()
+        offset.reset(marginLeft + paddingLeft, marginTop + paddingTop)
         children.forEachIndexed { index, child ->
             if (child.visibility != View.GONE) {
                 if (makeMeasure) {
@@ -149,7 +150,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     ) {
         val childWidth = getChildWidth(child)
         val childHeight = getChildHeight(child)
-        if (offset.x + childWidth + offset.rightDeltaX > layoutWidth) {
+        if (offset.x + childWidth + marginRight + paddingRight > layoutWidth) {
             offset.moveToNextLine(childHeight)
         } else {
             offset.updateRowHeight(childHeight)
@@ -158,7 +159,7 @@ class FlexBoxLayout @JvmOverloads constructor(
         drawChild?.let { draw ->
             draw(child, offset.x, offset.y, offset.x + childWidth, offset.y + childHeight)
         }
-        offset.increaseX(childWidth)
+        offset.right(childWidth)
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
@@ -179,6 +180,13 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     private inner class Offset {
 
+        private val cursor = CursorXY()
+
+        val x: Int
+            get() = cursor.x
+        val y: Int
+            get() = cursor.y
+
         private var _maxHeight: Int = 0
         val maxHeight: Int
             get() = _maxHeight
@@ -188,31 +196,26 @@ class FlexBoxLayout @JvmOverloads constructor(
             get() = _maxWidth
 
         private var rowHeight: Int = 0
-        private var leftDeltaX: Int = 0
-        private var topDeltaY: Int = 0
-        var rightDeltaX: Int = 0
-        var x: Int = 0
-        var y: Int = 0
+        private var startX: Int = 0
+        private var startY: Int = 0
 
         init {
-            reset()
+            reset(0, 0)
         }
 
-        fun reset() {
+        fun reset(x: Int, y: Int) {
             _maxHeight = 0
             _maxWidth = 0
             rowHeight = 0
-            leftDeltaX = marginLeft + paddingLeft
-            topDeltaY = marginTop + paddingTop
-            rightDeltaX = marginRight + paddingRight
-            x = leftDeltaX
-            y = topDeltaY
+            startX = x
+            startY = y
+            cursor.reset(startX, startY)
         }
 
         fun moveToNextLine(newRowHeight: Int) {
-            x = leftDeltaX
+            cursor.resetX(startX)
             val deltaY = rowHeight + marginTop
-            y += deltaY
+            cursor.down(deltaY)
             _maxHeight += deltaY
             rowHeight = newRowHeight
         }
@@ -221,8 +224,8 @@ class FlexBoxLayout @JvmOverloads constructor(
             rowHeight = maxOf(rowHeight, newRowHeight)
         }
 
-        fun increaseX(offsetWidth: Int) {
-            x += offsetWidth + marginRight
+        fun right(offsetWidth: Int) {
+            cursor.right(offsetWidth + marginRight)
             _maxWidth = maxOf(_maxWidth, x)
         }
 
