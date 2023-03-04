@@ -26,11 +26,11 @@ class MainActivity : AppCompatActivity() {
         messageLayout.onReactionAddClickListener = {
             messageLayout.reactions.addView(testGetReaction())
         }
-        messageLayout.avatarResId = R.drawable.face
         messageLayout.name = "John Dow"
         messageLayout.message =
             "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus." +
                     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus."
+        messageLayout.setRoundAvatar(R.drawable.face)
     }
 
     private fun testGetReaction(): ReactionView {

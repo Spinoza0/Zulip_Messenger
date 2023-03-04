@@ -1,6 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.ui
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +13,8 @@ import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.dpToPx
+import com.spinoza.messenger_tfs.getRoundImage
 
 class MessageLayout @JvmOverloads constructor(
     context: Context,
@@ -23,12 +27,6 @@ class MessageLayout @JvmOverloads constructor(
     private val nameView: TextView
     private val messageView: TextView
     val reactions: FlexBoxLayout
-
-    var avatarResId: Int = 0
-        set(value) {
-            field = value
-            setAvatarParams()
-        }
 
     var name: String = ""
         set(value) {
@@ -131,10 +129,6 @@ class MessageLayout @JvmOverloads constructor(
         measureChildWithMargins(view, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
     }
 
-    private fun setAvatarParams() {
-        avatar.setImageResource(avatarResId)
-    }
-
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
         return MarginLayoutParams(context, attrs)
     }
@@ -151,7 +145,25 @@ class MessageLayout @JvmOverloads constructor(
         return p is MarginLayoutParams
     }
 
-    private inner class CursorView() {
+    fun setAvatar(resId: Int) {
+        avatar.setImageResource(resId)
+    }
+
+    fun setAvatar(bitmap: Bitmap) {
+        avatar.setImageBitmap(bitmap)
+    }
+
+    fun setRoundAvatar(resId: Int) {
+        val bitmap = BitmapFactory.decodeResource(resources, resId)
+        setRoundAvatar(bitmap)
+    }
+
+    fun setRoundAvatar(bitmap: Bitmap) {
+        val size = avatar.layoutParams.width.toFloat().dpToPx(this)
+        setAvatar(getRoundImage(bitmap, size))
+    }
+
+    private inner class CursorView {
         private var _x = 0
         val x: Int
             get() = _x
