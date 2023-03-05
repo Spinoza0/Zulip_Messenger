@@ -22,7 +22,7 @@ class ReactionView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
     private var reaction = ""
-    private var cornerRadius = getCornerRadius()
+    private val cornerRadius = CORNER_RADIUS.dpToPx(this)
 
     var emoji = ""
         set(value) {
@@ -44,11 +44,10 @@ class ReactionView @JvmOverloads constructor(
         getThemeColor(context, R.attr.reaction_selected_background_color)
     private val unselectedBackgroundColor =
         getThemeColor(context, R.attr.reaction_unselected_background_color)
-    private val textColorEmoji = getThemeColor(context, R.attr.reaction_text_color)
 
     private val reactionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
-        color = textColorEmoji
+        color = getThemeColor(context, R.attr.reaction_text_color)
     }
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textBounds = Rect()
@@ -127,11 +126,8 @@ class ReactionView @JvmOverloads constructor(
     private fun makeReaction() {
         reaction = "$emoji $count"
         reactionPaint.textSize = size.spToPx(this)
-        cornerRadius = getCornerRadius()
         requestLayout()
     }
-
-    private fun getCornerRadius(): Float = CORNER_RADIUS.dpToPx(this)
 
     private class SavedState : BaseSavedState, Parcelable {
 
