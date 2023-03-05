@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="com.spinoza.messenger_tfs.presentation.ui.MessageLayout">
 
@@ -8,8 +9,8 @@
         android:layout_width="37dp"
         android:layout_height="37dp"
         android:layout_marginEnd="8dp"
-        android:scaleType="centerCrop"
         android:contentDescription="@string/avatar"
+        android:scaleType="centerCrop"
         tools:src="@drawable/face" />
 
     <TextView
@@ -40,6 +41,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:layout_marginEnd="8dp" />
+        app:margin="8dp" />
 
 </merge>

@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs
 
 import android.os.Bundle
-import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import com.spinoza.messenger_tfs.presentation.ui.MessageLayout
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
@@ -16,13 +15,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun test() {
-
         val messageLayout = findViewById<MessageLayout>(R.id.messageLayout)
-        val layoutParams =
-            messageLayout.layoutParams as ViewGroup.MarginLayoutParams
-        val margin = 8f.dpToPx(messageLayout).toInt()
-        layoutParams.setMargins(margin, margin, margin, margin)
-        messageLayout.layoutParams = layoutParams
         messageLayout.onReactionAddClickListener = {
             messageLayout.reactions.addView(testGetReaction())
         }

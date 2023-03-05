@@ -56,7 +56,7 @@ class ReactionView @JvmOverloads constructor(
         context.withStyledAttributes(attrs, R.styleable.reaction_view) {
             emoji = this.getString(R.styleable.reaction_view_emoji) ?: ""
             count = this.getInt(R.styleable.reaction_view_count, 0)
-            size = this.getFloat(R.styleable.reaction_view_size, EMOJI_SIZE)
+            size = this.getDimension(R.styleable.reaction_view_size, EMOJI_SIZE)
         }
         val newPaddingLeft =
             maxOf(paddingLeft, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())

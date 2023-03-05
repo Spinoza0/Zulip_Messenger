@@ -6,11 +6,12 @@
         <attr name="reaction_text_color" format="color" />
         <attr name="emoji" format="string" />
         <attr name="count" format="integer" />
-        <attr name="size" format="float" />
+        <attr name="size" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="flexbox_layout">
         <attr name="flexbox_add_icon_background_color" format="color" />
+        <attr name="margin" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="message_layout">

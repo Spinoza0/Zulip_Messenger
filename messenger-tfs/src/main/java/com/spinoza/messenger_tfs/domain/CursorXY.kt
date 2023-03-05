@@ -22,6 +22,10 @@ class CursorXY {
         _y = y
     }
 
+    fun reset() {
+        reset(0, 0)
+    }
+
     fun left(offset: Int) {
         _x -= offset
     }

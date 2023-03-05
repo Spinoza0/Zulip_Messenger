@@ -5,10 +5,12 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.content.withStyledAttributes
 import androidx.core.view.*
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.CursorXY
 import com.spinoza.messenger_tfs.dpToPx
+import com.spinoza.messenger_tfs.drawView
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
@@ -18,20 +20,7 @@ class FlexBoxLayout @JvmOverloads constructor(
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     private val cursor = FlexBoxLayoutCursor(CursorXY())
-
-    var onIconAddClickListener: (() -> Unit)? = null
-        set(value) {
-            if (field == null) {
-                if (value != null) {
-                    addView(addIcon)
-                }
-                field = value
-            } else if (value != null) {
-                field = value
-            } else {
-                removeViewAt(childCount - 1)
-            }
-        }
+    private var internalMargin = 0
 
     private val addIcon = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
         setImageResource(R.drawable.icon_add)
@@ -39,81 +28,106 @@ class FlexBoxLayout @JvmOverloads constructor(
 
         val width = ADD_ICON_WIDTH.dpToPx(this@FlexBoxLayout).toInt()
         val height = ADD_ICON_HEIGHT.dpToPx(this@FlexBoxLayout).toInt()
-        val params = MarginLayoutParams(width, height)
-        params.setMargins(0, 0, 0, 0)
-        layoutParams = params
+        layoutParams = MarginLayoutParams(width, height)
 
-        val newPaddingLeft =
-            maxOf(paddingLeft, ADD_ICON_HORIZONTAL_PADDING.dpToPx(this).toInt())
-        val newPaddingRight =
-            maxOf(paddingLeft, ADD_ICON_HORIZONTAL_PADDING.dpToPx(this).toInt())
-        val newPaddingTop =
-            maxOf(paddingTop, ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt())
-        val newPaddingBottom =
-            maxOf(paddingBottom, ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt())
-        setPadding(newPaddingLeft, newPaddingTop, newPaddingRight, newPaddingBottom)
+        val iconPaddingLeft = ADD_ICON_HORIZONTAL_PADDING.dpToPx(this).toInt()
+        val iconPaddingRight = ADD_ICON_HORIZONTAL_PADDING.dpToPx(this).toInt()
+        val iconPaddingTop = ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt()
+        val iconPaddingBottom = ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt()
+        setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom)
     }
 
+    var onIconAddClickListener: (() -> Unit)? = null
+        set(value) {
+            var needAddIcon = false
+            if (value != null) {
+                needAddIcon = (field == null)
+                field = value
+                addIcon.setOnClickListener { value.invoke() }
+            } else {
+                removeViewAt(childCount - 1)
+            }
+            if (needAddIcon) {
+                addView(addIcon)
+            }
+        }
+
     init {
+        context.withStyledAttributes(attrs, R.styleable.flexbox_layout) {
+            internalMargin =
+                getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
+        }
+
         if (onIconAddClickListener != null) {
             addView(addIcon)
         }
     }
 
-    override fun addView(child: View) {
+    override fun addView(view: View) {
         if (onIconAddClickListener != null)
-            super.addView(child, childCount - 1)
+            super.addView(view, childCount - 1)
         else {
-            super.addView(child)
+            super.addView(view)
         }
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        processChildren(
-            layoutWidth = r - l - marginLeft - marginRight - paddingLeft - paddingRight,
-        ) { child, left, top, right, bottom ->
-            child.layout(left, top, right, bottom)
-        }
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        processChildren(
-            layoutWidth = MeasureSpec.getSize(widthMeasureSpec) -
-                    marginLeft - marginRight - paddingLeft - paddingRight,
-            widthMeasureSpec = widthMeasureSpec,
-            heightMeasureSpec = heightMeasureSpec,
-            makeMeasure = true,
-            setChildDimension = ::setMeasuredDimension
+        processLayout(
+            layoutWidth = r - l - paddingLeft - paddingRight,
+            layoutFunc = ::drawView
         )
     }
 
-    private fun processChildren(
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        processLayout(
+            layoutWidth = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight,
+            widthMeasureSpec = widthMeasureSpec,
+            heightMeasureSpec = heightMeasureSpec,
+            measureFunc = ::measureView
+        )
+    }
+
+    private fun processLayout(
         layoutWidth: Int,
         widthMeasureSpec: Int = 0,
         heightMeasureSpec: Int = 0,
-        makeMeasure: Boolean = false,
-        setChildDimension: ((Int, Int) -> Unit)? = null,
-        drawChild: ((View, Int, Int, Int, Int) -> Unit)? = null,
+        measureFunc: ((View, Int, Int) -> Unit)? = null,
+        layoutFunc: ((View, CursorXY) -> Unit)? = null,
     ) {
-        cursor.reset(marginLeft + paddingLeft, marginTop + paddingTop)
-        children.forEach { child ->
-            if (child.visibility != View.GONE) {
-                if (makeMeasure) {
-                    makeChildMeasure(child, widthMeasureSpec, heightMeasureSpec)
+        cursor.reset()
+        var viewWidth = 0
+        var viewHeight = 0
+
+        children.forEach { view ->
+            if (view.visibility != View.GONE) {
+                measureFunc?.let {
+                    measureFunc(view, widthMeasureSpec, heightMeasureSpec)
+                    viewWidth = getChildWidth(view)
+                    viewHeight = getChildHeight(view)
+                    if (cursor.needMoveToNextLine(viewWidth, layoutWidth)) {
+                        cursor.moveToNextLine(viewHeight)
+                    }
                 }
-                processChild(child, layoutWidth, drawChild)
+
+                layoutFunc?.let {
+                    viewWidth = getChildWidth(view)
+                    viewHeight = getChildHeight(view)
+                    if (cursor.needMoveToNextLine(viewWidth, layoutWidth)) {
+                        cursor.moveToNextLine(viewHeight)
+                    }
+                    layoutFunc(view, cursor.cursorXY)
+                }
+
+                cursor.right(viewWidth)
+                cursor.updateRowHeight(viewHeight)
             }
         }
 
-        onIconAddClickListener?.let { clickListener ->
-            addIcon.setOnClickListener { clickListener.invoke() }
-        }
-
-        setChildDimension?.let {
-            cursor.addBounds()
-            val width = resolveSize(cursor.maxWidth, widthMeasureSpec)
-            val height = resolveSize(cursor.maxHeight, heightMeasureSpec)
-            setChildDimension(width, height)
+        measureFunc?.let {
+            cursor.moveToEnd()
+            val width = resolveSize(cursor.x, widthMeasureSpec)
+            val height = resolveSize(cursor.y, heightMeasureSpec)
+            setMeasuredDimension(width, height)
         }
     }
 
@@ -123,7 +137,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     private fun getChildWidth(child: View) =
         child.measuredWidth + child.marginLeft + child.marginRight
 
-    private fun makeChildMeasure(
+    private fun measureView(
         child: View,
         widthMeasureSpec: Int,
         heightMeasureSpec: Int,
@@ -156,25 +170,6 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
     }
 
-    private fun processChild(
-        child: View,
-        layoutWidth: Int,
-        drawChild: ((View, Int, Int, Int, Int) -> Unit)?,
-    ) {
-        val childWidth = getChildWidth(child)
-        val childHeight = getChildHeight(child)
-        if (cursor.x + childWidth + marginRight + paddingRight > layoutWidth) {
-            cursor.moveToNextLine(childHeight)
-        } else {
-            cursor.updateRowHeight(childHeight)
-        }
-
-        drawChild?.let { draw ->
-            draw(child, cursor.x, cursor.y, cursor.x + childWidth, cursor.y + childHeight)
-        }
-        cursor.right(childWidth)
-    }
-
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
         return MarginLayoutParams(context, attrs)
     }
@@ -191,43 +186,40 @@ class FlexBoxLayout @JvmOverloads constructor(
         return p is MarginLayoutParams
     }
 
-    private inner class FlexBoxLayoutCursor(private val cursorXY: CursorXY) {
+    private inner class FlexBoxLayoutCursor(val cursorXY: CursorXY) {
 
         val x: Int
             get() = cursorXY.x
         val y: Int
             get() = cursorXY.y
 
-        private var _maxHeight: Int = 0
-        val maxHeight: Int
-            get() = _maxHeight
-
-        private var _maxWidth: Int = 0
-        val maxWidth: Int
-            get() = _maxWidth
-
+        private var maxHeight: Int = 0
+        private var maxWidth: Int = 0
         private var rowHeight: Int = 0
         private var startX: Int = 0
         private var startY: Int = 0
 
         init {
-            reset(0, 0)
+            cursorXY.reset(0, 0)
         }
 
-        fun reset(x: Int, y: Int) {
-            _maxHeight = 0
-            _maxWidth = 0
+        fun reset() {
             rowHeight = 0
-            startX = x
-            startY = y
+            maxHeight = paddingTop
+            maxWidth = paddingLeft
+            startY = paddingTop
+            startX = paddingLeft
             cursorXY.reset(startX, startY)
         }
 
+        fun needMoveToNextLine(viewWidth: Int, layoutWidth: Int) =
+            cursor.x + viewWidth + paddingRight + internalMargin > layoutWidth
+
         fun moveToNextLine(newRowHeight: Int) {
             cursorXY.resetX(startX)
-            val deltaY = rowHeight + marginTop
+            val deltaY = rowHeight + internalMargin
             cursorXY.down(deltaY)
-            _maxHeight += deltaY
+            maxHeight += deltaY
             rowHeight = newRowHeight
         }
 
@@ -236,13 +228,14 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
 
         fun right(offsetWidth: Int) {
-            cursorXY.right(offsetWidth + marginRight)
-            _maxWidth = maxOf(_maxWidth, x)
+            cursorXY.right(offsetWidth + internalMargin)
+            maxWidth = maxOf(maxWidth, x)
         }
 
-        fun addBounds() {
-            _maxHeight += marginTop + marginBottom + paddingTop + paddingBottom + rowHeight
-            _maxWidth += marginLeft + marginRight + paddingLeft + paddingRight
+        fun moveToEnd() {
+            cursorXY.reset()
+            cursorXY.down(maxHeight + rowHeight + paddingBottom)
+            cursorXY.right(maxWidth + paddingRight)
         }
     }
 
