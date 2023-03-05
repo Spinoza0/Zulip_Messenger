@@ -96,7 +96,7 @@ class FlexBoxLayout @JvmOverloads constructor(
         drawChild: ((View, Int, Int, Int, Int) -> Unit)? = null,
     ) {
         cursor.reset(marginLeft + paddingLeft, marginTop + paddingTop)
-        children.forEachIndexed { index, child ->
+        children.forEach { child ->
             if (child.visibility != View.GONE) {
                 if (makeMeasure) {
                     makeChildMeasure(child, widthMeasureSpec, heightMeasureSpec)
