@@ -9,23 +9,23 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- ReactionView colors -->
-    <color name="reaction_selected_background">#6200EE</color>
+    <color name="reaction_selected_background">@color/teal_700</color>
     <color name="reaction_selected_background_night">#3A3A3A</color>
-    <color name="reaction_unselected_background">#3700B3</color>
+    <color name="reaction_unselected_background">@color/teal_200</color>
     <color name="reaction_unselected_background_night">#1C1C1C</color>
-    <color name="reaction_text">#CCCCCC</color>
+    <color name="reaction_text">@color/black</color>
     <color name="reaction_text_night">#CCCCCC</color>
 
     <!-- FlexBoxLayout colors -->
-    <color name="flexbox_add_icon_background">#3700B3</color>
+    <color name="flexbox_add_icon_background">@color/teal_200</color>
     <color name="flexbox_add_icon_background_night">#1C1C1C</color>
 
     <!-- MessageLayout colors -->
-    <color name="message_background">#3700B3</color>
+    <color name="message_background">@color/teal_200</color>
     <color name="message_background_night">#1C1C1C</color>
-    <color name="message_name">#2A9D8F</color>
+    <color name="message_name">@color/purple_700</color>
     <color name="message_name_night">#2A9D8F</color>
-    <color name="message_text">#FFFFFF</color>
+    <color name="message_text">@color/black</color>
     <color name="message_text_night">#FFFFFF</color>
 
 </resources>
