@@ -15,8 +15,10 @@
     <color name="reaction_unselected_background_night">#1C1C1C</color>
     <color name="reaction_text">#CCCCCC</color>
     <color name="reaction_text_night">#CCCCCC</color>
-    <color name="reaction_add">#FFFFFF</color>
-    <color name="reaction_add_night">#FFFFFF</color>
+
+    <!-- FlexBoxLayout colors -->
+    <color name="flexbox_add_icon_background">#3700B3</color>
+    <color name="flexbox_add_icon_background_night">#1C1C1C</color>
 
     <!-- MessageLayout colors -->
     <color name="message_background">#3700B3</color>

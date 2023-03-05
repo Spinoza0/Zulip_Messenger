@@ -4,8 +4,11 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.view.*
+import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.CursorXY
+import com.spinoza.messenger_tfs.dpToPx
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
@@ -14,13 +17,13 @@ class FlexBoxLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    private val offset = Offset()
+    private val cursor = FlexBoxLayoutCursor(CursorXY())
 
     var onIconAddClickListener: (() -> Unit)? = null
         set(value) {
             if (field == null) {
                 if (value != null) {
-                    addView(symbolAdd)
+                    addView(addIcon)
                 }
                 field = value
             } else if (value != null) {
@@ -30,14 +33,30 @@ class FlexBoxLayout @JvmOverloads constructor(
             }
         }
 
-    private val symbolAdd =
-        ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
-            isAddSymbol = true
-        }
+    private val addIcon = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
+        setImageResource(R.drawable.icon_add)
+        setBackgroundResource(R.drawable.shape_flexboxlayout_icon_add)
+
+        val width = ADD_ICON_WIDTH.dpToPx(this@FlexBoxLayout).toInt()
+        val height = ADD_ICON_HEIGHT.dpToPx(this@FlexBoxLayout).toInt()
+        val params = MarginLayoutParams(width, height)
+        params.setMargins(0, 0, 0, 0)
+        layoutParams = params
+
+        val newPaddingLeft =
+            maxOf(paddingLeft, ADD_ICON_HORIZONTAL_PADDING.dpToPx(this).toInt())
+        val newPaddingRight =
+            maxOf(paddingLeft, ADD_ICON_HORIZONTAL_PADDING.dpToPx(this).toInt())
+        val newPaddingTop =
+            maxOf(paddingTop, ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt())
+        val newPaddingBottom =
+            maxOf(paddingBottom, ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt())
+        setPadding(newPaddingLeft, newPaddingTop, newPaddingRight, newPaddingBottom)
+    }
 
     init {
         if (onIconAddClickListener != null) {
-            addView(symbolAdd)
+            addView(addIcon)
         }
     }
 
@@ -76,16 +95,10 @@ class FlexBoxLayout @JvmOverloads constructor(
         setChildDimension: ((Int, Int) -> Unit)? = null,
         drawChild: ((View, Int, Int, Int, Int) -> Unit)? = null,
     ) {
-        offset.reset(marginLeft + paddingLeft, marginTop + paddingTop)
+        cursor.reset(marginLeft + paddingLeft, marginTop + paddingTop)
         children.forEachIndexed { index, child ->
             if (child.visibility != View.GONE) {
                 if (makeMeasure) {
-                    if (onIconAddClickListener != null &&
-                        childCount > 1 &&
-                        childCount - 1 == index
-                    ) {
-                        symbolAdd.copyBoundsFrom(getChildAt(index - 1))
-                    }
                     makeChildMeasure(child, widthMeasureSpec, heightMeasureSpec)
                 }
                 processChild(child, layoutWidth, drawChild)
@@ -93,13 +106,13 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
 
         onIconAddClickListener?.let { clickListener ->
-            symbolAdd.setOnClickListener { clickListener.invoke() }
+            addIcon.setOnClickListener { clickListener.invoke() }
         }
 
         setChildDimension?.let {
-            offset.addBounds()
-            val width = resolveSize(offset.maxWidth, widthMeasureSpec)
-            val height = resolveSize(offset.maxHeight, heightMeasureSpec)
+            cursor.addBounds()
+            val width = resolveSize(cursor.maxWidth, widthMeasureSpec)
+            val height = resolveSize(cursor.maxHeight, heightMeasureSpec)
             setChildDimension(width, height)
         }
     }
@@ -120,25 +133,25 @@ class FlexBoxLayout @JvmOverloads constructor(
             widthMeasureSpec,
             0,
             heightMeasureSpec,
-            offset.y
+            cursor.y
         )
         val maxChildWidth = getChildWidth(child)
         measureChildWithMargins(
             child,
             widthMeasureSpec,
-            offset.x,
+            cursor.x,
             heightMeasureSpec,
-            offset.y
+            cursor.y
         )
 
         if (getChildWidth(child) < maxChildWidth) {
-            offset.moveToNextLine(getChildHeight(child))
+            cursor.moveToNextLine(getChildHeight(child))
             measureChildWithMargins(
                 child,
                 widthMeasureSpec,
-                offset.x,
+                cursor.x,
                 heightMeasureSpec,
-                offset.y
+                cursor.y
             )
         }
     }
@@ -150,16 +163,16 @@ class FlexBoxLayout @JvmOverloads constructor(
     ) {
         val childWidth = getChildWidth(child)
         val childHeight = getChildHeight(child)
-        if (offset.x + childWidth + marginRight + paddingRight > layoutWidth) {
-            offset.moveToNextLine(childHeight)
+        if (cursor.x + childWidth + marginRight + paddingRight > layoutWidth) {
+            cursor.moveToNextLine(childHeight)
         } else {
-            offset.updateRowHeight(childHeight)
+            cursor.updateRowHeight(childHeight)
         }
 
         drawChild?.let { draw ->
-            draw(child, offset.x, offset.y, offset.x + childWidth, offset.y + childHeight)
+            draw(child, cursor.x, cursor.y, cursor.x + childWidth, cursor.y + childHeight)
         }
-        offset.right(childWidth)
+        cursor.right(childWidth)
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
@@ -178,14 +191,12 @@ class FlexBoxLayout @JvmOverloads constructor(
         return p is MarginLayoutParams
     }
 
-    private inner class Offset {
-
-        private val cursor = CursorXY()
+    private inner class FlexBoxLayoutCursor(private val cursorXY: CursorXY) {
 
         val x: Int
-            get() = cursor.x
+            get() = cursorXY.x
         val y: Int
-            get() = cursor.y
+            get() = cursorXY.y
 
         private var _maxHeight: Int = 0
         val maxHeight: Int
@@ -209,13 +220,13 @@ class FlexBoxLayout @JvmOverloads constructor(
             rowHeight = 0
             startX = x
             startY = y
-            cursor.reset(startX, startY)
+            cursorXY.reset(startX, startY)
         }
 
         fun moveToNextLine(newRowHeight: Int) {
-            cursor.resetX(startX)
+            cursorXY.resetX(startX)
             val deltaY = rowHeight + marginTop
-            cursor.down(deltaY)
+            cursorXY.down(deltaY)
             _maxHeight += deltaY
             rowHeight = newRowHeight
         }
@@ -225,7 +236,7 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
 
         fun right(offsetWidth: Int) {
-            cursor.right(offsetWidth + marginRight)
+            cursorXY.right(offsetWidth + marginRight)
             _maxWidth = maxOf(_maxWidth, x)
         }
 
@@ -233,5 +244,12 @@ class FlexBoxLayout @JvmOverloads constructor(
             _maxHeight += marginTop + marginBottom + paddingTop + paddingBottom + rowHeight
             _maxWidth += marginLeft + marginRight + paddingLeft + paddingRight
         }
+    }
+
+    private companion object {
+        const val ADD_ICON_WIDTH = 45f
+        const val ADD_ICON_HEIGHT = 30f
+        const val ADD_ICON_HORIZONTAL_PADDING = 8f
+        const val ADD_ICON_VERTICAL_PADDING = 4f
     }
 }

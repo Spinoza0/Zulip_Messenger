@@ -3,8 +3,4 @@
 
     <!-- MessageLayout -->
     <string name="avatar">Avatar</string>
-
-    <!-- FlexBoxLayout -->
-    <string name="symbol_add">\u2795</string>
-
 </resources>
