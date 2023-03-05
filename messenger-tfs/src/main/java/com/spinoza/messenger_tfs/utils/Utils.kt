@@ -7,6 +7,9 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.util.TypedValue
 import android.view.View
+import androidx.core.view.marginLeft
+import androidx.core.view.marginTop
+import com.spinoza.messenger_tfs.domain.CursorXY
 
 fun Float.spToPx(view: View): Float {
     return TypedValue.applyDimension(
@@ -42,4 +45,17 @@ fun getRoundImage(image: Bitmap, size: Float): Bitmap {
         Rect(0, 0, size.toInt(), size.toInt()), null
     )
     return result
+}
+
+fun drawView(view: View, cursor: CursorXY) {
+    cursor.right(view.marginLeft)
+    cursor.down(view.marginTop)
+    view.layout(
+        cursor.x,
+        cursor.y,
+        cursor.x + view.measuredWidth,
+        cursor.y + view.measuredHeight
+    )
+    cursor.left(view.marginLeft)
+    cursor.up(view.marginTop)
 }

@@ -15,6 +15,7 @@ import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.CursorXY
 import com.spinoza.messenger_tfs.dpToPx
+import com.spinoza.messenger_tfs.drawView
 import com.spinoza.messenger_tfs.getRoundImage
 
 class MessageLayout @JvmOverloads constructor(
@@ -66,28 +67,28 @@ class MessageLayout @JvmOverloads constructor(
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        processLayout(layoutFunc = ::viewLayout)
+        processLayout(layoutFunc = ::drawView)
     }
 
     private fun processLayout(
         widthMeasureSpec: Int = 0,
         heightMeasureSpec: Int = 0,
         measureFunc: ((View, Int, Int) -> Unit)? = null,
-        layoutFunc: ((View) -> Unit)? = null,
+        layoutFunc: ((View, CursorXY) -> Unit)? = null,
     ) {
-        cursor.reset(marginLeft + paddingLeft, marginTop + paddingTop)
+        cursor.reset(paddingLeft, paddingTop)
 
         measureFunc?.let { measureFunc(avatar, widthMeasureSpec, heightMeasureSpec) }
-        layoutFunc?.let { layoutFunc(avatar) }
+        layoutFunc?.let { layoutFunc(avatar, cursor) }
 
         cursor.right(avatar.marginLeft + avatar.measuredWidth + avatar.marginRight)
         measureFunc?.let { measureFunc(nameView, widthMeasureSpec, heightMeasureSpec) }
-        layoutFunc?.let { layoutFunc(nameView) }
+        layoutFunc?.let { layoutFunc(nameView, cursor) }
 
         var textWidth = nameView.marginLeft + nameView.measuredWidth + nameView.marginRight
         cursor.down(nameView.marginTop + nameView.measuredHeight + nameView.marginBottom)
         measureFunc?.let { measureFunc(messageView, widthMeasureSpec, heightMeasureSpec) }
-        layoutFunc?.let { layoutFunc(messageView) }
+        layoutFunc?.let { layoutFunc(messageView, cursor) }
 
         textWidth = maxOf(
             textWidth,
@@ -97,7 +98,7 @@ class MessageLayout @JvmOverloads constructor(
             messageView.marginTop + messageView.measuredHeight + messageView.marginBottom
         )
         measureFunc?.let { measureFunc(reactions, widthMeasureSpec, heightMeasureSpec) }
-        layoutFunc?.let { layoutFunc(reactions) }
+        layoutFunc?.let { layoutFunc(reactions, cursor) }
 
         measureFunc?.let {
             cursor.down(
@@ -108,22 +109,9 @@ class MessageLayout @JvmOverloads constructor(
                 reactions.marginLeft + reactions.measuredWidth + reactions.marginRight
             )
             val totalWidth = cursor.x + textWidth
-            val totalHeight = cursor.y + marginBottom + paddingBottom
+            val totalHeight = cursor.y + paddingBottom
             setMeasuredDimension(totalWidth, totalHeight)
         }
-    }
-
-    private fun viewLayout(view: View) {
-        cursor.right(view.marginLeft)
-        cursor.down(view.marginTop)
-        view.layout(
-            cursor.x,
-            cursor.y,
-            cursor.x + view.measuredWidth,
-            cursor.y + view.measuredHeight
-        )
-        cursor.left(view.marginLeft)
-        cursor.up(view.marginTop)
     }
 
     private fun measureView(view: View, widthMeasureSpec: Int, heightMeasureSpec: Int) {
