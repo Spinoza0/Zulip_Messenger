@@ -126,7 +126,6 @@ class ReactionView @JvmOverloads constructor(
     private fun makeReaction() {
         reaction = "$emoji $count"
         reactionPaint.textSize = size.spToPx(this)
-        requestLayout()
     }
 
     private class SavedState : BaseSavedState, Parcelable {
