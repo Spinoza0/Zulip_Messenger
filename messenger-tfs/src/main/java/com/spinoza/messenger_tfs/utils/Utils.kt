@@ -6,26 +6,6 @@ import android.graphics.Canvas
 import android.graphics.Path
 import android.graphics.Rect
 import android.util.TypedValue
-import android.view.View
-import androidx.core.view.marginLeft
-import androidx.core.view.marginTop
-import com.spinoza.messenger_tfs.domain.CursorXY
-
-fun Float.spToPx(view: View): Float {
-    return TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_SP,
-        this,
-        view.resources.displayMetrics
-    )
-}
-
-fun Float.dpToPx(view: View): Float {
-    return TypedValue.applyDimension(
-        TypedValue.COMPLEX_UNIT_DIP,
-        this,
-        view.resources.displayMetrics
-    )
-}
 
 fun getThemeColor(context: Context, attr: Int): Int {
     val typedValue = TypedValue()
@@ -47,15 +27,3 @@ fun getRoundImage(image: Bitmap, size: Float): Bitmap {
     return result
 }
 
-fun drawView(view: View, cursor: CursorXY) {
-    cursor.right(view.marginLeft)
-    cursor.down(view.marginTop)
-    view.layout(
-        cursor.x,
-        cursor.y,
-        cursor.x + view.measuredWidth,
-        cursor.y + view.measuredHeight
-    )
-    cursor.left(view.marginLeft)
-    cursor.up(view.marginTop)
-}

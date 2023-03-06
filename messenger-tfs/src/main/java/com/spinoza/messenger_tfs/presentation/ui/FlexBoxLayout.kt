@@ -9,8 +9,6 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.*
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.CursorXY
-import com.spinoza.messenger_tfs.dpToPx
-import com.spinoza.messenger_tfs.drawView
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
@@ -30,22 +28,20 @@ class FlexBoxLayout @JvmOverloads constructor(
             setIconAddVisibility()
         }
 
-    private val addIcon = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
+    private val iconAdd = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
         setImageResource(R.drawable.icon_add)
         setBackgroundResource(R.drawable.shape_flexboxlayout_icon_add)
         setOnClickListener { onIconAddClick() }
 
-        val width = ADD_ICON_WIDTH.dpToPx(this@FlexBoxLayout).toInt()
-        val height = ADD_ICON_HEIGHT.dpToPx(this@FlexBoxLayout).toInt()
+        val width = ICON_ADD_WIDTH.dpToPx(this@FlexBoxLayout).toInt()
+        val height = ICON_ADD_HEIGHT.dpToPx(this@FlexBoxLayout).toInt()
         layoutParams = MarginLayoutParams(width, height)
 
-        val iconPaddingLeft = ADD_ICON_HORIZONTAL_PADDING.dpToPx(this).toInt()
-        val iconPaddingRight = ADD_ICON_HORIZONTAL_PADDING.dpToPx(this).toInt()
-        val iconPaddingTop = ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt()
-        val iconPaddingBottom = ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt()
+        val iconPaddingLeft = ICON_ADD_HORIZONTAL_PADDING.dpToPx(this).toInt()
+        val iconPaddingRight = ICON_ADD_HORIZONTAL_PADDING.dpToPx(this).toInt()
+        val iconPaddingTop = ICON_ADD_VERTICAL_PADDING.dpToPx(this).toInt()
+        val iconPaddingBottom = ICON_ADD_VERTICAL_PADDING.dpToPx(this).toInt()
         setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom)
-
-        addView(this)
     }
 
     init {
@@ -53,6 +49,7 @@ class FlexBoxLayout @JvmOverloads constructor(
             internalMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
         }
         setIconAddVisibility()
+        addView(iconAdd)
     }
 
     override fun addView(view: View) {
@@ -175,7 +172,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     }
 
     private fun setIconAddVisibility() {
-        addIcon.visibility = if (iconAddVisibility) VISIBLE else GONE
+        iconAdd.visibility = if (iconAddVisibility) VISIBLE else GONE
     }
 
     private fun onIconAddClick() {
@@ -238,9 +235,9 @@ class FlexBoxLayout @JvmOverloads constructor(
     }
 
     private companion object {
-        const val ADD_ICON_WIDTH = 45f
-        const val ADD_ICON_HEIGHT = 30f
-        const val ADD_ICON_HORIZONTAL_PADDING = 8f
-        const val ADD_ICON_VERTICAL_PADDING = 4f
+        const val ICON_ADD_WIDTH = 45f
+        const val ICON_ADD_HEIGHT = 30f
+        const val ICON_ADD_HORIZONTAL_PADDING = 8f
+        const val ICON_ADD_VERTICAL_PADDING = 4f
     }
 }

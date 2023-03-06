@@ -10,9 +10,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.dpToPx
 import com.spinoza.messenger_tfs.getThemeColor
-import com.spinoza.messenger_tfs.spToPx
 
 class ReactionView @JvmOverloads constructor(
     context: Context,

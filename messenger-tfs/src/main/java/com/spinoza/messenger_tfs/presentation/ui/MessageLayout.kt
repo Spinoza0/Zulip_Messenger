@@ -14,8 +14,6 @@ import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.CursorXY
-import com.spinoza.messenger_tfs.dpToPx
-import com.spinoza.messenger_tfs.drawView
 import com.spinoza.messenger_tfs.getRoundImage
 
 class MessageLayout @JvmOverloads constructor(
