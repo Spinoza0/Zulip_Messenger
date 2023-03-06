@@ -35,40 +35,31 @@ class FlexBoxLayout @JvmOverloads constructor(
         val iconPaddingTop = ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt()
         val iconPaddingBottom = ADD_ICON_VERTICAL_PADDING.dpToPx(this).toInt()
         setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom)
+
+        addView(this)
     }
 
     var onIconAddClickListener: (() -> Unit)? = null
         set(value) {
-            var needAddIcon = false
             if (value != null) {
-                needAddIcon = (field == null)
                 field = value
+                addIcon.visibility = VISIBLE
                 addIcon.setOnClickListener { value.invoke() }
             } else {
-                removeViewAt(childCount - 1)
-            }
-            if (needAddIcon) {
-                addView(addIcon)
+                addIcon.visibility = GONE
             }
         }
 
     init {
         context.withStyledAttributes(attrs, R.styleable.flexbox_layout) {
-            internalMargin =
-                getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
+            internalMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
         }
 
-        if (onIconAddClickListener != null) {
-            addView(addIcon)
-        }
+        addIcon.visibility = if (onIconAddClickListener != null) VISIBLE else GONE
     }
 
     override fun addView(view: View) {
-        if (onIconAddClickListener != null)
-            super.addView(view, childCount - 1)
-        else {
-            super.addView(view)
-        }
+        super.addView(view, childCount - 1)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
@@ -99,7 +90,7 @@ class FlexBoxLayout @JvmOverloads constructor(
         var viewHeight = 0
 
         children.forEach { view ->
-            if (view.visibility != View.GONE) {
+            if (view.visibility != GONE) {
                 measureFunc?.let {
                     measureFunc(view, widthMeasureSpec, heightMeasureSpec)
                     viewWidth = getChildWidth(view)
