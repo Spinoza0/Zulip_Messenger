@@ -207,10 +207,10 @@ class FlexBoxLayout @JvmOverloads constructor(
             cursor.x + viewWidth + paddingRight + internalMargin > layoutWidth
 
         fun moveToNextLine(newRowHeight: Int) {
+            val offsetY = rowHeight + internalMargin
             cursorXY.resetX(startX)
-            val deltaY = rowHeight + internalMargin
-            cursorXY.down(deltaY)
-            maxHeight += deltaY
+            cursorXY.down(offsetY)
+            maxHeight += offsetY
             rowHeight = newRowHeight
         }
 
