@@ -1,0 +1,9 @@
+<?xml version="1.1" encoding="utf-8"?>
+<resources>
+    <dimen name="contact_card_radius">24dp</dimen>
+    <dimen name="contact_card_elevation">10dp</dimen>
+    <dimen name="contact_card_margin">8dp</dimen>
+    <dimen name="contact_card_padding">16dp</dimen>
+
+    <dimen name="about_fragment_photo_size">160dp</dimen>
+</resources>
