@@ -25,6 +25,9 @@ class MessageLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
+    var onMessageClickListener: ((MessageLayout) -> Unit)? = null
+    var onAvatarClickListener: ((MessageLayout) -> Unit)? = null
+
     private val avatar: ImageView
     private val nameView: TextView
     private val messageView: TextView
@@ -44,11 +47,6 @@ class MessageLayout @JvmOverloads constructor(
 
     private var cursor = CursorXY()
 
-    var onReactionAddClickListener: (() -> Unit)? = null
-        set(value) {
-            field = value
-            reactions.onIconAddClickListener = value
-        }
 
     init {
         inflate(context, R.layout.message_layout, this)
@@ -56,6 +54,10 @@ class MessageLayout @JvmOverloads constructor(
         nameView = findViewById(R.id.name)
         messageView = findViewById(R.id.message)
         reactions = findViewById(R.id.reactions)
+
+        avatar.setOnClickListener { onAvatarClick() }
+        nameView.setOnClickListener { onMessageClick() }
+        messageView.setOnClickListener { onMessageClick() }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -150,5 +152,18 @@ class MessageLayout @JvmOverloads constructor(
     fun setRoundAvatar(bitmap: Bitmap) {
         val size = avatar.layoutParams.width.toFloat().dpToPx(this)
         setAvatar(getRoundImage(bitmap, size))
+    }
+
+
+    private fun onAvatarClick() {
+        if (onAvatarClickListener != null) {
+            onAvatarClickListener?.invoke(this)
+        }
+    }
+
+    private fun onMessageClick() {
+        if (onMessageClickListener != null) {
+            onMessageClickListener?.invoke(this)
+        }
     }
 }

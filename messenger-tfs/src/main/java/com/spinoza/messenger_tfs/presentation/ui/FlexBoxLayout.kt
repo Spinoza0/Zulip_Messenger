@@ -19,12 +19,21 @@ class FlexBoxLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
+    var onIconAddClickListener: ((FlexBoxLayout) -> Unit)? = null
+
     private val cursor = FlexBoxLayoutCursor(CursorXY())
     private var internalMargin = 0
+
+    var iconAddVisibility: Boolean = false
+        set(value) {
+            field = value
+            setIconAddVisibility()
+        }
 
     private val addIcon = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
         setImageResource(R.drawable.icon_add)
         setBackgroundResource(R.drawable.shape_flexboxlayout_icon_add)
+        setOnClickListener { onIconAddClick() }
 
         val width = ADD_ICON_WIDTH.dpToPx(this@FlexBoxLayout).toInt()
         val height = ADD_ICON_HEIGHT.dpToPx(this@FlexBoxLayout).toInt()
@@ -39,23 +48,11 @@ class FlexBoxLayout @JvmOverloads constructor(
         addView(this)
     }
 
-    var onIconAddClickListener: (() -> Unit)? = null
-        set(value) {
-            if (value != null) {
-                field = value
-                addIcon.visibility = VISIBLE
-                addIcon.setOnClickListener { value.invoke() }
-            } else {
-                addIcon.visibility = GONE
-            }
-        }
-
     init {
         context.withStyledAttributes(attrs, R.styleable.flexbox_layout) {
             internalMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
         }
-
-        addIcon.visibility = if (onIconAddClickListener != null) VISIBLE else GONE
+        setIconAddVisibility()
     }
 
     override fun addView(view: View) {
@@ -175,6 +172,16 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     override fun checkLayoutParams(p: LayoutParams): Boolean {
         return p is MarginLayoutParams
+    }
+
+    private fun setIconAddVisibility() {
+        addIcon.visibility = if (iconAddVisibility) VISIBLE else GONE
+    }
+
+    private fun onIconAddClick() {
+        if (onIconAddClickListener != null) {
+            onIconAddClickListener?.invoke(this)
+        }
     }
 
     private inner class FlexBoxLayoutCursor(val cursorXY: CursorXY) {

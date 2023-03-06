@@ -20,23 +20,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun test() {
-        binding.messageLayout.onReactionAddClickListener = {
-            binding.messageLayout.reactions.addView(testGetReaction())
-        }
-        binding.messageLayout.name = "John Dow"
-        binding.messageLayout.message =
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus." +
-                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus."
-        binding.messageLayout.setRoundAvatar(R.drawable.face)
 
-        binding.buttonAddListener.setOnClickListener {
-            binding.messageLayout.onReactionAddClickListener = {
-                binding.messageLayout.reactions.addView(testGetReaction())
+        with(binding) {
+            messageLayout.name = "John Dow"
+            messageLayout.message =
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus." +
+                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus."
+            messageLayout.setRoundAvatar(R.drawable.face)
+            messageLayout.reactions.iconAddVisibility = false
+            messageLayout.onMessageClickListener = {
+                messageLayout.reactions.addView(testGetReaction())
+                messageLayout.reactions.iconAddVisibility = true
+                messageLayout.onMessageClickListener = null
             }
-        }
-
-        binding.buttonRemoveListener.setOnClickListener {
-            binding.messageLayout.onReactionAddClickListener = null
+            messageLayout.reactions.onIconAddClickListener = {
+                it.addView(testGetReaction())
+            }
         }
     }
 
