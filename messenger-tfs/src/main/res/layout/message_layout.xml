@@ -5,7 +5,7 @@
     tools:parentTag="com.spinoza.messenger_tfs.presentation.ui.MessageView">
 
     <ImageView
-        android:id="@+id/avatar"
+        android:id="@+id/avatarImageView"
         android:layout_width="37dp"
         android:layout_height="37dp"
         android:layout_marginEnd="8dp"
@@ -14,7 +14,7 @@
         tools:src="@drawable/face" />
 
     <TextView
-        android:id="@+id/name"
+        android:id="@+id/nameTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/shape_message_layout_top"
@@ -26,7 +26,7 @@
         tools:text="@tools:sample/full_names" />
 
     <TextView
-        android:id="@+id/message"
+        android:id="@+id/messageTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/shape_message_layout_bottom"
@@ -37,7 +37,7 @@
         tools:text="@tools:sample/full_names" />
 
     <com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
-        android:id="@+id/reactions"
+        android:id="@+id/reactionsFlexBoxLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"

@@ -4,12 +4,13 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.view.marginLeft
 import androidx.core.view.marginTop
-import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.MessageEntity
 
 class MessageView @JvmOverloads constructor(
@@ -37,11 +38,11 @@ class MessageView @JvmOverloads constructor(
     private val avatar: ImageView
 
     init {
-        inflate(context, R.layout.message_layout, this)
-        avatar = findViewById(R.id.avatar)
-        nameTextView = findViewById(R.id.name)
-        messageTextView = findViewById(R.id.message)
-        reactions = findViewById(R.id.reactions)
+        val binding = MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
+        avatar = binding.avatarImageView
+        nameTextView = binding.nameTextView
+        messageTextView = binding.messageTextView
+        reactions = binding.reactionsFlexBoxLayout
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
