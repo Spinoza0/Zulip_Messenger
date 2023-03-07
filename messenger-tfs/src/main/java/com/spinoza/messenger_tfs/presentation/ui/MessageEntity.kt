@@ -1,6 +1,7 @@
-package com.spinoza.messenger_tfs.domain
+package com.spinoza.messenger_tfs.presentation.ui
 
 import android.os.Parcelable
+import com.spinoza.messenger_tfs.domain.ReactionEntity
 import kotlinx.parcelize.Parcelize
 
 @Parcelize

@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.ActivityMainBinding
-import com.spinoza.messenger_tfs.domain.MessageEntity
+import com.spinoza.messenger_tfs.presentation.ui.MessageEntity
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import kotlin.random.Random
 

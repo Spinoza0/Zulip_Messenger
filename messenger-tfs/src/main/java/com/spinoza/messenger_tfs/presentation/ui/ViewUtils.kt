@@ -32,6 +32,12 @@ fun View.getWidthWithMargins(): Int {
     return this.measuredWidth + this.marginLeft + this.marginRight
 }
 
+fun View.layoutWithMargins(offsetX: Int, offsetY: Int) {
+    val x = offsetX + this.marginLeft
+    val y = offsetY + this.marginTop
+    this.layout(x, y, x + this.measuredWidth, y + this.measuredHeight)
+}
+
 fun Context.getThemeColor(attr: Int): Int {
     val typedValue = TypedValue()
     this.theme.resolveAttribute(attr, typedValue, true)

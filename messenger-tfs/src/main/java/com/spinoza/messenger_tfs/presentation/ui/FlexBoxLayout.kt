@@ -8,8 +8,6 @@ import android.widget.ImageView
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.isVisible
-import androidx.core.view.marginLeft
-import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.ReactionEntity
 
@@ -57,8 +55,6 @@ class FlexBoxLayout @JvmOverloads constructor(
         val layoutWidth = r - l - paddingLeft - paddingRight
         var viewWidth: Int
         var viewHeight: Int
-        var offsetXWithMargin: Int
-        var offsetYWithMargin: Int
 
         row.movePositionToStart()
 
@@ -69,14 +65,7 @@ class FlexBoxLayout @JvmOverloads constructor(
                 if (row.needMovePositionToNextRow(viewWidth, layoutWidth)) {
                     row.movePositionToNextRow(viewHeight)
                 }
-                offsetXWithMargin = offsetX + view.marginLeft
-                offsetYWithMargin = offsetY + view.marginTop
-                view.layout(
-                    offsetXWithMargin,
-                    offsetYWithMargin,
-                    offsetXWithMargin + view.measuredWidth,
-                    offsetYWithMargin + view.measuredHeight
-                )
+                view.layoutWithMargins(offsetX, offsetY)
                 row.movePositionToRight(viewWidth)
                 row.updateRowHeight(viewHeight)
             }

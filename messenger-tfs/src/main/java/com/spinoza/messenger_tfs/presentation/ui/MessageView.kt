@@ -8,10 +8,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.view.marginLeft
-import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
-import com.spinoza.messenger_tfs.domain.MessageEntity
 
 class MessageView @JvmOverloads constructor(
     context: Context,
@@ -77,44 +74,16 @@ class MessageView @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         var offsetX = paddingLeft
         var offsetY = paddingTop
-        var offsetXWithMargin = offsetX + avatar.marginLeft
-        var offsetYWithMargin = offsetY + avatar.marginTop
-        avatar.layout(
-            offsetXWithMargin,
-            offsetYWithMargin,
-            offsetXWithMargin + avatar.measuredWidth,
-            offsetYWithMargin + avatar.measuredHeight
-        )
+        avatar.layoutWithMargins(offsetX, offsetY)
         offsetX += avatar.getWidthWithMargins()
 
-        offsetXWithMargin = offsetX + nameTextView.marginLeft
-        offsetYWithMargin = offsetY + nameTextView.marginTop
-        nameTextView.layout(
-            offsetXWithMargin,
-            offsetYWithMargin,
-            offsetXWithMargin + nameTextView.measuredWidth,
-            offsetYWithMargin + nameTextView.measuredHeight
-        )
+        nameTextView.layoutWithMargins(offsetX, offsetY)
         offsetY += nameTextView.getHeightWithMargins()
 
-        offsetXWithMargin = offsetX + messageTextView.marginLeft
-        offsetYWithMargin = offsetY + messageTextView.marginTop
-        messageTextView.layout(
-            offsetXWithMargin,
-            offsetYWithMargin,
-            offsetXWithMargin + messageTextView.measuredWidth,
-            offsetYWithMargin + messageTextView.measuredHeight
-        )
+        messageTextView.layoutWithMargins(offsetX, offsetY)
         offsetY += messageTextView.getHeightWithMargins()
 
-        offsetXWithMargin = offsetX + reactions.marginLeft
-        offsetYWithMargin = offsetY + reactions.marginTop
-        reactions.layout(
-            offsetXWithMargin,
-            offsetYWithMargin,
-            offsetXWithMargin + reactions.measuredWidth,
-            offsetYWithMargin + reactions.measuredHeight
-        )
+        reactions.layoutWithMargins(offsetX, offsetY)
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
