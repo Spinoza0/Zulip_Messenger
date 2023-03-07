@@ -195,7 +195,7 @@ class FlexBoxLayout @JvmOverloads constructor(
         private var startY: Int = 0
 
         init {
-            cursorXY.reset(0, 0)
+            cursorXY.reset()
         }
 
         fun reset() {
@@ -212,7 +212,7 @@ class FlexBoxLayout @JvmOverloads constructor(
 
         fun moveToNextLine(newRowHeight: Int) {
             val offsetY = rowHeight + internalMargin
-            cursorXY.resetX(startX)
+            cursorXY.reset(x = startX)
             cursorXY.down(offsetY)
             maxHeight += offsetY
             rowHeight = newRowHeight
