@@ -1,13 +1,15 @@
-package com.spinoza.messenger_tfs
+package com.spinoza.messenger_tfs.presentation
 
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
+import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.ActivityMainBinding
 import com.spinoza.messenger_tfs.domain.Reaction
 import com.spinoza.messenger_tfs.domain.ReactionsState
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
+import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
@@ -47,12 +49,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun testGetReaction() = ReactionView(this).apply {
-        emoji = "\uD83D\uDE0D"
-        count = 1
-        setOnClickListener {
-            count++
+    private fun testGetReaction(): ReactionView {
+        val emojis = listOf("\uD83D\uDE00", "\uD83E\uDD10", "\uD83E\uDD17")
+        val result = ReactionView(this).apply {
+            emoji = emojis[Random.nextInt(emojis.size)]
+            count = 1
+            setOnClickListener {
+                count++
+            }
         }
+        return result
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
