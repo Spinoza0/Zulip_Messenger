@@ -12,7 +12,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.ReactionEntity
 
 class FlexBoxLayout @JvmOverloads constructor(
-    private val context: Context,
+    context: Context,
     private val attrs: AttributeSet? = null,
     private val defStyleAttr: Int = 0,
     private val defStyleRes: Int = 0,

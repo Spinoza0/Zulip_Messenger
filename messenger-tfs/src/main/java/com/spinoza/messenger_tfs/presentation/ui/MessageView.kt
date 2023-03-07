@@ -9,12 +9,13 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
+import com.spinoza.messenger_tfs.domain.ReactionEntity
 
 class MessageView @JvmOverloads constructor(
     context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0,
-    defStyleRes: Int = 0,
+    private val attrs: AttributeSet? = null,
+    private val defStyleAttr: Int = 0,
+    private val defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     var name: String
@@ -126,12 +127,14 @@ class MessageView @JvmOverloads constructor(
         }
     }
 
-    fun setOnMessageClickListener(listener: ((MessageView) -> Unit)?) {
-        nameTextView.setOnClickListener {
+    fun setOnMessageLongClickListener(listener: ((MessageView) -> Unit)?) {
+        nameTextView.setOnLongClickListener {
             listener?.invoke(this@MessageView)
+            true
         }
-        messageTextView.setOnClickListener {
+        messageTextView.setOnLongClickListener {
             listener?.invoke(this@MessageView)
+            true
         }
     }
 
@@ -145,8 +148,17 @@ class MessageView @JvmOverloads constructor(
         reactions.setIconAddVisibility(state)
     }
 
-    fun addReactionView(reaction: ReactionView) {
-        reactions.addView(reaction)
+    fun addReaction(reactionEntity: ReactionEntity) {
+        val reactionView = ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
+            emoji = reactionEntity.emoji
+            count = reactionEntity.count
+            isSelected = reactionEntity.selected
+        }
+        addReaction(reactionView)
+    }
+
+    fun addReaction(reactionView: ReactionView) {
+        reactions.addView(reactionView)
     }
 
     fun getMessageEntity(): MessageEntity {

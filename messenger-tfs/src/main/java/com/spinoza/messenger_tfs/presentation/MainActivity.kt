@@ -31,12 +31,12 @@ class MainActivity : AppCompatActivity() {
             }
             setRoundAvatar (R.drawable.face)
             setIconAddVisibility(false)
-            setOnMessageClickListener {
-                addReactionView(testGetReaction())
+            setOnMessageLongClickListener {
+                addReaction(testGetReaction())
                 setIconAddVisibility(true)
             }
             setOnReactionAddClickListener {
-                it.addReactionView(testGetReaction())
+                it.addReaction(testGetReaction())
             }
 
             binding.buttonMakeVisible.setOnClickListener {
