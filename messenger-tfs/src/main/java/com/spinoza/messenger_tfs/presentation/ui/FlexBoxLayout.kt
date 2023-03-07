@@ -20,7 +20,6 @@ class FlexBoxLayout @JvmOverloads constructor(
     private val defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    private var onIconAddClickListener: ((FlexBoxLayout) -> Unit)? = null
     private var internalMargin = 0
     private val row = RowHelper()
     private var offsetX = 0
@@ -29,9 +28,6 @@ class FlexBoxLayout @JvmOverloads constructor(
     private val iconAdd = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
         setImageResource(R.drawable.icon_add)
         setBackgroundResource(R.drawable.shape_flexboxlayout_icon_add)
-        setOnClickListener {
-            onIconAddClickListener?.invoke(this@FlexBoxLayout)
-        }
 
         val width = ICON_ADD_WIDTH.dpToPx(this@FlexBoxLayout).toInt()
         val height = ICON_ADD_HEIGHT.dpToPx(this@FlexBoxLayout).toInt()
@@ -113,8 +109,10 @@ class FlexBoxLayout @JvmOverloads constructor(
         setMeasuredDimension(width, height)
     }
 
-    fun setOnAddClickListener(listener: (FlexBoxLayout) -> Unit) {
-        onIconAddClickListener = listener
+    fun setOnAddClickListener(listener: ((FlexBoxLayout) -> Unit)?) {
+        iconAdd.setOnClickListener {
+            listener?.invoke(this@FlexBoxLayout)
+        }
     }
 
     fun setIconAddVisibility(state: Boolean) {
