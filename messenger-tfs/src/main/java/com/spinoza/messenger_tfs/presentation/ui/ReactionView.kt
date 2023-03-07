@@ -18,9 +18,6 @@ class ReactionView @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
-    private var reaction = ""
-    private val cornerRadius = CORNER_RADIUS.dpToPx(this)
-
     var emoji = ""
         set(value) {
             field = value
@@ -37,11 +34,12 @@ class ReactionView @JvmOverloads constructor(
             makeReaction()
         }
 
+    private var reaction = ""
+    private val cornerRadius = CORNER_RADIUS.dpToPx(this)
     private val selectedBackgroundColor =
         context.getThemeColor(R.attr.reaction_selected_background_color)
     private val unselectedBackgroundColor =
         context.getThemeColor(R.attr.reaction_unselected_background_color)
-
     private val reactionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
         color = context.getThemeColor(R.attr.reaction_text_color)
