@@ -10,7 +10,6 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.getThemeColor
 
 class ReactionView @JvmOverloads constructor(
     context: Context,
@@ -39,13 +38,13 @@ class ReactionView @JvmOverloads constructor(
         }
 
     private val selectedBackgroundColor =
-        getThemeColor(context, R.attr.reaction_selected_background_color)
+        context.getThemeColor(R.attr.reaction_selected_background_color)
     private val unselectedBackgroundColor =
-        getThemeColor(context, R.attr.reaction_unselected_background_color)
+        context.getThemeColor(R.attr.reaction_unselected_background_color)
 
     private val reactionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
-        color = getThemeColor(context, R.attr.reaction_text_color)
+        color = context.getThemeColor(R.attr.reaction_text_color)
     }
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textBounds = Rect()

@@ -8,7 +8,7 @@ import android.widget.ImageView
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.*
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.CursorXY
+import com.spinoza.messenger_tfs.domain.Cursor
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
@@ -19,7 +19,7 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     var onIconAddClickListener: ((FlexBoxLayout) -> Unit)? = null
 
-    private val cursor = FlexBoxLayoutCursor(CursorXY())
+    private val cursor = FlexBoxLayoutCursor(Cursor())
     private var internalMargin = 0
 
     var iconAddVisibility: Boolean = false
@@ -77,7 +77,7 @@ class FlexBoxLayout @JvmOverloads constructor(
         widthMeasureSpec: Int = 0,
         heightMeasureSpec: Int = 0,
         measureFunc: ((View, Int, Int) -> Unit)? = null,
-        layoutFunc: ((View, CursorXY) -> Unit)? = null,
+        layoutFunc: ((View, Cursor) -> Unit)? = null,
     ) {
         cursor.reset()
         var viewWidth = 0
@@ -181,7 +181,7 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
     }
 
-    private inner class FlexBoxLayoutCursor(val cursorXY: CursorXY) {
+    private inner class FlexBoxLayoutCursor(val cursorXY: Cursor) {
 
         val x: Int
             get() = cursorXY.x
