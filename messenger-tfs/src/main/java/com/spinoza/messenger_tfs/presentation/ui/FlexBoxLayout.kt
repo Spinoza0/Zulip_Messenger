@@ -6,9 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.core.content.withStyledAttributes
-import androidx.core.view.*
+import androidx.core.view.children
+import androidx.core.view.isVisible
+import androidx.core.view.marginLeft
+import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.Cursor
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
@@ -18,9 +20,10 @@ class FlexBoxLayout @JvmOverloads constructor(
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     private var onIconAddClickListener: ((FlexBoxLayout) -> Unit)? = null
-    private val cursor = Cursor()
-    private val row = RowHelper()
     private var internalMargin = 0
+    private val row = RowHelper()
+    private var offsetX = 0
+    private var offsetY = 0
 
     private val iconAdd = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
         setImageResource(R.drawable.icon_add)
@@ -55,19 +58,28 @@ class FlexBoxLayout @JvmOverloads constructor(
         val layoutWidth = r - l - paddingLeft - paddingRight
         var viewWidth: Int
         var viewHeight: Int
+        var offsetXWithMargin: Int
+        var offsetYWithMargin: Int
 
-        row.reset()
+        row.movePositionToStart()
 
         children.forEach { view ->
-            if (view.visibility != GONE) {
-                viewWidth = getChildWidth(view)
-                viewHeight = getChildHeight(view)
-                if (row.needMoveToNextRow(viewWidth, layoutWidth)) {
-                    row.moveToNextRow(viewHeight)
+            if (view.isVisible) {
+                viewWidth = view.getWidthWithMargins()
+                viewHeight = view.getHeightWithMargins()
+                if (row.needMovePositionToNextRow(viewWidth, layoutWidth)) {
+                    row.movePositionToNextRow(viewHeight)
                 }
-                view.draw(cursor)
-                row.right(viewWidth)
-                row.updateHeight(viewHeight)
+                offsetXWithMargin = offsetX + view.marginLeft
+                offsetYWithMargin = offsetY + view.marginTop
+                view.layout(
+                    offsetXWithMargin,
+                    offsetYWithMargin,
+                    offsetXWithMargin + view.measuredWidth,
+                    offsetYWithMargin + view.measuredHeight
+                )
+                row.movePositionToRight(viewWidth)
+                row.updateRowHeight(viewHeight)
             }
         }
     }
@@ -77,19 +89,18 @@ class FlexBoxLayout @JvmOverloads constructor(
         var viewWidth: Int
         var viewHeight: Int
 
-        row.reset()
+        row.movePositionToStart()
 
         children.forEach { view ->
-            if (view.visibility != GONE) {
+            if (view.isVisible) {
                 measureView(view, widthMeasureSpec, heightMeasureSpec)
-                viewWidth = getChildWidth(view)
-                viewHeight = getChildHeight(view)
-                if (row.needMoveToNextRow(viewWidth, layoutWidth)) {
-                    row.moveToNextRow(viewHeight)
+                viewWidth = view.getWidthWithMargins()
+                viewHeight = view.getHeightWithMargins()
+                if (row.needMovePositionToNextRow(viewWidth, layoutWidth)) {
+                    row.movePositionToNextRow(viewHeight)
                 }
-
-                row.right(viewWidth)
-                row.updateHeight(viewHeight)
+                row.movePositionToRight(viewWidth)
+                row.updateRowHeight(viewHeight)
             }
         }
 
@@ -125,41 +136,35 @@ class FlexBoxLayout @JvmOverloads constructor(
         return p is MarginLayoutParams
     }
 
-    private fun getChildHeight(child: View) =
-        child.measuredHeight + child.marginTop + child.marginBottom
-
-    private fun getChildWidth(child: View) =
-        child.measuredWidth + child.marginLeft + child.marginRight
-
     private fun measureView(
-        child: View,
+        view: View,
         widthMeasureSpec: Int,
         heightMeasureSpec: Int,
     ) {
         measureChildWithMargins(
-            child,
+            view,
             widthMeasureSpec,
             0,
             heightMeasureSpec,
-            cursor.y
+            offsetY
         )
-        val maxChildWidth = getChildWidth(child)
+        val maxChildWidth = view.getWidthWithMargins()
         measureChildWithMargins(
-            child,
+            view,
             widthMeasureSpec,
-            cursor.x,
+            offsetX,
             heightMeasureSpec,
-            cursor.y
+            offsetY
         )
 
-        if (getChildWidth(child) < maxChildWidth) {
-            row.moveToNextRow(getChildHeight(child))
+        if (view.getWidthWithMargins() < maxChildWidth) {
+            row.movePositionToNextRow(view.getHeightWithMargins())
             measureChildWithMargins(
-                child,
+                view,
                 widthMeasureSpec,
-                cursor.x,
+                offsetX,
                 heightMeasureSpec,
-                cursor.y
+                offsetY
             )
         }
     }
@@ -176,30 +181,31 @@ class FlexBoxLayout @JvmOverloads constructor(
         var rowHeight: Int = 0
             private set
 
-        fun reset() {
-            cursor.reset(paddingLeft, paddingTop)
-            maxHeight = cursor.y
-            maxWidth = cursor.x
+        fun movePositionToStart() {
+            offsetX = paddingLeft
+            offsetY = paddingTop
+            maxWidth = offsetX
+            maxHeight = offsetY
             rowHeight = 0
         }
 
-        fun needMoveToNextRow(viewWidth: Int, layoutWidth: Int) =
-            cursor.x + viewWidth + paddingRight + internalMargin > layoutWidth
+        fun needMovePositionToNextRow(viewWidth: Int, layoutWidth: Int) =
+            offsetX + viewWidth + paddingRight + internalMargin > layoutWidth
 
-        fun moveToNextRow(newRowHeight: Int) {
-            cursor.reset(x = paddingLeft)
-            cursor.down(rowHeight + internalMargin)
-            maxHeight = cursor.y
+        fun movePositionToNextRow(newRowHeight: Int) {
+            offsetX = paddingLeft
+            offsetY += rowHeight + internalMargin
+            maxHeight = offsetY
             rowHeight = newRowHeight
         }
 
-        fun updateHeight(newRowHeight: Int) {
+        fun updateRowHeight(newRowHeight: Int) {
             rowHeight = maxOf(rowHeight, newRowHeight)
         }
 
-        fun right(offsetWidth: Int) {
-            cursor.right(offsetWidth + internalMargin)
-            maxWidth = maxOf(maxWidth, cursor.x)
+        fun movePositionToRight(offsetWidth: Int) {
+            offsetX += offsetWidth + internalMargin
+            maxWidth = maxOf(maxWidth, offsetX)
         }
     }
 

@@ -7,9 +7,7 @@ import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
-import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.Cursor
@@ -45,23 +43,19 @@ class MessageLayout @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         cursor.reset(paddingLeft, paddingTop)
         measureChildWithMargins(avatar, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
-        cursor.right(avatar.marginLeft + avatar.measuredWidth + avatar.marginRight)
+        cursor.right(avatar.getWidthWithMargins())
 
         measureChildWithMargins(name, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
-        var textWidth = name.marginLeft + name.measuredWidth + name.marginRight
-        cursor.down(name.marginTop + name.measuredHeight + name.marginBottom)
+        var textWidth = name.getWidthWithMargins()
+        cursor.down(name.getHeightWithMargins())
 
         measureChildWithMargins(message, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
-        textWidth =
-            maxOf(textWidth, message.marginLeft + message.measuredWidth + message.marginRight)
-        cursor.down(message.marginTop + message.measuredHeight + message.marginBottom)
+        textWidth = maxOf(textWidth, message.getWidthWithMargins())
+        cursor.down(message.getHeightWithMargins())
 
         measureChildWithMargins(reactions, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
-        cursor.down(reactions.marginTop + reactions.measuredHeight + reactions.marginBottom)
-        textWidth = maxOf(
-            textWidth,
-            reactions.marginLeft + reactions.measuredWidth + reactions.marginRight
-        )
+        cursor.down(reactions.getHeightWithMargins())
+        textWidth = maxOf(textWidth, reactions.getWidthWithMargins())
 
         val totalWidth = cursor.x + textWidth
         val totalHeight = cursor.y + paddingBottom
@@ -70,16 +64,44 @@ class MessageLayout @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         cursor.reset(paddingLeft, paddingTop)
-        avatar.draw(cursor)
-        cursor.right(avatar.marginLeft + avatar.measuredWidth + avatar.marginRight)
+        var offsetXWithMargin = cursor.x + avatar.marginLeft
+        var offsetYWithMargin = cursor.y + avatar.marginTop
+        avatar.layout(
+            offsetXWithMargin,
+            offsetYWithMargin,
+            offsetXWithMargin + avatar.measuredWidth,
+            offsetYWithMargin + avatar.measuredHeight
+        )
+        cursor.right(avatar.getWidthWithMargins())
 
-        name.draw(cursor)
-        cursor.down(name.marginTop + name.measuredHeight + name.marginBottom)
+        offsetXWithMargin = cursor.x + name.marginLeft
+        offsetYWithMargin = cursor.y + name.marginTop
+        name.layout(
+            offsetXWithMargin,
+            offsetYWithMargin,
+            offsetXWithMargin + name.measuredWidth,
+            offsetYWithMargin + name.measuredHeight
+        )
+        cursor.down(name.getHeightWithMargins())
 
-        message.draw(cursor)
-        cursor.down(message.marginTop + message.measuredHeight + message.marginBottom)
+        offsetXWithMargin = cursor.x + message.marginLeft
+        offsetYWithMargin = cursor.y + message.marginTop
+        message.layout(
+            offsetXWithMargin,
+            offsetYWithMargin,
+            offsetXWithMargin + message.measuredWidth,
+            offsetYWithMargin + message.measuredHeight
+        )
+        cursor.down(message.getHeightWithMargins())
 
-        reactions.draw(cursor)
+        offsetXWithMargin = cursor.x + reactions.marginLeft
+        offsetYWithMargin = cursor.y + reactions.marginTop
+        reactions.layout(
+            offsetXWithMargin,
+            offsetYWithMargin,
+            offsetXWithMargin + reactions.measuredWidth,
+            offsetYWithMargin + reactions.measuredHeight
+        )
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {

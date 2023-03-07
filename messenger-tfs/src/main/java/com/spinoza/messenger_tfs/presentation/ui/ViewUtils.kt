@@ -7,9 +7,10 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.util.TypedValue
 import android.view.View
+import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
+import androidx.core.view.marginRight
 import androidx.core.view.marginTop
-import com.spinoza.messenger_tfs.domain.Cursor
 
 fun Float.spToPx(view: View) = TypedValue.applyDimension(
     TypedValue.COMPLEX_UNIT_SP,
@@ -23,18 +24,9 @@ fun Float.dpToPx(view: View) = TypedValue.applyDimension(
     view.resources.displayMetrics
 )
 
-fun View.draw(cursor: Cursor) {
-    cursor.right(this.marginLeft)
-    cursor.down(this.marginTop)
-    this.layout(
-        cursor.x,
-        cursor.y,
-        cursor.x + this.measuredWidth,
-        cursor.y + this.measuredHeight
-    )
-    cursor.left(this.marginLeft)
-    cursor.up(this.marginTop)
-}
+fun View.getHeightWithMargins() = this.measuredHeight + this.marginTop + this.marginBottom
+
+fun View.getWidthWithMargins() = this.measuredWidth + this.marginLeft + this.marginRight
 
 fun Context.getThemeColor(attr: Int): Int {
     val typedValue = TypedValue()
