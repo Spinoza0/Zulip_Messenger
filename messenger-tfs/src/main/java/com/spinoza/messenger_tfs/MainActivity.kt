@@ -8,7 +8,6 @@ import com.spinoza.messenger_tfs.databinding.ActivityMainBinding
 import com.spinoza.messenger_tfs.domain.Reaction
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
-
 class MainActivity : AppCompatActivity() {
 
     private val binding by lazy {
@@ -24,32 +23,28 @@ class MainActivity : AppCompatActivity() {
 
     private fun test() {
 
-        with(binding) {
-            messageLayout.name = "John Dow"
-            messageLayout.message =
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus." +
-                        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse ac magna purus."
-            messageLayout.setRoundAvatar(R.drawable.face)
-            messageLayout.reactions.iconAddVisibility = false
-            messageLayout.onMessageClickListener = {
-                messageLayout.reactions.addView(testGetReaction())
-                messageLayout.reactions.iconAddVisibility = true
-                messageLayout.onMessageClickListener = null
+        with(binding.messageLayout) {
+            name = "John Dow"
+            message = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
+                    "Suspendisse ac magna purus. Lorem ipsum dolor sit amet, " +
+                    "consectetur adipiscing elit. Suspendisse ac magna purus."
+            setRoundAvatar(R.drawable.face)
+            reactions.iconAddVisibility = false
+            onMessageClickListener = {
+                reactions.addView(testGetReaction())
+                reactions.iconAddVisibility = true
+                onMessageClickListener = null
             }
-            messageLayout.reactions.onIconAddClickListener = {
-                it.addView(testGetReaction())
-            }
+            reactions.onIconAddClickListener = { it.addView(testGetReaction()) }
         }
     }
 
-    private fun testGetReaction(): ReactionView {
-        val reaction = ReactionView(this)
-        reaction.emoji = "\uD83D\uDE0D"
-        reaction.count = 1
-        reaction.setOnClickListener {
-            reaction.count++
+    private fun testGetReaction() = ReactionView(this).apply {
+        emoji = "\uD83D\uDE0D"
+        count = 1
+        setOnClickListener {
+            count++
         }
-        return reaction
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -73,15 +68,16 @@ class MainActivity : AppCompatActivity() {
             @Suppress("deprecation")
             savedInstanceState.getParcelableArrayList(EXTRA_REACTIONS)
         }
-        reactions?.let {
-            it.forEach {
-                val reaction = testGetReaction().apply {
-                    emoji = it.emoji
-                    count = it.count
-                    isSelected = it.selected
-                }
-                binding.messageLayout.reactions.addView(reaction)
+
+        if (reactions == null) return
+
+        reactions.forEach { reaction ->
+            val reactionView = testGetReaction().apply {
+                emoji = reaction.emoji
+                count = reaction.count
+                isSelected = reaction.selected
             }
+            binding.messageLayout.reactions.addView(reactionView)
         }
     }
 
