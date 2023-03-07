@@ -4,8 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class Reaction(
-    val emoji: String,
-    val count: Int,
-    val selected: Boolean,
+class ReactionsState(
+    val value: List<Reaction>,
+    val iconAddVisibility: Boolean,
 ) : Parcelable

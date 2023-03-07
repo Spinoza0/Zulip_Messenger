@@ -4,7 +4,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.AttributeSet
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
@@ -22,51 +21,65 @@ class MessageLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
+    val name: TextView
+    val message: TextView
     val reactions: FlexBoxLayout
-
-    var name: String = ""
-        set(value) {
-            field = value
-            nameView.text = value
-        }
-
-    var message: String = ""
-        set(value) {
-            field = value
-            messageView.text = value
-        }
-
 
     private var onAvatarClickListener: ((MessageLayout) -> Unit)? = null
     private var onMessageClickListener: ((MessageLayout) -> Unit)? = null
-
     private val avatar: ImageView
-    private val nameView: TextView
-    private val messageView: TextView
     private var cursor = Cursor()
 
     init {
         inflate(context, R.layout.message_layout, this)
         avatar = findViewById(R.id.avatar)
-        nameView = findViewById(R.id.name)
-        messageView = findViewById(R.id.message)
+        name = findViewById(R.id.name)
+        message = findViewById(R.id.message)
         reactions = findViewById(R.id.reactions)
 
         avatar.setOnClickListener { onAvatarClickListener?.invoke(this) }
-        nameView.setOnClickListener { onMessageClickListener?.invoke(this) }
-        messageView.setOnClickListener { onMessageClickListener?.invoke(this) }
+        name.setOnClickListener { onMessageClickListener?.invoke(this) }
+        message.setOnClickListener { onMessageClickListener?.invoke(this) }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        processLayout(
-            widthMeasureSpec = widthMeasureSpec,
-            heightMeasureSpec = heightMeasureSpec,
-            measureFunc = ::measureView
+        cursor.reset(paddingLeft, paddingTop)
+        measureChildWithMargins(avatar, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
+        cursor.right(avatar.marginLeft + avatar.measuredWidth + avatar.marginRight)
+
+        measureChildWithMargins(name, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
+        var textWidth = name.marginLeft + name.measuredWidth + name.marginRight
+        cursor.down(name.marginTop + name.measuredHeight + name.marginBottom)
+
+        measureChildWithMargins(message, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
+        textWidth =
+            maxOf(textWidth, message.marginLeft + message.measuredWidth + message.marginRight)
+        cursor.down(message.marginTop + message.measuredHeight + message.marginBottom)
+
+        measureChildWithMargins(reactions, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
+        cursor.down(reactions.marginTop + reactions.measuredHeight + reactions.marginBottom)
+        textWidth = maxOf(
+            textWidth,
+            reactions.marginLeft + reactions.measuredWidth + reactions.marginRight
         )
+
+        val totalWidth = cursor.x + textWidth
+        val totalHeight = cursor.y + paddingBottom
+        setMeasuredDimension(totalWidth, totalHeight)
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        processLayout(layoutFunc = ::drawView)
+        cursor.reset(paddingLeft, paddingTop)
+        avatar.draw(cursor)
+        cursor.right(avatar.marginLeft + avatar.measuredWidth + avatar.marginRight)
+
+        name.draw(cursor)
+        cursor.down(name.marginTop + name.measuredHeight + name.marginBottom)
+
+        message.draw(cursor)
+        cursor.down(message.marginTop + message.measuredHeight + message.marginBottom)
+
+        reactions.draw(cursor)
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
@@ -109,53 +122,5 @@ class MessageLayout @JvmOverloads constructor(
 
     fun setOnMessageClickListener(listener: (MessageLayout) -> Unit) {
         onMessageClickListener = listener
-    }
-
-    private fun processLayout(
-        widthMeasureSpec: Int = 0,
-        heightMeasureSpec: Int = 0,
-        measureFunc: ((View, Int, Int) -> Unit)? = null,
-        layoutFunc: ((View, Cursor) -> Unit)? = null,
-    ) {
-        cursor.reset(paddingLeft, paddingTop)
-
-        measureFunc?.let { measureFunc(avatar, widthMeasureSpec, heightMeasureSpec) }
-        layoutFunc?.let { layoutFunc(avatar, cursor) }
-
-        cursor.right(avatar.marginLeft + avatar.measuredWidth + avatar.marginRight)
-        measureFunc?.let { measureFunc(nameView, widthMeasureSpec, heightMeasureSpec) }
-        layoutFunc?.let { layoutFunc(nameView, cursor) }
-
-        var textWidth = nameView.marginLeft + nameView.measuredWidth + nameView.marginRight
-        cursor.down(nameView.marginTop + nameView.measuredHeight + nameView.marginBottom)
-        measureFunc?.let { measureFunc(messageView, widthMeasureSpec, heightMeasureSpec) }
-        layoutFunc?.let { layoutFunc(messageView, cursor) }
-
-        textWidth = maxOf(
-            textWidth,
-            messageView.marginLeft + messageView.measuredWidth + messageView.marginRight
-        )
-        cursor.down(
-            messageView.marginTop + messageView.measuredHeight + messageView.marginBottom
-        )
-        measureFunc?.let { measureFunc(reactions, widthMeasureSpec, heightMeasureSpec) }
-        layoutFunc?.let { layoutFunc(reactions, cursor) }
-
-        measureFunc?.let {
-            cursor.down(
-                reactions.marginTop + reactions.measuredHeight + reactions.marginBottom
-            )
-            textWidth = maxOf(
-                textWidth,
-                reactions.marginLeft + reactions.measuredWidth + reactions.marginRight
-            )
-            val totalWidth = cursor.x + textWidth
-            val totalHeight = cursor.y + paddingBottom
-            setMeasuredDimension(totalWidth, totalHeight)
-        }
-    }
-
-    private fun measureView(view: View, widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        measureChildWithMargins(view, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
     }
 }

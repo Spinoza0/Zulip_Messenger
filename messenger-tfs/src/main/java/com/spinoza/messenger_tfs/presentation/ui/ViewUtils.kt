@@ -23,17 +23,17 @@ fun Float.dpToPx(view: View) = TypedValue.applyDimension(
     view.resources.displayMetrics
 )
 
-fun drawView(view: View, cursor: Cursor) {
-    cursor.right(view.marginLeft)
-    cursor.down(view.marginTop)
-    view.layout(
+fun View.draw(cursor: Cursor) {
+    cursor.right(this.marginLeft)
+    cursor.down(this.marginTop)
+    this.layout(
         cursor.x,
         cursor.y,
-        cursor.x + view.measuredWidth,
-        cursor.y + view.measuredHeight
+        cursor.x + this.measuredWidth,
+        cursor.y + this.measuredHeight
     )
-    cursor.left(view.marginLeft)
-    cursor.up(view.marginTop)
+    cursor.left(this.marginLeft)
+    cursor.up(this.marginTop)
 }
 
 fun Context.getThemeColor(attr: Int): Int {

@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
 import com.spinoza.messenger_tfs.databinding.ActivityMainBinding
 import com.spinoza.messenger_tfs.domain.Reaction
+import com.spinoza.messenger_tfs.domain.ReactionsState
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 class MainActivity : AppCompatActivity() {
@@ -24,8 +25,8 @@ class MainActivity : AppCompatActivity() {
     private fun test() {
 
         with(binding.messageLayout) {
-            name = "John Dow"
-            message = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
+            name.text = "John Dow"
+            message.text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
                     "Suspendisse ac magna purus. Lorem ipsum dolor sit amet, " +
                     "consectetur adipiscing elit. Suspendisse ac magna purus."
             setRoundAvatar(R.drawable.face)
@@ -60,31 +61,42 @@ class MainActivity : AppCompatActivity() {
         val reactions = arrayListOf<Reaction>()
         binding.messageLayout.reactions.children.forEach { view ->
             if (view is ReactionView) {
-                reactions.add(Reaction(view.emoji, view.count, view.isSelected))
+                reactions.add(
+                    Reaction(
+                        view.emoji,
+                        view.count,
+                        view.isSelected,
+                    )
+                )
             }
         }
-        outState.putParcelableArrayList(EXTRA_REACTIONS, reactions)
+        val reactionsState =
+            ReactionsState(reactions, binding.messageLayout.reactions.getIconAddVisibility())
+        outState.putParcelable(EXTRA_REACTIONS, reactionsState)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
 
-        val reactions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            savedInstanceState.getParcelableArrayList(EXTRA_REACTIONS, Reaction::class.java)
+        val reactionsState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            savedInstanceState.getParcelable(EXTRA_REACTIONS, ReactionsState::class.java)
         } else {
             @Suppress("deprecation")
-            savedInstanceState.getParcelableArrayList(EXTRA_REACTIONS)
+            savedInstanceState.getParcelable(EXTRA_REACTIONS)
         }
 
-        if (reactions == null) return
+        if (reactionsState == null) return
 
-        reactions.forEach { reaction ->
-            val reactionView = testGetReaction().apply {
-                emoji = reaction.emoji
-                count = reaction.count
-                isSelected = reaction.selected
+        with(binding.messageLayout) {
+            reactionsState.value.forEach { reaction ->
+                val reactionView = testGetReaction().apply {
+                    emoji = reaction.emoji
+                    count = reaction.count
+                    isSelected = reaction.selected
+                }
+                reactions.addView(reactionView)
+                reactions.setIconAddVisibility(reactionsState.iconAddVisibility)
             }
-            binding.messageLayout.reactions.addView(reactionView)
         }
     }
 

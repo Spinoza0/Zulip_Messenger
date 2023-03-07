@@ -17,6 +17,9 @@ class FlexBoxLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
+    private var onIconAddClickListener: ((FlexBoxLayout) -> Unit)? = null
+    private val cursor = FlexBoxLayoutCursor(Cursor())
+    private var internalMargin = 0
     private val iconAdd = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
         setImageResource(R.drawable.icon_add)
         setBackgroundResource(R.drawable.shape_flexboxlayout_icon_add)
@@ -33,14 +36,11 @@ class FlexBoxLayout @JvmOverloads constructor(
         setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom)
     }
 
-    private var onIconAddClickListener: ((FlexBoxLayout) -> Unit)? = null
-    private val cursor = FlexBoxLayoutCursor(Cursor())
-    private var internalMargin = 0
-
     init {
         context.withStyledAttributes(attrs, R.styleable.flexbox_layout) {
             internalMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
         }
+
         setIconAddVisibility(false)
         addView(iconAdd)
     }
@@ -50,24 +50,63 @@ class FlexBoxLayout @JvmOverloads constructor(
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        processLayout(
-            layoutWidth = r - l - paddingLeft - paddingRight,
-            layoutFunc = ::drawView
-        )
+        val layoutWidth = r - l - paddingLeft - paddingRight
+        cursor.reset()
+
+        var viewWidth: Int
+        var viewHeight: Int
+
+        children.forEach { view ->
+            if (view.visibility != GONE) {
+                viewWidth = getChildWidth(view)
+                viewHeight = getChildHeight(view)
+                if (cursor.needMoveToNextLine(viewWidth, layoutWidth)) {
+                    cursor.moveToNextLine(viewHeight)
+                }
+                view.draw(cursor.cursorXY)
+                cursor.right(viewWidth)
+                cursor.updateRowHeight(viewHeight)
+            }
+        }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        processLayout(
-            layoutWidth = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight,
-            widthMeasureSpec = widthMeasureSpec,
-            heightMeasureSpec = heightMeasureSpec,
-            measureFunc = ::measureView
-        )
+        val layoutWidth = MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight
+        var viewWidth: Int
+        var viewHeight: Int
+
+        cursor.reset()
+
+        children.forEach { view ->
+            if (view.visibility != GONE) {
+                measureView(view, widthMeasureSpec, heightMeasureSpec)
+                viewWidth = getChildWidth(view)
+                viewHeight = getChildHeight(view)
+                if (cursor.needMoveToNextLine(viewWidth, layoutWidth)) {
+                    cursor.moveToNextLine(viewHeight)
+                }
+
+                cursor.right(viewWidth)
+                cursor.updateRowHeight(viewHeight)
+            }
+        }
+
+
+        cursor.moveToEnd()
+        val width = resolveSize(cursor.x, widthMeasureSpec)
+        val height = resolveSize(cursor.y, heightMeasureSpec)
+        setMeasuredDimension(width, height)
     }
 
     fun setOnAddClickListener(listener: (FlexBoxLayout) -> Unit) {
         onIconAddClickListener = listener
     }
+
+    fun setIconAddVisibility(state: Boolean) {
+        iconAdd.isVisible = state
+    }
+
+    fun getIconAddVisibility() = iconAdd.isVisible
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
         return MarginLayoutParams(context, attrs)
@@ -83,54 +122,6 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     override fun checkLayoutParams(p: LayoutParams): Boolean {
         return p is MarginLayoutParams
-    }
-
-    fun setIconAddVisibility(state: Boolean) {
-        iconAdd.isVisible = state
-    }
-
-    private fun processLayout(
-        layoutWidth: Int,
-        widthMeasureSpec: Int = 0,
-        heightMeasureSpec: Int = 0,
-        measureFunc: ((View, Int, Int) -> Unit)? = null,
-        layoutFunc: ((View, Cursor) -> Unit)? = null,
-    ) {
-        cursor.reset()
-        var viewWidth = 0
-        var viewHeight = 0
-
-        children.forEach { view ->
-            if (view.visibility != GONE) {
-                measureFunc?.let {
-                    measureFunc(view, widthMeasureSpec, heightMeasureSpec)
-                    viewWidth = getChildWidth(view)
-                    viewHeight = getChildHeight(view)
-                    if (cursor.needMoveToNextLine(viewWidth, layoutWidth)) {
-                        cursor.moveToNextLine(viewHeight)
-                    }
-                }
-
-                layoutFunc?.let {
-                    viewWidth = getChildWidth(view)
-                    viewHeight = getChildHeight(view)
-                    if (cursor.needMoveToNextLine(viewWidth, layoutWidth)) {
-                        cursor.moveToNextLine(viewHeight)
-                    }
-                    layoutFunc(view, cursor.cursorXY)
-                }
-
-                cursor.right(viewWidth)
-                cursor.updateRowHeight(viewHeight)
-            }
-        }
-
-        measureFunc?.let {
-            cursor.moveToEnd()
-            val width = resolveSize(cursor.x, widthMeasureSpec)
-            val height = resolveSize(cursor.y, heightMeasureSpec)
-            setMeasuredDimension(width, height)
-        }
     }
 
     private fun getChildHeight(child: View) =
