@@ -22,12 +22,6 @@ class MessageLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var onMessageClickListener: ((MessageLayout) -> Unit)? = null
-    var onAvatarClickListener: ((MessageLayout) -> Unit)? = null
-
-    private val avatar: ImageView
-    private val nameView: TextView
-    private val messageView: TextView
     val reactions: FlexBoxLayout
 
     var name: String = ""
@@ -42,8 +36,14 @@ class MessageLayout @JvmOverloads constructor(
             messageView.text = value
         }
 
-    private var cursor = Cursor()
 
+    private var onAvatarClickListener: ((MessageLayout) -> Unit)? = null
+    private var onMessageClickListener: ((MessageLayout) -> Unit)? = null
+
+    private val avatar: ImageView
+    private val nameView: TextView
+    private val messageView: TextView
+    private var cursor = Cursor()
 
     init {
         inflate(context, R.layout.message_layout, this)
@@ -52,9 +52,9 @@ class MessageLayout @JvmOverloads constructor(
         messageView = findViewById(R.id.message)
         reactions = findViewById(R.id.reactions)
 
-        avatar.setOnClickListener { onAvatarClick() }
-        nameView.setOnClickListener { onMessageClick() }
-        messageView.setOnClickListener { onMessageClick() }
+        avatar.setOnClickListener { onAvatarClickListener?.invoke(this) }
+        nameView.setOnClickListener { onMessageClickListener?.invoke(this) }
+        messageView.setOnClickListener { onMessageClickListener?.invoke(this) }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -67,6 +67,48 @@ class MessageLayout @JvmOverloads constructor(
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         processLayout(layoutFunc = ::drawView)
+    }
+
+    override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
+        return MarginLayoutParams(context, attrs)
+    }
+
+    override fun generateDefaultLayoutParams(): LayoutParams {
+        return MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+    }
+
+    override fun generateLayoutParams(p: LayoutParams?): LayoutParams {
+        return MarginLayoutParams(p)
+    }
+
+    override fun checkLayoutParams(p: LayoutParams): Boolean {
+        return p is MarginLayoutParams
+    }
+
+    fun setAvatar(resId: Int) {
+        avatar.setImageResource(resId)
+    }
+
+    fun setAvatar(bitmap: Bitmap) {
+        avatar.setImageBitmap(bitmap)
+    }
+
+    fun setRoundAvatar(resId: Int) {
+        val bitmap = BitmapFactory.decodeResource(resources, resId)
+        setRoundAvatar(bitmap)
+    }
+
+    fun setRoundAvatar(bitmap: Bitmap) {
+        val size = avatar.layoutParams.width.toFloat().dpToPx(this)
+        setAvatar(bitmap.getRounded(size))
+    }
+
+    fun setOnAvatarClickListener(listener: (MessageLayout) -> Unit) {
+        onAvatarClickListener = listener
+    }
+
+    fun setOnMessageClickListener(listener: (MessageLayout) -> Unit) {
+        onMessageClickListener = listener
     }
 
     private fun processLayout(
@@ -115,52 +157,5 @@ class MessageLayout @JvmOverloads constructor(
 
     private fun measureView(view: View, widthMeasureSpec: Int, heightMeasureSpec: Int) {
         measureChildWithMargins(view, widthMeasureSpec, cursor.x, heightMeasureSpec, cursor.y)
-    }
-
-    override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
-        return MarginLayoutParams(context, attrs)
-    }
-
-    override fun generateDefaultLayoutParams(): LayoutParams {
-        return MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-    }
-
-    override fun generateLayoutParams(p: LayoutParams?): LayoutParams {
-        return MarginLayoutParams(p)
-    }
-
-    override fun checkLayoutParams(p: LayoutParams): Boolean {
-        return p is MarginLayoutParams
-    }
-
-    fun setAvatar(resId: Int) {
-        avatar.setImageResource(resId)
-    }
-
-    fun setAvatar(bitmap: Bitmap) {
-        avatar.setImageBitmap(bitmap)
-    }
-
-    fun setRoundAvatar(resId: Int) {
-        val bitmap = BitmapFactory.decodeResource(resources, resId)
-        setRoundAvatar(bitmap)
-    }
-
-    fun setRoundAvatar(bitmap: Bitmap) {
-        val size = avatar.layoutParams.width.toFloat().dpToPx(this)
-        setAvatar(bitmap.getRounded(size))
-    }
-
-
-    private fun onAvatarClick() {
-        if (onAvatarClickListener != null) {
-            onAvatarClickListener?.invoke(this)
-        }
-    }
-
-    private fun onMessageClick() {
-        if (onMessageClickListener != null) {
-            onMessageClickListener?.invoke(this)
-        }
     }
 }

@@ -17,17 +17,6 @@ class FlexBoxLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var onIconAddClickListener: ((FlexBoxLayout) -> Unit)? = null
-
-    private val cursor = FlexBoxLayoutCursor(Cursor())
-    private var internalMargin = 0
-
-    var iconAddVisibility: Boolean = false
-        set(value) {
-            field = value
-            setIconAddVisibility()
-        }
-
     private val iconAdd = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
         setImageResource(R.drawable.icon_add)
         setBackgroundResource(R.drawable.shape_flexboxlayout_icon_add)
@@ -44,11 +33,15 @@ class FlexBoxLayout @JvmOverloads constructor(
         setPadding(iconPaddingLeft, iconPaddingTop, iconPaddingRight, iconPaddingBottom)
     }
 
+    private var onIconAddClickListener: ((FlexBoxLayout) -> Unit)? = null
+    private val cursor = FlexBoxLayoutCursor(Cursor())
+    private var internalMargin = 0
+
     init {
         context.withStyledAttributes(attrs, R.styleable.flexbox_layout) {
             internalMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
         }
-        setIconAddVisibility()
+        setIconAddVisibility(false)
         addView(iconAdd)
     }
 
@@ -70,6 +63,30 @@ class FlexBoxLayout @JvmOverloads constructor(
             heightMeasureSpec = heightMeasureSpec,
             measureFunc = ::measureView
         )
+    }
+
+    fun setOnAddClickListener(listener: (FlexBoxLayout) -> Unit) {
+        onIconAddClickListener = listener
+    }
+
+    override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
+        return MarginLayoutParams(context, attrs)
+    }
+
+    override fun generateDefaultLayoutParams(): LayoutParams {
+        return MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+    }
+
+    override fun generateLayoutParams(p: LayoutParams?): LayoutParams {
+        return MarginLayoutParams(p)
+    }
+
+    override fun checkLayoutParams(p: LayoutParams): Boolean {
+        return p is MarginLayoutParams
+    }
+
+    fun setIconAddVisibility(state: Boolean) {
+        iconAdd.isVisible = state
     }
 
     private fun processLayout(
@@ -155,30 +172,8 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
     }
 
-    override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
-        return MarginLayoutParams(context, attrs)
-    }
-
-    override fun generateDefaultLayoutParams(): LayoutParams {
-        return MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-    }
-
-    override fun generateLayoutParams(p: LayoutParams?): LayoutParams {
-        return MarginLayoutParams(p)
-    }
-
-    override fun checkLayoutParams(p: LayoutParams): Boolean {
-        return p is MarginLayoutParams
-    }
-
-    private fun setIconAddVisibility() {
-        iconAdd.visibility = if (iconAddVisibility) VISIBLE else GONE
-    }
-
     private fun onIconAddClick() {
-        if (onIconAddClickListener != null) {
-            onIconAddClickListener?.invoke(this)
-        }
+        onIconAddClickListener?.invoke(this)
     }
 
     private inner class FlexBoxLayoutCursor(val cursorXY: Cursor) {

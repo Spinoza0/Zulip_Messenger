@@ -29,13 +29,20 @@ class MainActivity : AppCompatActivity() {
                     "Suspendisse ac magna purus. Lorem ipsum dolor sit amet, " +
                     "consectetur adipiscing elit. Suspendisse ac magna purus."
             setRoundAvatar(R.drawable.face)
-            reactions.iconAddVisibility = false
-            onMessageClickListener = {
+            reactions.setIconAddVisibility(false)
+            setOnMessageClickListener {
                 reactions.addView(testGetReaction())
-                reactions.iconAddVisibility = true
-                onMessageClickListener = null
+                reactions.setIconAddVisibility(true)
             }
-            reactions.onIconAddClickListener = { it.addView(testGetReaction()) }
+            reactions.setOnAddClickListener { it.addView(testGetReaction()) }
+
+            binding.buttonMakeVisible.setOnClickListener {
+                reactions.setIconAddVisibility(true)
+            }
+
+            binding.buttonMakeInvisible.setOnClickListener {
+                reactions.setIconAddVisibility(false)
+            }
         }
     }
 
