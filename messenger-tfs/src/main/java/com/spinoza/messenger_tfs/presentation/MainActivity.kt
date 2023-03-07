@@ -67,13 +67,7 @@ class MainActivity : AppCompatActivity() {
         val reactions = arrayListOf<Reaction>()
         binding.messageLayout.reactions.children.forEach { view ->
             if (view is ReactionView) {
-                reactions.add(
-                    Reaction(
-                        view.emoji,
-                        view.count,
-                        view.isSelected,
-                    )
-                )
+                reactions.add(Reaction(view.emoji, view.count, view.isSelected))
             }
         }
         val reactionsState =
