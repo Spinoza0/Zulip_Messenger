@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'com.spinoza.messenger_tfs'
-    compileSdk project.compileSdk
+    compileSdk versions.compileSdk
 
     defaultConfig {
         applicationId "com.spinoza.messenger_tfs"
-        minSdk project.minSdk
-        targetSdk project.targetSdk
+        minSdk versions.minSdk
+        targetSdk versions.targetSdk
         versionCode 1
         versionName "1.0"
 
@@ -25,11 +25,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility project.sourceCompatibility
-        targetCompatibility project.targetCompatibility
+        sourceCompatibility versions.sourceCompatibility
+        targetCompatibility versions.targetCompatibility
     }
     kotlinOptions {
-        jvmTarget = project.jvmTarget
+        jvmTarget = versions.jvmTarget
     }
     buildFeatures {
         viewBinding true
@@ -37,12 +37,11 @@ android {
 }
 
 dependencies {
-    implementation "androidx.core:core-ktx:${project.androidxCore}"
-    implementation "androidx.appcompat:appcompat:${project.androidxAppCompat}"
+    implementation androidx.core
+    implementation androidx.appcompat
+    implementation androidx.constraintlayout
 
-    implementation "com.google.android.material:material:${project.androidMaterial}"
+    implementation material
 
-    implementation "androidx.constraintlayout:constraintlayout:${project.androidxConstraintlayout}"
-
-    debugImplementation "com.squareup.leakcanary:leakcanary-android:${project.leakcanary}"
+    debugImplementation leakcanary
 }

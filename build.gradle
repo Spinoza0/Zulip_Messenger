@@ -1,37 +1,49 @@
 buildscript {
-    ext {
-        androidGradlePlugin = "7.4.1"
+    ext.versions = [
+            androidGradlePlugin     : "7.4.1",
 
-        compileSdk = 33
-        minSdk = 24
-        targetSdk = 33
+            androidxCore            : "1.9.0",
+            androidxAppCompat       : "1.6.1",
+            androidxConstraintlayout: "2.1.4",
 
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-        jvmTarget = "1.8"
+            compileSdk              : 33,
+            minSdk                  : 24,
+            targetSdk               : 33,
 
-        kotlin = "1.8.0"
-        kotlinxCoroutines = "1.6.4"
+            sourceCompatibility     : JavaVersion.VERSION_1_8,
+            targetCompatibility     : JavaVersion.VERSION_1_8,
+            jvmTarget               : "1.8",
 
-        androidxCore = "1.9.0"
-        androidxAppCompat = "1.6.1"
-        androidMaterial = "1.8.0"
-        androidxConstraintlayout = "2.1.4"
+            kotlin                  : "1.8.0",
+            kotlinxCoroutines       : "1.6.4",
 
-        junit4 = "4.13.2"
-        androidxTestExt = "1.1.5"
-        androidxEspresso = "3.5.1"
+            androidMaterial         : "1.8.0",
 
-        leakcanary = "2.10"
-    }
+            junit4                  : "4.13.2",
+
+            androidxTestExt         : "1.1.5",
+            androidxEspresso        : "3.5.1",
+
+            leakcanary              : "2.10",
+    ]
+
+    ext.androidx = [
+            core            : "androidx.core:core-ktx:${versions.androidxCore}",
+            appcompat       : "androidx.appcompat:appcompat:${versions.androidxAppCompat}",
+            constraintlayout: "androidx.constraintlayout:constraintlayout:${versions.androidxConstraintlayout}"
+    ]
+    
+    ext.leakcanary = "com.squareup.leakcanary:leakcanary-android:${versions.leakcanary}"
+
+    ext.material = "com.google.android.material:material:${versions.androidMaterial}"
 
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:$androidGradlePlugin"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin"
+        classpath "com.android.tools.build:gradle:${versions.androidGradlePlugin}"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
     }
 }
 
