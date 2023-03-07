@@ -20,7 +20,7 @@
     <color name="flexbox_add_icon_background">@color/teal_200</color>
     <color name="flexbox_add_icon_background_night">#1C1C1C</color>
 
-    <!-- MessageLayout colors -->
+    <!-- MessageView colors -->
     <color name="message_background">@color/teal_200</color>
     <color name="message_background_night">#1C1C1C</color>
     <color name="message_name">@color/purple_700</color>

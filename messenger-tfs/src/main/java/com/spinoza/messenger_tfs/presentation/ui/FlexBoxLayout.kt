@@ -11,12 +11,13 @@ import androidx.core.view.isVisible
 import androidx.core.view.marginLeft
 import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.ReactionEntity
 
 class FlexBoxLayout @JvmOverloads constructor(
-    context: Context,
-    attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0,
-    defStyleRes: Int = 0,
+    private val context: Context,
+    private val attrs: AttributeSet? = null,
+    private val defStyleAttr: Int = 0,
+    private val defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     private var onIconAddClickListener: ((FlexBoxLayout) -> Unit)? = null
@@ -28,7 +29,9 @@ class FlexBoxLayout @JvmOverloads constructor(
     private val iconAdd = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
         setImageResource(R.drawable.icon_add)
         setBackgroundResource(R.drawable.shape_flexboxlayout_icon_add)
-        setOnClickListener { onIconAddClick() }
+        setOnClickListener {
+            onIconAddClickListener?.invoke(this@FlexBoxLayout)
+        }
 
         val width = ICON_ADD_WIDTH.dpToPx(this@FlexBoxLayout).toInt()
         val height = ICON_ADD_HEIGHT.dpToPx(this@FlexBoxLayout).toInt()
@@ -118,7 +121,29 @@ class FlexBoxLayout @JvmOverloads constructor(
         iconAdd.isVisible = state
     }
 
-    fun getIconAddVisibility() = iconAdd.isVisible
+    fun getIconAddVisibility(): Boolean {
+        return iconAdd.isVisible
+    }
+
+    fun getReactionEntities(): List<ReactionEntity> {
+        val reactions = mutableListOf<ReactionEntity>()
+        children.forEach { view ->
+            if (view is ReactionView) {
+                reactions.add(view.getReactionEntity())
+            }
+        }
+        return reactions
+    }
+
+    fun setReactions(reactionEntities: List<ReactionEntity>) {
+        removeAllViews()
+        addView(iconAdd)
+        reactionEntities.forEach { reactionEntity ->
+            val reactionView = ReactionView(context, attrs, defStyleAttr, defStyleRes)
+            reactionView.setReaction(reactionEntity)
+            addView(reactionView)
+        }
+    }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
         return MarginLayoutParams(context, attrs)
@@ -169,10 +194,6 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
     }
 
-    private fun onIconAddClick() {
-        onIconAddClickListener?.invoke(this)
-    }
-
     private inner class RowHelper {
         var maxHeight: Int = 0
             private set
@@ -189,8 +210,9 @@ class FlexBoxLayout @JvmOverloads constructor(
             rowHeight = 0
         }
 
-        fun needMovePositionToNextRow(viewWidth: Int, layoutWidth: Int) =
-            offsetX + viewWidth + paddingRight + internalMargin > layoutWidth
+        fun needMovePositionToNextRow(viewWidth: Int, layoutWidth: Int): Boolean {
+            return offsetX + viewWidth + paddingRight + internalMargin > layoutWidth
+        }
 
         fun movePositionToNextRow(newRowHeight: Int) {
             offsetX = paddingLeft

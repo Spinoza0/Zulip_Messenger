@@ -10,32 +10,38 @@ import android.widget.TextView
 import androidx.core.view.marginLeft
 import androidx.core.view.marginTop
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.MessageEntity
 
-class MessageLayout @JvmOverloads constructor(
+class MessageView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    val name: TextView
-    val message: TextView
-    val reactions: FlexBoxLayout
+    var name: String
+        get() = nameTextView.text.toString()
+        set(value) {
+            nameTextView.text = value
+        }
 
-    private var onAvatarClickListener: ((MessageLayout) -> Unit)? = null
-    private var onMessageClickListener: ((MessageLayout) -> Unit)? = null
+    var text: String
+        get() = messageTextView.text.toString()
+        set(value) {
+            messageTextView.text = value
+        }
+
+    private val nameTextView: TextView
+    private val messageTextView: TextView
+    private val reactions: FlexBoxLayout
     private val avatar: ImageView
 
     init {
         inflate(context, R.layout.message_layout, this)
         avatar = findViewById(R.id.avatar)
-        name = findViewById(R.id.name)
-        message = findViewById(R.id.message)
+        nameTextView = findViewById(R.id.name)
+        messageTextView = findViewById(R.id.message)
         reactions = findViewById(R.id.reactions)
-
-        avatar.setOnClickListener { onAvatarClickListener?.invoke(this) }
-        name.setOnClickListener { onMessageClickListener?.invoke(this) }
-        message.setOnClickListener { onMessageClickListener?.invoke(this) }
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -44,13 +50,19 @@ class MessageLayout @JvmOverloads constructor(
         measureChildWithMargins(avatar, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
         offsetX += avatar.getWidthWithMargins()
 
-        measureChildWithMargins(name, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
-        var textWidth = name.getWidthWithMargins()
-        offsetY += name.getHeightWithMargins()
+        measureChildWithMargins(nameTextView, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
+        var textWidth = nameTextView.getWidthWithMargins()
+        offsetY += nameTextView.getHeightWithMargins()
 
-        measureChildWithMargins(message, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
-        textWidth = maxOf(textWidth, message.getWidthWithMargins())
-        offsetY += message.getHeightWithMargins()
+        measureChildWithMargins(
+            messageTextView,
+            widthMeasureSpec,
+            offsetX,
+            heightMeasureSpec,
+            offsetY
+        )
+        textWidth = maxOf(textWidth, messageTextView.getWidthWithMargins())
+        offsetY += messageTextView.getHeightWithMargins()
 
         measureChildWithMargins(reactions, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
         offsetY += reactions.getHeightWithMargins()
@@ -74,25 +86,25 @@ class MessageLayout @JvmOverloads constructor(
         )
         offsetX += avatar.getWidthWithMargins()
 
-        offsetXWithMargin = offsetX + name.marginLeft
-        offsetYWithMargin = offsetY + name.marginTop
-        name.layout(
+        offsetXWithMargin = offsetX + nameTextView.marginLeft
+        offsetYWithMargin = offsetY + nameTextView.marginTop
+        nameTextView.layout(
             offsetXWithMargin,
             offsetYWithMargin,
-            offsetXWithMargin + name.measuredWidth,
-            offsetYWithMargin + name.measuredHeight
+            offsetXWithMargin + nameTextView.measuredWidth,
+            offsetYWithMargin + nameTextView.measuredHeight
         )
-        offsetY += name.getHeightWithMargins()
+        offsetY += nameTextView.getHeightWithMargins()
 
-        offsetXWithMargin = offsetX + message.marginLeft
-        offsetYWithMargin = offsetY + message.marginTop
-        message.layout(
+        offsetXWithMargin = offsetX + messageTextView.marginLeft
+        offsetYWithMargin = offsetY + messageTextView.marginTop
+        messageTextView.layout(
             offsetXWithMargin,
             offsetYWithMargin,
-            offsetXWithMargin + message.measuredWidth,
-            offsetYWithMargin + message.measuredHeight
+            offsetXWithMargin + messageTextView.measuredWidth,
+            offsetYWithMargin + messageTextView.measuredHeight
         )
-        offsetY += message.getHeightWithMargins()
+        offsetY += messageTextView.getHeightWithMargins()
 
         offsetXWithMargin = offsetX + reactions.marginLeft
         offsetYWithMargin = offsetY + reactions.marginTop
@@ -138,11 +150,48 @@ class MessageLayout @JvmOverloads constructor(
         setAvatar(bitmap.getRounded(size))
     }
 
-    fun setOnAvatarClickListener(listener: (MessageLayout) -> Unit) {
-        onAvatarClickListener = listener
+    fun setOnAvatarClickListener(listener: ((MessageView) -> Unit)?) {
+        avatar.setOnClickListener {
+            listener?.invoke(this@MessageView)
+        }
     }
 
-    fun setOnMessageClickListener(listener: (MessageLayout) -> Unit) {
-        onMessageClickListener = listener
+    fun setOnMessageClickListener(listener: ((MessageView) -> Unit)?) {
+        nameTextView.setOnClickListener {
+            listener?.invoke(this@MessageView)
+        }
+        messageTextView.setOnClickListener {
+            listener?.invoke(this@MessageView)
+        }
+    }
+
+    fun setOnReactionAddClickListener(listener: ((MessageView) -> Unit)?) {
+        reactions.setOnAddClickListener {
+            listener?.invoke(this@MessageView)
+        }
+    }
+
+    fun setIconAddVisibility(state: Boolean) {
+        reactions.setIconAddVisibility(state)
+    }
+
+    fun addReactionView(reaction: ReactionView) {
+        reactions.addView(reaction)
+    }
+
+    fun getMessageEntity(): MessageEntity {
+        return MessageEntity(
+            name,
+            text,
+            reactions.getReactionEntities(),
+            reactions.getIconAddVisibility()
+        )
+    }
+
+    fun setMessage(messageEntity: MessageEntity) {
+        name = messageEntity.name
+        text = messageEntity.text
+        reactions.setIconAddVisibility(messageEntity.iconAddVisibility)
+        reactions.setReactions(messageEntity.reactions)
     }
 }

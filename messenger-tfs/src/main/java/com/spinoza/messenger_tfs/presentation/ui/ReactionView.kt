@@ -10,6 +10,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.ReactionEntity
 
 class ReactionView @JvmOverloads constructor(
     context: Context,
@@ -98,6 +99,16 @@ class ReactionView @JvmOverloads constructor(
     override fun performClick(): Boolean {
         isSelected = !isSelected
         return super.performClick()
+    }
+
+    fun getReactionEntity(): ReactionEntity {
+        return ReactionEntity(emoji, count, isSelected)
+    }
+
+    fun setReaction(reactionEntity: ReactionEntity) {
+        emoji = reactionEntity.emoji
+        count = reactionEntity.count
+        isSelected = reactionEntity.selected
     }
 
     override fun onSaveInstanceState(): Parcelable {

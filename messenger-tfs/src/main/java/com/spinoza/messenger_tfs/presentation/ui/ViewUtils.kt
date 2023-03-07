@@ -24,9 +24,13 @@ fun Float.dpToPx(view: View) = TypedValue.applyDimension(
     view.resources.displayMetrics
 )
 
-fun View.getHeightWithMargins() = this.measuredHeight + this.marginTop + this.marginBottom
+fun View.getHeightWithMargins(): Int {
+    return this.measuredHeight + this.marginTop + this.marginBottom
+}
 
-fun View.getWidthWithMargins() = this.measuredWidth + this.marginLeft + this.marginRight
+fun View.getWidthWithMargins(): Int {
+    return this.measuredWidth + this.marginLeft + this.marginRight
+}
 
 fun Context.getThemeColor(attr: Int): Int {
     val typedValue = TypedValue()

@@ -3,11 +3,9 @@ package com.spinoza.messenger_tfs.presentation
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.children
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.ActivityMainBinding
-import com.spinoza.messenger_tfs.domain.Reaction
-import com.spinoza.messenger_tfs.domain.ReactionsState
+import com.spinoza.messenger_tfs.domain.MessageEntity
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import kotlin.random.Random
 
@@ -21,30 +19,32 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        test()
+        test(savedInstanceState)
     }
 
-    private fun test() {
+    private fun test(savedInstanceState: Bundle?) {
 
-        with(binding.messageLayout) {
-            name.text = "John Dow"
-            message.text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. " +
-                    "Suspendisse ac magna purus. Lorem ipsum dolor sit amet, " +
-                    "consectetur adipiscing elit. Suspendisse ac magna purus."
-            setRoundAvatar(R.drawable.face)
-            reactions.setIconAddVisibility(false)
-            setOnMessageClickListener {
-                reactions.addView(testGetReaction())
-                reactions.setIconAddVisibility(true)
+        with(binding.messageView) {
+            if (savedInstanceState == null) {
+                name = context.getString(R.string.test_message_name)
+                text = context.getString(R.string.test_message_text)
             }
-            reactions.setOnAddClickListener { it.addView(testGetReaction()) }
+            setRoundAvatar (R.drawable.face)
+            setIconAddVisibility(false)
+            setOnMessageClickListener {
+                addReactionView(testGetReaction())
+                setIconAddVisibility(true)
+            }
+            setOnReactionAddClickListener {
+                it.addReactionView(testGetReaction())
+            }
 
             binding.buttonMakeVisible.setOnClickListener {
-                reactions.setIconAddVisibility(true)
+                setIconAddVisibility(true)
             }
 
             binding.buttonMakeInvisible.setOnClickListener {
-                reactions.setIconAddVisibility(false)
+                setIconAddVisibility(false)
             }
         }
     }
@@ -63,44 +63,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-
-        val reactions = arrayListOf<Reaction>()
-        binding.messageLayout.reactions.children.forEach { view ->
-            if (view is ReactionView) {
-                reactions.add(Reaction(view.emoji, view.count, view.isSelected))
-            }
-        }
-        val reactionsState =
-            ReactionsState(reactions, binding.messageLayout.reactions.getIconAddVisibility())
-        outState.putParcelable(EXTRA_REACTIONS, reactionsState)
+        val messageEntity = binding.messageView.getMessageEntity()
+        outState.putParcelable(EXTRA_MESSAGE, messageEntity)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
 
-        val reactionsState = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            savedInstanceState.getParcelable(EXTRA_REACTIONS, ReactionsState::class.java)
+        val messageEntity = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            savedInstanceState.getParcelable(EXTRA_MESSAGE, MessageEntity::class.java)
         } else {
             @Suppress("deprecation")
-            savedInstanceState.getParcelable(EXTRA_REACTIONS)
+            savedInstanceState.getParcelable(EXTRA_MESSAGE)
         }
 
-        if (reactionsState == null) return
-
-        with(binding.messageLayout) {
-            reactionsState.value.forEach { reaction ->
-                val reactionView = testGetReaction().apply {
-                    emoji = reaction.emoji
-                    count = reaction.count
-                    isSelected = reaction.selected
-                }
-                reactions.addView(reactionView)
-                reactions.setIconAddVisibility(reactionsState.iconAddVisibility)
-            }
+        if (messageEntity != null) {
+            binding.messageView.setMessage(messageEntity)
         }
     }
 
     private companion object {
-        const val EXTRA_REACTIONS = "reactions"
+        const val EXTRA_MESSAGE = "message"
     }
 }

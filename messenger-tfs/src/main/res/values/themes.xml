@@ -21,7 +21,7 @@
         <!-- FlexBoxLayout colors -->
         <item name="flexbox_add_icon_background_color">@color/flexbox_add_icon_background</item>
 
-        <!-- MessageLayout colors -->
+        <!-- MessageView colors -->
         <item name="message_background_color">@color/message_background</item>
         <item name="message_name_color">@color/message_name</item>
         <item name="message_text_color">@color/message_text</item>

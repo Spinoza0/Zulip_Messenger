@@ -1,6 +1,16 @@
 <resources>
     <string name="app_name">Messenger-TFS</string>
 
-    <!-- MessageLayout -->
+    <!-- MessageView -->
     <string name="avatar">Avatar</string>
+
+    <!-- Test MainActivity-->
+    <string name="click_on_message_below">Click on message below for add reaction:</string>
+    <string name="make_icon_add_visible">Make icon add visible</string>
+    <string name="make_icon_add_invisible">Make icon add invisible</string>
+    <string name="test_message_text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Suspendisse ac magna purus. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+        Suspendisse ac magna purus.
+    </string>
+    <string name="test_message_name">John Dow</string>
 </resources>

@@ -24,7 +24,7 @@
         <item name="flexbox_add_icon_background_color">@color/flexbox_add_icon_background_night
         </item>
 
-        <!-- MessageLayout colors -->
+        <!-- MessageView colors -->
         <item name="message_background_color">@color/message_background_night</item>
         <item name="message_name_color">@color/message_name_night</item>
         <item name="message_text_color">@color/message_text_night</item>
