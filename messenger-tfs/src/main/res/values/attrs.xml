@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="reaction_view">
+        <attr name="reaction_selected_background_color" format="color" />
+        <attr name="reaction_unselected_background_color" format="color" />
+        <attr name="reaction_text_color" format="color" />
+        <attr name="emoji" format="string" />
+        <attr name="count" format="integer" />
+        <attr name="size" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="flexbox_layout">
+        <attr name="flexbox_add_icon_background_color" format="color" />
+        <attr name="margin" format="dimension" />
+    </declare-styleable>
+
+    <declare-styleable name="message_layout">
+        <attr name="message_background_color" format="color" />
+        <attr name="message_name_color" format="color" />
+        <attr name="message_text_color" format="color" />
+    </declare-styleable>
+</resources>

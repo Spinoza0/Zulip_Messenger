@@ -1,0 +1,29 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.Tfsandroidspring2023" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorSecondaryVariant">@color/teal_700</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+
+        <!-- ReactionView colors -->
+        <item name="reaction_selected_background_color">@color/reaction_selected_background</item>
+        <item name="reaction_unselected_background_color">@color/reaction_unselected_background
+        </item>
+        <item name="reaction_text_color">@color/reaction_text</item>
+
+        <!-- FlexBoxLayout colors -->
+        <item name="flexbox_add_icon_background_color">@color/flexbox_add_icon_background</item>
+
+        <!-- MessageView colors -->
+        <item name="message_background_color">@color/message_background</item>
+        <item name="message_name_color">@color/message_name</item>
+        <item name="message_text_color">@color/message_text</item>
+    </style>
+</resources>

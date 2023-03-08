@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="com.spinoza.messenger_tfs.presentation.ui.MessageView">
+
+    <ImageView
+        android:id="@+id/avatarImageView"
+        android:layout_width="37dp"
+        android:layout_height="37dp"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="@string/avatar"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/face" />
+
+    <TextView
+        android:id="@+id/nameTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shape_message_layout_top"
+        android:paddingHorizontal="13dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp"
+        android:textColor="?attr/message_name_color"
+        android:textSize="14sp"
+        tools:text="@tools:sample/full_names" />
+
+    <TextView
+        android:id="@+id/messageTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/shape_message_layout_bottom"
+        android:paddingHorizontal="13dp"
+        android:paddingBottom="16dp"
+        android:textColor="?attr/message_text_color"
+        android:textSize="16sp"
+        tools:text="@tools:sample/full_names" />
+
+    <com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
+        android:id="@+id/reactionsFlexBoxLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:margin="8dp" />
+
+</merge>

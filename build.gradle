@@ -1,6 +1,55 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-plugins {
-    id 'com.android.application' version '7.4.1' apply false
-    id 'com.android.library' version '7.4.1' apply false
-    id 'org.jetbrains.kotlin.android' version '1.8.0' apply false
+buildscript {
+    ext.versions = [
+            androidGradlePlugin     : "7.4.1",
+
+            androidxCore            : "1.9.0",
+            androidxAppCompat       : "1.6.1",
+            androidxConstraintlayout: "2.1.4",
+
+            compileSdk              : 33,
+            minSdk                  : 24,
+            targetSdk               : 33,
+
+            sourceCompatibility     : JavaVersion.VERSION_1_8,
+            targetCompatibility     : JavaVersion.VERSION_1_8,
+            jvmTarget               : "1.8",
+
+            kotlin                  : "1.8.0",
+            kotlinxCoroutines       : "1.6.4",
+
+            androidMaterial         : "1.8.0",
+
+            junit4                  : "4.13.2",
+
+            androidxTestExt         : "1.1.5",
+            androidxEspresso        : "3.5.1",
+
+            leakcanary              : "2.10",
+    ]
+
+    ext.androidx = [
+            core            : "androidx.core:core-ktx:${versions.androidxCore}",
+            appcompat       : "androidx.appcompat:appcompat:${versions.androidxAppCompat}",
+            constraintlayout: "androidx.constraintlayout:constraintlayout:${versions.androidxConstraintlayout}"
+    ]
+    
+    ext.leakcanary = "com.squareup.leakcanary:leakcanary-android:${versions.leakcanary}"
+
+    ext.material = "com.google.android.material:material:${versions.androidMaterial}"
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:${versions.androidGradlePlugin}"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
