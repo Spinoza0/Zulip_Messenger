@@ -9,13 +9,12 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.ReactionEntity
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
-    private val attrs: AttributeSet? = null,
-    private val defStyleAttr: Int = 0,
-    private val defStyleRes: Int = 0,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+    defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     private var internalMargin = 0
@@ -110,26 +109,6 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     fun getIconAddVisibility(): Boolean {
         return iconAdd.isVisible
-    }
-
-    fun getReactionEntities(): List<ReactionEntity> {
-        val reactions = mutableListOf<ReactionEntity>()
-        children.forEach { view ->
-            if (view is ReactionView) {
-                reactions.add(view.getReactionEntity())
-            }
-        }
-        return reactions
-    }
-
-    fun setReactions(reactionEntities: List<ReactionEntity>) {
-        removeAllViews()
-        addView(iconAdd)
-        reactionEntities.forEach { reactionEntity ->
-            val reactionView = ReactionView(context, attrs, defStyleAttr, defStyleRes)
-            reactionView.setReaction(reactionEntity)
-            addView(reactionView)
-        }
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {

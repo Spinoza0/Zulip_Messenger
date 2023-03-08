@@ -7,24 +7,26 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
-import com.spinoza.messenger_tfs.domain.model.MessageEntity
-import com.spinoza.messenger_tfs.domain.model.ReactionEntity
+import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.Reaction
+import com.spinoza.messenger_tfs.domain.model.User
 
 class MessageView @JvmOverloads constructor(
     context: Context,
     private val attrs: AttributeSet? = null,
     private val defStyleAttr: Int = 0,
     private val defStyleRes: Int = 0,
+    user: User,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     private val binding by lazy {
         MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
     }
 
-    var name: String
-        get() = binding.nameTextView.text.toString()
+    var user: User = User("","")
         set(value) {
-            binding.nameTextView.text = value
+            field = value
+            binding.nameTextView.text = value.name
         }
 
     var text: String
@@ -156,32 +158,21 @@ class MessageView @JvmOverloads constructor(
         binding.reactionsFlexBoxLayout.setIconAddVisibility(state)
     }
 
-    fun addReaction(reactionEntity: ReactionEntity) {
+    fun addReaction(reaction: Reaction) {
         val reactionView = ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
-            emoji = reactionEntity.emoji
-            count = reactionEntity.count
-            isSelected = reactionEntity.isSelected
+            emoji = reaction.emoji
+            count = reaction.count
+            isSelected = reaction.isSelected
         }
-        addReaction(reactionView)
-    }
-
-    fun addReaction(reactionView: ReactionView) {
         binding.reactionsFlexBoxLayout.addView(reactionView)
     }
 
-    fun getMessageEntity(): MessageEntity {
-        return MessageEntity(
-            name,
-            text,
-            binding.reactionsFlexBoxLayout.getReactionEntities(),
-            binding.reactionsFlexBoxLayout.getIconAddVisibility()
-        )
-    }
-
-    fun setMessage(messageEntity: MessageEntity) {
-        name = messageEntity.name
-        text = messageEntity.text
-        binding.reactionsFlexBoxLayout.setIconAddVisibility(messageEntity.iconAddVisibility)
-        binding.reactionsFlexBoxLayout.setReactions(messageEntity.reactions)
+    fun setMessage(message: Message) {
+        user = message.user
+        text = message.text
+        binding.reactionsFlexBoxLayout.setIconAddVisibility(message.iconAddVisibility)
+        message.reactions.keys.forEach {
+            addReaction(it)
+        }
     }
 }

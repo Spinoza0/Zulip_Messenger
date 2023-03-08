@@ -10,7 +10,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.ReactionEntity
+import com.spinoza.messenger_tfs.domain.model.Reaction
 
 class ReactionView @JvmOverloads constructor(
     context: Context,
@@ -101,11 +101,7 @@ class ReactionView @JvmOverloads constructor(
         return super.performClick()
     }
 
-    fun getReactionEntity(): ReactionEntity {
-        return ReactionEntity(emoji, count, isSelected)
-    }
-
-    fun setReaction(reactionEntity: ReactionEntity) {
+    fun setReaction(reactionEntity: Reaction) {
         emoji = reactionEntity.emoji
         count = reactionEntity.count
         isSelected = reactionEntity.isSelected

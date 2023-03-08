@@ -6,5 +6,6 @@
 
     <!-- Fragment Messages -->
     <string name="messages_screen_title">Messages screen</string>
+    <string name="channel_toolbar_text">#general</string>
 
 </resources>

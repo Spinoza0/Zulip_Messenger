@@ -4,7 +4,7 @@
     <corners
         android:bottomLeftRadius="18dp"
         android:bottomRightRadius="18dp"
-        android:topLeftRadius="0dp"
-        android:topRightRadius="0dp" />
-    <solid android:color="?attr/message_background_color" />
+        android:topLeftRadius="18dp"
+        android:topRightRadius="18dp" />
+    <solid android:color="?attr/message_user_background_color" />
 </shape>

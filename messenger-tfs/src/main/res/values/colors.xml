@@ -30,8 +30,12 @@
     <color name="message_text">#FAFAFA</color>
     <color name="message_text_night">#FAFAFA</color>
 
-    <!-- Channel toolbar -->
+    <!-- Channel -->
     <color name="channel_toolbar_background">#2A9D8F</color>
     <color name="channel_toolbar_background_night">#2A9D8F</color>
+    <color name="channel_toolbar_text">#FFFFFF</color>
+    <color name="channel_toolbar_text_night">#FFFFFF</color>
+    <color name="channel_background">#1E1E1E</color>
+    <color name="channel_background_night">#1E1E1E</color>
 
 </resources>

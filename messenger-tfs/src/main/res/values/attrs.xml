@@ -14,14 +14,16 @@
         <attr name="margin" format="dimension" />
     </declare-styleable>
 
-    <declare-styleable name="message_layout">
+    <declare-styleable name="message_view">
         <attr name="message_companion_background_color" format="color" />
         <attr name="message_user_background_color" format="color" />
         <attr name="message_name_color" format="color" />
         <attr name="message_text_color" format="color" />
     </declare-styleable>
 
-    <declare-styleable name="channel_toolbar">
+    <declare-styleable name="channel">
         <attr name="channel_toolbar_background_color" format="color" />
+        <attr name="channel_toolbar_text_color" format="color" />
+        <attr name="channel_background_color" format="color" />
     </declare-styleable>
 </resources>

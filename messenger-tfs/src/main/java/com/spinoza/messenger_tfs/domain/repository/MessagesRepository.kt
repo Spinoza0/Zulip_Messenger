@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.domain.repository
 
-import com.spinoza.messenger_tfs.domain.model.MessageEntity
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
 
 interface MessagesRepository {
@@ -9,7 +9,7 @@ interface MessagesRepository {
 
     suspend fun loadMessages()
 
-    suspend fun sendMessage(messageEntity: MessageEntity)
+    suspend fun addMessage(message: Message)
 
-    suspend fun updateMessage(messageEntity: MessageEntity)
+    suspend fun updateMessage(message: Message)
 }
