@@ -6,8 +6,6 @@ import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.ReactionEntity
 
@@ -18,54 +16,63 @@ class MessageView @JvmOverloads constructor(
     private val defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
+    private val binding by lazy {
+        MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
+    }
+
     var name: String
-        get() = nameTextView.text.toString()
+        get() = binding.nameTextView.text.toString()
         set(value) {
-            nameTextView.text = value
+            binding.nameTextView.text = value
         }
 
     var text: String
-        get() = messageTextView.text.toString()
+        get() = binding.messageTextView.text.toString()
         set(value) {
-            messageTextView.text = value
+            binding.messageTextView.text = value
         }
-
-    private val nameTextView: TextView
-    private val messageTextView: TextView
-    private val reactions: FlexBoxLayout
-    private val avatar: ImageView
-
-    init {
-        val binding = MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
-        avatar = binding.avatarImageView
-        nameTextView = binding.nameTextView
-        messageTextView = binding.messageTextView
-        reactions = binding.reactionsFlexBoxLayout
-    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var offsetX = paddingLeft
         var offsetY = paddingTop
-        measureChildWithMargins(avatar, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
-        offsetX += avatar.getWidthWithMargins()
-
-        measureChildWithMargins(nameTextView, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
-        var textWidth = nameTextView.getWidthWithMargins()
-        offsetY += nameTextView.getHeightWithMargins()
-
         measureChildWithMargins(
-            messageTextView,
+            binding.avatarImageView,
             widthMeasureSpec,
             offsetX,
             heightMeasureSpec,
             offsetY
         )
-        textWidth = maxOf(textWidth, messageTextView.getWidthWithMargins())
-        offsetY += messageTextView.getHeightWithMargins()
+        offsetX += binding.avatarImageView.getWidthWithMargins()
 
-        measureChildWithMargins(reactions, widthMeasureSpec, offsetX, heightMeasureSpec, offsetY)
-        offsetY += reactions.getHeightWithMargins()
-        textWidth = maxOf(textWidth, reactions.getWidthWithMargins())
+        measureChildWithMargins(
+            binding.nameTextView,
+            widthMeasureSpec,
+            offsetX,
+            heightMeasureSpec,
+            offsetY
+        )
+        var textWidth = binding.nameTextView.getWidthWithMargins()
+        offsetY += binding.nameTextView.getHeightWithMargins()
+
+        measureChildWithMargins(
+            binding.messageTextView,
+            widthMeasureSpec,
+            offsetX,
+            heightMeasureSpec,
+            offsetY
+        )
+        textWidth = maxOf(textWidth, binding.messageTextView.getWidthWithMargins())
+        offsetY += binding.messageTextView.getHeightWithMargins()
+
+        measureChildWithMargins(
+            binding.reactionsFlexBoxLayout,
+            widthMeasureSpec,
+            offsetX,
+            heightMeasureSpec,
+            offsetY
+        )
+        offsetY += binding.reactionsFlexBoxLayout.getHeightWithMargins()
+        textWidth = maxOf(textWidth, binding.reactionsFlexBoxLayout.getWidthWithMargins())
 
         val totalWidth = offsetX + textWidth
         val totalHeight = offsetY + paddingBottom
@@ -75,16 +82,16 @@ class MessageView @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         var offsetX = paddingLeft
         var offsetY = paddingTop
-        avatar.layoutWithMargins(offsetX, offsetY)
-        offsetX += avatar.getWidthWithMargins()
+        binding.avatarImageView.layoutWithMargins(offsetX, offsetY)
+        offsetX += binding.avatarImageView.getWidthWithMargins()
 
-        nameTextView.layoutWithMargins(offsetX, offsetY)
-        offsetY += nameTextView.getHeightWithMargins()
+        binding.nameTextView.layoutWithMargins(offsetX, offsetY)
+        offsetY += binding.nameTextView.getHeightWithMargins()
 
-        messageTextView.layoutWithMargins(offsetX, offsetY)
-        offsetY += messageTextView.getHeightWithMargins()
+        binding.messageTextView.layoutWithMargins(offsetX, offsetY)
+        offsetY += binding.messageTextView.getHeightWithMargins()
 
-        reactions.layoutWithMargins(offsetX, offsetY)
+        binding.reactionsFlexBoxLayout.layoutWithMargins(offsetX, offsetY)
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
@@ -104,11 +111,11 @@ class MessageView @JvmOverloads constructor(
     }
 
     fun setAvatar(resId: Int) {
-        avatar.setImageResource(resId)
+        binding.avatarImageView.setImageResource(resId)
     }
 
     fun setAvatar(bitmap: Bitmap) {
-        avatar.setImageBitmap(bitmap)
+        binding.avatarImageView.setImageBitmap(bitmap)
     }
 
     fun setRoundAvatar(resId: Int) {
@@ -117,35 +124,35 @@ class MessageView @JvmOverloads constructor(
     }
 
     fun setRoundAvatar(bitmap: Bitmap) {
-        val size = avatar.layoutParams.width.toFloat().dpToPx(this)
+        val size = binding.avatarImageView.layoutParams.width.toFloat().dpToPx(this)
         setAvatar(bitmap.getRounded(size))
     }
 
     fun setOnAvatarClickListener(listener: ((MessageView) -> Unit)?) {
-        avatar.setOnClickListener {
+        binding.avatarImageView.setOnClickListener {
             listener?.invoke(this@MessageView)
         }
     }
 
     fun setOnMessageLongClickListener(listener: ((MessageView) -> Unit)?) {
-        nameTextView.setOnLongClickListener {
+        binding.nameTextView.setOnLongClickListener {
             listener?.invoke(this@MessageView)
             true
         }
-        messageTextView.setOnLongClickListener {
+        binding.messageTextView.setOnLongClickListener {
             listener?.invoke(this@MessageView)
             true
         }
     }
 
     fun setOnReactionAddClickListener(listener: ((MessageView) -> Unit)?) {
-        reactions.setOnAddClickListener {
+        binding.reactionsFlexBoxLayout.setOnAddClickListener {
             listener?.invoke(this@MessageView)
         }
     }
 
     fun setIconAddVisibility(state: Boolean) {
-        reactions.setIconAddVisibility(state)
+        binding.reactionsFlexBoxLayout.setIconAddVisibility(state)
     }
 
     fun addReaction(reactionEntity: ReactionEntity) {
@@ -158,22 +165,22 @@ class MessageView @JvmOverloads constructor(
     }
 
     fun addReaction(reactionView: ReactionView) {
-        reactions.addView(reactionView)
+        binding.reactionsFlexBoxLayout.addView(reactionView)
     }
 
     fun getMessageEntity(): MessageEntity {
         return MessageEntity(
             name,
             text,
-            reactions.getReactionEntities(),
-            reactions.getIconAddVisibility()
+            binding.reactionsFlexBoxLayout.getReactionEntities(),
+            binding.reactionsFlexBoxLayout.getIconAddVisibility()
         )
     }
 
     fun setMessage(messageEntity: MessageEntity) {
         name = messageEntity.name
         text = messageEntity.text
-        reactions.setIconAddVisibility(messageEntity.iconAddVisibility)
-        reactions.setReactions(messageEntity.reactions)
+        binding.reactionsFlexBoxLayout.setIconAddVisibility(messageEntity.iconAddVisibility)
+        binding.reactionsFlexBoxLayout.setReactions(messageEntity.reactions)
     }
 }
