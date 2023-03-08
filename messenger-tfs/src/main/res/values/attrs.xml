@@ -15,8 +15,13 @@
     </declare-styleable>
 
     <declare-styleable name="message_layout">
-        <attr name="message_background_color" format="color" />
+        <attr name="message_companion_background_color" format="color" />
+        <attr name="message_user_background_color" format="color" />
         <attr name="message_name_color" format="color" />
         <attr name="message_text_color" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="channel_toolbar">
+        <attr name="channel_toolbar_background_color" format="color" />
     </declare-styleable>
 </resources>

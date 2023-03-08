@@ -25,8 +25,13 @@
         </item>
 
         <!-- MessageView colors -->
-        <item name="message_background_color">@color/message_background_night</item>
+        <item name="message_companion_background_color">@color/message_companion_background_night
+        </item>
+        <item name="message_user_background_color">@color/message_user_background_night</item>
         <item name="message_name_color">@color/message_name_night</item>
         <item name="message_text_color">@color/message_text_night</item>
+
+        <!-- Channel Toolbar -->
+        <item name="channel_toolbar_background_color">@color/channel_toolbar_background_night</item>
     </style>
 </resources>

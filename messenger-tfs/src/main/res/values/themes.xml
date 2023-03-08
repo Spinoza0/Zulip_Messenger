@@ -22,8 +22,12 @@
         <item name="flexbox_add_icon_background_color">@color/flexbox_add_icon_background</item>
 
         <!-- MessageView colors -->
-        <item name="message_background_color">@color/message_background</item>
+        <item name="message_companion_background_color">@color/message_companion_background</item>
+        <item name="message_user_background_color">@color/message_user_background</item>
         <item name="message_name_color">@color/message_name</item>
         <item name="message_text_color">@color/message_text</item>
+
+        <!-- Channel Toolbar -->
+        <item name="channel_toolbar_background_color">@color/channel_toolbar_background</item>
     </style>
 </resources>
