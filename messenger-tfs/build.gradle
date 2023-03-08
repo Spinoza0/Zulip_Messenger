@@ -2,6 +2,8 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
+    id 'androidx.navigation.safeargs'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -42,6 +44,9 @@ dependencies {
     implementation androidx.constraintlayout
 
     implementation material
+
+    implementation navigation.fragment
+    implementation navigation.ui
 
     debugImplementation leakcanary
 }

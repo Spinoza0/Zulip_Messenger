@@ -8,7 +8,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tfsandroidspring2023">
         <activity
-            android:name=".presentation.MainActivity"
+            android:name=".presentation.activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

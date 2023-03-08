@@ -9,7 +9,7 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.ReactionEntity
+import com.spinoza.messenger_tfs.domain.model.ReactionEntity
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,

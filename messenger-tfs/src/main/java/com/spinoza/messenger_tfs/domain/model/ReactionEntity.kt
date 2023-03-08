@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain
+package com.spinoza.messenger_tfs.domain.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
@@ -7,5 +7,8 @@ import kotlinx.parcelize.Parcelize
 data class ReactionEntity(
     val emoji: String,
     val count: Int,
-    val selected: Boolean,
+    val isSelected: Boolean,
+
+    // TODO: work with userId
+    val userId: String = ""
 ) : Parcelable

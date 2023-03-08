@@ -7,7 +7,8 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
-import com.spinoza.messenger_tfs.domain.ReactionEntity
+import com.spinoza.messenger_tfs.domain.model.MessageEntity
+import com.spinoza.messenger_tfs.domain.model.ReactionEntity
 
 class MessageView @JvmOverloads constructor(
     context: Context,
@@ -159,7 +160,7 @@ class MessageView @JvmOverloads constructor(
         val reactionView = ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
             emoji = reactionEntity.emoji
             count = reactionEntity.count
-            isSelected = reactionEntity.selected
+            isSelected = reactionEntity.isSelected
         }
         addReaction(reactionView)
     }

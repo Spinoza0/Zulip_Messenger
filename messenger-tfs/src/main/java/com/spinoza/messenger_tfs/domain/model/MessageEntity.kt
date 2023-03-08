@@ -1,7 +1,6 @@
-package com.spinoza.messenger_tfs.presentation.ui
+package com.spinoza.messenger_tfs.domain.model
 
 import android.os.Parcelable
-import com.spinoza.messenger_tfs.domain.ReactionEntity
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -10,4 +9,8 @@ class MessageEntity(
     val text: String,
     val reactions: List<ReactionEntity>,
     val iconAddVisibility: Boolean,
+
+    // TODO: work with userId, date
+    val userId: String = "",
+    val date: String = "08.03.2023"
 ) : Parcelable
