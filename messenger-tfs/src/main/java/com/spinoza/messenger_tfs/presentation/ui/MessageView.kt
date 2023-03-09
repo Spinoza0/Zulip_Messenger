@@ -171,7 +171,8 @@ class MessageView @JvmOverloads constructor(
         messageId = message.id
         name = message.user.name
         text = message.text
-        binding.reactionsFlexBoxLayout.setIconAddVisibility(message.iconAddVisibility)
+        setRoundAvatar(message.user.avatarResId)
+        setIconAddVisibility(message.iconAddVisibility)
         message.reactions.keys.forEach {
             addReaction(it)
         }
