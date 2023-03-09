@@ -38,6 +38,8 @@
             @color/channel_new_message_text_background_color
         </item>
         <item name="channel_new_message_text_color">@color/channel_new_message_text_color</item>
+        <item name="channel_date_background_color">@color/channel_date_background_color</item>
+        <item name="channel_date_text_color">@color/channel_date_text_color</item>
 
     </style>
 </resources>

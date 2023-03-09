@@ -31,17 +31,22 @@
     <color name="message_text_night">#FAFAFA</color>
 
     <!-- Channel -->
+    <color name="channel_background">#121212</color>
+    <color name="channel_background_night">#121212</color>
     <color name="channel_toolbar_background">#2A9D8F</color>
     <color name="channel_toolbar_background_night">#2A9D8F</color>
     <color name="channel_toolbar_text">#FFFFFF</color>
     <color name="channel_toolbar_text_night">#FFFFFF</color>
-    <color name="channel_background">#1E1E1E</color>
-    <color name="channel_background_night">#1E1E1E</color>
-    <color name="channel_new_message_background_color">#1E1E1E</color>
-    <color name="channel_new_message_background_color_night">#1E1E1E</color>
+    <color name="channel_new_message_background_color">#1C1C1C</color>
+    <color name="channel_new_message_background_color_night">#1C1C1C</color>
     <color name="channel_new_message_text_background_color">#282828</color>
     <color name="channel_new_message_text_background_color_night">#282828</color>
     <color name="channel_new_message_text_color">#CCCCCC</color>
     <color name="channel_new_message_text_color_night">#CCCCCC</color>
+    <color name="channel_date_background_color">#070707</color>
+    <color name="channel_date_background_color_night">#070707</color>
+    <color name="channel_date_text_color">#999999</color>
+    <color name="channel_date_text_color_night">#999999</color>
+
 
 </resources>

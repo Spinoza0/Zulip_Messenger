@@ -28,22 +28,22 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
-        app:layout_constraintVertical_bias="0.45"
         tools:listitem="@layout/message_item" />
 
     <LinearLayout
         android:id="@+id/textInput"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginVertical="6dp"
-        android:layout_marginStart="10dp"
-        android:layout_marginEnd="16dp"
+        android:background="?attr/channel_new_message_background_color"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        app:boxBackgroundColor="?attr/channel_new_message_background_color"
+        android:paddingVertical="6dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewMessages">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextMessage"
@@ -51,20 +51,29 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="@drawable/shape_channel_new_message_text"
-            android:inputType="text"
+            android:hint="@string/write_message"
+            android:inputType="textMultiLine"
             android:maxLines="5"
             android:paddingHorizontal="20dp"
             android:paddingVertical="16dp"
             android:textColor="?attr/channel_new_message_text_color"
-            tools:text="@tools:sample/full_names" />
+            android:textColorHint="?attr/channel_new_message_text_color"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/imageViewAction"
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ImageView
             android:id="@+id/imageViewAction"
             android:layout_width="39dp"
             android:layout_height="39dp"
+            android:layout_marginVertical="6dp"
             android:layout_marginStart="12dp"
             android:background="?attr/channel_new_message_background_color"
-            android:src="@drawable/ic_add_circle_outline" />
+            android:contentDescription="@string/action"
+            android:src="@drawable/ic_add_circle_outline"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/editTextMessage" />
+
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

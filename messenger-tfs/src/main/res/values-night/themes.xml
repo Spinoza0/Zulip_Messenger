@@ -43,6 +43,8 @@
         </item>
         <item name="channel_new_message_text_color">@color/channel_new_message_text_color_night
         </item>
+        <item name="channel_date_background_color">@color/channel_date_background_color_night</item>
+        <item name="channel_date_text_color">@color/channel_date_text_color_night</item>
 
     </style>
 </resources>

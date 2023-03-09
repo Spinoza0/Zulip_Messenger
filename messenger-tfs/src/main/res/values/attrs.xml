@@ -30,5 +30,7 @@
         <attr name="channel_new_message_background_color" format="color" />
         <attr name="channel_new_message_text_background_color" format="color" />
         <attr name="channel_new_message_text_color" format="color" />
+        <attr name="channel_date_background_color" format="color" />
+        <attr name="channel_date_text_color" format="color" />
     </declare-styleable>
 </resources>
