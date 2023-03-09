@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 
 class MessagesFragment : Fragment() {
@@ -20,6 +21,16 @@ class MessagesFragment : Fragment() {
     ): View {
         _binding = FragmentMessagesBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        binding.toolbar.setNavigationOnClickListener {
+            if (!findNavController().popBackStack()) {
+                requireActivity().finish()
+            }
+        }
     }
 
     override fun onDestroyView() {
