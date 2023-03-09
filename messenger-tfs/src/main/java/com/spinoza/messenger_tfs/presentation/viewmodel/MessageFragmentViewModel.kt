@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
@@ -44,7 +45,8 @@ class MessageFragmentViewModel(
         if (messageText.isNotEmpty()) {
             viewModelScope.launch {
                 val message = Message(
-                    "TEST TIME",
+                    // test data
+                    MessageDate(10, "2 марта 2023"),
                     currentUser,
                     messageText,
                     emptyMap(),

@@ -19,8 +19,8 @@
         <attr name="message_user_background_color" format="color" />
         <attr name="message_name_color" format="color" />
         <attr name="message_text_color" format="color" />
-        <attr name="name" format="string" />
-        <attr name="text" format="string" />
+        <attr name="message_background_color" format="reference" />
+        <attr name="message_type_is_user" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="channel">

@@ -18,7 +18,11 @@ import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateMessageUseCase
-import com.spinoza.messenger_tfs.presentation.adapter.MessagesAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.date.DateDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.CompanionMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModelFactory
 
@@ -30,7 +34,14 @@ class MessagesFragment : Fragment() {
 
     private val currentUser = User(TEST_USER_ID, TEST_USER_NAME, TEST_USER_AVATAR)
 
-    private val messagesAdapter = MessagesAdapter(currentUser)
+    private val mainAdapter: MainAdapter by lazy {
+        MainAdapter().apply {
+            addDelegate(CompanionMessageDelegate())
+            addDelegate(UserMessageDelegate())
+            addDelegate(DateDelegate())
+        }
+    }
+
 
     private val viewModel by lazy {
         ViewModelProvider(
@@ -72,15 +83,15 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.recyclerViewMessages.adapter = messagesAdapter
+        binding.recyclerViewMessages.adapter = mainAdapter
     }
 
     private fun setupObservers() {
         viewModel.getState().observe(viewLifecycleOwner) { repositoryState ->
             when (repositoryState) {
                 is RepositoryState.Messages -> {
-                    messagesAdapter.submitList(repositoryState.messages) {
-                        val lastPosition = messagesAdapter.itemCount - 1
+                    mainAdapter.submitList(repositoryState.messages.groupByDate(currentUser)) {
+                        val lastPosition = mainAdapter.itemCount - 1
                         binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
                     }
                 }

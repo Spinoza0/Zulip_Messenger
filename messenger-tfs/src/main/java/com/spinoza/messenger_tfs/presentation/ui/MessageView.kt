@@ -7,11 +7,11 @@ import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.*
+import androidx.core.content.withStyledAttributes
+import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessageType
 import com.spinoza.messenger_tfs.domain.model.Reaction
 
 class MessageView @JvmOverloads constructor(
@@ -24,10 +24,6 @@ class MessageView @JvmOverloads constructor(
     private val binding by lazy {
         MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
     }
-
-    private val messageViewOriginalMarginLeft: Int = marginLeft
-    private val messageViewOriginalMarginRight: Int = marginRight
-    private val messageTextViewOriginalPaddingTop: Int = binding.messageTextView.paddingTop
 
     var messageId: Int = 0
 
@@ -42,6 +38,32 @@ class MessageView @JvmOverloads constructor(
         set(value) {
             binding.messageTextView.text = value
         }
+
+    init {
+        context.withStyledAttributes(attrs, R.styleable.message_view) {
+            val messageBackground = this.getResourceId(
+                R.styleable.message_view_message_background_color,
+                R.drawable.shape_message_companion_bottom
+            )
+
+            binding.messageTextView.setBackgroundResource(messageBackground)
+
+            val messageTypeIsUser = this.getBoolean(
+                R.styleable.message_view_message_type_is_user,
+                false
+            )
+            if (messageTypeIsUser) with(binding) {
+                binding.avatarImageView.visibility = View.GONE
+                binding.nameTextView.visibility = View.GONE
+                binding.messageTextView.setPadding(
+                    binding.messageTextView.paddingLeft,
+                    binding.nameTextView.paddingTop,
+                    binding.messageTextView.paddingRight,
+                    binding.messageTextView.paddingBottom
+                )
+            }
+        }
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var offsetX = paddingLeft
@@ -193,61 +215,5 @@ class MessageView @JvmOverloads constructor(
         message.reactions.keys.forEach {
             addReaction(it)
         }
-    }
-
-    fun setMessageType(messageType: MessageType) {
-        when (messageType) {
-            MessageType.USER -> {
-                binding.avatarImageView.visibility = View.GONE
-                binding.nameTextView.visibility = View.GONE
-                (layoutParams as MarginLayoutParams).setMargins(
-                    marginLeft + OFFSET_MARGIN_LEFT.dpToPx(this).toInt(),
-                    marginTop,
-                    messageViewOriginalMarginRight,
-                    marginBottom
-                )
-                with(binding.messageTextView) {
-                    setBackgroundResource(R.drawable.shape_message_user)
-                    setPadding(
-                        paddingLeft,
-                        binding.nameTextView.paddingTop,
-                        paddingRight,
-                        paddingBottom
-                    )
-                }
-            }
-            MessageType.COMPANION -> {
-                binding.avatarImageView.visibility = View.VISIBLE
-                binding.nameTextView.visibility = View.VISIBLE
-                (layoutParams as MarginLayoutParams).setMargins(
-                    messageViewOriginalMarginLeft,
-                    marginTop,
-                    marginRight + OFFSET_MARGIN_RIGHT.dpToPx(this).toInt(),
-                    marginBottom
-                )
-                (layoutParams as MarginLayoutParams).setMargins(
-                    messageViewOriginalMarginLeft,
-                    marginTop,
-                    marginRight + OFFSET_MARGIN_RIGHT.dpToPx(this).toInt(),
-                    marginBottom
-                )
-                with(binding.messageTextView) {
-                    setBackgroundResource(
-                        R.drawable.shape_message_companion_bottom
-                    )
-                    setPadding(
-                        paddingLeft,
-                        messageTextViewOriginalPaddingTop,
-                        paddingRight,
-                        paddingBottom
-                    )
-                }
-            }
-        }
-    }
-
-    private companion object {
-        const val OFFSET_MARGIN_LEFT = 150f
-        const val OFFSET_MARGIN_RIGHT = 100f
     }
 }

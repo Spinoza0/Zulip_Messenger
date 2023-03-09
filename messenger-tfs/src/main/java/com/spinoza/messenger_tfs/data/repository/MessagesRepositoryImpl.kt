@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -15,9 +16,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     private val messages = mutableListOf<Message>()
 
     init {
-        repeat(3) { index ->
+        // test data
+        repeat(5) { index ->
             val message = Message(
-                "time: $index",
+                MessageDate(index, "${index % 2 + 1} марта 2023"),
                 User(index, "User$index Name", R.drawable.test_face),
                 "Message $index text",
                 emptyMap(),

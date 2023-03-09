@@ -24,12 +24,12 @@ class ReactionView @JvmOverloads constructor(
             field = value
             makeReaction()
         }
-    var count = 0
+    var count = EMOJI_START_COUNT
         set(value) {
             field = value
             makeReaction()
         }
-    var size = 0f
+    var size = EMOJI_SIZE
         set(value) {
             field = value
             makeReaction()
@@ -51,7 +51,7 @@ class ReactionView @JvmOverloads constructor(
     init {
         context.withStyledAttributes(attrs, R.styleable.reaction_view) {
             emoji = this.getString(R.styleable.reaction_view_emoji) ?: ""
-            count = this.getInt(R.styleable.reaction_view_count, 0)
+            count = this.getInt(R.styleable.reaction_view_count, EMOJI_START_COUNT)
             size = this.getDimension(R.styleable.reaction_view_size, EMOJI_SIZE)
         }
         val newPaddingLeft =
@@ -158,6 +158,7 @@ class ReactionView @JvmOverloads constructor(
 
     private companion object {
         const val EMOJI_SIZE = 14f
+        const val EMOJI_START_COUNT = 1
         const val CORNER_RADIUS = 10f
         const val DEFAULT_HORIZONTAL_PADDING = EMOJI_SIZE
         const val DEFAULT_VERTICAL_PADDING = EMOJI_SIZE / 2
