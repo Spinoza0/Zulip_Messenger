@@ -5,9 +5,13 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.*
+import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessageType
 import com.spinoza.messenger_tfs.domain.model.Reaction
 
 class MessageView @JvmOverloads constructor(
@@ -20,6 +24,10 @@ class MessageView @JvmOverloads constructor(
     private val binding by lazy {
         MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
     }
+
+    private val messageViewOriginalMarginLeft: Int = marginLeft
+    private val messageViewOriginalMarginRight: Int = marginRight
+    private val messageTextViewOriginalPaddingTop: Int = binding.messageTextView.paddingTop
 
     var messageId: Int = 0
 
@@ -38,24 +46,29 @@ class MessageView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var offsetX = paddingLeft
         var offsetY = paddingTop
-        measureChildWithMargins(
-            binding.avatarImageView,
-            widthMeasureSpec,
-            offsetX,
-            heightMeasureSpec,
-            offsetY
-        )
-        offsetX += binding.avatarImageView.getWidthWithMargins()
+        var textWidth = 0
+        if (binding.avatarImageView.isVisible) {
+            measureChildWithMargins(
+                binding.avatarImageView,
+                widthMeasureSpec,
+                offsetX,
+                heightMeasureSpec,
+                offsetY
+            )
+            offsetX += binding.avatarImageView.getWidthWithMargins()
+        }
 
-        measureChildWithMargins(
-            binding.nameTextView,
-            widthMeasureSpec,
-            offsetX,
-            heightMeasureSpec,
-            offsetY
-        )
-        var textWidth = binding.nameTextView.getWidthWithMargins()
-        offsetY += binding.nameTextView.getHeightWithMargins()
+        if (binding.nameTextView.isVisible) {
+            measureChildWithMargins(
+                binding.nameTextView,
+                widthMeasureSpec,
+                offsetX,
+                heightMeasureSpec,
+                offsetY
+            )
+            textWidth = binding.nameTextView.getWidthWithMargins()
+            offsetY += binding.nameTextView.getHeightWithMargins()
+        }
 
         measureChildWithMargins(
             binding.messageTextView,
@@ -85,11 +98,15 @@ class MessageView @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         var offsetX = paddingLeft
         var offsetY = paddingTop
-        binding.avatarImageView.layoutWithMargins(offsetX, offsetY)
-        offsetX += binding.avatarImageView.getWidthWithMargins()
+        if (binding.avatarImageView.isVisible) {
+            binding.avatarImageView.layoutWithMargins(offsetX, offsetY)
+            offsetX += binding.avatarImageView.getWidthWithMargins()
+        }
 
-        binding.nameTextView.layoutWithMargins(offsetX, offsetY)
-        offsetY += binding.nameTextView.getHeightWithMargins()
+        if (binding.nameTextView.isVisible) {
+            binding.nameTextView.layoutWithMargins(offsetX, offsetY)
+            offsetY += binding.nameTextView.getHeightWithMargins()
+        }
 
         binding.messageTextView.layoutWithMargins(offsetX, offsetY)
         offsetY += binding.messageTextView.getHeightWithMargins()
@@ -176,5 +193,61 @@ class MessageView @JvmOverloads constructor(
         message.reactions.keys.forEach {
             addReaction(it)
         }
+    }
+
+    fun setMessageType(messageType: MessageType) {
+        when (messageType) {
+            MessageType.USER -> {
+                binding.avatarImageView.visibility = View.GONE
+                binding.nameTextView.visibility = View.GONE
+                (layoutParams as MarginLayoutParams).setMargins(
+                    marginLeft + OFFSET_MARGIN_LEFT.dpToPx(this).toInt(),
+                    marginTop,
+                    messageViewOriginalMarginRight,
+                    marginBottom
+                )
+                with(binding.messageTextView) {
+                    setBackgroundResource(R.drawable.shape_message_user)
+                    setPadding(
+                        paddingLeft,
+                        binding.nameTextView.paddingTop,
+                        paddingRight,
+                        paddingBottom
+                    )
+                }
+            }
+            MessageType.COMPANION -> {
+                binding.avatarImageView.visibility = View.VISIBLE
+                binding.nameTextView.visibility = View.VISIBLE
+                (layoutParams as MarginLayoutParams).setMargins(
+                    messageViewOriginalMarginLeft,
+                    marginTop,
+                    marginRight + OFFSET_MARGIN_RIGHT.dpToPx(this).toInt(),
+                    marginBottom
+                )
+                (layoutParams as MarginLayoutParams).setMargins(
+                    messageViewOriginalMarginLeft,
+                    marginTop,
+                    marginRight + OFFSET_MARGIN_RIGHT.dpToPx(this).toInt(),
+                    marginBottom
+                )
+                with(binding.messageTextView) {
+                    setBackgroundResource(
+                        R.drawable.shape_message_companion_bottom
+                    )
+                    setPadding(
+                        paddingLeft,
+                        messageTextViewOriginalPaddingTop,
+                        paddingRight,
+                        paddingBottom
+                    )
+                }
+            }
+        }
+    }
+
+    private companion object {
+        const val OFFSET_MARGIN_LEFT = 150f
+        const val OFFSET_MARGIN_RIGHT = 100f
     }
 }

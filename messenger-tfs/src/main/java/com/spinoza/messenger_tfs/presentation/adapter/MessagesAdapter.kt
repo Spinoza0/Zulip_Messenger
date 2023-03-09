@@ -5,8 +5,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import com.spinoza.messenger_tfs.databinding.MessageItemBinding
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.User
 
-class MessagesAdapter : ListAdapter<Message, MessageViewHolder>(MessagesDiffCallback()) {
+class MessagesAdapter(private val user: User) :
+    ListAdapter<Message, MessageViewHolder>(MessagesDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -15,6 +17,6 @@ class MessagesAdapter : ListAdapter<Message, MessageViewHolder>(MessagesDiffCall
     }
 
     override fun onBindViewHolder(holder: MessageViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), user)
     }
 }

@@ -9,9 +9,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
+import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
@@ -26,7 +28,9 @@ class MessagesFragment : Fragment() {
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
-    private val messagesAdapter = MessagesAdapter()
+    private val currentUser = User(TEST_USER_ID, TEST_USER_NAME, TEST_USER_AVATAR)
+
+    private val messagesAdapter = MessagesAdapter(currentUser)
 
     private val viewModel by lazy {
         ViewModelProvider(
@@ -107,12 +111,18 @@ class MessagesFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        if (viewModel.sendMessage(binding.editTextMessage.text.toString()))
+        if (viewModel.sendMessage(binding.editTextMessage.text.toString(), currentUser))
             binding.editTextMessage.text?.clear()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private companion object {
+        const val TEST_USER_ID = 100
+        const val TEST_USER_NAME = "Test User Name"
+        const val TEST_USER_AVATAR = R.drawable.test_face
     }
 }

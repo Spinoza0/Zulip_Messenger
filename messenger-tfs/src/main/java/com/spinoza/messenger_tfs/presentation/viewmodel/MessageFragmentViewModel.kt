@@ -25,7 +25,6 @@ class MessageFragmentViewModel(
         get() = _messageActionIcon
 
     private val _messageActionIcon = MutableLiveData<Int>()
-    private val user = User(TEST_USER_ID, TEST_USER_NAME, TEST_USER_AVATAR)
 
     init {
         loadMessages()
@@ -41,12 +40,12 @@ class MessageFragmentViewModel(
         }
     }
 
-    fun sendMessage(messageText: String): Boolean {
+    fun sendMessage(messageText: String, currentUser: User): Boolean {
         if (messageText.isNotEmpty()) {
             viewModelScope.launch {
                 val message = Message(
                     "TEST TIME",
-                    user,
+                    currentUser,
                     messageText,
                     emptyMap(),
                     false
@@ -70,11 +69,5 @@ class MessageFragmentViewModel(
         } else {
             _messageActionIcon.value = R.drawable.ic_add_circle_outline
         }
-    }
-
-    private companion object {
-        const val TEST_USER_ID = 100
-        const val TEST_USER_NAME = "Test User Name"
-        const val TEST_USER_AVATAR = R.drawable.test_face
     }
 }
