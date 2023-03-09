@@ -9,24 +9,24 @@ import android.view.ViewGroup
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.Reaction
-import com.spinoza.messenger_tfs.domain.model.User
 
 class MessageView @JvmOverloads constructor(
     context: Context,
     private val attrs: AttributeSet? = null,
     private val defStyleAttr: Int = 0,
     private val defStyleRes: Int = 0,
-    user: User,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
     private val binding by lazy {
         MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
     }
 
-    var user: User = User("","")
+    var messageId: Int = 0
+
+    var name: String
+        get() = binding.nameTextView.text.toString()
         set(value) {
-            field = value
-            binding.nameTextView.text = value.name
+            binding.nameTextView.text = value
         }
 
     var text: String
@@ -168,7 +168,8 @@ class MessageView @JvmOverloads constructor(
     }
 
     fun setMessage(message: Message) {
-        user = message.user
+        messageId = message.id
+        name = message.user.name
         text = message.text
         binding.reactionsFlexBoxLayout.setIconAddVisibility(message.iconAddVisibility)
         message.reactions.keys.forEach {
