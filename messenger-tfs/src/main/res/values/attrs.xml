@@ -19,11 +19,16 @@
         <attr name="message_user_background_color" format="color" />
         <attr name="message_name_color" format="color" />
         <attr name="message_text_color" format="color" />
+        <attr name="name" format="string" />
+        <attr name="text" format="string" />
     </declare-styleable>
 
     <declare-styleable name="channel">
         <attr name="channel_toolbar_background_color" format="color" />
         <attr name="channel_toolbar_text_color" format="color" />
         <attr name="channel_background_color" format="color" />
+        <attr name="channel_new_message_background_color" format="color" />
+        <attr name="channel_new_message_text_background_color" format="color" />
+        <attr name="channel_new_message_text_color" format="color" />
     </declare-styleable>
 </resources>

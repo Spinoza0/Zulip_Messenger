@@ -37,5 +37,11 @@
     <color name="channel_toolbar_text_night">#FFFFFF</color>
     <color name="channel_background">#1E1E1E</color>
     <color name="channel_background_night">#1E1E1E</color>
+    <color name="channel_new_message_background_color">#1E1E1E</color>
+    <color name="channel_new_message_background_color_night">#1E1E1E</color>
+    <color name="channel_new_message_text_background_color">#282828</color>
+    <color name="channel_new_message_text_background_color_night">#282828</color>
+    <color name="channel_new_message_text_color">#CCCCCC</color>
+    <color name="channel_new_message_text_color_night">#CCCCCC</color>
 
 </resources>

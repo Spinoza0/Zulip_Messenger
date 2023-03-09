@@ -31,6 +31,13 @@
         <item name="channel_toolbar_background_color">@color/channel_toolbar_background</item>
         <item name="channel_toolbar_text_color">@color/channel_toolbar_text</item>
         <item name="channel_background_color">@color/channel_background</item>
+        <item name="channel_new_message_background_color">
+            @color/channel_new_message_background_color
+        </item>
+        <item name="channel_new_message_text_background_color">
+            @color/channel_new_message_text_background_color
+        </item>
+        <item name="channel_new_message_text_color">@color/channel_new_message_text_color</item>
 
     </style>
 </resources>

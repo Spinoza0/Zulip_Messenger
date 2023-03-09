@@ -23,7 +23,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     private var offsetY = 0
 
     private val iconAdd = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
-        setImageResource(R.drawable.icon_add)
+        setImageResource(R.drawable.ic_add)
         setBackgroundResource(R.drawable.shape_flexboxlayout_icon_add)
 
         val width = ICON_ADD_WIDTH.dpToPx(this@FlexBoxLayout).toInt()
