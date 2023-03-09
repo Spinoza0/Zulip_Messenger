@@ -17,12 +17,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     init {
         repeat(3) { index ->
             val message = Message(
-                index,
                 "time: $index",
-                User("id$index", "User$index Name", R.drawable.test_face),
+                User(index, "User$index Name", R.drawable.test_face),
                 "Message $index text",
                 emptyMap(),
-                false
+                false,
+                index
             )
             messages.add(message)
         }
@@ -36,12 +36,16 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         state.value = RepositoryState.Messages(messages)
     }
 
-    override suspend fun addMessage(message: Message) {
-        TODO("Not yet implemented")
+    override suspend fun sendMessage(message: Message) {
+        val newMessage = message.copy(id = messages.size + 1)
+        messages.add(newMessage)
+        loadMessages()
     }
 
     override suspend fun updateMessage(message: Message) {
-        TODO("Not yet implemented")
+        messages.replaceAll { oldMessage ->
+            if (oldMessage.id == message.id) message else oldMessage
+        }
     }
 
     companion object {

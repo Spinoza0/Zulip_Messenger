@@ -9,12 +9,13 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
+import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
+import com.spinoza.messenger_tfs.domain.usecase.UpdateMessageUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MessagesAdapter
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModelFactory
@@ -32,7 +33,9 @@ class MessagesFragment : Fragment() {
             this,
             MessageFragmentViewModelFactory(
                 GetStateUseCase(MessagesRepositoryImpl.getInstance()),
-                LoadMessagesUseCase(MessagesRepositoryImpl.getInstance())
+                LoadMessagesUseCase(MessagesRepositoryImpl.getInstance()),
+                SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
+                UpdateMessageUseCase(MessagesRepositoryImpl.getInstance()),
             )
         )[MessageFragmentViewModel::class.java]
     }
@@ -51,6 +54,7 @@ class MessagesFragment : Fragment() {
 
         setupScreen()
         setupObservers()
+        setupListeners()
     }
 
     private fun setupScreen() {
@@ -59,16 +63,6 @@ class MessagesFragment : Fragment() {
                 requireActivity().finish()
             }
         }
-
-        binding.editTextMessage.addTextChangedListener(object : TextWatcher {
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                setMessageActionImage()
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun afterTextChanged(s: Editable?) {}
-        })
 
         setupRecyclerView()
     }
@@ -80,23 +74,41 @@ class MessagesFragment : Fragment() {
     private fun setupObservers() {
         viewModel.getState().observe(viewLifecycleOwner) { repositoryState ->
             when (repositoryState) {
-                is RepositoryState.Messages -> messagesAdapter.submitList(repositoryState.messages)
+                is RepositoryState.Messages -> {
+                    messagesAdapter.submitList(repositoryState.messages) {
+                        val lastPosition = messagesAdapter.itemCount - 1
+                        binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
+                    }
+                }
                 // TODO: show error
                 else -> {}
             }
         }
-    }
 
-    private fun setMessageActionImage() {
-        if (isMessageEmpty()) {
-            binding.imageViewAction.setImageResource(R.drawable.ic_add_circle_outline)
-        } else {
-            binding.imageViewAction.setImageResource(R.drawable.ic_send)
+        viewModel.messageActionIcon.observe(viewLifecycleOwner) {
+            binding.imageViewAction.setImageResource(it)
         }
     }
 
-    private fun isMessageEmpty(): Boolean {
-        return binding.editTextMessage.text.toString().trim().isEmpty()
+    private fun setupListeners() {
+        binding.imageViewAction.setOnClickListener {
+            sendMessage()
+        }
+
+        binding.editTextMessage.addTextChangedListener(object : TextWatcher {
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                viewModel.onMessageTextChanged(s)
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun afterTextChanged(s: Editable?) {}
+        })
+    }
+
+    private fun sendMessage() {
+        if (viewModel.sendMessage(binding.editTextMessage.text.toString()))
+            binding.editTextMessage.text?.clear()
     }
 
     override fun onDestroyView() {

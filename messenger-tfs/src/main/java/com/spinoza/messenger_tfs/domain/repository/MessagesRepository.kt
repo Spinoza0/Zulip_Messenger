@@ -10,7 +10,7 @@ interface MessagesRepository {
 
     suspend fun loadMessages()
 
-    suspend fun addMessage(message: Message)
+    suspend fun sendMessage(message: Message)
 
     suspend fun updateMessage(message: Message)
 }
