@@ -24,6 +24,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateIn
 import com.spinoza.messenger_tfs.presentation.adapter.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
+import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModelFactory
 
@@ -69,8 +70,6 @@ class MessagesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupScreen()
-        setupObservers()
-        setupListeners()
     }
 
     private fun setupScreen() {
@@ -80,7 +79,11 @@ class MessagesFragment : Fragment() {
             }
         }
 
+
+        setupStatusBar()
         setupRecyclerView()
+        setupObservers()
+        setupListeners()
     }
 
     private fun setupRecyclerView() {
@@ -121,6 +124,11 @@ class MessagesFragment : Fragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun afterTextChanged(s: Editable?) {}
         })
+    }
+
+    private fun setupStatusBar() {
+        requireActivity().window.statusBarColor =
+            requireContext().getThemeColor(R.attr.channel_toolbar_background_color)
     }
 
     private fun sendMessage() {
