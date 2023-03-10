@@ -32,10 +32,10 @@ fun View.getWidthWithMargins(): Int {
     return this.measuredWidth + this.marginLeft + this.marginRight
 }
 
-fun View.layoutWithMargins(offsetX: Int, offsetY: Int) {
+fun View.layoutWithMargins(offsetX: Int, offsetY: Int, minWidth: Int = this.measuredWidth) {
     val x = offsetX + this.marginLeft
     val y = offsetY + this.marginTop
-    this.layout(x, y, x + this.measuredWidth, y + this.measuredHeight)
+    this.layout(x, y, x + maxOf(this.measuredWidth, minWidth), y + this.measuredHeight)
 }
 
 fun Context.getThemeColor(attr: Int): Int {

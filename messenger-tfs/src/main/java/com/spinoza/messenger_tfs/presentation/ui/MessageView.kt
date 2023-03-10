@@ -119,17 +119,23 @@ class MessageView @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         var offsetX = paddingLeft
         var offsetY = paddingTop
+        val textWidth = maxOf(
+            binding.nameTextView.getWidthWithMargins(),
+            binding.messageTextView.getWidthWithMargins()
+        )
+
         if (binding.avatarImageView.isVisible) {
             binding.avatarImageView.layoutWithMargins(offsetX, offsetY)
             offsetX += binding.avatarImageView.getWidthWithMargins()
         }
 
+
         if (binding.nameTextView.isVisible) {
-            binding.nameTextView.layoutWithMargins(offsetX, offsetY)
+            binding.nameTextView.layoutWithMargins(offsetX, offsetY, textWidth)
             offsetY += binding.nameTextView.getHeightWithMargins()
         }
 
-        binding.messageTextView.layoutWithMargins(offsetX, offsetY)
+        binding.messageTextView.layoutWithMargins(offsetX, offsetY, textWidth)
         offsetY += binding.messageTextView.getHeightWithMargins()
 
         binding.reactionsFlexBoxLayout.layoutWithMargins(offsetX, offsetY)
