@@ -20,6 +20,7 @@ import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateMessageUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.date.DateDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
@@ -84,6 +85,7 @@ class MessagesFragment : Fragment() {
 
     private fun setupRecyclerView() {
         binding.recyclerViewMessages.adapter = mainAdapter
+        binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
     }
 
     private fun setupObservers() {
