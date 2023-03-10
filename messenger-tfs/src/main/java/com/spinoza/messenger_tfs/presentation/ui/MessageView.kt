@@ -26,6 +26,7 @@ class MessageView @JvmOverloads constructor(
     }
 
     var messageId: Int = 0
+        private set
 
     var name: String
         get() = binding.nameTextView.text.toString()

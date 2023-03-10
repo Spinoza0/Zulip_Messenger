@@ -12,5 +12,5 @@ interface MessagesRepository {
 
     suspend fun sendMessage(message: Message)
 
-    suspend fun updateMessage(message: Message)
+    suspend fun updateReaction(messageId: Int, reactionValue: String)
 }

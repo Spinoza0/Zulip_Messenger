@@ -44,10 +44,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         loadMessages()
     }
 
-    override suspend fun updateMessage(message: Message) {
-        messages.replaceAll { oldMessage ->
-            if (oldMessage.id == message.id) message else oldMessage
-        }
+    override suspend fun updateReaction(messageId: Int, reactionValue: String) {
+        TODO("Not yet implemented")
     }
 
     companion object {

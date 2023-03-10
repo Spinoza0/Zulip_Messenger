@@ -12,14 +12,12 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
-import com.spinoza.messenger_tfs.domain.usecase.UpdateMessageUseCase
 import kotlinx.coroutines.launch
 
-class MessageFragmentViewModel(
+class MessagesFragmentViewModel(
     private val getStateUseCase: GetStateUseCase,
     private val loadMessagesUseCase: LoadMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
-    private val updateMessageUseCase: UpdateMessageUseCase,
 ) : ViewModel() {
 
     val messageActionIcon: LiveData<Int>
@@ -57,12 +55,6 @@ class MessageFragmentViewModel(
             return true
         }
         return false
-    }
-
-    fun updateMessage(message: Message) {
-        viewModelScope.launch {
-            updateMessageUseCase(message)
-        }
     }
 
     fun onMessageTextChanged(s: CharSequence?) {

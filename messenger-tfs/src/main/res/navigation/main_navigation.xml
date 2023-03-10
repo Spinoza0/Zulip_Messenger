@@ -9,5 +9,21 @@
         android:id="@+id/messagesFragment"
         android:name="com.spinoza.messenger_tfs.presentation.fragment.MessagesFragment"
         android:label="fragment_messages"
-        tools:layout="@layout/fragment_messages" />
+        tools:layout="@layout/fragment_messages" >
+        <action
+            android:id="@+id/action_messagesFragment_to_addReactionFragment"
+            app:destination="@id/addReactionFragment"
+            app:popUpTo="@id/messagesFragment"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim"
+            app:launchSingleTop="true" />
+    </fragment>
+    <dialog
+        android:id="@+id/addReactionFragment"
+        android:name="com.spinoza.messenger_tfs.presentation.fragment.AddReactionFragment"
+        android:label="AddReactionFragment" >
+        <argument
+            android:name="messageId"
+            app:argType="integer" />
+    </dialog>
 </navigation>

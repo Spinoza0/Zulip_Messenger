@@ -17,16 +17,16 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
-import com.spinoza.messenger_tfs.domain.usecase.UpdateMessageUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
+import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
-import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModelFactory
+import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 
 class MessagesFragment : Fragment() {
 
@@ -44,7 +44,6 @@ class MessagesFragment : Fragment() {
         }
     }
 
-
     private val viewModel by lazy {
         ViewModelProvider(
             this,
@@ -52,9 +51,8 @@ class MessagesFragment : Fragment() {
                 GetStateUseCase(MessagesRepositoryImpl.getInstance()),
                 LoadMessagesUseCase(MessagesRepositoryImpl.getInstance()),
                 SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
-                UpdateMessageUseCase(MessagesRepositoryImpl.getInstance()),
             )
-        )[MessageFragmentViewModel::class.java]
+        )[MessagesFragmentViewModel::class.java]
     }
 
     override fun onCreateView(
@@ -78,7 +76,6 @@ class MessagesFragment : Fragment() {
                 requireActivity().finish()
             }
         }
-
 
         setupStatusBar()
         setupRecyclerView()
@@ -142,17 +139,20 @@ class MessagesFragment : Fragment() {
             binding.editTextMessage.text?.clear()
     }
 
-    private fun onAvatarLongClickListener(messageView: View) {
-        // TODO onAvatarLongClickListener
+    private fun onAvatarLongClickListener(messageView: MessageView) {
+        // TODO: onAvatarLongClickListener
     }
 
-    private fun onReactionAddClickListener(messageView: View) {
-        AddReactionFragment().show(requireActivity().supportFragmentManager, null)
-        // TODO onReactionAddClickListener
+    private fun onReactionAddClickListener(messageView: MessageView) {
+        val action =
+            MessagesFragmentDirections.actionMessagesFragmentToAddReactionFragment(
+                messageView.messageId
+            )
+        findNavController().navigate(action)
     }
 
-    private fun onReactionClickListener(messageView: View) {
-        // TODO onReactionClickListener
+    private fun onReactionClickListener(messageView: MessageView) {
+        // TODO: onReactionClickListener
     }
 
     override fun onDestroyView() {
