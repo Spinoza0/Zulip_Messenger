@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.viewmodel
+package com.spinoza.messenger_tfs.presentation.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -6,6 +6,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 
 class MessageFragmentViewModelFactory(
     private val getStateUseCase: GetStateUseCase,

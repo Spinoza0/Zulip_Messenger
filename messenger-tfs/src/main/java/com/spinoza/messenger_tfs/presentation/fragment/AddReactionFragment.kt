@@ -11,7 +11,7 @@ import com.spinoza.messenger_tfs.databinding.EmojiListBinding
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.utils.emojiSet
-import com.spinoza.messenger_tfs.presentation.viewmodel.AddReactionFragmentViewModelFactory
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.AddReactionFragmentViewModelFactory
 import com.spinoza.messenger_tfs.presentation.viewmodel.AddReactionViewModel
 
 class AddReactionFragment : BottomSheetDialogFragment() {

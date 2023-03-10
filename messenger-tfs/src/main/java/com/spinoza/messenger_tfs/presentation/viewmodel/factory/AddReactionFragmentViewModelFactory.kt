@@ -1,8 +1,9 @@
-package com.spinoza.messenger_tfs.presentation.viewmodel
+package com.spinoza.messenger_tfs.presentation.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.presentation.viewmodel.AddReactionViewModel
 
 class AddReactionFragmentViewModelFactory(
     private val updateReactionUseCase: UpdateReactionUseCase,

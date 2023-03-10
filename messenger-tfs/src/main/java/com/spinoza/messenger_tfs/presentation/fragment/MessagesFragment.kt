@@ -26,7 +26,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
-import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModelFactory
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageFragmentViewModelFactory
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 
 class MessagesFragment : Fragment() {
