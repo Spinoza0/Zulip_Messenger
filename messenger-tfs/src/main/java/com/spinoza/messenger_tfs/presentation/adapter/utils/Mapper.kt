@@ -18,9 +18,8 @@ fun List<Message>.groupByDate(user: User): List<DelegateItem> {
 
     dates.forEach { messageDate ->
         delegateItemList.add(DateDelegateItem(messageDate.id, messageDate))
-        val date = messageDate.value
         val allDayMessages = this.filter { message ->
-            message.date.value == date
+            message.date.value == messageDate.value
         }
 
         allDayMessages.forEach { message ->

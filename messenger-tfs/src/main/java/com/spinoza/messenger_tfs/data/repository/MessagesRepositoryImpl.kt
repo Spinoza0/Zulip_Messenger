@@ -17,7 +17,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     init {
         // test data
-        repeat(5) { index ->
+        repeat(20) { index ->
             val message = Message(
                 MessageDate(index, "${index % 2 + 1} марта 2023"),
                 User(index, "User$index Name", R.drawable.test_face),
