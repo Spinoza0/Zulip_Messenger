@@ -46,29 +46,13 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun loadMessages(userId: Int) {
-        messages.replaceAll { oldMessage ->
-            if (oldMessage.reactions.size > EMPTY_MAP) {
-                val newReactions = oldMessage.reactions.toMutableMap()
-                newReactions.forEach { entry ->
-                    newReactions[entry.key] = ReactionParam(
-                        entry.value.usersIds,
-                        isSelected = entry.value.usersIds.contains(userId)
-                    )
-                }
-                oldMessage.copy(
-                    reactions = newReactions,
-                    isIconAddVisible = newReactions.size > EMPTY_MAP
-                )
-            } else
-                oldMessage.copy(isIconAddVisible = false)
-        }
-        state.value = RepositoryState.Messages(messages)
+        loadMessages(userId, false)
     }
 
     override suspend fun sendMessage(message: Message) {
         val newMessage = message.copy(id = messages.size + 1)
         messages.add(newMessage)
-        loadMessages(message.userId)
+        loadMessages(message.userId, true)
     }
 
     override suspend fun updateReaction(messageId: Int, userId: Int, reaction: String) {
@@ -110,6 +94,26 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 oldMessage
         }
         loadMessages(userId)
+    }
+
+    private fun loadMessages(userId: Int, needScrollToLastPosition: Boolean) {
+        messages.replaceAll { oldMessage ->
+            if (oldMessage.reactions.size > EMPTY_MAP) {
+                val newReactions = oldMessage.reactions.toMutableMap()
+                newReactions.forEach { entry ->
+                    newReactions[entry.key] = ReactionParam(
+                        entry.value.usersIds,
+                        isSelected = entry.value.usersIds.contains(userId)
+                    )
+                }
+                oldMessage.copy(
+                    reactions = newReactions,
+                    isIconAddVisible = newReactions.size > EMPTY_MAP
+                )
+            } else
+                oldMessage.copy(isIconAddVisible = false)
+        }
+        state.value = RepositoryState.Messages(messages, needScrollToLastPosition)
     }
 
     companion object {

@@ -99,7 +99,12 @@ class MessagesFragment : Fragment() {
                             ::onReactionAddClickListener,
                             ::onReactionClickListener
                         )
-                    )
+                    ) {
+                        if (repositoryState.needScrollToLastPosition) {
+                            val lastPosition = mainAdapter.itemCount - 1
+                            binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
+                        }
+                    }
                 }
                 // TODO: show error
                 else -> {}
