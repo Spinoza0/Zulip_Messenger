@@ -35,6 +35,17 @@ class ReactionView @JvmOverloads constructor(
             makeReaction()
         }
 
+    var isCountVisible: Boolean = true
+        set(value) {
+            field = value
+            makeReaction()
+        }
+
+    var isBackgroundVisible: Boolean = true
+        set(value) {
+            field = value
+        }
+
     private var reaction = ""
     private val cornerRadius = CORNER_RADIUS.dpToPx(this)
     private val selectedBackgroundColor =
@@ -81,7 +92,7 @@ class ReactionView @JvmOverloads constructor(
         backgroundPaint.color =
             if (isSelected) selectedBackgroundColor else unselectedBackgroundColor
 
-        canvas.drawRoundRect(
+        if (isBackgroundVisible) canvas.drawRoundRect(
             0f,
             0f,
             width.toFloat(),
@@ -105,12 +116,17 @@ class ReactionView @JvmOverloads constructor(
         emoji = reactionEntity.emoji
         count = reactionEntity.count
         isSelected = reactionEntity.isSelected
+        isCountVisible = reactionEntity.isCountVisible
+        isBackgroundVisible = reactionEntity.isBackgroundVisible
     }
 
     override fun onSaveInstanceState(): Parcelable {
         val state = SavedState(super.onSaveInstanceState())
         state.isSelected = isSelected
+        state.isCountVisible = isCountVisible
+        state.isBackgroundVisible = isBackgroundVisible
         state.count = count
+        state.emoji = emoji
         return state
     }
 
@@ -118,34 +134,45 @@ class ReactionView @JvmOverloads constructor(
         if (state is SavedState) {
             super.onRestoreInstanceState(state)
             isSelected = state.isSelected
+            isCountVisible = state.isCountVisible
+            isBackgroundVisible = state.isBackgroundVisible
             count = state.count
-
+            emoji = state.emoji
         } else {
             super.onRestoreInstanceState(state)
         }
     }
 
     private fun makeReaction() {
-        reaction = "$emoji $count"
+        reaction = if (isCountVisible) "$emoji $count" else emoji
         reactionPaint.textSize = size.spToPx(this)
     }
 
     private class SavedState : BaseSavedState, Parcelable {
 
         var isSelected = false
+        var isCountVisible = true
+        var isBackgroundVisible = true
         var count = 0
+        var emoji = ""
 
         constructor(superState: Parcelable?) : super(superState)
 
         private constructor(source: Parcel) : super(source) {
             isSelected = source.readInt() == 1
+            isCountVisible = source.readInt() == 1
+            isBackgroundVisible = source.readInt() == 1
             count = source.readInt()
+            emoji = source.readString() ?: ""
         }
 
         override fun writeToParcel(destination: Parcel, flags: Int) {
             super.writeToParcel(destination, flags)
             destination.writeInt(if (isSelected) 1 else 0)
+            destination.writeInt(if (isCountVisible) 1 else 0)
+            destination.writeInt(if (isBackgroundVisible) 1 else 0)
             destination.writeInt(count)
+            destination.writeString(emoji)
         }
 
         override fun describeContents() = 0
