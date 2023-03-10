@@ -95,7 +95,14 @@ class MessagesFragment : Fragment() {
         viewModel.getState().observe(viewLifecycleOwner) { repositoryState ->
             when (repositoryState) {
                 is RepositoryState.Messages -> {
-                    mainAdapter.submitList(repositoryState.messages.groupByDate(currentUser)) {
+                    mainAdapter.submitList(
+                        repositoryState.messages.groupByDate(
+                            currentUser,
+                            ::onAvatarLongClickListener,
+                            ::onReactionAddClickListener,
+                            ::onReactionClickListener
+                        )
+                    ) {
                         val lastPosition = mainAdapter.itemCount - 1
                         binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
                     }
@@ -116,7 +123,6 @@ class MessagesFragment : Fragment() {
         }
 
         binding.editTextMessage.addTextChangedListener(object : TextWatcher {
-
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 viewModel.onMessageTextChanged(s)
             }
@@ -134,6 +140,19 @@ class MessagesFragment : Fragment() {
     private fun sendMessage() {
         if (viewModel.sendMessage(binding.editTextMessage.text.toString(), currentUser))
             binding.editTextMessage.text?.clear()
+    }
+
+    private fun onAvatarLongClickListener(messageView: View) {
+        // TODO onAvatarLongClickListener
+    }
+
+    private fun onReactionAddClickListener(messageView: View) {
+        AddReactionFragment().show(requireActivity().supportFragmentManager, null)
+        // TODO onReactionAddClickListener
+    }
+
+    private fun onReactionClickListener(messageView: View) {
+        // TODO onReactionClickListener
     }
 
     override fun onDestroyView() {

@@ -6,9 +6,15 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.presentation.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.CompanionMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import java.util.*
 
-fun List<Message>.groupByDate(user: User): List<DelegateItem> {
+fun List<Message>.groupByDate(
+    user: User,
+    onAvatarLongClickListener: ((MessageView) -> Unit)? = null,
+    onReactionAddClickListener: ((MessageView) -> Unit)? = null,
+    onReactionClickListener: ((MessageView) -> Unit)? = null,
+): List<DelegateItem> {
 
     val delegateItemList = mutableListOf<DelegateItem>()
     val dates = TreeSet<MessageDate>()
@@ -24,9 +30,24 @@ fun List<Message>.groupByDate(user: User): List<DelegateItem> {
 
         allDayMessages.forEach { message ->
             if (message.user.id == user.id) {
-                delegateItemList.add(UserMessageDelegateItem(message.id, message))
+                delegateItemList.add(
+                    UserMessageDelegateItem(
+                        message.id,
+                        message,
+                        onAvatarLongClickListener,
+                        onReactionAddClickListener,
+                        onReactionClickListener
+                    )
+                )
             } else {
-                delegateItemList.add(CompanionMessageDelegateItem(message.id, message))
+                delegateItemList.add(
+                    CompanionMessageDelegateItem(
+                        message.id, message,
+                        onAvatarLongClickListener,
+                        onReactionAddClickListener,
+                        onReactionClickListener
+                    )
+                )
             }
         }
     }

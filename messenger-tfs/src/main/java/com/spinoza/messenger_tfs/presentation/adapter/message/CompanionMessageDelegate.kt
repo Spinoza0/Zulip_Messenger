@@ -10,13 +10,13 @@ import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem
 
 class CompanionMessageDelegate : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
-        return ViewHolder(
-            CompanionMessageItemBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
-            )
+        val inflater = LayoutInflater.from(parent.context)
+        val binding = CompanionMessageItemBinding.inflate(
+            inflater,
+            parent,
+            false
         )
+        return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(
@@ -24,7 +24,7 @@ class CompanionMessageDelegate : AdapterDelegate {
         item: DelegateItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item.content() as Message)
+        (holder as ViewHolder).bind(item as CompanionMessageDelegateItem)
     }
 
     override fun isOfViewType(item: DelegateItem): Boolean {
@@ -32,10 +32,16 @@ class CompanionMessageDelegate : AdapterDelegate {
     }
 
     class ViewHolder(private val binding: CompanionMessageItemBinding) :
+
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(message: Message) {
-            binding.messageView.setMessage(message)
+        fun bind(item: CompanionMessageDelegateItem) {
+            with(binding.messageView) {
+                setMessage(item.content() as Message)
+                setOnAvatarClickListener(item.onAvatarLongClickListener())
+                setOnMessageLongClickListener(item.onReactionAddClickListener())
+                setOnReactionClickListener(item.onReactionClickListener())
+            }
         }
     }
 }

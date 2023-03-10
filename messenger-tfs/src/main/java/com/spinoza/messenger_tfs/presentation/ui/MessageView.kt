@@ -190,10 +190,13 @@ class MessageView @JvmOverloads constructor(
             listener?.invoke(this@MessageView)
             true
         }
+        binding.reactionsFlexBoxLayout.setOnAddClickListener {
+            listener?.invoke(this@MessageView)
+        }
     }
 
-    fun setOnReactionAddClickListener(listener: ((MessageView) -> Unit)?) {
-        binding.reactionsFlexBoxLayout.setOnAddClickListener {
+    fun setOnReactionClickListener(listener: ((MessageView) -> Unit)?) {
+        binding.reactionsFlexBoxLayout.setOnChildClickListener {
             listener?.invoke(this@MessageView)
         }
     }
