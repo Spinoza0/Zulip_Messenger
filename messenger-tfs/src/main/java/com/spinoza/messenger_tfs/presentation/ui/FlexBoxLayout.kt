@@ -17,6 +17,8 @@ class FlexBoxLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
+    private var onChildClickListener: ((View) -> Unit)? = null
+
     private var internalMargin = 0
     private val row = RowHelper()
     private var offsetX = 0
@@ -47,6 +49,11 @@ class FlexBoxLayout @JvmOverloads constructor(
     }
 
     override fun addView(view: View) {
+        if (onChildClickListener != null && childCount > NO_CHILD) {
+            view.setOnClickListener {
+                onChildClickListener?.invoke(view)
+            }
+        }
         super.addView(view, childCount - 1)
     }
 
@@ -101,6 +108,10 @@ class FlexBoxLayout @JvmOverloads constructor(
         iconAdd.setOnClickListener {
             listener?.invoke(this@FlexBoxLayout)
         }
+    }
+
+    fun setOnChildClickListener(listener: ((View) -> Unit)?) {
+        onChildClickListener = listener
     }
 
     fun setIconAddVisibility(state: Boolean) {
@@ -198,6 +209,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     }
 
     private companion object {
+        const val NO_CHILD = 0
         const val ICON_ADD_WIDTH = 45f
         const val ICON_ADD_HEIGHT = 30f
         const val ICON_ADD_HORIZONTAL_PADDING = 8f
