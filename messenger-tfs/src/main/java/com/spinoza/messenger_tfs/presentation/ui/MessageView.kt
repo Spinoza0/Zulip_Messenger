@@ -41,18 +41,17 @@ class MessageView @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs, R.styleable.message_view) {
-            val messageBackground = this.getResourceId(
-                R.styleable.message_view_message_background_color,
-                R.drawable.shape_message_companion_bottom
-            )
-
-            binding.messageTextView.setBackgroundResource(messageBackground)
-
             val messageTypeIsUser = this.getBoolean(
                 R.styleable.message_view_message_type_is_user,
                 false
             )
-            if (messageTypeIsUser) with(binding) {
+
+            if (messageTypeIsUser) {
+                val messageBackground = this.getResourceId(
+                    R.styleable.message_view_message_background_color,
+                    R.drawable.shape_message_companion_bottom
+                )
+                binding.messageTextView.setBackgroundResource(messageBackground)
                 binding.avatarImageView.visibility = View.GONE
                 binding.nameTextView.visibility = View.GONE
                 binding.messageTextView.setPadding(
