@@ -16,6 +16,7 @@ import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
+import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
@@ -23,6 +24,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.CompanionMessageDe
 import com.spinoza.messenger_tfs.presentation.adapter.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessageFragmentViewModelFactory
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
@@ -50,6 +52,7 @@ class MessagesFragment : Fragment() {
                 GetStateUseCase(MessagesRepositoryImpl.getInstance()),
                 LoadMessagesUseCase(MessagesRepositoryImpl.getInstance()),
                 SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
+                UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
             )
         )[MessagesFragmentViewModel::class.java]
     }
@@ -94,10 +97,9 @@ class MessagesFragment : Fragment() {
                 is RepositoryState.Messages -> {
                     mainAdapter.submitList(
                         repositoryState.messages.groupByDate(
-                            currentUserId,
-                            ::onAvatarLongClickListener,
-                            ::onReactionAddClickListener,
-                            ::onReactionClickListener
+                            userId = currentUserId,
+                            onReactionAddClickListener = ::onReactionAddClickListener,
+                            onReactionClickListener = ::onReactionClickListener
                         )
                     ) {
                         if (repositoryState.needScrollToLastPosition) {
@@ -141,10 +143,6 @@ class MessagesFragment : Fragment() {
             binding.editTextMessage.text?.clear()
     }
 
-    private fun onAvatarLongClickListener(messageView: MessageView) {
-        // TODO: onAvatarLongClickListener
-    }
-
     private fun onReactionAddClickListener(messageView: MessageView) {
         val action =
             MessagesFragmentDirections.actionMessagesFragmentToAddReactionFragment(
@@ -154,8 +152,8 @@ class MessagesFragment : Fragment() {
         findNavController().navigate(action)
     }
 
-    private fun onReactionClickListener(messageView: MessageView) {
-        // TODO: onReactionClickListener
+    private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
+        viewModel.updateReaction(messageView, currentUserId, reactionView)
     }
 
     override fun onDestroyView() {

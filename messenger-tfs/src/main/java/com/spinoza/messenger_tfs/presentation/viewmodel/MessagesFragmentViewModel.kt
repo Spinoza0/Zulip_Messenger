@@ -11,12 +11,16 @@ import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
+import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.presentation.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import kotlinx.coroutines.launch
 
 class MessagesFragmentViewModel(
     private val getStateUseCase: GetStateUseCase,
     private val loadMessagesUseCase: LoadMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
+    private val updateReactionUseCase: UpdateReactionUseCase,
 ) : ViewModel() {
 
     val messageActionIcon: LiveData<Int>
@@ -59,6 +63,12 @@ class MessagesFragmentViewModel(
             _messageActionIcon.value = R.drawable.ic_send
         } else {
             _messageActionIcon.value = R.drawable.ic_add_circle_outline
+        }
+    }
+
+    fun updateReaction(messageView: MessageView, userId: Int, reactionView: ReactionView) {
+        viewModelScope.launch {
+            updateReactionUseCase(messageView.messageId, userId, reactionView.emoji)
         }
     }
 }

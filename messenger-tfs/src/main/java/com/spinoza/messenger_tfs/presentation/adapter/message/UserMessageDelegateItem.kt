@@ -3,13 +3,14 @@ package com.spinoza.messenger_tfs.presentation.adapter.message
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 class UserMessageDelegateItem(
     private val id: Int,
     private val value: Message,
     private val onAvatarLongClickListener: ((MessageView) -> Unit)? = null,
     private val onReactionAddClickListener: ((MessageView) -> Unit)? = null,
-    private val onReactionClickListener: ((MessageView) -> Unit)? = null,
+    private val onReactionClickListener: ((MessageView, ReactionView) -> Unit)? = null,
 ) : DelegateItem, OnMessageClickListeners {
 
     override fun content(): Any {
@@ -32,7 +33,7 @@ class UserMessageDelegateItem(
         return onReactionAddClickListener
     }
 
-    override fun onReactionClickListener(): ((MessageView) -> Unit)? {
+    override fun onReactionClickListener(): ((MessageView, ReactionView) -> Unit)? {
         return onReactionClickListener
     }
 }

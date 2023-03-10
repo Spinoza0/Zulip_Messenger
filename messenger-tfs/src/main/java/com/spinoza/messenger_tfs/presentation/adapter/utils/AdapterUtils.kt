@@ -4,15 +4,17 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.presentation.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.CompanionMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.OnMessageClickListeners
 import com.spinoza.messenger_tfs.presentation.adapter.message.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import java.util.*
 
 fun List<Message>.groupByDate(
     userId: Int,
     onAvatarLongClickListener: ((MessageView) -> Unit)? = null,
     onReactionAddClickListener: ((MessageView) -> Unit)? = null,
-    onReactionClickListener: ((MessageView) -> Unit)? = null,
+    onReactionClickListener: ((MessageView, ReactionView) -> Unit)? = null,
 ): List<DelegateItem> {
 
     val delegateItemList = mutableListOf<DelegateItem>()
@@ -52,4 +54,10 @@ fun List<Message>.groupByDate(
     }
 
     return delegateItemList
+}
+
+fun setMessageViewListeners(messageView: MessageView, listeners: OnMessageClickListeners) {
+    messageView.setOnAvatarClickListener(listeners.onAvatarLongClickListener())
+    messageView.setOnMessageLongClickListener(listeners.onReactionAddClickListener())
+    messageView.setOnReactionClickListener(listeners.onReactionClickListener())
 }

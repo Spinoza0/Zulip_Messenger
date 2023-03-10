@@ -59,7 +59,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     }
 
     override fun addView(view: View) {
-        if (onChildClickListener != null && childCount > NO_CHILD) {
+        if (childCount > NO_CHILD) {
             view.setOnClickListener {
                 onChildClickListener?.invoke(view)
             }

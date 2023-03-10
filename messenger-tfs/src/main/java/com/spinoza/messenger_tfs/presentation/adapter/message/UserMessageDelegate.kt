@@ -7,6 +7,7 @@ import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.utils.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.utils.setMessageViewListeners
 
 class UserMessageDelegate : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -36,12 +37,8 @@ class UserMessageDelegate : AdapterDelegate {
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: UserMessageDelegateItem) {
-            with(binding.messageView) {
-                setMessage(item.content() as Message)
-                setOnAvatarClickListener(item.onAvatarLongClickListener())
-                setOnMessageLongClickListener(item.onReactionAddClickListener())
-                setOnReactionClickListener(item.onReactionClickListener())
-            }
+            binding.messageView.setMessage(item.content() as Message)
+            setMessageViewListeners(binding.messageView, item)
         }
     }
 }

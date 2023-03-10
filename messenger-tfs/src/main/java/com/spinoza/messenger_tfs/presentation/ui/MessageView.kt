@@ -188,9 +188,9 @@ class MessageView @JvmOverloads constructor(
         }
     }
 
-    fun setOnReactionClickListener(listener: ((MessageView) -> Unit)?) {
+    fun setOnReactionClickListener(listener: ((MessageView, ReactionView) -> Unit)?) {
         binding.reactionsFlexBoxLayout.setOnChildClickListener {
-            listener?.invoke(this@MessageView)
+            listener?.invoke(this@MessageView, it as ReactionView)
         }
     }
 
