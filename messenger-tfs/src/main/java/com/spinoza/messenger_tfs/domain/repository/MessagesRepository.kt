@@ -8,9 +8,9 @@ interface MessagesRepository {
 
     fun getState(): LiveData<RepositoryState>
 
-    suspend fun loadMessages()
+    suspend fun loadMessages(userId: Int)
 
     suspend fun sendMessage(message: Message)
 
-    suspend fun updateReaction(messageId: Int, reactionValue: String)
+    suspend fun updateReaction(messageId: Int, userId: Int, reaction: String)
 }

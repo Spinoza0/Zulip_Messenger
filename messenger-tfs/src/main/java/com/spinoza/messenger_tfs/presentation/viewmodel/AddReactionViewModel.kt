@@ -9,9 +9,9 @@ class AddReactionViewModel(
     private val updateReactionUseCase: UpdateReactionUseCase,
 ) : ViewModel() {
 
-    fun updateReaction(messageId: Int, reactionValue: String) {
+    fun updateReaction(messageId: Int, userId: Int, reactionValue: String) {
         viewModelScope.launch {
-            updateReactionUseCase(messageId, reactionValue)
+            updateReactionUseCase(messageId, userId, reactionValue)
         }
     }
 }

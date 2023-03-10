@@ -25,5 +25,8 @@
         <argument
             android:name="messageId"
             app:argType="integer" />
+        <argument
+            android:name="userId"
+            app:argType="integer" />
     </dialog>
 </navigation>

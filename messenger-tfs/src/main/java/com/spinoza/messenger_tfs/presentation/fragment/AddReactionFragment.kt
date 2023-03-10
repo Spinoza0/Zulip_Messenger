@@ -51,10 +51,11 @@ class AddReactionFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupListeners() {
-        val messageId = AddReactionFragmentArgs.fromBundle(requireArguments()).messageId
         binding.flexBoxLayout.setOnChildClickListener { view ->
             if (view is ReactionView) {
-                viewModel.updateReaction(messageId, view.emoji)
+                val messageId = AddReactionFragmentArgs.fromBundle(requireArguments()).messageId
+                val userId = AddReactionFragmentArgs.fromBundle(requireArguments()).userId
+                viewModel.updateReaction(messageId, userId, view.emoji)
                 dismiss()
             }
         }

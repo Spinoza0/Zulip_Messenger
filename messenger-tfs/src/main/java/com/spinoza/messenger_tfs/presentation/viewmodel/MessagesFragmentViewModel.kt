@@ -8,7 +8,6 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
-import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
@@ -25,28 +24,26 @@ class MessagesFragmentViewModel(
 
     private val _messageActionIcon = MutableLiveData<Int>()
 
-    init {
-        loadMessages()
-    }
-
     fun getState(): LiveData<RepositoryState> {
         return getStateUseCase()
     }
 
-    fun loadMessages() {
+    fun loadMessages(userId: Int) {
         viewModelScope.launch {
-            loadMessagesUseCase()
+            loadMessagesUseCase(userId)
         }
     }
 
-    fun sendMessage(messageText: String, currentUser: User): Boolean {
+    fun sendMessage(messageText: String, userId: Int): Boolean {
         if (messageText.isNotEmpty()) {
             viewModelScope.launch {
                 val message = Message(
                     // test data
                     MessageDate(10, "2 марта 2023"),
-                    currentUser,
+                    userId,
+                    "Name $userId",
                     messageText,
+                    R.drawable.test_face,
                     emptyMap(),
                     false
                 )

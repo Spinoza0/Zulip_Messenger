@@ -48,6 +48,16 @@ class FlexBoxLayout @JvmOverloads constructor(
         addView(iconAdd)
     }
 
+    override fun removeAllViews() {
+        super.removeAllViews()
+        addView(iconAdd)
+    }
+
+    override fun removeViewAt(index: Int) {
+        if (index < childCount - 1)
+            super.removeViewAt(index)
+    }
+
     override fun addView(view: View) {
         if (onChildClickListener != null && childCount > NO_CHILD) {
             view.setOnClickListener {

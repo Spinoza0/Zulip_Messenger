@@ -4,13 +4,10 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.Reaction
 
 class ReactionView @JvmOverloads constructor(
     context: Context,
@@ -42,9 +39,6 @@ class ReactionView @JvmOverloads constructor(
         }
 
     var isBackgroundVisible: Boolean = true
-        set(value) {
-            field = value
-        }
 
     private var reaction = ""
     private val cornerRadius = CORNER_RADIUS.dpToPx(this)
@@ -74,7 +68,6 @@ class ReactionView @JvmOverloads constructor(
         val newPaddingBottom =
             maxOf(paddingBottom, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
         setPadding(newPaddingLeft, newPaddingTop, newPaddingRight, newPaddingBottom)
-        isClickable = true
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -107,80 +100,9 @@ class ReactionView @JvmOverloads constructor(
         canvas.drawText(reaction, offsetX, offsetY, reactionPaint)
     }
 
-    override fun performClick(): Boolean {
-        isSelected = !isSelected
-        return super.performClick()
-    }
-
-    fun setReaction(reactionEntity: Reaction) {
-        emoji = reactionEntity.emoji
-        count = reactionEntity.count
-        isSelected = reactionEntity.isSelected
-        isCountVisible = reactionEntity.isCountVisible
-        isBackgroundVisible = reactionEntity.isBackgroundVisible
-    }
-
-    override fun onSaveInstanceState(): Parcelable {
-        val state = SavedState(super.onSaveInstanceState())
-        state.isSelected = isSelected
-        state.isCountVisible = isCountVisible
-        state.isBackgroundVisible = isBackgroundVisible
-        state.count = count
-        state.emoji = emoji
-        return state
-    }
-
-    override fun onRestoreInstanceState(state: Parcelable) {
-        if (state is SavedState) {
-            super.onRestoreInstanceState(state)
-            isSelected = state.isSelected
-            isCountVisible = state.isCountVisible
-            isBackgroundVisible = state.isBackgroundVisible
-            count = state.count
-            emoji = state.emoji
-        } else {
-            super.onRestoreInstanceState(state)
-        }
-    }
-
     private fun makeReaction() {
         reaction = if (isCountVisible) "$emoji $count" else emoji
         reactionPaint.textSize = size.spToPx(this)
-    }
-
-    private class SavedState : BaseSavedState, Parcelable {
-
-        var isSelected = false
-        var isCountVisible = true
-        var isBackgroundVisible = true
-        var count = 0
-        var emoji = ""
-
-        constructor(superState: Parcelable?) : super(superState)
-
-        private constructor(source: Parcel) : super(source) {
-            isSelected = source.readInt() == 1
-            isCountVisible = source.readInt() == 1
-            isBackgroundVisible = source.readInt() == 1
-            count = source.readInt()
-            emoji = source.readString() ?: ""
-        }
-
-        override fun writeToParcel(destination: Parcel, flags: Int) {
-            super.writeToParcel(destination, flags)
-            destination.writeInt(if (isSelected) 1 else 0)
-            destination.writeInt(if (isCountVisible) 1 else 0)
-            destination.writeInt(if (isBackgroundVisible) 1 else 0)
-            destination.writeInt(count)
-            destination.writeString(emoji)
-        }
-
-        override fun describeContents() = 0
-
-        companion object CREATOR : Parcelable.Creator<SavedState> {
-            override fun createFromParcel(parcel: Parcel) = SavedState(parcel)
-            override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
-        }
     }
 
     private companion object {

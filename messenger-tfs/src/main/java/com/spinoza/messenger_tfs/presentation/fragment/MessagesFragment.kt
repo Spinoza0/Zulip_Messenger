@@ -13,7 +13,6 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
-import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
@@ -34,7 +33,7 @@ class MessagesFragment : Fragment() {
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
-    private val currentUser = User(TEST_USER_ID, TEST_USER_NAME, TEST_USER_AVATAR)
+    private val currentUserId = TEST_USER_ID
 
     private val mainAdapter: MainAdapter by lazy {
         MainAdapter().apply {
@@ -81,6 +80,7 @@ class MessagesFragment : Fragment() {
         setupRecyclerView()
         setupObservers()
         setupListeners()
+        viewModel.loadMessages(currentUserId)
     }
 
     private fun setupRecyclerView() {
@@ -94,15 +94,12 @@ class MessagesFragment : Fragment() {
                 is RepositoryState.Messages -> {
                     mainAdapter.submitList(
                         repositoryState.messages.groupByDate(
-                            currentUser,
+                            currentUserId,
                             ::onAvatarLongClickListener,
                             ::onReactionAddClickListener,
                             ::onReactionClickListener
                         )
-                    ) {
-                        val lastPosition = mainAdapter.itemCount - 1
-                        binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
-                    }
+                    )
                 }
                 // TODO: show error
                 else -> {}
@@ -135,7 +132,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        if (viewModel.sendMessage(binding.editTextMessage.text.toString(), currentUser))
+        if (viewModel.sendMessage(binding.editTextMessage.text.toString(), currentUserId))
             binding.editTextMessage.text?.clear()
     }
 
@@ -146,7 +143,8 @@ class MessagesFragment : Fragment() {
     private fun onReactionAddClickListener(messageView: MessageView) {
         val action =
             MessagesFragmentDirections.actionMessagesFragmentToAddReactionFragment(
-                messageView.messageId
+                messageView.messageId,
+                currentUserId
             )
         findNavController().navigate(action)
     }
@@ -162,7 +160,5 @@ class MessagesFragment : Fragment() {
 
     private companion object {
         const val TEST_USER_ID = 100
-        const val TEST_USER_NAME = "Test User Name"
-        const val TEST_USER_AVATAR = R.drawable.test_face
     }
 }

@@ -12,7 +12,7 @@ import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.Reaction
+import com.spinoza.messenger_tfs.domain.model.ReactionParam
 
 class MessageView @JvmOverloads constructor(
     context: Context,
@@ -34,7 +34,7 @@ class MessageView @JvmOverloads constructor(
             binding.nameTextView.text = value
         }
 
-    var text: String
+    private var text: String
         get() = binding.messageTextView.text.toString()
         set(value) {
             binding.messageTextView.text = value
@@ -158,22 +158,14 @@ class MessageView @JvmOverloads constructor(
         return p is MarginLayoutParams
     }
 
-    fun setAvatar(resId: Int) {
-        binding.avatarImageView.setImageResource(resId)
-    }
-
-    fun setAvatar(bitmap: Bitmap) {
-        binding.avatarImageView.setImageBitmap(bitmap)
-    }
-
-    fun setRoundAvatar(resId: Int) {
+    private fun setRoundAvatar(resId: Int) {
         val bitmap = BitmapFactory.decodeResource(resources, resId)
         setRoundAvatar(bitmap)
     }
 
-    fun setRoundAvatar(bitmap: Bitmap) {
+    private fun setRoundAvatar(bitmap: Bitmap) {
         val size = binding.avatarImageView.layoutParams.width.toFloat().dpToPx(this)
-        setAvatar(bitmap.getRounded(size))
+        binding.avatarImageView.setImageBitmap(bitmap.getRounded(size))
     }
 
     fun setOnAvatarClickListener(listener: ((MessageView) -> Unit)?) {
@@ -202,27 +194,29 @@ class MessageView @JvmOverloads constructor(
         }
     }
 
-    fun setIconAddVisibility(state: Boolean) {
+    private fun setIconAddVisibility(state: Boolean) {
         binding.reactionsFlexBoxLayout.setIconAddVisibility(state)
     }
 
-    fun addReaction(reaction: Reaction) {
-        val reactionView = ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
-            emoji = reaction.emoji
-            count = reaction.count
-            isSelected = reaction.isSelected
-        }
+    private fun addReaction(reaction: String, reactionParam: ReactionParam) {
+        val reactionView =
+            ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
+                emoji = reaction
+                count = reactionParam.usersIds.size
+                isSelected = reactionParam.isSelected
+            }
         binding.reactionsFlexBoxLayout.addView(reactionView)
     }
 
     fun setMessage(message: Message) {
         messageId = message.id
-        name = message.user.name
+        name = message.name
         text = message.text
-        setRoundAvatar(message.user.avatarResId)
-        setIconAddVisibility(message.iconAddVisibility)
-        message.reactions.keys.forEach {
-            addReaction(it)
+        setRoundAvatar(message.avatarResId)
+        setIconAddVisibility(message.isIconAddVisible)
+        binding.reactionsFlexBoxLayout.removeAllViews()
+        message.reactions.forEach {
+            addReaction(it.key, it.value)
         }
     }
 }
