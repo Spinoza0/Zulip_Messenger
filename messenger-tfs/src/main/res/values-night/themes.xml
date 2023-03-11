@@ -27,7 +27,11 @@
         <!-- MessageView colors -->
         <item name="message_companion_background_color">@color/message_companion_background_night
         </item>
-        <item name="message_user_background_color">@color/message_user_background_night</item>
+        <item name="message_user_background_start_color">
+            @color/message_user_background_start_night
+        </item>
+        <item name="message_user_background_end_color">@color/message_user_background_end_night
+        </item>
         <item name="message_name_color">@color/message_name_night</item>
         <item name="message_text_color">@color/message_text_night</item>
 
@@ -36,17 +40,17 @@
         <item name="channel_toolbar_text_color">@color/channel_toolbar_text_night</item>
         <item name="channel_background_color">@color/channel_background_night</item>
         <item name="channel_new_message_background_color">
-            @color/channel_new_message_background_color_night
+            @color/channel_new_message_background_night
         </item>
         <item name="channel_new_message_text_background_color">
-            @color/channel_new_message_text_background_color_night
+            @color/channel_new_message_text_background_night
         </item>
-        <item name="channel_new_message_text_color">@color/channel_new_message_text_color_night
+        <item name="channel_new_message_text_color">@color/channel_new_message_text_night
         </item>
-        <item name="channel_date_background_color">@color/channel_date_background_color_night</item>
-        <item name="channel_date_text_color">@color/channel_date_text_color_night</item>
+        <item name="channel_date_background_color">@color/channel_date_background_night</item>
+        <item name="channel_date_text_color">@color/channel_date_text_night</item>
         <item name="channel_add_reactions_top_line_color">
-            @color/channel_add_reactions_top_line_color_night
+            @color/channel_add_reactions_top_line_night
         </item>
 
     </style>

@@ -16,7 +16,8 @@
 
     <declare-styleable name="message_view">
         <attr name="message_companion_background_color" format="color" />
-        <attr name="message_user_background_color" format="color" />
+        <attr name="message_user_background_start_color" format="color" />
+        <attr name="message_user_background_end_color" format="color" />
         <attr name="message_name_color" format="color" />
         <attr name="message_text_color" format="color" />
         <attr name="message_background_color" format="reference" />

@@ -23,8 +23,10 @@
     <!-- MessageView colors -->
     <color name="message_companion_background">#1C1C1C</color>
     <color name="message_companion_background_night">#1C1C1C</color>
-    <color name="message_user_background">#2A9D8F</color>
-    <color name="message_user_background_night">#2A9D8F</color>
+    <color name="message_user_background_start">#2A9D8F</color>
+    <color name="message_user_background_end">#006153</color>
+    <color name="message_user_background_start_night">#2A9D8F</color>
+    <color name="message_user_background_end_night">#006153</color>
     <color name="message_name">#2A9D8F</color>
     <color name="message_name_night">#2A9D8F</color>
     <color name="message_text">#FAFAFA</color>
@@ -37,17 +39,17 @@
     <color name="channel_toolbar_background_night">#2A9D8F</color>
     <color name="channel_toolbar_text">#FFFFFF</color>
     <color name="channel_toolbar_text_night">#FFFFFF</color>
-    <color name="channel_new_message_background_color">#1C1C1C</color>
-    <color name="channel_new_message_background_color_night">#1C1C1C</color>
-    <color name="channel_new_message_text_background_color">#282828</color>
-    <color name="channel_new_message_text_background_color_night">#282828</color>
-    <color name="channel_new_message_text_color">#CCCCCC</color>
-    <color name="channel_new_message_text_color_night">#CCCCCC</color>
-    <color name="channel_date_background_color">#070707</color>
-    <color name="channel_date_background_color_night">#070707</color>
-    <color name="channel_date_text_color">#999999</color>
-    <color name="channel_date_text_color_night">#999999</color>
-    <color name="channel_add_reactions_top_line_color">#555555</color>
-    <color name="channel_add_reactions_top_line_color_night">#555555</color>
+    <color name="channel_new_message_background">#1C1C1C</color>
+    <color name="channel_new_message_background_night">#1C1C1C</color>
+    <color name="channel_new_message_text_background">#282828</color>
+    <color name="channel_new_message_text_background_night">#282828</color>
+    <color name="channel_new_message_text">#CCCCCC</color>
+    <color name="channel_new_message_text_night">#CCCCCC</color>
+    <color name="channel_date_background">#070707</color>
+    <color name="channel_date_background_night">#070707</color>
+    <color name="channel_date_text">#999999</color>
+    <color name="channel_date_text_night">#999999</color>
+    <color name="channel_add_reactions_top_line">#555555</color>
+    <color name="channel_add_reactions_top_line_night">#555555</color>
 
 </resources>
