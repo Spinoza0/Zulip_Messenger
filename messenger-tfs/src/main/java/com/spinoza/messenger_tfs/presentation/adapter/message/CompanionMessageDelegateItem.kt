@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.adapter.message
 
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.utils.MessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
@@ -11,7 +12,7 @@ class CompanionMessageDelegateItem(
     private val onAvatarLongClickListener: ((MessageView) -> Unit)? = null,
     private val onReactionAddClickListener: ((MessageView) -> Unit)? = null,
     private val onReactionClickListener: ((MessageView, ReactionView) -> Unit)? = null,
-) : DelegateItem, OnMessageClickListeners {
+) : MessageDelegateItem {
 
     override fun content(): Any {
         return value

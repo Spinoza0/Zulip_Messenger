@@ -4,10 +4,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
-import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.utils.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.utils.setMessageViewListeners
+import com.spinoza.messenger_tfs.presentation.adapter.utils.bind
 
 class UserMessageDelegate : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -32,13 +31,12 @@ class UserMessageDelegate : AdapterDelegate {
         return item is UserMessageDelegateItem
     }
 
-    class ViewHolder(private val binding: UserMessageItemBinding) :
-
-        RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder(
+        private val binding: UserMessageItemBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: UserMessageDelegateItem) {
-            binding.messageView.setMessage(item.content() as Message)
-            setMessageViewListeners(binding.messageView, item)
+            binding.messageView.bind(item)
         }
     }
 }

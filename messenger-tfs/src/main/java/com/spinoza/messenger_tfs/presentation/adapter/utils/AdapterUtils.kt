@@ -4,7 +4,6 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.presentation.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.CompanionMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.message.OnMessageClickListeners
 import com.spinoza.messenger_tfs.presentation.adapter.message.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
@@ -56,8 +55,9 @@ fun List<Message>.groupByDate(
     return delegateItemList
 }
 
-fun setMessageViewListeners(messageView: MessageView, listeners: OnMessageClickListeners) {
-    messageView.setOnAvatarClickListener(listeners.onAvatarLongClickListener())
-    messageView.setOnMessageLongClickListener(listeners.onReactionAddClickListener())
-    messageView.setOnReactionClickListener(listeners.onReactionClickListener())
+fun MessageView.bind(item: MessageDelegateItem) {
+    setMessage(item.content() as Message)
+    setOnAvatarClickListener(item.onAvatarLongClickListener())
+    setOnMessageLongClickListener(item.onReactionAddClickListener())
+    setOnReactionClickListener(item.onReactionClickListener())
 }
