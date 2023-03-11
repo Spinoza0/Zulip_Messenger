@@ -24,19 +24,12 @@ class UserMessageDelegate : AdapterDelegate {
         item: DelegateItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item as UserMessageDelegateItem)
+        (holder as ViewHolder).binding.messageView.bind(item as UserMessageDelegateItem)
     }
 
     override fun isOfViewType(item: DelegateItem): Boolean {
         return item is UserMessageDelegateItem
     }
 
-    class ViewHolder(
-        private val binding: UserMessageItemBinding,
-    ) : RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(item: UserMessageDelegateItem) {
-            binding.messageView.bind(item)
-        }
-    }
+    class ViewHolder(val binding: UserMessageItemBinding) : RecyclerView.ViewHolder(binding.root)
 }

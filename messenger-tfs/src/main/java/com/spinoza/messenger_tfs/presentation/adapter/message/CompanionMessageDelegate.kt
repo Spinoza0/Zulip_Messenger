@@ -24,19 +24,13 @@ class CompanionMessageDelegate : AdapterDelegate {
         item: DelegateItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item as CompanionMessageDelegateItem)
+        (holder as ViewHolder).binding.messageView.bind(item as CompanionMessageDelegateItem)
     }
 
     override fun isOfViewType(item: DelegateItem): Boolean {
         return item is CompanionMessageDelegateItem
     }
 
-    class ViewHolder(
-        private val binding: CompanionMessageItemBinding,
-    ) : RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(item: CompanionMessageDelegateItem) {
-            binding.messageView.bind(item)
-        }
-    }
+    class ViewHolder(val binding: CompanionMessageItemBinding) :
+        RecyclerView.ViewHolder(binding.root)
 }
