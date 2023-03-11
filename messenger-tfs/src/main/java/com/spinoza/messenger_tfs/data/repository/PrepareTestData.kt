@@ -4,7 +4,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
-import com.spinoza.messenger_tfs.presentation.utils.emojiSet
+import com.spinoza.messenger_tfs.domain.utils.emojiSet
 
 fun prepareTestData(): List<Message> {
     val messages = mutableListOf<Message>()

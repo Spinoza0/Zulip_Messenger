@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.adapter.date
+package com.spinoza.messenger_tfs.presentation.adapter.delegate.date
 
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem

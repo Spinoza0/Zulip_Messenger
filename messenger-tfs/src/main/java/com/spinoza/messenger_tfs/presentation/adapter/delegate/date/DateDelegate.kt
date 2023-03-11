@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.adapter.date
+package com.spinoza.messenger_tfs.presentation.adapter.delegate.date
 
 import android.view.LayoutInflater
 import android.view.ViewGroup

@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.adapter.message
+package com.spinoza.messenger_tfs.presentation.adapter.delegate.message
 
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem

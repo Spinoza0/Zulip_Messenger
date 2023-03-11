@@ -1,17 +1,17 @@
-package com.spinoza.messenger_tfs.presentation.adapter.message
+package com.spinoza.messenger_tfs.presentation.adapter.delegate.message
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.databinding.CompanionMessageItemBinding
+import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
 import com.spinoza.messenger_tfs.presentation.adapter.utils.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.utils.bind
 
-class CompanionMessageDelegate : AdapterDelegate {
+class UserMessageDelegate : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val binding = CompanionMessageItemBinding.inflate(
+        val binding = UserMessageItemBinding.inflate(
             inflater,
             parent,
             false
@@ -24,13 +24,12 @@ class CompanionMessageDelegate : AdapterDelegate {
         item: DelegateItem,
         position: Int,
     ) {
-        (holder as ViewHolder).binding.messageView.bind(item as CompanionMessageDelegateItem)
+        (holder as ViewHolder).binding.messageView.bind(item as UserMessageDelegateItem)
     }
 
     override fun isOfViewType(item: DelegateItem): Boolean {
-        return item is CompanionMessageDelegateItem
+        return item is UserMessageDelegateItem
     }
 
-    class ViewHolder(val binding: CompanionMessageItemBinding) :
-        RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(val binding: UserMessageItemBinding) : RecyclerView.ViewHolder(binding.root)
 }

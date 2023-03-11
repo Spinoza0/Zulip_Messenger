@@ -18,10 +18,10 @@ import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
-import com.spinoza.messenger_tfs.presentation.adapter.date.DateDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
-import com.spinoza.messenger_tfs.presentation.adapter.message.CompanionMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.message.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView

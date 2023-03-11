@@ -4,7 +4,7 @@ import android.graphics.Canvas
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.presentation.adapter.date.DateDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
 
 class StickyDateInHeaderItemDecoration : RecyclerView.ItemDecoration() {
 
