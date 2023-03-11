@@ -10,9 +10,9 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.EmojiListBinding
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
-import com.spinoza.messenger_tfs.presentation.utils.emojiSet
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.AddReactionFragmentViewModelFactory
+import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import com.spinoza.messenger_tfs.presentation.viewmodel.AddReactionViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.AddReactionFragmentViewModelFactory
 
 class AddReactionFragment : BottomSheetDialogFragment() {
 
@@ -51,7 +51,7 @@ class AddReactionFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupListeners() {
-        binding.flexBoxLayout.setOnChildClickListener { view ->
+        binding.flexBoxLayout.setOnChildClickListener { _, view ->
             if (view is ReactionView) {
                 val messageId = AddReactionFragmentArgs.fromBundle(requireArguments()).messageId
                 val userId = AddReactionFragmentArgs.fromBundle(requireArguments()).userId

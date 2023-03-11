@@ -17,7 +17,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    private var onChildClickListener: ((View) -> Unit)? = null
+    private var onChildClickListener: ((FlexBoxLayout, View) -> Unit)? = null
 
     private var internalMargin = 0
     private val row = RowHelper()
@@ -60,9 +60,7 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     override fun addView(view: View) {
         if (childCount > NO_CHILD) {
-            view.setOnClickListener {
-                onChildClickListener?.invoke(view)
-            }
+            view.setOnClickListener(::onChildClick)
         }
         super.addView(view, childCount - 1)
     }
@@ -120,8 +118,15 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
     }
 
-    fun setOnChildClickListener(listener: ((View) -> Unit)?) {
+    fun setOnChildClickListener(listener: ((FlexBoxLayout, View) -> Unit)?) {
         onChildClickListener = listener
+        for (index in 0 until childCount - 1) {
+            getChildAt(index).setOnClickListener(::onChildClick)
+        }
+    }
+
+    private fun onChildClick(view: View) {
+        onChildClickListener?.invoke(this, view)
     }
 
     fun setIconAddVisibility(state: Boolean) {
