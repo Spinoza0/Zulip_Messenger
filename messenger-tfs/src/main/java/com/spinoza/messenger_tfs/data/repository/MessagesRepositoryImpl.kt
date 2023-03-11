@@ -2,13 +2,11 @@ package com.spinoza.messenger_tfs.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
-import com.spinoza.messenger_tfs.presentation.utils.emojiSet
+import com.spinoza.messenger_tfs.domain.utils.removeIfExistsOrAddToList
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
@@ -16,29 +14,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     private val messages = mutableListOf<Message>()
 
     init {
-        prepareTestData()
-    }
-
-    private fun prepareTestData() {
-        var count = 5
-        val reactions = mutableMapOf<String, ReactionParam>()
-        for (emoji in emojiSet) {
-            reactions[emoji.toString()] = ReactionParam(listOf(count--))
-            if (count <= 0) break
-        }
-        repeat(20) { index ->
-            val message = Message(
-                MessageDate(index, "${index % 2 + 1} марта 2023"),
-                index,
-                "User$index Name",
-                "Message $index text",
-                R.drawable.test_face,
-                if (index % 3 == 0) reactions else emptyMap(),
-                false,
-                index
-            )
-            messages.add(message)
-        }
+        messages.addAll(prepareTestData())
     }
 
     override fun getState(): LiveData<RepositoryState> {
@@ -62,21 +38,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 var needAddReaction = true
 
                 oldMessage.reactions.forEach { entry ->
-                    val newUsersIds: MutableList<Int>
                     if (entry.key == reaction) {
                         needAddReaction = false
-                        newUsersIds = mutableListOf()
-                        var isUserInList = false
-                        entry.value.usersIds.forEach { existingUserId ->
-                            if (existingUserId == userId) {
-                                isUserInList = true
-                            } else {
-                                newUsersIds.add(existingUserId)
-                            }
-                        }
-                        if (!isUserInList) {
-                            newUsersIds.add(userId)
-                        }
+                        val newUsersIds =
+                            entry.value.usersIds.removeIfExistsOrAddToList(userId)
                         if (newUsersIds.size > EMPTY_LIST) {
                             newReactions[entry.key] = entry.value.copy(usersIds = newUsersIds)
                         } else {
