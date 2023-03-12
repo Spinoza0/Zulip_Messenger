@@ -227,7 +227,7 @@ class MessageView @JvmOverloads constructor(
     }
 
     private companion object {
-        const val REACTION_PADDING_HORIZONTAL = 8f
-        const val REACTION_PADDING_VERTICAL = 4.8f
+        const val REACTION_PADDING_HORIZONTAL = 10f
+        const val REACTION_PADDING_VERTICAL = 7f
     }
 }
