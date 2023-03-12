@@ -2,14 +2,14 @@ package com.spinoza.messenger_tfs.presentation.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetMessagesStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 
 class MessageFragmentViewModelFactory(
-    private val getStateUseCase: GetStateUseCase,
+    private val getMessagesStateUseCase: GetMessagesStateUseCase,
     private val loadMessagesUseCase: LoadMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
@@ -18,7 +18,7 @@ class MessageFragmentViewModelFactory(
         if (modelClass.isAssignableFrom(MessagesFragmentViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return MessagesFragmentViewModel(
-                getStateUseCase,
+                getMessagesStateUseCase,
                 loadMessagesUseCase,
                 sendMessageUseCase,
                 updateReactionUseCase

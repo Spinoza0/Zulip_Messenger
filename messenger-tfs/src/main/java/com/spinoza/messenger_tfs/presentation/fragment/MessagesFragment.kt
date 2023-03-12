@@ -8,26 +8,27 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
-import com.spinoza.messenger_tfs.domain.model.RepositoryState
-import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
+import com.spinoza.messenger_tfs.domain.model.MessagesState
+import com.spinoza.messenger_tfs.domain.usecase.GetMessagesStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageFragmentViewModelFactory
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageFragmentViewModelFactory
 
 class MessagesFragment : Fragment() {
 
@@ -49,7 +50,7 @@ class MessagesFragment : Fragment() {
         ViewModelProvider(
             this,
             MessageFragmentViewModelFactory(
-                GetStateUseCase(MessagesRepositoryImpl.getInstance()),
+                GetMessagesStateUseCase(MessagesRepositoryImpl.getInstance()),
                 LoadMessagesUseCase(MessagesRepositoryImpl.getInstance()),
                 SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
                 UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
@@ -90,29 +91,34 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        viewModel.getState().observe(viewLifecycleOwner) { repositoryState ->
-            when (repositoryState) {
-                is RepositoryState.Messages -> {
-                    mainAdapter.submitList(
-                        repositoryState.messages.groupByDate(
-                            userId = currentUserId,
-                            onReactionAddClickListener = ::onReactionAddClickListener,
-                            onReactionClickListener = ::onReactionClickListener
-                        )
-                    ) {
-                        if (repositoryState.needScrollToLastPosition) {
-                            val lastPosition = mainAdapter.itemCount - 1
-                            binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
+        lifecycleScope.launchWhenStarted {
+            viewModel.state.collect { state ->
+                when (state) {
+                    is MessagesState.Messages -> {
+                        mainAdapter.submitList(
+                            state.messages.groupByDate(
+                                userId = currentUserId,
+                                onReactionAddClickListener = ::onReactionAddClickListener,
+                                onReactionClickListener = ::onReactionClickListener
+                            )
+                        ) {
+                            if (state.needScrollToLastPosition) {
+                                val lastPosition = mainAdapter.itemCount - 1
+                                binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
+                            }
                         }
                     }
+                    is MessagesState.ReadyToSend -> {
+                        val resId = if (state.status)
+                            R.drawable.ic_send
+                        else
+                            R.drawable.ic_add_circle_outline
+                        binding.imageViewAction.setImageResource(resId)
+                    }
+                    // TODO: show error
+                    else -> {}
                 }
-                // TODO: show error
-                else -> {}
             }
-        }
-
-        viewModel.messageActionIcon.observe(viewLifecycleOwner) {
-            binding.imageViewAction.setImageResource(it)
         }
     }
 

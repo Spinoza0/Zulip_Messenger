@@ -1,36 +1,34 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.domain.model.RepositoryState
-import com.spinoza.messenger_tfs.domain.usecase.GetStateUseCase
+import com.spinoza.messenger_tfs.domain.model.MessagesState
+import com.spinoza.messenger_tfs.domain.usecase.GetMessagesStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 class MessagesFragmentViewModel(
-    private val getStateUseCase: GetStateUseCase,
+    getMessagesStateUseCase: GetMessagesStateUseCase,
     private val loadMessagesUseCase: LoadMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
 ) : ViewModel() {
 
-    val messageActionIcon: LiveData<Int>
-        get() = _messageActionIcon
+    private val _state: MutableSharedFlow<MessagesState> = getMessagesStateUseCase()
 
-    private val _messageActionIcon = MutableLiveData<Int>()
+    val state: SharedFlow<MessagesState>
+        get() = _state.asSharedFlow()
 
-    fun getState(): LiveData<RepositoryState> {
-        return getStateUseCase()
-    }
 
     fun loadMessages(userId: Int) {
         viewModelScope.launch {
@@ -59,10 +57,12 @@ class MessagesFragmentViewModel(
     }
 
     fun onMessageTextChanged(s: CharSequence?) {
-        if (s != null && s.toString().trim().isNotEmpty()) {
-            _messageActionIcon.value = R.drawable.ic_send
-        } else {
-            _messageActionIcon.value = R.drawable.ic_add_circle_outline
+        viewModelScope.launch {
+            if (s != null && s.toString().trim().isNotEmpty()) {
+                _state.emit(MessagesState.ReadyToSend(true))
+            } else {
+                _state.emit(MessagesState.ReadyToSend(false))
+            }
         }
     }
 

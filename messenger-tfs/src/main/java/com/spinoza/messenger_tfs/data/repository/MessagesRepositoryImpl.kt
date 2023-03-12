@@ -1,23 +1,26 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessagesState
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
-import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.utils.removeIfExistsOrAddToList
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
-    private val state = MutableLiveData<RepositoryState>()
+    private val state = MutableSharedFlow<MessagesState>(
+        replay = COUNT_OF_LAST_EMITTED_VALUES,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     private val messages = mutableListOf<Message>()
 
     init {
         messages.addAll(prepareTestData())
     }
 
-    override fun getState(): LiveData<RepositoryState> {
+    override fun getMessagesState(): MutableSharedFlow<MessagesState> {
         return state
     }
 
@@ -61,7 +64,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         loadMessages(userId)
     }
 
-    private fun loadMessages(userId: Int, needScrollToLastPosition: Boolean) {
+    private suspend fun loadMessages(userId: Int, needScrollToLastPosition: Boolean) {
         messages.replaceAll { oldMessage ->
             if (oldMessage.reactions.size > EMPTY_MAP) {
                 val newReactions = oldMessage.reactions.toMutableMap()
@@ -78,13 +81,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             } else
                 oldMessage.copy(isIconAddVisible = false)
         }
-        state.value = RepositoryState.Messages(messages, needScrollToLastPosition)
+        state.emit(MessagesState.Messages(messages, needScrollToLastPosition))
     }
 
     companion object {
 
         private const val EMPTY_MAP = 0
         private const val EMPTY_LIST = 0
+        private const val COUNT_OF_LAST_EMITTED_VALUES = 2
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit

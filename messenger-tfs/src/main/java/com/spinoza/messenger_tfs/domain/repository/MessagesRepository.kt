@@ -1,12 +1,12 @@
 package com.spinoza.messenger_tfs.domain.repository
 
-import androidx.lifecycle.LiveData
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.RepositoryState
+import com.spinoza.messenger_tfs.domain.model.MessagesState
+import kotlinx.coroutines.flow.MutableSharedFlow
 
 interface MessagesRepository {
 
-    fun getState(): LiveData<RepositoryState>
+    fun getMessagesState(): MutableSharedFlow<MessagesState>
 
     suspend fun loadMessages(userId: Int)
 
