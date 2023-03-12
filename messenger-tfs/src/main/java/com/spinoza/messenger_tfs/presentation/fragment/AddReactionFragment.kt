@@ -9,8 +9,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.EmojiListBinding
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
-import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
+import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.viewmodel.AddReactionViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.AddReactionFragmentViewModelFactory
 
@@ -71,8 +71,13 @@ class AddReactionFragment : BottomSheetDialogFragment() {
                 isBackgroundVisible = false
                 isCountVisible = false
                 size = 30f
+                setCustomPadding(REACTION_PADDING)
             }
             binding.flexBoxLayout.addView(reactionView)
         }
+    }
+
+    private companion object {
+        const val REACTION_PADDING = 4f
     }
 }

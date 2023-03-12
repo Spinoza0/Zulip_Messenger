@@ -59,15 +59,19 @@ class ReactionView @JvmOverloads constructor(
             count = this.getInt(R.styleable.reaction_view_count, EMOJI_START_COUNT)
             size = this.getDimension(R.styleable.reaction_view_size, EMOJI_SIZE)
         }
-        val newPaddingLeft =
-            maxOf(paddingLeft, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
-        val newPaddingRight =
-            maxOf(paddingRight, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
-        val newPaddingTop =
-            maxOf(paddingTop, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
-        val newPaddingBottom =
-            maxOf(paddingBottom, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
-        setPadding(newPaddingLeft, newPaddingTop, newPaddingRight, newPaddingBottom)
+    }
+
+    fun setCustomPadding(padding: Float) {
+        setCustomPadding(padding, padding, padding, padding)
+    }
+
+    fun setCustomPadding(left: Float, top: Float, right: Float, bottom: Float) {
+        setPadding(
+            left.dpToPx(this).toInt(),
+            top.dpToPx(this).toInt(),
+            right.dpToPx(this).toInt(),
+            bottom.dpToPx(this).toInt(),
+        )
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -109,7 +113,5 @@ class ReactionView @JvmOverloads constructor(
         const val EMOJI_SIZE = 14f
         const val EMOJI_START_COUNT = 1
         const val CORNER_RADIUS = 10f
-        const val DEFAULT_HORIZONTAL_PADDING = EMOJI_SIZE
-        const val DEFAULT_VERTICAL_PADDING = EMOJI_SIZE / 2
     }
 }

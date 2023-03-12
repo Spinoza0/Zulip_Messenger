@@ -21,10 +21,6 @@ class MessageView @JvmOverloads constructor(
     private val defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    private val binding by lazy {
-        MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
-    }
-
     var messageId: Int = 0
         private set
 
@@ -39,6 +35,10 @@ class MessageView @JvmOverloads constructor(
         set(value) {
             binding.messageTextView.text = value
         }
+
+    private val binding by lazy {
+        MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
+    }
 
     init {
         context.withStyledAttributes(attrs, R.styleable.message_view) {
@@ -204,6 +204,12 @@ class MessageView @JvmOverloads constructor(
                 emoji = reaction
                 count = reactionParam.usersIds.size
                 isSelected = reactionParam.isSelected
+                setCustomPadding(
+                    REACTION_PADDING_HORIZONTAL,
+                    REACTION_PADDING_VERTICAL,
+                    REACTION_PADDING_HORIZONTAL,
+                    REACTION_PADDING_VERTICAL,
+                )
             }
         binding.reactionsFlexBoxLayout.addView(reactionView)
     }
@@ -218,5 +224,10 @@ class MessageView @JvmOverloads constructor(
         message.reactions.forEach {
             addReaction(it.key, it.value)
         }
+    }
+
+    private companion object {
+        const val REACTION_PADDING_HORIZONTAL = 8f
+        const val REACTION_PADDING_VERTICAL = 4.8f
     }
 }
