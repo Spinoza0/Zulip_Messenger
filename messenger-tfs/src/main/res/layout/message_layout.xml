@@ -30,6 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/shape_message_companion_bottom"
+        android:minWidth="100dp"
         android:paddingHorizontal="13dp"
         android:paddingBottom="16dp"
         android:textColor="?attr/message_text_color"
