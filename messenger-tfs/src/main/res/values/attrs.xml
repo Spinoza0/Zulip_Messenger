@@ -12,6 +12,7 @@
     <declare-styleable name="flexbox_layout">
         <attr name="flexbox_add_icon_background_color" format="color" />
         <attr name="margin" format="dimension" />
+        <attr name="center" format="boolean" />
     </declare-styleable>
 
     <declare-styleable name="message_view">

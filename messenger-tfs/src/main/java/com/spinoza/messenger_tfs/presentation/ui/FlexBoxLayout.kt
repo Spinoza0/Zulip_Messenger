@@ -20,6 +20,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     private var onChildClickListener: ((FlexBoxLayout, View) -> Unit)? = null
 
     private var internalMargin = 0
+    private var internalAlignmentCenter = false
     private val row = RowHelper()
     private var offsetX = 0
     private var offsetY = 0
@@ -42,6 +43,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     init {
         context.withStyledAttributes(attrs, R.styleable.flexbox_layout) {
             internalMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
+            internalAlignmentCenter = getBoolean(R.styleable.flexbox_layout_center, false)
         }
 
         setIconAddVisibility(false)
@@ -69,8 +71,13 @@ class FlexBoxLayout @JvmOverloads constructor(
         val layoutWidth = r - l - paddingLeft - paddingRight
         var viewWidth: Int
         var viewHeight: Int
+        var startX = paddingLeft
 
-        row.movePositionToStart()
+        if (internalAlignmentCenter) {
+            startX += (layoutWidth + paddingRight + internalMargin - row.maxWidth) / 2
+        }
+
+        row.movePositionToStart(startX)
 
         children.forEach { view ->
             if (view.isVisible) {
@@ -91,14 +98,14 @@ class FlexBoxLayout @JvmOverloads constructor(
         var viewWidth: Int
         var viewHeight: Int
 
-        row.movePositionToStart()
+        row.movePositionToStart(paddingLeft)
 
         children.forEach { view ->
             if (view.isVisible) {
                 measureView(view, widthMeasureSpec, heightMeasureSpec)
                 viewWidth = view.getWidthWithMargins()
                 viewHeight = view.getHeightWithMargins()
-                if (row.needMovePositionToNextRow(viewWidth, layoutWidth)) {
+                if (row.needMovePositionToNextRow(viewWidth + paddingRight, layoutWidth)) {
                     row.movePositionToNextRow(viewHeight)
                 }
                 row.movePositionToRight(viewWidth)
@@ -190,8 +197,11 @@ class FlexBoxLayout @JvmOverloads constructor(
         var rowHeight: Int = 0
             private set
 
-        fun movePositionToStart() {
-            offsetX = paddingLeft
+        private var startX = 0
+
+        fun movePositionToStart(startX: Int) {
+            this.startX = startX
+            offsetX = startX
             offsetY = paddingTop
             maxWidth = offsetX
             maxHeight = offsetY
@@ -199,11 +209,11 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
 
         fun needMovePositionToNextRow(viewWidth: Int, layoutWidth: Int): Boolean {
-            return offsetX + viewWidth + paddingRight + internalMargin > layoutWidth
+            return offsetX + viewWidth > layoutWidth
         }
 
         fun movePositionToNextRow(newRowHeight: Int) {
-            offsetX = paddingLeft
+            offsetX = startX
             offsetY += rowHeight + internalMargin
             maxHeight = offsetY
             rowHeight = newRowHeight
