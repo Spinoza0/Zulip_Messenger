@@ -12,7 +12,11 @@
     <declare-styleable name="flexbox_layout">
         <attr name="flexbox_add_icon_background_color" format="color" />
         <attr name="margin" format="dimension" />
-        <attr name="center" format="boolean" />
+        <attr name="gravity" format="integer">
+            <flag name="start" value="0" />
+            <flag name="center" value="1" />
+            <flag name="end" value="2" />
+        </attr>
     </declare-styleable>
 
     <declare-styleable name="message_view">

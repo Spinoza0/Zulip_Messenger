@@ -20,7 +20,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     private var onChildClickListener: ((FlexBoxLayout, View) -> Unit)? = null
 
     private var internalMargin = 0
-    private var internalAlignmentCenter = false
+    private var internalGravity = GRAVITY_START
     private val row = RowHelper()
     private var offsetX = 0
     private var offsetY = 0
@@ -42,8 +42,8 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs, R.styleable.flexbox_layout) {
+            internalGravity = getInt(R.styleable.flexbox_layout_gravity, GRAVITY_START)
             internalMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
-            internalAlignmentCenter = getBoolean(R.styleable.flexbox_layout_center, false)
         }
 
         setIconAddVisibility(false)
@@ -73,8 +73,10 @@ class FlexBoxLayout @JvmOverloads constructor(
         var viewHeight: Int
         var startX = paddingLeft
 
-        if (internalAlignmentCenter) {
+        if (internalGravity == GRAVITY_CENTER) {
             startX += (layoutWidth + paddingRight + internalMargin - row.maxWidth) / 2
+        } else if (internalGravity == GRAVITY_END) {
+            startX += layoutWidth + paddingRight + internalMargin - row.maxWidth
         }
 
         row.movePositionToStart(startX)
@@ -235,5 +237,9 @@ class FlexBoxLayout @JvmOverloads constructor(
         const val ICON_ADD_HEIGHT = 30f
         const val ICON_ADD_HORIZONTAL_PADDING = 8f
         const val ICON_ADD_VERTICAL_PADDING = 4f
+
+        const val GRAVITY_START = 0
+        const val GRAVITY_CENTER = 1
+        const val GRAVITY_END = 2
     }
 }
