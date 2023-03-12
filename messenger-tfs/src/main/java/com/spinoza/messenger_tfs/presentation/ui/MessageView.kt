@@ -204,6 +204,7 @@ class MessageView @JvmOverloads constructor(
                 emoji = reaction
                 count = reactionParam.usersIds.size
                 isSelected = reactionParam.isSelected
+                isCountVisible = count > 1
                 setCustomPadding(
                     REACTION_PADDING_HORIZONTAL,
                     REACTION_PADDING_VERTICAL,
