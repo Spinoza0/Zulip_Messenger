@@ -133,10 +133,6 @@ class FlexBoxLayout @JvmOverloads constructor(
         iconAdd.isVisible = state
     }
 
-    fun getIconAddVisibility(): Boolean {
-        return iconAdd.isVisible
-    }
-
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
         return MarginLayoutParams(context, attrs)
     }
