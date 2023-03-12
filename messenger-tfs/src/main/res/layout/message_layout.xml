@@ -18,6 +18,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/shape_message_companion_top"
+        android:minWidth="100dp"
         android:paddingHorizontal="13dp"
         android:paddingTop="8dp"
         android:paddingBottom="4dp"
