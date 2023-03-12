@@ -68,7 +68,7 @@ class MessageView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         var offsetX = paddingLeft
         var offsetY = paddingTop
-        var textWidth = 0
+        var maxChildWidth = 0
         if (binding.avatarImageView.isVisible) {
             measureChildWithMargins(
                 binding.avatarImageView,
@@ -88,7 +88,7 @@ class MessageView @JvmOverloads constructor(
                 heightMeasureSpec,
                 offsetY
             )
-            textWidth = binding.nameTextView.getWidthWithMargins()
+            maxChildWidth = binding.nameTextView.getWidthWithMargins()
             offsetY += binding.nameTextView.getHeightWithMargins()
         }
 
@@ -99,7 +99,7 @@ class MessageView @JvmOverloads constructor(
             heightMeasureSpec,
             offsetY
         )
-        textWidth = maxOf(textWidth, binding.messageTextView.getWidthWithMargins())
+        maxChildWidth = maxOf(maxChildWidth, binding.messageTextView.getWidthWithMargins())
         offsetY += binding.messageTextView.getHeightWithMargins()
 
         measureChildWithMargins(
@@ -110,9 +110,9 @@ class MessageView @JvmOverloads constructor(
             offsetY
         )
         offsetY += binding.reactionsFlexBoxLayout.getHeightWithMargins()
-        textWidth = maxOf(textWidth, binding.reactionsFlexBoxLayout.getWidthWithMargins())
+        maxChildWidth = maxOf(maxChildWidth, binding.reactionsFlexBoxLayout.getWidthWithMargins())
 
-        val totalWidth = offsetX + textWidth
+        val totalWidth = offsetX + maxChildWidth
         val totalHeight = offsetY + paddingBottom
         setMeasuredDimension(totalWidth, totalHeight)
     }
