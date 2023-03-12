@@ -11,6 +11,7 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
+import com.spinoza.messenger_tfs.domain.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 
@@ -40,8 +41,16 @@ class MessageView @JvmOverloads constructor(
         MessageLayoutBinding.inflate(LayoutInflater.from(context), this)
     }
 
+    private var reactionsGravity: FlexBoxGravity = FlexBoxGravity.START
+
     init {
         context.withStyledAttributes(attrs, R.styleable.message_view) {
+            val gravity = getInt(
+                R.styleable.message_view_reactions_gravity,
+                FlexBoxGravity.START.ordinal
+            )
+            reactionsGravity = FlexBoxGravity.values()[gravity]
+
             val messageTypeIsUser = this.getBoolean(
                 R.styleable.message_view_message_type_is_user,
                 false
@@ -139,6 +148,12 @@ class MessageView @JvmOverloads constructor(
         binding.messageTextView.layoutWithMargins(offsetX, offsetY, textWidth)
         offsetY += binding.messageTextView.getHeightWithMargins()
 
+        if (reactionsGravity == FlexBoxGravity.END) {
+            val reactionsWidth = binding.reactionsFlexBoxLayout.getWidthWithMargins()
+            if (reactionsWidth < textWidth) {
+                offsetX += textWidth - reactionsWidth
+            }
+        }
         binding.reactionsFlexBoxLayout.layoutWithMargins(offsetX, offsetY)
     }
 
@@ -215,10 +230,11 @@ class MessageView @JvmOverloads constructor(
         binding.reactionsFlexBoxLayout.addView(reactionView)
     }
 
-    fun setMessage(message: Message) {
+    fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
         messageId = message.id
         name = message.name
         text = message.text
+        this.reactionsGravity = reactionsGravity
         setRoundAvatar(message.avatarResId)
         setIconAddVisibility(message.isIconAddVisible)
         binding.reactionsFlexBoxLayout.removeAllViews()

@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.adapter.utils
 
+import com.spinoza.messenger_tfs.domain.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
@@ -11,4 +12,6 @@ interface MessageDelegateItem : DelegateItem {
     fun onReactionAddClickListener(): ((MessageView) -> Unit)?
 
     fun onReactionClickListener(): ((MessageView, ReactionView) -> Unit)?
+
+    fun getGravity(): FlexBoxGravity
 }

@@ -23,6 +23,7 @@
         app:layout_constraintStart_toEndOf="@id/guideline"
         app:layout_constraintTop_toTopOf="parent"
         app:message_background_color="@drawable/shape_message_user"
-        app:message_type_is_user="true" />
+        app:message_type_is_user="true"
+        app:reactions_gravity="end" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

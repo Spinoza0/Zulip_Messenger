@@ -16,7 +16,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:message_background_color="@drawable/shape_message_companion_bottom"
-        app:message_type_is_user="false" />
+        app:message_type_is_user="false"
+        app:reactions_gravity="start" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline"

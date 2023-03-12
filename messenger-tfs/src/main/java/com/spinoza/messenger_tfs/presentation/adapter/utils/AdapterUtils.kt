@@ -56,7 +56,7 @@ fun List<Message>.groupByDate(
 }
 
 fun MessageView.bind(item: MessageDelegateItem) {
-    setMessage(item.content() as Message)
+    setMessage(item.content() as Message, item.getGravity())
     setOnAvatarClickListener(item.onAvatarLongClickListener())
     setOnMessageLongClickListener(item.onReactionAddClickListener())
     setOnReactionClickListener(item.onReactionClickListener())

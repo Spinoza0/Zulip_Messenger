@@ -9,6 +9,7 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.model.FlexBoxGravity
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
@@ -19,8 +20,8 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     private var onChildClickListener: ((FlexBoxLayout, View) -> Unit)? = null
 
-    private var internalMargin = 0
-    private var internalGravity = GRAVITY_START
+    private var flexBoxMargin = 0
+    private var flexBoxGravity = FlexBoxGravity.START
     private val row = RowHelper()
     private var offsetX = 0
     private var offsetY = 0
@@ -42,8 +43,9 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs, R.styleable.flexbox_layout) {
-            internalGravity = getInt(R.styleable.flexbox_layout_gravity, GRAVITY_START)
-            internalMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
+            val gravity = getInt(R.styleable.flexbox_layout_gravity, FlexBoxGravity.START.ordinal)
+            flexBoxGravity = FlexBoxGravity.values()[gravity]
+            flexBoxMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
         }
 
         setIconAddVisibility(false)
@@ -73,10 +75,10 @@ class FlexBoxLayout @JvmOverloads constructor(
         var viewHeight: Int
         var startX = paddingLeft
 
-        if (internalGravity == GRAVITY_CENTER) {
-            startX += (layoutWidth + paddingRight + internalMargin - row.maxWidth) / 2
-        } else if (internalGravity == GRAVITY_END) {
-            startX += layoutWidth + paddingRight + internalMargin - row.maxWidth
+        if (flexBoxGravity == FlexBoxGravity.CENTER) {
+            startX += (layoutWidth + paddingRight + flexBoxMargin - row.maxWidth) / 2
+        } else if (flexBoxGravity == FlexBoxGravity.END) {
+            startX += layoutWidth + paddingRight + flexBoxMargin - row.maxWidth
         }
 
         row.movePositionToStart(startX)
@@ -216,7 +218,7 @@ class FlexBoxLayout @JvmOverloads constructor(
 
         fun movePositionToNextRow(newRowHeight: Int) {
             offsetX = startX
-            offsetY += rowHeight + internalMargin
+            offsetY += rowHeight + flexBoxMargin
             maxHeight = offsetY
             rowHeight = newRowHeight
         }
@@ -226,7 +228,7 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
 
         fun movePositionToRight(offsetWidth: Int) {
-            offsetX += offsetWidth + internalMargin
+            offsetX += offsetWidth + flexBoxMargin
             maxWidth = maxOf(maxWidth, offsetX)
         }
     }
@@ -237,9 +239,5 @@ class FlexBoxLayout @JvmOverloads constructor(
         const val ICON_ADD_HEIGHT = 30f
         const val ICON_ADD_HORIZONTAL_PADDING = 8f
         const val ICON_ADD_VERTICAL_PADDING = 4f
-
-        const val GRAVITY_START = 0
-        const val GRAVITY_CENTER = 1
-        const val GRAVITY_END = 2
     }
 }

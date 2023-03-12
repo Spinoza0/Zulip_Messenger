@@ -27,6 +27,11 @@
         <attr name="message_text_color" format="color" />
         <attr name="message_background_color" format="reference" />
         <attr name="message_type_is_user" format="boolean" />
+        <attr name="reactions_gravity" format="integer">
+            <flag name="start" value="0" />
+            <flag name="center" value="1" />
+            <flag name="end" value="2" />
+        </attr>
     </declare-styleable>
 
     <declare-styleable name="channel">
