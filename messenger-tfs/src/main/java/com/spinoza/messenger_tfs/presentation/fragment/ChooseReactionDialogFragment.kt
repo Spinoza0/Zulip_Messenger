@@ -13,8 +13,8 @@ import com.spinoza.messenger_tfs.databinding.FragmentDialogChooseReactionBinding
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
-import com.spinoza.messenger_tfs.presentation.viewmodel.AddReactionViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.AddReactionFragmentViewModelFactory
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChooseReactionViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChooseReactionViewModelFactory
 
 class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
 
@@ -25,10 +25,10 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     private val viewModel by lazy {
         ViewModelProvider(
             this,
-            AddReactionFragmentViewModelFactory(
+            ChooseReactionViewModelFactory(
                 UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
             )
-        )[AddReactionViewModel::class.java]
+        )[ChooseReactionViewModel::class.java]
     }
 
     override fun onCreateView(

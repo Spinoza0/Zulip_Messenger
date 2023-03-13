@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import kotlinx.coroutines.launch
 
-class AddReactionViewModel(
+class ChooseReactionViewModel(
     private val updateReactionUseCase: UpdateReactionUseCase,
 ) : ViewModel() {
 

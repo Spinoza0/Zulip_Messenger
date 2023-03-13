@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
-class MessagesFragmentViewModel(
+class MessagesViewModel(
     getMessagesStateUseCase: GetMessagesStateUseCase,
     private val loadMessagesUseCase: LoadMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,

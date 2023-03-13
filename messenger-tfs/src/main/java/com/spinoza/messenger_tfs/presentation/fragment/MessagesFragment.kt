@@ -33,8 +33,8 @@ import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.showChangedMessage
 import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToLastPosition
-import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageFragmentViewModelFactory
+import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageViewModelFactory
 import kotlinx.coroutines.launch
 
 class MessagesFragment : Fragment() {
@@ -54,13 +54,13 @@ class MessagesFragment : Fragment() {
     private val viewModel by lazy {
         ViewModelProvider(
             this,
-            MessageFragmentViewModelFactory(
+            MessageViewModelFactory(
                 GetMessagesStateUseCase(MessagesRepositoryImpl.getInstance()),
                 LoadMessagesUseCase(MessagesRepositoryImpl.getInstance()),
                 SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
                 UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
             )
-        )[MessagesFragmentViewModel::class.java]
+        )[MessagesViewModel::class.java]
     }
 
     override fun onCreateView(
