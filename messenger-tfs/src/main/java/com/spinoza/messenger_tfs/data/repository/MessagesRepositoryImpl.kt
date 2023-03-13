@@ -64,7 +64,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         loadMessages(userId)
     }
 
-    private suspend fun loadMessages(userId: Int, needScrollToLastPosition: Boolean) {
+    private suspend fun loadMessages(userId: Int, messageWasAdded: Boolean) {
         messages.replaceAll { oldMessage ->
             if (oldMessage.reactions.size > EMPTY_MAP) {
                 val newReactions = oldMessage.reactions.toMutableMap()
@@ -81,7 +81,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             } else
                 oldMessage.copy(isIconAddVisible = false)
         }
-        state.emit(MessagesState.Messages(messages, needScrollToLastPosition))
+        state.emit(MessagesState.Messages(messages, messageWasAdded))
     }
 
     companion object {

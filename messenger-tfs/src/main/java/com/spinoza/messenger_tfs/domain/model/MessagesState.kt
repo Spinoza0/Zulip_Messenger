@@ -5,6 +5,6 @@ sealed class MessagesState {
     class Error(val text: String) : MessagesState()
     class Messages(
         val messages: List<Message>,
-        val needScrollToLastPosition: Boolean,
+        val messageWasAdded: Boolean,
     ) : MessagesState()
 }

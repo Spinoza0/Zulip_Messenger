@@ -1,11 +1,13 @@
 package com.spinoza.messenger_tfs.presentation.fragment
 
+import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -107,7 +109,7 @@ class MessagesFragment : Fragment() {
                                     onReactionClickListener = ::onReactionClickListener
                                 )
                             ) {
-                                if (state.needScrollToLastPosition) {
+                                if (state.messageWasAdded) {
                                     val lastPosition = mainAdapter.itemCount - 1
                                     binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
                                 }
@@ -148,8 +150,12 @@ class MessagesFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        if (viewModel.sendMessage(binding.editTextMessage.text.toString(), currentUserId))
+        if (viewModel.sendMessage(binding.editTextMessage.text.toString(), currentUserId)) {
             binding.editTextMessage.text?.clear()
+            val inputMethodManager =
+                requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            inputMethodManager.hideSoftInputFromWindow(binding.editTextMessage.windowToken, 0)
+        }
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
