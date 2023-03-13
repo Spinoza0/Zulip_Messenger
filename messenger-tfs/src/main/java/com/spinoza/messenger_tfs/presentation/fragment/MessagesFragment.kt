@@ -107,8 +107,7 @@ class MessagesFragment : Fragment() {
                         is MessagesState.ReadyToSend -> changeIconSendState(state.status)
                         is MessagesState.Messages -> submitMessages(state.messages) { }
                         is MessagesState.MessageSent -> submitMessages(state.messages) {
-                            val lastPosition = mainAdapter.itemCount - 1
-                            binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
+                            smoothScrollToLastPosition()
                         }
                         is MessagesState.MessageChanged -> submitMessages(state.messages) {
                             showChangedMessage(state.changedMessageId)
@@ -174,6 +173,19 @@ class MessagesFragment : Fragment() {
         }
     }
 
+    private fun smoothScrollToLastPosition() {
+        val lastPosition = mainAdapter.itemCount - 1
+        val layoutManager =
+            binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+        val lastVisiblePosition =
+            layoutManager.findLastVisibleItemPosition()
+        if (lastVisiblePosition != RecyclerView.NO_POSITION &&
+            (lastPosition - lastVisiblePosition) > MAX_DISTANCE) {
+            binding.recyclerViewMessages.scrollToPosition(lastPosition - MAX_DISTANCE)
+        }
+        binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
+    }
+
     private fun changeIconSendState(status: Boolean) {
         val resId = if (status)
             R.drawable.ic_send
@@ -217,5 +229,6 @@ class MessagesFragment : Fragment() {
 
     private companion object {
         const val TEST_USER_ID = 100
+        const val MAX_DISTANCE = 10
     }
 }
