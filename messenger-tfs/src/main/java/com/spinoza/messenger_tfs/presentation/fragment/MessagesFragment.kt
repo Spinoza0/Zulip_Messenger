@@ -29,6 +29,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
+import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.showChangedMessage
 import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToLastPosition
@@ -143,6 +144,15 @@ class MessagesFragment : Fragment() {
                 requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             inputMethodManager.hideSoftInputFromWindow(binding.editTextMessage.windowToken, 0)
         }
+    }
+
+    private fun onReactionAddClickListener(messageView: MessageView) {
+        val action =
+            MessagesFragmentDirections.actionMessagesFragmentToAddReactionFragment(
+                messageView.messageId,
+                TEST_USER_ID
+            )
+        this.findNavController().navigate(action)
     }
 
     private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
