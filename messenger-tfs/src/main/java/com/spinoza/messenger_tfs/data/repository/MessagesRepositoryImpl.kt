@@ -41,16 +41,17 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             } else
                 oldMessage.copy(isIconAddVisible = false)
         }
-        state.emit(MessagesState.Messages(messages, messageWasAdded = false))
+        state.emit(MessagesState.Messages(messages))
     }
 
     override suspend fun sendMessage(message: Message) {
         val newMessage = message.copy(id = messages.size + 1)
         messages.add(newMessage)
-        state.emit(MessagesState.Messages(messages, messageWasAdded = true))
+        state.emit(MessagesState.MessageSent(messages))
     }
 
     override suspend fun updateReaction(messageId: Int, userId: Int, reaction: String) {
+        var changedMessageId = Message.UNDEFINED_ID
         messages.replaceAll { oldMessage ->
             if (oldMessage.id == messageId) {
                 val newReactions = mutableMapOf<String, ReactionParam>()
@@ -73,11 +74,15 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 if (needAddReaction) {
                     newReactions[reaction] = ReactionParam(listOf(userId))
                 }
-                oldMessage.copy(reactions = newReactions)
+                changedMessageId = messageId
+                oldMessage.copy(
+                    reactions = newReactions,
+                    isIconAddVisible = newReactions.size > EMPTY_MAP
+                )
             } else
                 oldMessage
         }
-        loadMessages(userId)
+        state.emit(MessagesState.MessageChanged(messages, changedMessageId))
     }
 
     companion object {

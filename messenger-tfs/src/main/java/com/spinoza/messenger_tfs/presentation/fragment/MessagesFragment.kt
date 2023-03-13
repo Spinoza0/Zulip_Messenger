@@ -14,9 +14,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesState
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
@@ -101,29 +104,17 @@ class MessagesFragment : Fragment() {
                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                 .collect { state ->
                     when (state) {
-                        is MessagesState.Messages -> {
-                            mainAdapter.submitList(
-                                state.messages.groupByDate(
-                                    userId = currentUserId,
-                                    onReactionAddClickListener = ::onReactionAddClickListener,
-                                    onReactionClickListener = ::onReactionClickListener
-                                )
-                            ) {
-                                if (state.messageWasAdded) {
-                                    val lastPosition = mainAdapter.itemCount - 1
-                                    binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
-                                }
-                            }
+                        is MessagesState.ReadyToSend -> changeIconSendState(state.status)
+                        is MessagesState.Messages -> submitMessages(state.messages) { }
+                        is MessagesState.MessageSent -> submitMessages(state.messages) {
+                            val lastPosition = mainAdapter.itemCount - 1
+                            binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
                         }
-                        is MessagesState.ReadyToSend -> {
-                            val resId = if (state.status)
-                                R.drawable.ic_send
-                            else
-                                R.drawable.ic_add_circle_outline
-                            binding.imageViewAction.setImageResource(resId)
+                        is MessagesState.MessageChanged -> submitMessages(state.messages) {
+                            showChangedMessage(state.changedMessageId)
                         }
                         // TODO: show error
-                        else -> {}
+                        is MessagesState.Error -> {}
                     }
                 }
         }
@@ -169,6 +160,54 @@ class MessagesFragment : Fragment() {
 
     private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
         viewModel.updateReaction(messageView, currentUserId, reactionView)
+    }
+
+    private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
+        mainAdapter.submitList(
+            messages.groupByDate(
+                userId = currentUserId,
+                onReactionAddClickListener = ::onReactionAddClickListener,
+                onReactionClickListener = ::onReactionClickListener
+            )
+        ) {
+            callbackAfterSubmit()
+        }
+    }
+
+    private fun changeIconSendState(status: Boolean) {
+        val resId = if (status)
+            R.drawable.ic_send
+        else
+            R.drawable.ic_add_circle_outline
+        binding.imageViewAction.setImageResource(resId)
+    }
+
+    private fun showChangedMessage(changedMessageId: Int) {
+        if (changedMessageId == Message.UNDEFINED_ID) return
+
+        var position = RecyclerView.NO_POSITION
+        for (i in 0 until binding.recyclerViewMessages.childCount) {
+            val view = binding.recyclerViewMessages.getChildAt(i)
+            val item = view.findViewById<MessageView>(R.id.messageView)
+            if (item != null && item.messageId == changedMessageId) {
+                position = binding.recyclerViewMessages.getChildAdapterPosition(view)
+                break
+            }
+        }
+
+        if (position != RecyclerView.NO_POSITION) {
+            val layoutManager =
+                binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+            val firstCompletelyVisiblePosition =
+                layoutManager.findFirstCompletelyVisibleItemPosition()
+            val lastCompletelyVisiblePosition =
+                layoutManager.findLastCompletelyVisibleItemPosition()
+            if (position < firstCompletelyVisiblePosition ||
+                position > lastCompletelyVisiblePosition
+            ) {
+                binding.recyclerViewMessages.smoothScrollToPosition(position)
+            }
+        }
     }
 
     override fun onDestroyView() {
