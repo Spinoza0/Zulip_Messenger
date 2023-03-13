@@ -9,7 +9,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.databinding.EmojiListBinding
+import com.spinoza.messenger_tfs.databinding.DialogChooseReactionBinding
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
@@ -18,9 +18,9 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.factory.AddReactionFragm
 
 class AddReactionFragment : BottomSheetDialogFragment() {
 
-    private var _binding: EmojiListBinding? = null
-    private val binding: EmojiListBinding
-        get() = _binding ?: throw RuntimeException("EmojiListBinding == null")
+    private var _binding: DialogChooseReactionBinding? = null
+    private val binding: DialogChooseReactionBinding
+        get() = _binding ?: throw RuntimeException("DialogChooseReactionBinding == null")
 
     private val viewModel by lazy {
         ViewModelProvider(
@@ -36,7 +36,7 @@ class AddReactionFragment : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = EmojiListBinding.inflate(inflater, container, false)
+        _binding = DialogChooseReactionBinding.inflate(inflater, container, false)
         return binding.root
     }
 

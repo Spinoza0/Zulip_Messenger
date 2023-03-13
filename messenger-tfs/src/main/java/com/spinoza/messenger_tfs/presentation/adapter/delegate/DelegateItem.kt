@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.adapter.utils
+package com.spinoza.messenger_tfs.presentation.adapter.delegate
 
 interface DelegateItem {
 

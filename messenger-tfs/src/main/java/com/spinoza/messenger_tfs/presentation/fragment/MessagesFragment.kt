@@ -14,8 +14,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
@@ -31,9 +29,9 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
-import com.spinoza.messenger_tfs.presentation.ui.MessageView
-import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
+import com.spinoza.messenger_tfs.presentation.ui.showChangedMessage
+import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToLastPosition
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageFragmentViewModelFactory
 import kotlinx.coroutines.launch
@@ -43,8 +41,6 @@ class MessagesFragment : Fragment() {
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
-
-    private val currentUserId = TEST_USER_ID
 
     private val mainAdapter: MainAdapter by lazy {
         MainAdapter().apply {
@@ -90,7 +86,7 @@ class MessagesFragment : Fragment() {
         setupRecyclerView()
         setupObservers()
         setupListeners()
-        viewModel.loadMessages(currentUserId)
+        viewModel.loadMessages()
     }
 
     private fun setupRecyclerView() {
@@ -104,13 +100,14 @@ class MessagesFragment : Fragment() {
                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                 .collect { state ->
                     when (state) {
-                        is MessagesState.ReadyToSend -> changeIconSendState(state.status)
-                        is MessagesState.Messages -> submitMessages(state.messages) { }
+                        is MessagesState.ReadyToSend -> changeButtonSendIcon(state.status)
+                        is MessagesState.Messages -> submitMessages(state.messages) {}
                         is MessagesState.MessageSent -> submitMessages(state.messages) {
-                            smoothScrollToLastPosition()
+                            binding.recyclerViewMessages
+                                .smoothScrollToLastPosition(mainAdapter.itemCount)
                         }
                         is MessagesState.MessageChanged -> submitMessages(state.messages) {
-                            showChangedMessage(state.changedMessageId)
+                            binding.recyclerViewMessages.showChangedMessage(state.changedMessageId)
                         }
                         // TODO: show error
                         is MessagesState.Error -> {}
@@ -140,7 +137,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        if (viewModel.sendMessage(binding.editTextMessage.text.toString(), currentUserId)) {
+        if (viewModel.sendMessage(binding.editTextMessage.text.toString())) {
             binding.editTextMessage.text?.clear()
             val inputMethodManager =
                 requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
@@ -148,88 +145,28 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    private fun onReactionAddClickListener(messageView: MessageView) {
-        val action =
-            MessagesFragmentDirections.actionMessagesFragmentToAddReactionFragment(
-                messageView.messageId,
-                currentUserId
-            )
-        findNavController().navigate(action)
-    }
-
-    private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
-        viewModel.updateReaction(messageView, currentUserId, reactionView)
-    }
-
     private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
         mainAdapter.submitList(
             messages.groupByDate(
-                userId = currentUserId,
+                userId = TEST_USER_ID,
                 onReactionAddClickListener = ::onReactionAddClickListener,
-                onReactionClickListener = ::onReactionClickListener
+                onReactionClickListener = viewModel::updateReaction
             )
         ) {
             callbackAfterSubmit()
         }
     }
 
-    private fun smoothScrollToLastPosition() {
-        val lastPosition = mainAdapter.itemCount - 1
-        val layoutManager =
-            binding.recyclerViewMessages.layoutManager as LinearLayoutManager
-        val lastVisiblePosition =
-            layoutManager.findLastVisibleItemPosition()
-        if (lastVisiblePosition != RecyclerView.NO_POSITION &&
-            (lastPosition - lastVisiblePosition) > MAX_DISTANCE
-        ) {
-            binding.recyclerViewMessages.scrollToPosition(lastPosition - MAX_DISTANCE)
-        }
-        binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
-    }
-
-    private fun changeIconSendState(status: Boolean) {
-        val resId = if (status)
+    private fun changeButtonSendIcon(readyToSend: Boolean) {
+        val resId = if (readyToSend)
             R.drawable.ic_send
         else
             R.drawable.ic_add_circle_outline
         binding.imageViewAction.setImageResource(resId)
     }
 
-    private fun showChangedMessage(changedMessageId: Int) {
-        if (changedMessageId == Message.UNDEFINED_ID) return
-
-        var position = RecyclerView.NO_POSITION
-        for (i in 0 until binding.recyclerViewMessages.childCount) {
-            val view = binding.recyclerViewMessages.getChildAt(i)
-            val item = view.findViewById<MessageView>(R.id.messageView)
-            if (item != null && item.messageId == changedMessageId) {
-                position = binding.recyclerViewMessages.getChildAdapterPosition(view)
-                break
-            }
-        }
-
-        if (position != RecyclerView.NO_POSITION) {
-            val layoutManager =
-                binding.recyclerViewMessages.layoutManager as LinearLayoutManager
-            val firstCompletelyVisiblePosition =
-                layoutManager.findFirstCompletelyVisibleItemPosition()
-            val lastCompletelyVisiblePosition =
-                layoutManager.findLastCompletelyVisibleItemPosition()
-            if (position < firstCompletelyVisiblePosition ||
-                position >= lastCompletelyVisiblePosition
-            ) {
-                binding.recyclerViewMessages.smoothScrollToPosition(position)
-            }
-        }
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-    }
-
-    private companion object {
-        const val TEST_USER_ID = 100
-        const val MAX_DISTANCE = 10
     }
 }

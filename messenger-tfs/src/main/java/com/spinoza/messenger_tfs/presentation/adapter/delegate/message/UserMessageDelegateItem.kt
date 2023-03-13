@@ -2,8 +2,8 @@ package com.spinoza.messenger_tfs.presentation.adapter.delegate.message
 
 import com.spinoza.messenger_tfs.domain.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.utils.MessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.MessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 

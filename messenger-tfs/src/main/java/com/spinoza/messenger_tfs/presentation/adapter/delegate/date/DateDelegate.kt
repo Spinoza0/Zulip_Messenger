@@ -5,8 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.DateItemBinding
 import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.presentation.adapter.utils.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 
 class DateDelegate : AdapterDelegate {
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {

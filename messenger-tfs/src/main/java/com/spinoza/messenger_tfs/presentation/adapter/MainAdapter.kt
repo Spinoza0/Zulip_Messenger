@@ -3,9 +3,8 @@ package com.spinoza.messenger_tfs.presentation.adapter
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.presentation.adapter.utils.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateAdapterItemCallback
-import com.spinoza.messenger_tfs.presentation.adapter.utils.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 
 class MainAdapter :
     ListAdapter<DelegateItem, RecyclerView.ViewHolder>(DelegateAdapterItemCallback()) {

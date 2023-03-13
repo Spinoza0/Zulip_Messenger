@@ -10,6 +10,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetMessagesStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.presentation.fragment.TEST_USER_ID
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -30,20 +31,20 @@ class MessagesFragmentViewModel(
         get() = _state.asSharedFlow()
 
 
-    fun loadMessages(userId: Int) {
+    fun loadMessages() {
         viewModelScope.launch {
-            loadMessagesUseCase(userId)
+            loadMessagesUseCase(TEST_USER_ID)
         }
     }
 
-    fun sendMessage(messageText: String, userId: Int): Boolean {
+    fun sendMessage(messageText: String): Boolean {
         if (messageText.isNotEmpty()) {
             viewModelScope.launch {
                 val message = Message(
                     // test data
                     MessageDate(10, "2 марта 2023"),
-                    userId,
-                    "Name $userId",
+                    TEST_USER_ID,
+                    "Name $TEST_USER_ID",
                     messageText,
                     R.drawable.test_face,
                     emptyMap(),
@@ -66,9 +67,9 @@ class MessagesFragmentViewModel(
         }
     }
 
-    fun updateReaction(messageView: MessageView, userId: Int, reactionView: ReactionView) {
+    fun updateReaction(messageView: MessageView, reactionView: ReactionView) {
         viewModelScope.launch {
-            updateReactionUseCase(messageView.messageId, userId, reactionView.emoji)
+            updateReactionUseCase(messageView.messageId, TEST_USER_ID, reactionView.emoji)
         }
     }
 }

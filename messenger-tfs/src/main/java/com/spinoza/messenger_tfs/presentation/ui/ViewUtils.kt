@@ -11,6 +11,12 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.core.view.marginTop
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.model.Message
+
+private const val MAX_DISTANCE = 10
 
 fun Float.spToPx(view: View) = TypedValue.applyDimension(
     TypedValue.COMPLEX_UNIT_SP,
@@ -36,6 +42,48 @@ fun View.layoutWithMargins(offsetX: Int, offsetY: Int, minWidth: Int = this.meas
     val x = offsetX + this.marginLeft
     val y = offsetY + this.marginTop
     this.layout(x, y, x + maxOf(this.measuredWidth, minWidth), y + this.measuredHeight)
+}
+
+fun RecyclerView.LinearLayoutManager(): LinearLayoutManager {
+    return this.layoutManager as LinearLayoutManager
+}
+
+fun RecyclerView.smoothScrollToLastPosition(itemCount: Int) {
+    val lastPosition = itemCount - 1
+    val lastVisiblePosition = this.LinearLayoutManager().findLastVisibleItemPosition()
+
+    if (lastVisiblePosition != RecyclerView.NO_POSITION &&
+        (lastPosition - lastVisiblePosition) > MAX_DISTANCE
+    ) {
+        this.scrollToPosition(lastPosition - MAX_DISTANCE)
+    }
+    this.smoothScrollToPosition(lastPosition)
+}
+
+fun RecyclerView.showChangedMessage(changedMessageId: Int) {
+    if (changedMessageId == Message.UNDEFINED_ID) return
+
+    var position = RecyclerView.NO_POSITION
+    for (i in 0 until this.childCount) {
+        val view = this.getChildAt(i)
+        val item = view.findViewById<MessageView>(R.id.messageView)
+        if (item != null && item.messageId == changedMessageId) {
+            position = this.getChildAdapterPosition(view)
+            break
+        }
+    }
+
+    if (position != RecyclerView.NO_POSITION) {
+        val firstCompletelyVisiblePosition = this.LinearLayoutManager()
+            .findFirstCompletelyVisibleItemPosition()
+        val lastCompletelyVisiblePosition = this.LinearLayoutManager()
+            .findLastCompletelyVisibleItemPosition()
+        if (position < firstCompletelyVisiblePosition ||
+            position >= lastCompletelyVisiblePosition
+        ) {
+            this.smoothScrollToPosition(position)
+        }
+    }
 }
 
 fun Context.getThemeColor(attr: Int): Int {

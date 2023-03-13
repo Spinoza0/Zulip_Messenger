@@ -16,6 +16,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     private val messages = mutableListOf<Message>()
 
     init {
+        // for testing purpose
         messages.addAll(prepareTestData())
     }
 
@@ -61,7 +62,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         needAddReaction = false
                         val newUsersIds = mutableListOf<Int>()
                         val isSelected =
-                            removeIfExistsOrAddToList(userId, entry.value.usersIds, newUsersIds)
+                            entry.value.usersIds.removeIfExistsOrAddToList(userId, newUsersIds)
                         if (newUsersIds.size > EMPTY_LIST) {
                             newReactions[entry.key] =
                                 entry.value.copy(usersIds = newUsersIds, isSelected = isSelected)
@@ -72,9 +73,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         newReactions[entry.key] = entry.value
                     }
                 }
+
                 if (needAddReaction) {
                     newReactions[reaction] = ReactionParam(listOf(userId), isSelected = true)
                 }
+
                 changedMessageId = messageId
                 oldMessage.copy(
                     reactions = newReactions,
@@ -86,13 +89,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         state.emit(MessagesState.MessageChanged(messages, changedMessageId))
     }
 
-    private fun removeIfExistsOrAddToList(
+    private fun List<Int>.removeIfExistsOrAddToList(
         value: Int,
-        source: List<Int>,
         dest: MutableList<Int>,
     ): Boolean {
         var deletedFromList = false
-        source.forEach { existingValue ->
+        this.forEach { existingValue ->
             if (existingValue == value) {
                 deletedFromList = true
             } else {
