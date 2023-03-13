@@ -4,7 +4,6 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesState
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
-import com.spinoza.messenger_tfs.domain.utils.removeIfExistsOrAddToList
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 
@@ -60,10 +59,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 oldMessage.reactions.forEach { entry ->
                     if (entry.key == reaction) {
                         needAddReaction = false
-                        val newUsersIds =
-                            entry.value.usersIds.removeIfExistsOrAddToList(userId)
+                        val newUsersIds = mutableListOf<Int>()
+                        val isSelected =
+                            removeIfExistsOrAddToList(userId, entry.value.usersIds, newUsersIds)
                         if (newUsersIds.size > EMPTY_LIST) {
-                            newReactions[entry.key] = entry.value.copy(usersIds = newUsersIds)
+                            newReactions[entry.key] =
+                                entry.value.copy(usersIds = newUsersIds, isSelected = isSelected)
                         } else {
                             newReactions.remove(entry.key)
                         }
@@ -72,7 +73,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                     }
                 }
                 if (needAddReaction) {
-                    newReactions[reaction] = ReactionParam(listOf(userId))
+                    newReactions[reaction] = ReactionParam(listOf(userId), isSelected = true)
                 }
                 changedMessageId = messageId
                 oldMessage.copy(
@@ -83,6 +84,25 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 oldMessage
         }
         state.emit(MessagesState.MessageChanged(messages, changedMessageId))
+    }
+
+    private fun removeIfExistsOrAddToList(
+        value: Int,
+        source: List<Int>,
+        dest: MutableList<Int>,
+    ): Boolean {
+        var deletedFromList = false
+        source.forEach { existingValue ->
+            if (existingValue == value) {
+                deletedFromList = true
+            } else {
+                dest.add(existingValue)
+            }
+        }
+        if (!deletedFromList) {
+            dest.add(value)
+        }
+        return !deletedFromList
     }
 
     companion object {

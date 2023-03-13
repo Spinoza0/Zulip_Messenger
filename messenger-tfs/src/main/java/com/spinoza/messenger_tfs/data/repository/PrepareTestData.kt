@@ -12,7 +12,7 @@ fun prepareTestData(): List<Message> {
     var count = 5
     val reactions = mutableMapOf<String, ReactionParam>()
     for (emoji in emojiSet) {
-        reactions[emoji.toString()] = ReactionParam(listOf(count--))
+        reactions[emoji.toString()] = ReactionParam(listOf(count--), false)
         if (count <= 0) break
     }
     repeat(20) { index ->
