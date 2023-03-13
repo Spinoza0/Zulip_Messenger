@@ -90,6 +90,11 @@ class MessagesFragment : Fragment() {
         viewModel.loadMessages()
     }
 
+    private fun setupStatusBar() {
+        requireActivity().window.statusBarColor =
+            requireContext().getThemeColor(R.attr.channel_toolbar_background_color)
+    }
+
     private fun setupRecyclerView() {
         binding.recyclerViewMessages.adapter = mainAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
@@ -132,9 +137,21 @@ class MessagesFragment : Fragment() {
         })
     }
 
-    private fun setupStatusBar() {
-        requireActivity().window.statusBarColor =
-            requireContext().getThemeColor(R.attr.channel_toolbar_background_color)
+    private fun onReactionAddClickListener(messageView: MessageView) {
+        val action =
+            MessagesFragmentDirections.actionMessagesFragmentToAddReactionFragment(
+                messageView.messageId,
+                TEST_USER_ID
+            )
+        this.findNavController().navigate(action)
+    }
+
+    private fun changeButtonSendIcon(readyToSend: Boolean) {
+        val resId = if (readyToSend)
+            R.drawable.ic_send
+        else
+            R.drawable.ic_add_circle_outline
+        binding.imageViewAction.setImageResource(resId)
     }
 
     private fun sendMessage() {
@@ -144,15 +161,6 @@ class MessagesFragment : Fragment() {
                 requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             inputMethodManager.hideSoftInputFromWindow(binding.editTextMessage.windowToken, 0)
         }
-    }
-
-    private fun onReactionAddClickListener(messageView: MessageView) {
-        val action =
-            MessagesFragmentDirections.actionMessagesFragmentToAddReactionFragment(
-                messageView.messageId,
-                TEST_USER_ID
-            )
-        this.findNavController().navigate(action)
     }
 
     private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
@@ -165,14 +173,6 @@ class MessagesFragment : Fragment() {
         ) {
             callbackAfterSubmit()
         }
-    }
-
-    private fun changeButtonSendIcon(readyToSend: Boolean) {
-        val resId = if (readyToSend)
-            R.drawable.ic_send
-        else
-            R.drawable.ic_add_circle_outline
-        binding.imageViewAction.setImageResource(resId)
     }
 
     override fun onDestroyView() {
