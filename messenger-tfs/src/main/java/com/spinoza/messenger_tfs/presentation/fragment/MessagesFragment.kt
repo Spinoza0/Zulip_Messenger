@@ -180,7 +180,8 @@ class MessagesFragment : Fragment() {
         val lastVisiblePosition =
             layoutManager.findLastVisibleItemPosition()
         if (lastVisiblePosition != RecyclerView.NO_POSITION &&
-            (lastPosition - lastVisiblePosition) > MAX_DISTANCE) {
+            (lastPosition - lastVisiblePosition) > MAX_DISTANCE
+        ) {
             binding.recyclerViewMessages.scrollToPosition(lastPosition - MAX_DISTANCE)
         }
         binding.recyclerViewMessages.smoothScrollToPosition(lastPosition)
@@ -215,7 +216,7 @@ class MessagesFragment : Fragment() {
             val lastCompletelyVisiblePosition =
                 layoutManager.findLastCompletelyVisibleItemPosition()
             if (position < firstCompletelyVisiblePosition ||
-                position > lastCompletelyVisiblePosition
+                position >= lastCompletelyVisiblePosition
             ) {
                 binding.recyclerViewMessages.smoothScrollToPosition(position)
             }
