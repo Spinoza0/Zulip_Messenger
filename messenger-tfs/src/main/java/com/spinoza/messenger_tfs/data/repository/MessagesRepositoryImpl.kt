@@ -25,13 +25,29 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun loadMessages(userId: Int) {
-        loadMessages(userId, false)
+        messages.replaceAll { oldMessage ->
+            if (oldMessage.reactions.size > EMPTY_MAP) {
+                val newReactions = oldMessage.reactions.toMutableMap()
+                newReactions.forEach { entry ->
+                    newReactions[entry.key] = ReactionParam(
+                        entry.value.usersIds,
+                        isSelected = entry.value.usersIds.contains(userId)
+                    )
+                }
+                oldMessage.copy(
+                    reactions = newReactions,
+                    isIconAddVisible = newReactions.size > EMPTY_MAP
+                )
+            } else
+                oldMessage.copy(isIconAddVisible = false)
+        }
+        state.emit(MessagesState.Messages(messages, messageWasAdded = false))
     }
 
     override suspend fun sendMessage(message: Message) {
         val newMessage = message.copy(id = messages.size + 1)
         messages.add(newMessage)
-        loadMessages(message.userId, true)
+        state.emit(MessagesState.Messages(messages, messageWasAdded = true))
     }
 
     override suspend fun updateReaction(messageId: Int, userId: Int, reaction: String) {
@@ -62,26 +78,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 oldMessage
         }
         loadMessages(userId)
-    }
-
-    private suspend fun loadMessages(userId: Int, messageWasAdded: Boolean) {
-        messages.replaceAll { oldMessage ->
-            if (oldMessage.reactions.size > EMPTY_MAP) {
-                val newReactions = oldMessage.reactions.toMutableMap()
-                newReactions.forEach { entry ->
-                    newReactions[entry.key] = ReactionParam(
-                        entry.value.usersIds,
-                        isSelected = entry.value.usersIds.contains(userId)
-                    )
-                }
-                oldMessage.copy(
-                    reactions = newReactions,
-                    isIconAddVisible = newReactions.size > EMPTY_MAP
-                )
-            } else
-                oldMessage.copy(isIconAddVisible = false)
-        }
-        state.emit(MessagesState.Messages(messages, messageWasAdded))
     }
 
     companion object {

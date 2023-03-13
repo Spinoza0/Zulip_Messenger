@@ -7,4 +7,6 @@ sealed class MessagesState {
         val messages: List<Message>,
         val messageWasAdded: Boolean,
     ) : MessagesState()
+
+    class MessageChanged(val id: Int) : MessagesState()
 }
