@@ -11,17 +11,17 @@
         android:label="fragment_messages"
         tools:layout="@layout/fragment_messages" >
         <action
-            android:id="@+id/action_messagesFragment_to_addReactionFragment"
-            app:destination="@id/addReactionFragment"
+            android:id="@+id/action_messagesFragment_to_chooseReactionDialogFragment"
+            app:destination="@id/chooseReactionDialogFragment"
             app:popUpTo="@id/messagesFragment"
             app:popEnterAnim="@anim/nav_default_pop_enter_anim"
             app:popExitAnim="@anim/nav_default_pop_exit_anim"
             app:launchSingleTop="true" />
     </fragment>
     <dialog
-        android:id="@+id/addReactionFragment"
-        android:name="com.spinoza.messenger_tfs.presentation.fragment.AddReactionFragment"
-        android:label="AddReactionFragment" >
+        android:id="@+id/chooseReactionDialogFragment"
+        android:name="com.spinoza.messenger_tfs.presentation.fragment.ChooseReactionDialogFragment"
+        android:label="fragment_dialog_choose_reaction">
         <argument
             android:name="messageId"
             app:argType="integer" />

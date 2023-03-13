@@ -9,18 +9,18 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.databinding.DialogChooseReactionBinding
+import com.spinoza.messenger_tfs.databinding.FragmentDialogChooseReactionBinding
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.viewmodel.AddReactionViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.AddReactionFragmentViewModelFactory
 
-class AddReactionFragment : BottomSheetDialogFragment() {
+class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
 
-    private var _binding: DialogChooseReactionBinding? = null
-    private val binding: DialogChooseReactionBinding
-        get() = _binding ?: throw RuntimeException("DialogChooseReactionBinding == null")
+    private var _binding: FragmentDialogChooseReactionBinding? = null
+    private val binding: FragmentDialogChooseReactionBinding
+        get() = _binding ?: throw RuntimeException("FragmentDialogChooseReactionBinding == null")
 
     private val viewModel by lazy {
         ViewModelProvider(
@@ -36,7 +36,7 @@ class AddReactionFragment : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = DialogChooseReactionBinding.inflate(inflater, container, false)
+        _binding = FragmentDialogChooseReactionBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -59,8 +59,10 @@ class AddReactionFragment : BottomSheetDialogFragment() {
     private fun setupListeners() {
         binding.flexBoxLayout.setOnChildClickListener { _, view ->
             if (view is ReactionView) {
-                val messageId = AddReactionFragmentArgs.fromBundle(requireArguments()).messageId
-                val userId = AddReactionFragmentArgs.fromBundle(requireArguments()).userId
+                val messageId =
+                    ChooseReactionDialogFragmentArgs.fromBundle(requireArguments()).messageId
+                val userId =
+                    ChooseReactionDialogFragmentArgs.fromBundle(requireArguments()).userId
                 viewModel.updateReaction(messageId, userId, view.emoji)
                 dismiss()
             }

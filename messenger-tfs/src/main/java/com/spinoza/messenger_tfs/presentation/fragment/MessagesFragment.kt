@@ -139,7 +139,7 @@ class MessagesFragment : Fragment() {
 
     private fun onReactionAddClickListener(messageView: MessageView) {
         val action =
-            MessagesFragmentDirections.actionMessagesFragmentToAddReactionFragment(
+            MessagesFragmentDirections.actionMessagesFragmentToChooseReactionDialogFragment(
                 messageView.messageId,
                 TEST_USER_ID
             )
