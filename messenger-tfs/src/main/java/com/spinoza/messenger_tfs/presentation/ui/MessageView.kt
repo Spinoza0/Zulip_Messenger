@@ -217,7 +217,7 @@ class MessageView @JvmOverloads constructor(
         val reactionView =
             ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
                 emoji = reaction
-                count = reactionParam.usersIds.size
+                count = reactionParam.count
                 isSelected = reactionParam.isSelected
                 isCountVisible = count > 1
                 setCustomPadding(

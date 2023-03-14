@@ -2,11 +2,11 @@ package com.spinoza.messenger_tfs.domain.repository
 
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesState
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 
 interface MessagesRepository {
 
-    fun getMessagesState(): MutableSharedFlow<MessagesState>
+    fun getMessagesState(): SharedFlow<MessagesState>
 
     suspend fun loadMessages(userId: Int)
 

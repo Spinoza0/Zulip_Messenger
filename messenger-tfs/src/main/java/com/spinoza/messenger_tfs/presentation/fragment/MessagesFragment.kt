@@ -18,6 +18,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.MessagesState
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
@@ -31,8 +32,8 @@ import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateIn
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
-import com.spinoza.messenger_tfs.presentation.ui.showChangedMessage
-import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToLastPosition
+import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToChangedMessage
+import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToPosition
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageViewModelFactory
 import kotlinx.coroutines.launch
@@ -106,14 +107,23 @@ class MessagesFragment : Fragment() {
                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
                 .collect { state ->
                     when (state) {
-                        is MessagesState.ReadyToSend -> changeButtonSendIcon(state.status)
-                        is MessagesState.Messages -> submitMessages(state.messages) {}
-                        is MessagesState.MessageSent -> submitMessages(state.messages) {
-                            binding.recyclerViewMessages
-                                .smoothScrollToLastPosition(mainAdapter.itemCount)
-                        }
-                        is MessagesState.MessageChanged -> submitMessages(state.messages) {
-                            binding.recyclerViewMessages.showChangedMessage(state.changedMessageId)
+                        is MessagesState.Messages -> submitMessages(state.messages) {
+                            when (state.position.type) {
+                                MessagePosition.Type.LAST_POSITION -> {
+                                    val lastItemPosition = mainAdapter.itemCount - 1
+                                    smoothScrollToPosition(
+                                        binding.recyclerViewMessages,
+                                        lastItemPosition
+                                    )
+                                }
+                                MessagePosition.Type.EXACTLY -> {
+                                    smoothScrollToChangedMessage(
+                                        binding.recyclerViewMessages,
+                                        state.position.id
+                                    )
+                                }
+                                else -> {}
+                            }
                         }
                         // TODO: show error
                         is MessagesState.Error -> {}
@@ -129,7 +139,7 @@ class MessagesFragment : Fragment() {
 
         binding.editTextMessage.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                viewModel.onMessageTextChanged(s)
+                changeButtonSendIcon(s != null && s.toString().trim().isNotEmpty())
             }
 
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
