@@ -18,7 +18,7 @@ fun prepareTestData(): List<Message> {
     }
     repeat(20) { index ->
         val message = Message(
-            MessageDate(index, "${index % 2 + 1} марта 2023"),
+            MessageDate("${index % 2 + 1} марта 2023"),
             index,
             "User$index Name",
             "Message $index text",

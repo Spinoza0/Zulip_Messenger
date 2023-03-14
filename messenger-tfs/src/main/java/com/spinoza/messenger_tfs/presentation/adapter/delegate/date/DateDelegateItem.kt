@@ -4,7 +4,6 @@ import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 
 class DateDelegateItem(
-    private val id: Int,
     private val value: MessageDate,
 ) : DelegateItem {
 
@@ -13,7 +12,7 @@ class DateDelegateItem(
     }
 
     override fun id(): Int {
-        return id
+        return value.hashCode()
     }
 
     override fun compareToOther(other: DelegateItem): Boolean {

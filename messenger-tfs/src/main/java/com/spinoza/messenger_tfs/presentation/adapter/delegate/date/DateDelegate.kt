@@ -30,7 +30,7 @@ class DateDelegate : AdapterDelegate {
     class ViewHolder(private val binding: DateItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(model: MessageDate) {
-            binding.textViewDate.text = model.value
+            binding.textViewDate.text = model.date
         }
     }
 }

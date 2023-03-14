@@ -8,7 +8,6 @@ import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 class UserMessageDelegateItem(
-    private val id: Int,
     private val value: Message,
     private val onAvatarLongClickListener: ((MessageView) -> Unit)? = null,
     private val onReactionAddClickListener: ((MessageView) -> Unit)? = null,
@@ -20,7 +19,7 @@ class UserMessageDelegateItem(
     }
 
     override fun id(): Int {
-        return id
+        return value.id
     }
 
     override fun compareToOther(other: DelegateItem): Boolean {

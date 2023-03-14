@@ -42,7 +42,7 @@ class MessagesViewModel(
             viewModelScope.launch {
                 val message = Message(
                     // test data
-                    MessageDate(10, "2 марта 2023"),
+                    MessageDate("2 марта 2023"),
                     TEST_USER_ID,
                     "Name $TEST_USER_ID",
                     messageText,
