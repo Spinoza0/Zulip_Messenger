@@ -8,14 +8,14 @@ import com.spinoza.messenger_tfs.domain.utils.emojiSet
 
 // for testing purpose
 fun prepareTestData(): List<Message> {
-    val messages = mutableListOf<Message>()
+    val countOfReactions = 5
+    val testUserId = 1
 
-    var count = 5
-    val reactions = mutableMapOf<String, ReactionParam>()
-    for (emoji in emojiSet) {
-        reactions[emoji.toString()] = ReactionParam(listOf(count--), false)
-        if (count <= 0) break
+    val messages = mutableListOf<Message>()
+    val reactions = emojiSet.take(countOfReactions).associate { emoji ->
+        emoji.toString() to ReactionParam(listOf(testUserId), false)
     }
+
     repeat(20) { index ->
         val message = Message(
             MessageDate("${index % 2 + 1} марта 2023"),
