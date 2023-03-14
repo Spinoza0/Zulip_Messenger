@@ -26,7 +26,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun loadMessages(userId: Int) {
         messages.replaceAll { oldMessage ->
-            if (oldMessage.reactions.size > EMPTY_MAP) {
+            if (oldMessage.reactions.isNotEmpty()) {
                 val newReactions = oldMessage.reactions.toMutableMap()
                 newReactions.forEach { entry ->
                     newReactions[entry.key] = ReactionParam(
@@ -36,7 +36,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
                 oldMessage.copy(
                     reactions = newReactions,
-                    isIconAddVisible = newReactions.size > EMPTY_MAP
+                    isIconAddVisible = newReactions.isNotEmpty()
                 )
             } else
                 oldMessage.copy(isIconAddVisible = false)
@@ -63,7 +63,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         val newUsersIds = mutableListOf<Int>()
                         val isSelected =
                             entry.value.usersIds.removeIfExistsOrAddToList(userId, newUsersIds)
-                        if (newUsersIds.size > EMPTY_LIST) {
+                        if (newUsersIds.isNotEmpty()) {
                             newReactions[entry.key] =
                                 entry.value.copy(usersIds = newUsersIds, isSelected = isSelected)
                         } else {
@@ -81,7 +81,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 changedMessageId = messageId
                 oldMessage.copy(
                     reactions = newReactions,
-                    isIconAddVisible = newReactions.size > EMPTY_MAP
+                    isIconAddVisible = newReactions.isNotEmpty()
                 )
             } else
                 oldMessage
@@ -109,8 +109,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     companion object {
 
-        private const val EMPTY_MAP = 0
-        private const val EMPTY_LIST = 0
         private const val COUNT_OF_LAST_EMITTED_VALUES = 2
 
         private var instance: MessagesRepositoryImpl? = null
