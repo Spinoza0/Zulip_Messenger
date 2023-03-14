@@ -13,8 +13,9 @@ import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 
 private const val MAX_DISTANCE = 10
 
@@ -62,9 +63,14 @@ fun smoothScrollToChangedMessage(recyclerView: RecyclerView, changedMessageId: I
     var position = RecyclerView.NO_POSITION
     for (i in 0 until recyclerView.childCount) {
         val messageView = recyclerView.getChildAt(i)
-        val item = messageView.findViewById<MessageView>(R.id.messageView)
-        if (item != null && item.messageId == changedMessageId) {
-            position = recyclerView.getChildAdapterPosition(messageView)
+        val viewHolder = recyclerView.getChildViewHolder(messageView)
+        var messageId = Message.UNDEFINED_ID
+        if (viewHolder is UserMessageDelegate.ViewHolder)
+            messageId = viewHolder.binding.messageView.messageId
+        else if (viewHolder is CompanionMessageDelegate.ViewHolder)
+            messageId = viewHolder.binding.messageView.messageId
+        if (messageId == changedMessageId) {
+            position = viewHolder.adapterPosition
             break
         }
     }
