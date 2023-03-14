@@ -119,7 +119,7 @@ class MessagesFragment : Fragment() {
                                 MessagePosition.Type.EXACTLY -> {
                                     smoothScrollToChangedMessage(
                                         binding.recyclerViewMessages,
-                                        state.position.id
+                                        state.position.messageId
                                     )
                                 }
                                 else -> {}

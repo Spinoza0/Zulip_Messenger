@@ -33,17 +33,16 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun loadMessages(userId: Int) {
-        state.emit(MessagesState.Messages(messagesDto.toEntity(userId), MessagePosition()))
+        state.emit(MessagesState.Messages(messagesDto.toEntity(userId)))
     }
 
     override suspend fun sendMessage(message: Message) {
-        val newMessage = message.copy(id = messagesDto.size + 1)
         val newMessageId = if (message.id == Message.UNDEFINED_ID) {
             messagesDto.size
         } else {
             message.id
         }
-        messagesDto.add(newMessage.toDto(message.userId, newMessageId))
+        messagesDto.add(message.toDto(message.userId, newMessageId))
         state.emit(
             MessagesState.Messages(
                 messagesDto.toEntity(message.userId),
@@ -73,7 +72,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         state.emit(
             MessagesState.Messages(
                 messagesDto.toEntity(userId),
-                MessagePosition(type = MessagePosition.Type.EXACTLY, id = messageId)
+                MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
             )
         )
     }
