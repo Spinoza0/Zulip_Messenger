@@ -6,9 +6,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.utils.bind
+import com.spinoza.messenger_tfs.presentation.adapter.bind
 
 class UserMessageDelegate : AdapterDelegate {
+
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val binding = UserMessageItemBinding.inflate(

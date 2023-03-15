@@ -5,28 +5,26 @@ import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.domain.usecase.GetMessagesStateUseCase
-import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
+import com.spinoza.messenger_tfs.domain.model.RepositoryState
+import com.spinoza.messenger_tfs.domain.usecase.GetRepositoryStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
-import com.spinoza.messenger_tfs.presentation.fragment.TEST_USER_ID
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 class MessagesViewModel(
-    getMessagesStateUseCase: GetMessagesStateUseCase,
-    private val loadMessagesUseCase: LoadMessagesUseCase,
+    getRepositoryStateUseCase: GetRepositoryStateUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
 ) : ViewModel() {
 
-    val state = getMessagesStateUseCase()
+    val state: SharedFlow<RepositoryState> = getRepositoryStateUseCase(TEST_USER_ID)
 
-    fun loadMessages() {
-        viewModelScope.launch {
-            loadMessagesUseCase(TEST_USER_ID)
-        }
+    // for testing purpose
+    fun getUserId(): Int {
+        return TEST_USER_ID
     }
 
     fun sendMessage(messageText: String): Boolean {
@@ -57,5 +55,10 @@ class MessagesViewModel(
 
     fun updateReaction(messageView: MessageView, reactionView: ReactionView) {
         updateReaction(messageView.messageId, TEST_USER_ID, reactionView.emoji)
+    }
+
+    companion object {
+        // for testing purpose
+        const val TEST_USER_ID = 100
     }
 }

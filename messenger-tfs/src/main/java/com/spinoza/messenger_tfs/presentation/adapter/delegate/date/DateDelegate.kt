@@ -9,6 +9,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 
 class DateDelegate : AdapterDelegate {
+
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         return ViewHolder(
             DateItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)

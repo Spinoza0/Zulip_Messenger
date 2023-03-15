@@ -4,11 +4,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.CompanionMessageItemBinding
+import com.spinoza.messenger_tfs.presentation.adapter.bind
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.utils.bind
 
 class CompanionMessageDelegate : AdapterDelegate {
+
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val binding = CompanionMessageItemBinding.inflate(

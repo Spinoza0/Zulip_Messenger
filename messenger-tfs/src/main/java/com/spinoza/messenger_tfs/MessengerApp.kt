@@ -7,16 +7,16 @@ import com.github.terrakok.cicerone.Router
 
 class MessengerApp : Application() {
 
-    companion object {
-        lateinit var navigatorHolder: NavigatorHolder
-        lateinit var router: Router
-    }
-
     override fun onCreate() {
         super.onCreate()
 
         val cicerone = Cicerone.create()
         navigatorHolder = cicerone.getNavigatorHolder()
         router = cicerone.router
+    }
+
+    companion object {
+        lateinit var navigatorHolder: NavigatorHolder
+        lateinit var router: Router
     }
 }

@@ -2,57 +2,65 @@ package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
+import com.spinoza.messenger_tfs.data.prepareTestData
+import com.spinoza.messenger_tfs.data.toDomain
 import com.spinoza.messenger_tfs.data.toDto
-import com.spinoza.messenger_tfs.data.toEntity
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.model.MessagesState
+import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 import java.util.*
+
+
+// TODO: 1) возможно, есть смысл отказаться от Flow, использовать просто suspend functions
+// TODO: 2) отрефакторить - не все сообщения сразу эмиттить, а только новые или измененные
+// TODO: 3) отрефакторить - кэш (messagesLocalCache) вынести в отдельный класс
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
-    private val state = MutableSharedFlow<MessagesState>(
+    private val state = MutableSharedFlow<RepositoryState>(
         replay = COUNT_OF_LAST_EMITTED_VALUES,
         onBufferOverflow = BufferOverflow.DROP_OLDEST
     )
 
-    private val messagesDto = TreeSet<MessageDto>()
+    private val messagesLocalCache = TreeSet<MessageDto>()
 
     init {
         // for testing purpose
-        messagesDto.addAll(prepareTestData())
+        messagesLocalCache.addAll(prepareTestData())
     }
 
-    override fun getMessagesState(): SharedFlow<MessagesState> {
+    override fun getState(userId: Int): SharedFlow<RepositoryState> {
+        CoroutineScope(Dispatchers.Default).launch {
+            state.emit(RepositoryState.Messages(messagesLocalCache.toDomain(userId)))
+        }
         return state.asSharedFlow()
-    }
-
-    override suspend fun loadMessages(userId: Int) {
-        state.emit(MessagesState.Messages(messagesDto.toEntity(userId)))
     }
 
     override suspend fun sendMessage(message: Message) {
         val newMessageId = if (message.id == Message.UNDEFINED_ID) {
-            messagesDto.size
+            messagesLocalCache.size
         } else {
             message.id
         }
-        messagesDto.add(message.toDto(message.userId, newMessageId))
+        messagesLocalCache.add(message.toDto(message.userId, newMessageId))
         state.emit(
-            MessagesState.Messages(
-                messagesDto.toEntity(message.userId),
+            RepositoryState.Messages(
+                messagesLocalCache.toDomain(message.userId),
                 MessagePosition(type = MessagePosition.Type.LAST_POSITION)
             )
         )
     }
 
     override suspend fun updateReaction(messageId: Int, userId: Int, reaction: String) {
-        val messageDto = messagesDto.find { it.id == messageId } ?: return
+        val messageDto = messagesLocalCache.find { it.id == messageId } ?: return
         val reactionDto = messageDto.reactions[reaction]
         val newReactionsDto = messageDto.reactions.toMutableMap()
 
@@ -67,11 +75,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             newReactionsDto[reaction] = ReactionParamDto(listOf(userId))
         }
 
-        messagesDto.removeIf { it.id == messageId }
-        messagesDto.add(messageDto.copy(reactions = newReactionsDto))
+        messagesLocalCache.removeIf { it.id == messageId }
+        messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
         state.emit(
-            MessagesState.Messages(
-                messagesDto.toEntity(userId),
+            RepositoryState.Messages(
+                messagesLocalCache.toDomain(userId),
                 MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
             )
         )
