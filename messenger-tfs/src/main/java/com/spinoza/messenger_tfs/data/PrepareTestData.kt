@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.data.repository
+package com.spinoza.messenger_tfs.data
 
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.model.MessageDto

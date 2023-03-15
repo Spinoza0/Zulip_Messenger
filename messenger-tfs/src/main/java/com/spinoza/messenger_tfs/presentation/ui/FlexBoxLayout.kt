@@ -18,7 +18,7 @@ class FlexBoxLayout @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    private var onChildClickListener: ((FlexBoxLayout, View) -> Unit)? = null
+    private var onChildrenClickListener: ((FlexBoxLayout, View) -> Unit)? = null
 
     private var flexBoxMargin = 0
     private var flexBoxGravity = FlexBoxGravity.START
@@ -129,15 +129,15 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
     }
 
-    fun setOnChildClickListener(listener: ((FlexBoxLayout, View) -> Unit)?) {
-        onChildClickListener = listener
+    fun setOnChildrenClickListener(listener: ((FlexBoxLayout, View) -> Unit)?) {
+        onChildrenClickListener = listener
         for (index in 0 until childCount - 1) {
             getChildAt(index).setOnClickListener(::onChildClick)
         }
     }
 
     private fun onChildClick(view: View) {
-        onChildClickListener?.invoke(this, view)
+        onChildrenClickListener?.invoke(this, view)
     }
 
     fun setIconAddVisibility(state: Boolean) {

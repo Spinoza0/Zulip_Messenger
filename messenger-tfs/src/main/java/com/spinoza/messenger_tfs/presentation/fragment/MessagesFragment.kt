@@ -1,16 +1,13 @@
 package com.spinoza.messenger_tfs.presentation.fragment
 
-import android.content.Context.INPUT_METHOD_SERVICE
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.spinoza.messenger_tfs.MessengerApp
@@ -19,21 +16,19 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.model.MessagesState
-import com.spinoza.messenger_tfs.domain.usecase.GetMessagesStateUseCase
-import com.spinoza.messenger_tfs.domain.usecase.LoadMessagesUseCase
+import com.spinoza.messenger_tfs.domain.model.RepositoryState
+import com.spinoza.messenger_tfs.domain.usecase.GetRepositoryStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
-import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToChangedMessage
-import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToPosition
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageViewModelFactory
 import kotlinx.coroutines.launch
@@ -52,16 +47,12 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    private val viewModel by lazy {
-        ViewModelProvider(
-            this,
-            MessageViewModelFactory(
-                GetMessagesStateUseCase(MessagesRepositoryImpl.getInstance()),
-                LoadMessagesUseCase(MessagesRepositoryImpl.getInstance()),
-                SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
-                UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            )
-        )[MessagesViewModel::class.java]
+    private val viewModel: MessagesViewModel by viewModels {
+        MessageViewModelFactory(
+            GetRepositoryStateUseCase(MessagesRepositoryImpl.getInstance()),
+            SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
+            UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
+        )
     }
 
     override fun onCreateView(
@@ -82,7 +73,6 @@ class MessagesFragment : Fragment() {
         setupRecyclerView()
         setupObservers()
         setupListeners()
-        viewModel.loadMessages()
     }
 
     private fun setupStatusBar() {
@@ -99,30 +89,28 @@ class MessagesFragment : Fragment() {
         lifecycleScope.launch {
             viewModel.state
                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect { state ->
-                    when (state) {
-                        is MessagesState.Messages -> submitMessages(state.messages) {
-                            when (state.position.type) {
-                                MessagePosition.Type.LAST_POSITION -> {
-                                    val lastItemPosition = mainAdapter.itemCount - 1
-                                    smoothScrollToPosition(
-                                        binding.recyclerViewMessages,
-                                        lastItemPosition
-                                    )
-                                }
-                                MessagePosition.Type.EXACTLY -> {
-                                    smoothScrollToChangedMessage(
-                                        binding.recyclerViewMessages,
-                                        state.position.messageId
-                                    )
-                                }
-                                else -> {}
-                            }
-                        }
-                        // TODO: show error
-                        is MessagesState.Error -> {}
+                .collect(::handleState)
+        }
+    }
+
+    private fun handleState(state: RepositoryState) {
+        when (state) {
+            is RepositoryState.Messages -> submitMessages(state.messages) {
+                when (state.position.type) {
+                    MessagePosition.Type.LAST_POSITION -> {
+                        val lastItemPosition = mainAdapter.itemCount - 1
+                        binding.recyclerViewMessages.smoothScrollToPosition(lastItemPosition)
                     }
+                    MessagePosition.Type.EXACTLY -> {
+                        binding.recyclerViewMessages.smoothScrollToChangedMessage(
+                            state.position.messageId
+                        )
+                    }
+                    else -> {}
                 }
+            }
+            // TODO: show error
+            is RepositoryState.Error -> {}
         }
     }
 
@@ -135,25 +123,21 @@ class MessagesFragment : Fragment() {
             sendMessage()
         }
 
-        binding.editTextMessage.addTextChangedListener(object : TextWatcher {
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                changeButtonSendIcon(s != null && s.toString().trim().isNotEmpty())
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun afterTextChanged(s: Editable?) {}
-        })
+        binding.editTextMessage.doOnTextChanged { text, _, _, _ ->
+            changeButtonSendIcon(text != null && text.toString().trim().isNotEmpty())
+        }
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
         val dialog = ChooseReactionDialogFragment.newInstance(
             messageView.messageId,
-            TEST_USER_ID
+            viewModel.getUserId()
         )
         dialog.listener = viewModel::updateReaction
         dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
     }
 
+    // TODO: логику перенести во viewModel
     private fun changeButtonSendIcon(readyToSend: Boolean) {
         val resId = if (readyToSend)
             R.drawable.ic_send
@@ -165,16 +149,13 @@ class MessagesFragment : Fragment() {
     private fun sendMessage() {
         if (viewModel.sendMessage(binding.editTextMessage.text.toString())) {
             binding.editTextMessage.text?.clear()
-            val inputMethodManager =
-                requireContext().getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-            inputMethodManager.hideSoftInputFromWindow(binding.editTextMessage.windowToken, 0)
         }
     }
 
     private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
         mainAdapter.submitList(
             messages.groupByDate(
-                userId = TEST_USER_ID,
+                userId = viewModel.getUserId(),
                 onReactionAddClickListener = ::onReactionAddClickListener,
                 onReactionClickListener = viewModel::updateReaction
             )

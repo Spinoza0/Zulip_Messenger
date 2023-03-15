@@ -45,25 +45,25 @@ fun View.layoutWithMargins(offsetX: Int, offsetY: Int, minWidth: Int = this.meas
     this.layout(x, y, x + maxOf(this.measuredWidth, minWidth), y + this.measuredHeight)
 }
 
-fun smoothScrollToPosition(recyclerView: RecyclerView, lastPosition: Int) {
+fun RecyclerView.smoothScrollToTargetPosition(targetPosition: Int) {
     val lastVisiblePosition =
-        (recyclerView.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+        (this.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
 
     if (lastVisiblePosition != RecyclerView.NO_POSITION &&
-        (lastPosition - lastVisiblePosition) > MAX_DISTANCE
+        (targetPosition - lastVisiblePosition) > MAX_DISTANCE
     ) {
-        recyclerView.scrollToPosition(lastPosition - MAX_DISTANCE)
+        this.scrollToPosition(targetPosition - MAX_DISTANCE)
     }
-    recyclerView.smoothScrollToPosition(lastPosition)
+    this.smoothScrollToPosition(targetPosition)
 }
 
-fun smoothScrollToChangedMessage(recyclerView: RecyclerView, changedMessageId: Int) {
+fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Int) {
     if (changedMessageId == Message.UNDEFINED_ID) return
 
     var position = RecyclerView.NO_POSITION
-    for (i in 0 until recyclerView.childCount) {
-        val messageView = recyclerView.getChildAt(i)
-        val viewHolder = recyclerView.getChildViewHolder(messageView)
+    for (i in 0 until this.childCount) {
+        val messageView = this.getChildAt(i)
+        val viewHolder = this.getChildViewHolder(messageView)
         var messageId = Message.UNDEFINED_ID
         if (viewHolder is UserMessageDelegate.ViewHolder)
             messageId = viewHolder.binding.messageView.messageId
@@ -76,7 +76,7 @@ fun smoothScrollToChangedMessage(recyclerView: RecyclerView, changedMessageId: I
     }
 
     if (position != RecyclerView.NO_POSITION) {
-        val layoutManager = (recyclerView.layoutManager as LinearLayoutManager)
+        val layoutManager = (this.layoutManager as LinearLayoutManager)
         val firstCompletelyVisiblePosition =
             layoutManager.findFirstCompletelyVisibleItemPosition()
         val lastCompletelyVisiblePosition =
@@ -84,7 +84,7 @@ fun smoothScrollToChangedMessage(recyclerView: RecyclerView, changedMessageId: I
         if (position < firstCompletelyVisiblePosition ||
             position >= lastCompletelyVisiblePosition
         ) {
-            smoothScrollToPosition(recyclerView, position)
+            this.smoothScrollToTargetPosition(position)
         }
     }
 }

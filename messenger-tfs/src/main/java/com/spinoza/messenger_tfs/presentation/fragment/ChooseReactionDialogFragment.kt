@@ -50,7 +50,7 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun setupListeners() {
-        binding.flexBoxLayout.setOnChildClickListener { _, view ->
+        binding.flexBoxLayout.setOnChildrenClickListener { _, view ->
             if (view is ReactionView) {
                 dismissWithResult(view.emoji)
             }
