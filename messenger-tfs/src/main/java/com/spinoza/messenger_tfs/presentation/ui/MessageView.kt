@@ -31,10 +31,10 @@ class MessageView @JvmOverloads constructor(
             binding.nameTextView.text = value
         }
 
-    private var text: String
-        get() = binding.messageTextView.text.toString()
+    private var content: String
+        get() = binding.contentTextView.text.toString()
         set(value) {
-            binding.messageTextView.text = value
+            binding.contentTextView.text = value
         }
 
     private val binding by lazy {
@@ -61,14 +61,14 @@ class MessageView @JvmOverloads constructor(
                     R.styleable.message_view_message_background_color,
                     R.drawable.shape_message_companion_bottom
                 )
-                binding.messageTextView.setBackgroundResource(messageBackground)
+                binding.contentTextView.setBackgroundResource(messageBackground)
                 binding.avatarImageView.visibility = View.GONE
                 binding.nameTextView.visibility = View.GONE
-                binding.messageTextView.setPadding(
-                    binding.messageTextView.paddingLeft,
+                binding.contentTextView.setPadding(
+                    binding.contentTextView.paddingLeft,
                     binding.nameTextView.paddingTop,
-                    binding.messageTextView.paddingRight,
-                    binding.messageTextView.paddingBottom
+                    binding.contentTextView.paddingRight,
+                    binding.contentTextView.paddingBottom
                 )
             }
         }
@@ -102,14 +102,14 @@ class MessageView @JvmOverloads constructor(
         }
 
         measureChildWithMargins(
-            binding.messageTextView,
+            binding.contentTextView,
             widthMeasureSpec,
             offsetX,
             heightMeasureSpec,
             offsetY
         )
-        maxChildWidth = maxOf(maxChildWidth, binding.messageTextView.getWidthWithMargins())
-        offsetY += binding.messageTextView.getHeightWithMargins()
+        maxChildWidth = maxOf(maxChildWidth, binding.contentTextView.getWidthWithMargins())
+        offsetY += binding.contentTextView.getHeightWithMargins()
 
         measureChildWithMargins(
             binding.reactionsFlexBoxLayout,
@@ -131,7 +131,7 @@ class MessageView @JvmOverloads constructor(
         var offsetY = paddingTop
         val textWidth = maxOf(
             binding.nameTextView.getWidthWithMargins(),
-            binding.messageTextView.getWidthWithMargins()
+            binding.contentTextView.getWidthWithMargins()
         )
 
         if (binding.avatarImageView.isVisible) {
@@ -145,8 +145,8 @@ class MessageView @JvmOverloads constructor(
             offsetY += binding.nameTextView.getHeightWithMargins()
         }
 
-        binding.messageTextView.layoutWithMargins(offsetX, offsetY, textWidth)
-        offsetY += binding.messageTextView.getHeightWithMargins()
+        binding.contentTextView.layoutWithMargins(offsetX, offsetY, textWidth)
+        offsetY += binding.contentTextView.getHeightWithMargins()
 
         if (reactionsGravity == FlexBoxGravity.END) {
             val reactionsWidth = binding.reactionsFlexBoxLayout.getWidthWithMargins()
@@ -194,7 +194,7 @@ class MessageView @JvmOverloads constructor(
             listener?.invoke(this@MessageView)
             true
         }
-        binding.messageTextView.setOnLongClickListener {
+        binding.contentTextView.setOnLongClickListener {
             listener?.invoke(this@MessageView)
             true
         }
@@ -233,7 +233,7 @@ class MessageView @JvmOverloads constructor(
     fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
         messageId = message.id
         name = message.name
-        text = message.text
+        content = message.content
         this.reactionsGravity = reactionsGravity
         setRoundAvatar(message.avatarResId)
         setIconAddVisibility(message.isIconAddVisible)

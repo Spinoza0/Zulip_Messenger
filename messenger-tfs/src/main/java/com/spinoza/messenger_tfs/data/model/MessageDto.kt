@@ -6,7 +6,7 @@ data class MessageDto(
     val date: MessageDate,
     val userId: Int,
     val name: String,
-    val text: String,
+    val content: String,
     val avatarResId: Int,
     val reactions: Map<String, ReactionParamDto>,
     val id: Int,

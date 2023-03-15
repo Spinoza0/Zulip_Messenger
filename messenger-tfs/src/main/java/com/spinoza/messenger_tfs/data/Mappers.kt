@@ -11,7 +11,7 @@ fun MessageDto.toEntity(userId: Int): Message {
         date = this.date,
         userId = this.userId,
         name = this.name,
-        text = this.text,
+        content = this.content,
         avatarResId = this.avatarResId,
         reactions = this.reactions.toEntity(userId),
         isIconAddVisible = this.reactions.isNotEmpty(),
@@ -32,7 +32,7 @@ fun Message.toDto(userId: Int, messageId: Int): MessageDto {
         date = this.date,
         userId = this.userId,
         name = this.name,
-        text = this.text,
+        content = this.content,
         avatarResId = this.avatarResId,
         reactions = this.reactions.toDto(userId),
         id = messageId

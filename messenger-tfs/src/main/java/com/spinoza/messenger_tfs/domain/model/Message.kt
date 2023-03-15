@@ -4,7 +4,7 @@ data class Message(
     val date: MessageDate,
     val userId: Int,
     val name: String,
-    val text: String,
+    val content: String,
     val avatarResId: Int,
     val reactions: Map<String, ReactionParam>,
     val isIconAddVisible: Boolean,
