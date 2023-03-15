@@ -44,5 +44,9 @@
         <item name="channel_add_reactions_top_line_color">@color/channel_add_reactions_top_line
         </item>
 
+        <!-- Bottom Navigation-->
+        <item name="bottom_navigation_selected_color">@color/bottom_navigation_selected</item>
+        <item name="bottom_navigation_unselected_color">@color/bottom_navigation_unselected</item>
+
     </style>
 </resources>

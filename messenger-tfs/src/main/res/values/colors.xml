@@ -52,4 +52,10 @@
     <color name="channel_add_reactions_top_line">#555555</color>
     <color name="channel_add_reactions_top_line_night">#555555</color>
 
+    <!-- Bottom Navigation-->
+    <color name="bottom_navigation_unselected">#919191</color>
+    <color name="bottom_navigation_unselected_night">#919191</color>
+    <color name="bottom_navigation_selected">#FAFAFA</color>
+    <color name="bottom_navigation_selected_night">#FAFAFA</color>
+
 </resources>

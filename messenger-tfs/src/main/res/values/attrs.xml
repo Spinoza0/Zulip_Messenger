@@ -45,4 +45,9 @@
         <attr name="channel_date_text_color" format="color" />
         <attr name="channel_add_reactions_top_line_color" format="color" />
     </declare-styleable>
+
+    <declare-styleable name="bottom_navigation">
+        <attr name="bottom_navigation_unselected_color" format="color" />
+        <attr name="bottom_navigation_selected_color" format="color" />
+    </declare-styleable>
 </resources>

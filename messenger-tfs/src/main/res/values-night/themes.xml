@@ -53,5 +53,10 @@
             @color/channel_add_reactions_top_line_night
         </item>
 
+        <!-- Bottom Navigation-->
+        <item name="bottom_navigation_selected_color">@color/bottom_navigation_selected_night</item>
+        <item name="bottom_navigation_unselected_color">@color/bottom_navigation_unselected_night
+        </item>
+
     </style>
 </resources>
