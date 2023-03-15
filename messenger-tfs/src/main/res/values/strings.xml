@@ -10,4 +10,9 @@
     <string name="action">Action</string>
     <string name="write_message">Написать...</string>
 
+    <!-- Bottom navigation -->
+    <string name="channels">Channels</string>
+    <string name="people">People</string>
+    <string name="profile">Profile</string>
+
 </resources>
