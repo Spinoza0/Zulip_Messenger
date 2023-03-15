@@ -7,6 +7,7 @@ buildscript {
             androidxConstraintlayout: "2.1.4",
 
             navigation              : "2.5.3",
+            cicerone                : "7.1",
 
             compileSdk              : 33,
             minSdk                  : 24,
@@ -37,7 +38,8 @@ buildscript {
 
     ext.navigation = [
             fragment: "androidx.navigation:navigation-fragment-ktx:${versions.navigation}",
-            ui      : "androidx.navigation:navigation-ui-ktx:${versions.navigation}"
+            ui      : "androidx.navigation:navigation-ui-ktx:${versions.navigation}",
+            cicerone: "com.github.terrakok:cicerone:${versions.cicerone}"
     ]
 
     ext.leakcanary = "com.squareup.leakcanary:leakcanary-android:${versions.leakcanary}"
@@ -51,7 +53,6 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:${versions.androidGradlePlugin}"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
-        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:${versions.navigation}"
     }
 }
 

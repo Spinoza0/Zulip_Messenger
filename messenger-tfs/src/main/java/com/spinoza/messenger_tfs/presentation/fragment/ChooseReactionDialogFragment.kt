@@ -4,32 +4,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentDialogChooseReactionBinding
-import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
-import com.spinoza.messenger_tfs.presentation.viewmodel.ChooseReactionViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChooseReactionViewModelFactory
 
 class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
+
+    var listener: ((Int, Int, String) -> Unit)? = null
 
     private var _binding: FragmentDialogChooseReactionBinding? = null
     private val binding: FragmentDialogChooseReactionBinding
         get() = _binding ?: throw RuntimeException("FragmentDialogChooseReactionBinding == null")
 
-    private val viewModel by lazy {
-        ViewModelProvider(
-            this,
-            ChooseReactionViewModelFactory(
-                UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            )
-        )[ChooseReactionViewModel::class.java]
-    }
+    private var messageId = UNDEFINED_ID
+    private var userId = UNDEFINED_ID
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -42,6 +33,8 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        parseParams()
 
         (dialog as? BottomSheetDialog)?.behavior?.apply {
             state = BottomSheetBehavior.STATE_HALF_EXPANDED
@@ -59,12 +52,7 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     private fun setupListeners() {
         binding.flexBoxLayout.setOnChildClickListener { _, view ->
             if (view is ReactionView) {
-                val messageId =
-                    ChooseReactionDialogFragmentArgs.fromBundle(requireArguments()).messageId
-                val userId =
-                    ChooseReactionDialogFragmentArgs.fromBundle(requireArguments()).userId
-                viewModel.updateReaction(messageId, userId, view.emoji)
-                dismiss()
+                dismissWithResult(view.emoji)
             }
         }
         binding.textViewTopLine.setOnClickListener {
@@ -85,7 +73,33 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private companion object {
-        const val REACTION_PADDING = 4f
+    private fun dismissWithResult(reaction: String) {
+        listener?.invoke(messageId, userId, reaction)
+        dismiss()
+    }
+
+    private fun parseParams() {
+        messageId = arguments?.getInt(MESSAGE_ID) ?: UNDEFINED_ID
+        userId = arguments?.getInt(USER_ID) ?: UNDEFINED_ID
+        if (messageId == UNDEFINED_ID || userId == UNDEFINED_ID)
+            dismiss()
+    }
+
+    companion object {
+        const val TAG = "ChooseReactionDialog"
+        private const val REACTION_PADDING = 4f
+        private const val UNDEFINED_ID = -1
+
+        private const val MESSAGE_ID = "messageId"
+        private const val USER_ID = "userId"
+
+        fun newInstance(messageId: Int, userId: Int): ChooseReactionDialogFragment {
+            return ChooseReactionDialogFragment().apply {
+                arguments = Bundle().apply {
+                    putInt(MESSAGE_ID, messageId)
+                    putInt(USER_ID, userId)
+                }
+            }
+        }
     }
 }

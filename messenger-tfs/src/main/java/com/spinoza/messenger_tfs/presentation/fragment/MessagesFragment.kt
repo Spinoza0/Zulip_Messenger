@@ -13,7 +13,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
+import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
@@ -78,12 +78,6 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupScreen() {
-        binding.toolbar.setNavigationOnClickListener {
-            if (!findNavController().popBackStack()) {
-                requireActivity().finish()
-            }
-        }
-
         setupStatusBar()
         setupRecyclerView()
         setupObservers()
@@ -133,6 +127,10 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupListeners() {
+        binding.toolbar.setNavigationOnClickListener {
+            MessengerApp.router.exit()
+        }
+
         binding.imageViewAction.setOnClickListener {
             sendMessage()
         }
@@ -148,12 +146,12 @@ class MessagesFragment : Fragment() {
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
-        val action =
-            MessagesFragmentDirections.actionMessagesFragmentToChooseReactionDialogFragment(
-                messageView.messageId,
-                TEST_USER_ID
-            )
-        this.findNavController().navigate(action)
+        val dialog = ChooseReactionDialogFragment.newInstance(
+            messageView.messageId,
+            TEST_USER_ID
+        )
+        dialog.listener = viewModel::updateReaction
+        dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
     }
 
     private fun changeButtonSendIcon(readyToSend: Boolean) {

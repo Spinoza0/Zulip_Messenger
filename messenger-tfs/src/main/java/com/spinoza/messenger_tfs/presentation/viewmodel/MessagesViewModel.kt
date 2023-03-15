@@ -49,9 +49,13 @@ class MessagesViewModel(
         return false
     }
 
-    fun updateReaction(messageView: MessageView, reactionView: ReactionView) {
+    fun updateReaction(messageId: Int, userId: Int, reaction: String) {
         viewModelScope.launch {
-            updateReactionUseCase(messageView.messageId, TEST_USER_ID, reactionView.emoji)
+            updateReactionUseCase(messageId, userId, reaction)
         }
+    }
+
+    fun updateReaction(messageView: MessageView, reactionView: ReactionView) {
+        updateReaction(messageView.messageId, TEST_USER_ID, reactionView.emoji)
     }
 }
