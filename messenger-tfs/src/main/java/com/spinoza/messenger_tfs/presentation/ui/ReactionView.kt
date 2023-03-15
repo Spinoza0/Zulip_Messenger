@@ -42,13 +42,11 @@ class ReactionView @JvmOverloads constructor(
 
     private var reaction = ""
     private val cornerRadius = CORNER_RADIUS.dpToPx(this)
-    private val selectedBackgroundColor =
-        context.getThemeColor(R.attr.reaction_selected_background_color)
-    private val unselectedBackgroundColor =
-        context.getThemeColor(R.attr.reaction_unselected_background_color)
+    private val selectedBackgroundColor = context.getThemeColor(R.attr.background_200_color)
+    private val unselectedBackgroundColor = context.getThemeColor(R.attr.background_500_color)
     private val reactionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
-        color = context.getThemeColor(R.attr.reaction_text_color)
+        color = context.getThemeColor(R.attr.text_500_color)
     }
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val textBounds = Rect()

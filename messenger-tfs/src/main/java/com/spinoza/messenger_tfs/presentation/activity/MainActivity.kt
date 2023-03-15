@@ -9,7 +9,7 @@ import com.spinoza.messenger_tfs.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    private val navigator = AppNavigator(this, R.id.fragmentContainer)
+    private val navigator = AppNavigator(this, R.id.mainFragmentContainer)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

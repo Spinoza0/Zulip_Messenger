@@ -12,40 +12,26 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
 
-        <!-- ReactionView colors -->
-        <item name="reaction_selected_background_color">@color/reaction_selected_background_night
-        </item>
-        <item name="reaction_unselected_background_color">
-            @color/reaction_unselected_background_night
-        </item>
-        <item name="reaction_text_color">@color/reaction_text_night</item>
+        <!-- Common messenger colors -->
+        <item name="background_200_color">@color/background_200_night</item>
+        <item name="background_500_color">@color/background_500_night</item>
+        <item name="background_700_color">@color/background_700_night</item>
+        <item name="text_200_color">@color/text_200_night</item>
+        <item name="text_500_color">@color/text_500_night</item>
 
-        <!-- FlexBoxLayout colors -->
-        <item name="flexbox_add_icon_background_color">@color/flexbox_add_icon_background_night
-        </item>
-
-        <!-- MessageView colors -->
-        <item name="message_companion_background_color">@color/message_companion_background_night
-        </item>
+        <!-- MessageView -->
         <item name="message_user_background_start_color">
             @color/message_user_background_start_night
         </item>
         <item name="message_user_background_end_color">@color/message_user_background_end_night
         </item>
         <item name="message_name_color">@color/message_name_night</item>
-        <item name="message_text_color">@color/message_text_night</item>
 
         <!-- Channel -->
         <item name="channel_toolbar_background_color">@color/channel_toolbar_background_night</item>
         <item name="channel_toolbar_text_color">@color/channel_toolbar_text_night</item>
-        <item name="channel_background_color">@color/channel_background_night</item>
-        <item name="channel_new_message_background_color">
-            @color/channel_new_message_background_night
-        </item>
         <item name="channel_new_message_text_background_color">
             @color/channel_new_message_text_background_night
-        </item>
-        <item name="channel_new_message_text_color">@color/channel_new_message_text_night
         </item>
         <item name="channel_date_background_color">@color/channel_date_background_night</item>
         <item name="channel_date_text_color">@color/channel_date_text_night</item>
@@ -54,7 +40,6 @@
         </item>
 
         <!-- Bottom Navigation-->
-        <item name="bottom_navigation_selected_color">@color/bottom_navigation_selected_night</item>
         <item name="bottom_navigation_unselected_color">@color/bottom_navigation_unselected_night
         </item>
 

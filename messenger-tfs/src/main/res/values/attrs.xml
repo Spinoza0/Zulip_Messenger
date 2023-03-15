@@ -1,16 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <declare-styleable name="messenger_common">
+        <attr name="background_200_color" format="color" />
+        <attr name="background_500_color" format="color" />
+        <attr name="background_700_color" format="color" />
+        <attr name="text_200_color" format="color" />
+        <attr name="text_500_color" format="color" />
+    </declare-styleable>
+
     <declare-styleable name="reaction_view">
-        <attr name="reaction_selected_background_color" format="color" />
-        <attr name="reaction_unselected_background_color" format="color" />
-        <attr name="reaction_text_color" format="color" />
         <attr name="emoji" format="string" />
         <attr name="count" format="integer" />
         <attr name="size" format="dimension" />
     </declare-styleable>
 
     <declare-styleable name="flexbox_layout">
-        <attr name="flexbox_add_icon_background_color" format="color" />
         <attr name="margin" format="dimension" />
         <attr name="gravity" format="integer">
             <flag name="start" value="0" />
@@ -20,11 +25,9 @@
     </declare-styleable>
 
     <declare-styleable name="message_view">
-        <attr name="message_companion_background_color" format="color" />
         <attr name="message_user_background_start_color" format="color" />
         <attr name="message_user_background_end_color" format="color" />
         <attr name="message_name_color" format="color" />
-        <attr name="message_text_color" format="color" />
         <attr name="message_background_color" format="reference" />
         <attr name="message_type_is_user" format="boolean" />
         <attr name="reactions_gravity" format="integer">
@@ -37,10 +40,7 @@
     <declare-styleable name="channel">
         <attr name="channel_toolbar_background_color" format="color" />
         <attr name="channel_toolbar_text_color" format="color" />
-        <attr name="channel_background_color" format="color" />
-        <attr name="channel_new_message_background_color" format="color" />
         <attr name="channel_new_message_text_background_color" format="color" />
-        <attr name="channel_new_message_text_color" format="color" />
         <attr name="channel_date_background_color" format="color" />
         <attr name="channel_date_text_color" format="color" />
         <attr name="channel_add_reactions_top_line_color" format="color" />
@@ -48,6 +48,5 @@
 
     <declare-styleable name="bottom_navigation">
         <attr name="bottom_navigation_unselected_color" format="color" />
-        <attr name="bottom_navigation_selected_color" format="color" />
     </declare-styleable>
 </resources>

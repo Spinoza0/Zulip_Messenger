@@ -12,40 +12,30 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
 
-        <!-- ReactionView colors -->
-        <item name="reaction_selected_background_color">@color/reaction_selected_background</item>
-        <item name="reaction_unselected_background_color">@color/reaction_unselected_background
-        </item>
-        <item name="reaction_text_color">@color/reaction_text</item>
+        <!-- Common messenger colors -->
+        <item name="background_200_color">@color/background_200</item>
+        <item name="background_500_color">@color/background_500</item>
+        <item name="background_700_color">@color/background_700</item>
+        <item name="text_200_color">@color/text_200</item>
+        <item name="text_500_color">@color/text_500</item>
 
-        <!-- FlexBoxLayout colors -->
-        <item name="flexbox_add_icon_background_color">@color/flexbox_add_icon_background</item>
-
-        <!-- MessageView colors -->
-        <item name="message_companion_background_color">@color/message_companion_background</item>
+        <!-- MessageView -->
         <item name="message_user_background_start_color">@color/message_user_background_start</item>
         <item name="message_user_background_end_color">@color/message_user_background_end</item>
         <item name="message_name_color">@color/message_name</item>
-        <item name="message_text_color">@color/message_text</item>
 
         <!-- Channel -->
         <item name="channel_toolbar_background_color">@color/channel_toolbar_background</item>
         <item name="channel_toolbar_text_color">@color/channel_toolbar_text</item>
-        <item name="channel_background_color">@color/channel_background</item>
-        <item name="channel_new_message_background_color">
-            @color/channel_new_message_background
-        </item>
         <item name="channel_new_message_text_background_color">
             @color/channel_new_message_text_background
         </item>
-        <item name="channel_new_message_text_color">@color/channel_new_message_text</item>
         <item name="channel_date_background_color">@color/channel_date_background</item>
         <item name="channel_date_text_color">@color/channel_date_text</item>
         <item name="channel_add_reactions_top_line_color">@color/channel_add_reactions_top_line
         </item>
 
         <!-- Bottom Navigation-->
-        <item name="bottom_navigation_selected_color">@color/bottom_navigation_selected</item>
         <item name="bottom_navigation_unselected_color">@color/bottom_navigation_unselected</item>
 
     </style>
