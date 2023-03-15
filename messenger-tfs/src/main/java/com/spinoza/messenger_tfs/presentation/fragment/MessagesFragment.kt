@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -30,6 +31,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.utils.groupByDate
+import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToChangedMessage
@@ -64,6 +66,12 @@ class MessagesFragment : Fragment() {
         )[MessagesViewModel::class.java]
     }
 
+    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            openMainFragment()
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
@@ -73,6 +81,11 @@ class MessagesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            requireActivity(),
+            onBackPressedCallback
+        )
 
         setupScreen()
     }
@@ -128,7 +141,7 @@ class MessagesFragment : Fragment() {
 
     private fun setupListeners() {
         binding.toolbar.setNavigationOnClickListener {
-            MessengerApp.router.exit()
+            openMainFragment()
         }
 
         binding.imageViewAction.setOnClickListener {
@@ -186,5 +199,16 @@ class MessagesFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun openMainFragment() {
+        MessengerApp.router.replaceScreen(Screens.Main())
+    }
+
+    companion object {
+
+        fun newInstance(): MessagesFragment {
+            return MessagesFragment()
+        }
     }
 }

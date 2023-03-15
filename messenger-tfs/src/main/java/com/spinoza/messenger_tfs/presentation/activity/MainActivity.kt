@@ -9,7 +9,7 @@ import com.spinoza.messenger_tfs.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
-    private val navigator = AppNavigator(this, R.id.mainFragmentContainer)
+    private val globalNavigator = AppNavigator(this, R.id.mainFragmentContainer)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,11 +19,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResumeFragments() {
         super.onResumeFragments()
-        MessengerApp.navigatorHolder.setNavigator(navigator)
+        MessengerApp.navigatorHolder.setNavigator(globalNavigator)
     }
 
     override fun onPause() {
-        MessengerApp.navigatorHolder.removeNavigator()
         super.onPause()
+        MessengerApp.navigatorHolder.removeNavigator()
     }
 }
