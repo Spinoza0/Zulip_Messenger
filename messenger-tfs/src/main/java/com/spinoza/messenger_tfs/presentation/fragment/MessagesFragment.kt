@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -18,7 +19,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
-import com.spinoza.messenger_tfs.domain.usecase.GetRepositoryStateUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserIdUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
@@ -29,15 +30,13 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessa
 import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
+import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToChangedMessage
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
 import kotlinx.coroutines.launch
-
-// TODO: Нужно MessageView сделать корневым для сообщений пользователей,
-//       протестировать выравнивание реакций по правому краю для своих сообщений
 
 class MessagesFragment : Fragment() {
 
@@ -55,7 +54,7 @@ class MessagesFragment : Fragment() {
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
-            GetRepositoryStateUseCase(MessagesRepositoryImpl.getInstance()),
+            GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             GetUserIdUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
@@ -107,14 +106,13 @@ class MessagesFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.repositoryState.collect(::handleRepositoryState)
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.messagesFragmentState.collect {
-                    binding.imageViewAction.setImageResource(it.buttonSendIconResId)
+                viewModel.messagesFragmentState.collect { state ->
+                    when (state) {
+                        is MessagesFragmentState.Repository -> handleRepositoryState(state.state)
+                        is MessagesFragmentState.SendIconImage -> {
+                            binding.imageViewAction.setImageResource(state.resId)
+                        }
+                    }
                 }
             }
         }
@@ -136,8 +134,9 @@ class MessagesFragment : Fragment() {
                     else -> {}
                 }
             }
-            // TODO: show error
-            is RepositoryState.Error -> {}
+            is RepositoryState.Error -> {
+                Toast.makeText(context, state.text, Toast.LENGTH_LONG).show()
+            }
             else -> {}
         }
     }

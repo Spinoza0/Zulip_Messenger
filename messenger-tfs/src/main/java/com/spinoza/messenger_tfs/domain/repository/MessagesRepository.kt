@@ -1,19 +1,18 @@
 package com.spinoza.messenger_tfs.domain.repository
 
 import com.spinoza.messenger_tfs.domain.model.Message
-import kotlinx.coroutines.flow.StateFlow
 
 interface MessagesRepository {
 
     fun getUserId(): Long
 
-    fun getState(): StateFlow<RepositoryState>
+    fun getMessages(): RepositoryState
 
-    fun getAllChannels()
+    fun getAllChannels(): RepositoryState
 
-    fun getSubscribedChannels()
+    fun getSubscribedChannels(): RepositoryState
 
-    suspend fun sendMessage(message: Message)
+    suspend fun sendMessage(message: Message): RepositoryState
 
-    suspend fun updateReaction(messageId: Long, reaction: String)
+    suspend fun updateReaction(messageId: Long, reaction: String): RepositoryState
 }

@@ -10,23 +10,15 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.util.*
 
 
-// TODO: 1) возможно, есть смысл отказаться от Flow, использовать просто suspend functions
-// TODO: 2) отрефакторить - не все сообщения сразу эмиттить, а только новые или измененные
-// TODO: 3) отрефакторить - кэш (messagesLocalCache) вынести в отдельный класс
+// TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
+// TODO: 2) отрефакторить - кэш (messagesLocalCache) вынести в отдельный класс
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     private val userId = TEST_USER_ID
-
-    private val state = MutableStateFlow<RepositoryState>(
-        RepositoryState.Idle
-    )
 
     private val messagesLocalCache = TreeSet<MessageDto>()
 
@@ -39,40 +31,36 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return userId
     }
 
-    // TODO: подумать о вынесении в init или конструктор, не забыть про userId - скорее всего
-    //  userId будет передаваться через метод фильтрации (stream/topic) или к этому моменту его
-    //  передача перестанет быть актуальной (поменяется структура данных)
-    override fun getState(): StateFlow<RepositoryState> {
-        state.value = RepositoryState.Messages(messagesLocalCache.toDomain(userId))
-        return state.asStateFlow()
+    override fun getMessages(): RepositoryState {
+        return RepositoryState.Messages(messagesLocalCache.toDomain(userId))
     }
 
-    override fun getAllChannels() {
-        state.value = RepositoryState.Channels(streamsDto.toDomain())
+    override fun getAllChannels(): RepositoryState {
+        return RepositoryState.Channels(streamsDto.toDomain())
     }
 
-    override fun getSubscribedChannels() {
-        getAllChannels()
+    override fun getSubscribedChannels(): RepositoryState {
+        return getAllChannels()
         // TODO: "Not yet implemented"
     }
 
-    override suspend fun sendMessage(message: Message) {
+    override suspend fun sendMessage(message: Message): RepositoryState {
         val newMessageId = if (message.id == Message.UNDEFINED_ID) {
             messagesLocalCache.size.toLong()
         } else {
             message.id
         }
         messagesLocalCache.add(message.toDto(message.userId, newMessageId))
-        state.emit(
-            RepositoryState.Messages(
-                messagesLocalCache.toDomain(message.userId),
-                MessagePosition(type = MessagePosition.Type.LAST_POSITION)
-            )
+        return RepositoryState.Messages(
+            messagesLocalCache.toDomain(message.userId),
+            MessagePosition(type = MessagePosition.Type.LAST_POSITION)
         )
     }
 
-    override suspend fun updateReaction(messageId: Long, reaction: String) {
-        val messageDto = messagesLocalCache.find { it.id == messageId } ?: return
+    override suspend fun updateReaction(messageId: Long, reaction: String): RepositoryState {
+        val messageDto = messagesLocalCache.find { it.id == messageId }
+            ?: return RepositoryState.Error(String.format(ERROR_USER_NOT_FOUND, userId))
+
         val reactionDto = messageDto.reactions[reaction]
         val newReactionsDto = messageDto.reactions.toMutableMap()
 
@@ -89,11 +77,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         messagesLocalCache.removeIf { it.id == messageId }
         messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
-        state.emit(
-            RepositoryState.Messages(
-                messagesLocalCache.toDomain(userId),
-                MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
-            )
+        return RepositoryState.Messages(
+            messagesLocalCache.toDomain(userId),
+            MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
         )
     }
 
@@ -117,6 +103,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         // TODO: for testing purpose
         const val TEST_USER_ID = 100L
+
+        // TODO: extract to string resources
+        private const val ERROR_USER_NOT_FOUND = "User %s not found"
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit
