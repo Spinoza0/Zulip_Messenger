@@ -31,16 +31,18 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         AppNavigator(requireActivity(), R.id.fragmentContainer)
     }
 
-    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-            when (binding.bottomNavigationView.selectedItemId) {
-                R.id.menu_channels -> {
-                    requireActivity().moveTaskToBack(true)
-                    requireActivity().finish()
-                }
-                R.id.menu_people, R.id.menu_profile -> {
-                    localRouter.replaceScreen(Screens.Channels())
-                    binding.bottomNavigationView.selectedItemId = R.id.menu_channels
+    private val onBackPressedCallback by lazy {
+        object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                when (binding.bottomNavigationView.selectedItemId) {
+                    R.id.menu_channels -> {
+                        requireActivity().moveTaskToBack(true)
+                        requireActivity().finish()
+                    }
+                    R.id.menu_people, R.id.menu_profile -> {
+                        localRouter.replaceScreen(Screens.Channels())
+                        binding.bottomNavigationView.selectedItemId = R.id.menu_channels
+                    }
                 }
             }
         }
@@ -64,11 +66,6 @@ class MainFragment : Fragment(), OnItemSelectedListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        requireActivity().onBackPressedDispatcher.addCallback(
-            requireActivity(),
-            onBackPressedCallback
-        )
-
         binding.bottomNavigationView.setOnItemSelectedListener(this)
 
         setupStatusBar()
@@ -91,12 +88,19 @@ class MainFragment : Fragment(), OnItemSelectedListener {
 
     override fun onResume() {
         super.onResume()
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            requireActivity(),
+            onBackPressedCallback
+        )
+
         navigatorHolder.setNavigator(localNavigator)
     }
 
     override fun onPause() {
         super.onPause()
         navigatorHolder.removeNavigator()
+        onBackPressedCallback.remove()
     }
 
     override fun onDestroyView() {

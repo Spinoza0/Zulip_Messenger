@@ -61,12 +61,13 @@ class MessagesFragment : Fragment() {
         )
     }
 
-    private val onBackPressedCallback =
+    private val onBackPressedCallback by lazy {
         object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 openMainFragment()
             }
         }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -77,11 +78,6 @@ class MessagesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        requireActivity().onBackPressedDispatcher.addCallback(
-            requireActivity(),
-            onBackPressedCallback
-        )
 
         setupScreen()
     }
@@ -179,6 +175,20 @@ class MessagesFragment : Fragment() {
         ) {
             callbackAfterSubmit()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            requireActivity(),
+            onBackPressedCallback
+        )
+    }
+
+    override fun onPause() {
+        super.onPause()
+        onBackPressedCallback.remove()
     }
 
     override fun onDestroyView() {
