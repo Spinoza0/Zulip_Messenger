@@ -2,11 +2,11 @@ package com.spinoza.messenger_tfs.domain.usecase
 
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 
 class GetRepositoryStateUseCase(private val repository: MessagesRepository) {
 
-    operator fun invoke(userId: Long): SharedFlow<RepositoryState> {
+    operator fun invoke(userId: Long): StateFlow<RepositoryState> {
         return repository.getState(userId)
     }
 }

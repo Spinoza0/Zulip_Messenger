@@ -9,13 +9,9 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.*
 
 
@@ -25,9 +21,8 @@ import java.util.*
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
-    private val state = MutableSharedFlow<RepositoryState>(
-        replay = COUNT_OF_LAST_EMITTED_VALUES,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    private val state = MutableStateFlow<RepositoryState>(
+        RepositoryState.Idle
     )
 
     private val messagesLocalCache = TreeSet<MessageDto>()
@@ -37,11 +32,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesLocalCache.addAll(prepareTestData())
     }
 
-    override fun getState(userId: Long): SharedFlow<RepositoryState> {
-        CoroutineScope(Dispatchers.Default).launch {
-            state.emit(RepositoryState.Messages(messagesLocalCache.toDomain(userId)))
-        }
-        return state.asSharedFlow()
+    // TODO: подумать о вынесении в init или конструктор, не забыть про userId - скорее всего
+    //  userId будет передаваться через метод фильтрации (stream/topic) или к этому момент его
+    //  передача перестанет быть актуальной (поменяется структура данных)
+    override fun getState(userId: Long): StateFlow<RepositoryState> {
+        state.value = RepositoryState.Messages(messagesLocalCache.toDomain(userId))
+        return state.asStateFlow()
     }
 
     override suspend fun sendMessage(message: Message) {
@@ -102,8 +98,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     companion object {
-
-        private const val COUNT_OF_LAST_EMITTED_VALUES = 1
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit

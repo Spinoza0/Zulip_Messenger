@@ -12,6 +12,7 @@ import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.google.android.material.navigation.NavigationBarView.OnItemSelectedListener
+import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMainBinding
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
@@ -24,7 +25,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         get() = _binding ?: throw RuntimeException("FragmentMainBinding == null")
 
     lateinit var navigatorHolder: NavigatorHolder
-    lateinit var router: Router
+    lateinit var localRouter: Router
     private val localNavigator by lazy {
         AppNavigator(requireActivity(), R.id.fragmentContainer)
     }
@@ -37,7 +38,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
                     requireActivity().finish()
                 }
                 R.id.menu_people, R.id.menu_profile -> {
-                    router.replaceScreen(Screens.Channels())
+                    localRouter.replaceScreen(Screens.Channels())
                     binding.bottomNavigationView.selectedItemId = R.id.menu_channels
                 }
             }
@@ -48,7 +49,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         super.onCreate(savedInstanceState)
         val cicerone = Cicerone.create()
         navigatorHolder = cicerone.getNavigatorHolder()
-        router = cicerone.router
+        localRouter = cicerone.router
     }
 
     override fun onCreateView(
@@ -70,15 +71,17 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         binding.bottomNavigationView.setOnItemSelectedListener(this)
 
         if (savedInstanceState == null) {
-            router.newRootScreen(Screens.Channels())
+            localRouter.newRootScreen(Screens.Channels())
         }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_channels -> router.replaceScreen(Screens.Channels())
-            R.id.menu_people -> router.replaceScreen(Screens.People())
-            R.id.menu_profile -> router.replaceScreen(Screens.Profile())
+            R.id.menu_channels -> localRouter.replaceScreen(Screens.Channels())
+            R.id.menu_people -> localRouter.replaceScreen(Screens.People())
+            // TODO: сделано в целях тестирования, убрать и вернуть закомментированное
+            R.id.menu_profile -> MessengerApp.router.replaceScreen(Screens.Messages())
+            // R.id.menu_profile -> localRouter.replaceScreen(Screens.Profile())
         }
         return true
     }

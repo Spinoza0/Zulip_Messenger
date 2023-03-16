@@ -9,8 +9,8 @@ import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
@@ -34,6 +34,9 @@ import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToChangedMessage
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
 import kotlinx.coroutines.launch
+
+// TODO: Нужно MessageView сделать корневым для сообщений пользователей,
+//       протестировать выравнивание реакций по правому краю для своих сообщений
 
 class MessagesFragment : Fragment() {
 
@@ -100,15 +103,17 @@ class MessagesFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            viewModel.repositoryState
-                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect(::handleRepositoryState)
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.repositoryState.collect(::handleRepositoryState)
+            }
+        }
 
-            viewModel.messagesFragmentState
-                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.messagesFragmentState.collect {
                     binding.imageViewAction.setImageResource(it.buttonSendIconResId)
                 }
+            }
         }
     }
 
@@ -130,6 +135,7 @@ class MessagesFragment : Fragment() {
             }
             // TODO: show error
             is RepositoryState.Error -> {}
+            is RepositoryState.Idle -> {}
         }
     }
 

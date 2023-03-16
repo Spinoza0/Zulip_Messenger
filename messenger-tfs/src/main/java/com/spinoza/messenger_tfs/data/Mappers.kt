@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.data.model.ReactionParamDto
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import java.util.*
+import kotlin.random.Random
 
 fun MessageDto.toDomain(userId: Long): Message {
     return Message(
@@ -28,6 +29,11 @@ private fun ReactionParamDto.toDomain(userId: Long): ReactionParam {
 }
 
 fun Message.toDto(userId: Long, messageId: Long): MessageDto {
+
+    // TODO: сделано в целях тестирования, убрать, заменить на реальные данные
+    val stream = streamsDto[Random.nextInt(streamsDto.size)]
+    val topic = stream.topics[Random.nextInt(stream.topics.size)]
+
     return MessageDto(
         date = this.date,
         userId = this.userId,
@@ -35,7 +41,9 @@ fun Message.toDto(userId: Long, messageId: Long): MessageDto {
         content = this.content,
         avatarResId = this.avatarResId,
         reactions = this.reactions.toDto(userId),
-        id = messageId
+        id = messageId,
+        streamId = stream.id,
+        subject = topic.name
     )
 }
 

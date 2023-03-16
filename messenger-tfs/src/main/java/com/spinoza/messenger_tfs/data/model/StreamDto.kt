@@ -7,4 +7,5 @@ package com.spinoza.messenger_tfs.data.model
 class StreamDto(
     val id: Long,
     val name: String,
+    val topics: List<TopicDto>,
 )

@@ -12,9 +12,9 @@ import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MessagesFragmentViewModel(
@@ -23,12 +23,13 @@ class MessagesFragmentViewModel(
     private val updateReactionUseCase: UpdateReactionUseCase,
 ) : ViewModel() {
 
-    val repositoryState: SharedFlow<RepositoryState> = getRepositoryStateUseCase(TEST_USER_ID)
-    val messagesFragmentState: SharedFlow<MessagesFragmentState>
-        get() = _messagesFragmentState.asSharedFlow()
+    val repositoryState: StateFlow<RepositoryState> = getRepositoryStateUseCase(TEST_USER_ID)
+
+    val messagesFragmentState: StateFlow<MessagesFragmentState>
+        get() = _messagesFragmentState.asStateFlow()
 
     private val _messagesFragmentState =
-        MutableSharedFlow<MessagesFragmentState>()
+        MutableStateFlow<MessagesFragmentState>(MessagesFragmentState(R.drawable.ic_add_circle_outline))
 
     // for testing purpose
     fun getUserId(): Long {
@@ -40,9 +41,7 @@ class MessagesFragmentViewModel(
             R.drawable.ic_send
         else
             R.drawable.ic_add_circle_outline
-        viewModelScope.launch {
-            _messagesFragmentState.emit(MessagesFragmentState(resId))
-        }
+        _messagesFragmentState.value = MessagesFragmentState(resId)
     }
 
     fun sendMessage(messageText: String): Boolean {
