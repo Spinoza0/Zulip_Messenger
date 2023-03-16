@@ -6,8 +6,6 @@ import com.spinoza.messenger_tfs.domain.model.MessagePosition
 
 sealed class RepositoryState {
 
-    object Idle : RepositoryState()
-
     class Error(val text: String) : RepositoryState()
 
     class Messages(

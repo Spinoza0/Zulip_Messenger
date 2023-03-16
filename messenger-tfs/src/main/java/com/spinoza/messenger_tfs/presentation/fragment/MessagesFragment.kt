@@ -106,7 +106,7 @@ class MessagesFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.messagesFragmentState.collect { state ->
+                viewModel.state.collect { state ->
                     when (state) {
                         is MessagesFragmentState.Repository -> handleRepositoryState(state.state)
                         is MessagesFragmentState.SendIconImage -> {

@@ -24,16 +24,16 @@ class MessagesFragmentViewModel(
     private val updateReactionUseCase: UpdateReactionUseCase,
 ) : ViewModel() {
 
-    val messagesFragmentState: StateFlow<MessagesFragmentState>
-        get() = _messagesFragmentState.asStateFlow()
+    val state: StateFlow<MessagesFragmentState>
+        get() = _state.asStateFlow()
 
-    private val _messagesFragmentState =
+    private val _state =
         MutableStateFlow<MessagesFragmentState>(
             MessagesFragmentState.SendIconImage(R.drawable.ic_add_circle_outline)
         )
 
     init {
-        _messagesFragmentState.value = MessagesFragmentState.Repository(getMessagesUseCase())
+        _state.value = MessagesFragmentState.Repository(getMessagesUseCase())
     }
 
     fun getUserId() = getUserIdUseCase()
@@ -43,7 +43,7 @@ class MessagesFragmentViewModel(
             R.drawable.ic_send
         else
             R.drawable.ic_add_circle_outline
-        _messagesFragmentState.value = MessagesFragmentState.SendIconImage(resId)
+        _state.value = MessagesFragmentState.SendIconImage(resId)
     }
 
     fun sendMessage(messageText: String): Boolean {
@@ -59,7 +59,7 @@ class MessagesFragmentViewModel(
                     emptyMap(),
                     false
                 )
-                _messagesFragmentState.value = MessagesFragmentState.Repository(
+                _state.value = MessagesFragmentState.Repository(
                     sendMessageUseCase(
                         message
                     )
@@ -72,7 +72,7 @@ class MessagesFragmentViewModel(
 
     fun updateReaction(messageId: Long, reaction: String) {
         viewModelScope.launch {
-            _messagesFragmentState.value = MessagesFragmentState.Repository(
+            _state.value = MessagesFragmentState.Repository(
                 updateReactionUseCase(
                     messageId,
                     reaction
