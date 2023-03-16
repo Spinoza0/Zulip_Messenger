@@ -29,8 +29,8 @@ import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToChangedMessage
-import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageViewModelFactory
+import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
 class MessagesFragment : Fragment() {
@@ -47,8 +47,8 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    private val viewModel: MessagesViewModel by viewModels {
-        MessageViewModelFactory(
+    private val viewModel: MessagesFragmentViewModel by viewModels {
+        MessagesFragmentViewModelFactory(
             GetRepositoryStateUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),

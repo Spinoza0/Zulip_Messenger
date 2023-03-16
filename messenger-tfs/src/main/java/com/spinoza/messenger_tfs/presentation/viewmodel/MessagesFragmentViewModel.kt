@@ -14,7 +14,7 @@ import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
-class MessagesViewModel(
+class MessagesFragmentViewModel(
     getRepositoryStateUseCase: GetRepositoryStateUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
