@@ -1,23 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.spinoza.messenger_tfs.presentation.ui.MessageView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/messageView"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-
-    <com.spinoza.messenger_tfs.presentation.ui.MessageView
-        android:id="@+id/messageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="100dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constrainedWidth="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:message_background_color="@drawable/shape_message_companion_bottom"
-        app:message_type_is_user="false"
-        app:reactions_gravity="start" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:layout_marginEnd="100dp"
+    app:message_background_color="@drawable/shape_message_companion_bottom"
+    app:message_type_is_user="false"
+    app:reactions_gravity="start" />
