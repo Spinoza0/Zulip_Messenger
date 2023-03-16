@@ -22,6 +22,8 @@ buildscript {
 
             androidMaterial         : "1.8.0",
 
+            room                    : "2.5.0",
+
             junit4                  : "4.13.2",
 
             androidxTestExt         : "1.1.5",
@@ -40,6 +42,12 @@ buildscript {
             fragment: "androidx.navigation:navigation-fragment-ktx:${versions.navigation}",
             ui      : "androidx.navigation:navigation-ui-ktx:${versions.navigation}",
             cicerone: "com.github.terrakok:cicerone:${versions.cicerone}"
+    ]
+
+    ext.room = [
+            runtime : "androidx.room:room-runtime:${versions.room}",
+            compiler: "androidx.room:room-compiler:${versions.room}",
+            ktx     : "androidx.room:room-ktx:${versions.room}",
     ]
 
     ext.leakcanary = "com.squareup.leakcanary:leakcanary-android:${versions.leakcanary}"
