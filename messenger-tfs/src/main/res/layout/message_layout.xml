@@ -11,13 +11,14 @@
         android:layout_marginEnd="8dp"
         android:contentDescription="@string/avatar"
         android:scaleType="centerCrop"
-        tools:src="@drawable/face" />
+        tools:src="@drawable/test_face" />
 
     <TextView
         android:id="@+id/nameTextView"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/shape_message_layout_top"
+        android:background="@drawable/shape_message_companion_top"
+        android:minWidth="100dp"
         android:paddingHorizontal="13dp"
         android:paddingTop="8dp"
         android:paddingBottom="4dp"
@@ -27,9 +28,10 @@
 
     <TextView
         android:id="@+id/messageTextView"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/shape_message_layout_bottom"
+        android:background="@drawable/shape_message_companion_bottom"
+        android:minWidth="100dp"
         android:paddingHorizontal="13dp"
         android:paddingBottom="16dp"
         android:textColor="?attr/message_text_color"
@@ -40,7 +42,7 @@
         android:id="@+id/reactionsFlexBoxLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="8dp"
         app:margin="8dp" />
 
 </merge>

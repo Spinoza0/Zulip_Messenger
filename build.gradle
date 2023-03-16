@@ -6,6 +6,9 @@ buildscript {
             androidxAppCompat       : "1.6.1",
             androidxConstraintlayout: "2.1.4",
 
+            navigation              : "2.5.3",
+            cicerone                : "7.1",
+
             compileSdk              : 33,
             minSdk                  : 24,
             targetSdk               : 33,
@@ -32,7 +35,13 @@ buildscript {
             appcompat       : "androidx.appcompat:appcompat:${versions.androidxAppCompat}",
             constraintlayout: "androidx.constraintlayout:constraintlayout:${versions.androidxConstraintlayout}"
     ]
-    
+
+    ext.navigation = [
+            fragment: "androidx.navigation:navigation-fragment-ktx:${versions.navigation}",
+            ui      : "androidx.navigation:navigation-ui-ktx:${versions.navigation}",
+            cicerone: "com.github.terrakok:cicerone:${versions.cicerone}"
+    ]
+
     ext.leakcanary = "com.squareup.leakcanary:leakcanary-android:${versions.leakcanary}"
 
     ext.material = "com.google.android.material:material:${versions.androidMaterial}"

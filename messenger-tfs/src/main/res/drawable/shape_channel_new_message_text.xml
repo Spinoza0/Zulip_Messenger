@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners
+        android:bottomLeftRadius="89dp"
+        android:bottomRightRadius="89dp"
+        android:topLeftRadius="89dp"
+        android:topRightRadius="89dp" />
+    <solid android:color="?attr/channel_new_message_text_background_color" />
+</shape>

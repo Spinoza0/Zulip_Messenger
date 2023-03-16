@@ -43,5 +43,10 @@ dependencies {
 
     implementation material
 
+    implementation navigation.fragment
+    implementation navigation.ui
+
+    implementation navigation.cicerone
+
     debugImplementation leakcanary
 }

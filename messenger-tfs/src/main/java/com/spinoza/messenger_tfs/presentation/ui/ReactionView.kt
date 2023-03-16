@@ -4,13 +4,10 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.ReactionEntity
 
 class ReactionView @JvmOverloads constructor(
     context: Context,
@@ -24,16 +21,24 @@ class ReactionView @JvmOverloads constructor(
             field = value
             makeReaction()
         }
-    var count = 0
+    var count = EMOJI_START_COUNT
         set(value) {
             field = value
             makeReaction()
         }
-    var size = 0f
+    var size = EMOJI_SIZE
         set(value) {
             field = value
             makeReaction()
         }
+
+    var isCountVisible: Boolean = true
+        set(value) {
+            field = value
+            makeReaction()
+        }
+
+    var isBackgroundVisible: Boolean = true
 
     private var reaction = ""
     private val cornerRadius = CORNER_RADIUS.dpToPx(this)
@@ -51,19 +56,22 @@ class ReactionView @JvmOverloads constructor(
     init {
         context.withStyledAttributes(attrs, R.styleable.reaction_view) {
             emoji = this.getString(R.styleable.reaction_view_emoji) ?: ""
-            count = this.getInt(R.styleable.reaction_view_count, 0)
+            count = this.getInt(R.styleable.reaction_view_count, EMOJI_START_COUNT)
             size = this.getDimension(R.styleable.reaction_view_size, EMOJI_SIZE)
         }
-        val newPaddingLeft =
-            maxOf(paddingLeft, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
-        val newPaddingRight =
-            maxOf(paddingRight, DEFAULT_HORIZONTAL_PADDING.dpToPx(this).toInt())
-        val newPaddingTop =
-            maxOf(paddingTop, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
-        val newPaddingBottom =
-            maxOf(paddingBottom, DEFAULT_VERTICAL_PADDING.dpToPx(this).toInt())
-        setPadding(newPaddingLeft, newPaddingTop, newPaddingRight, newPaddingBottom)
-        isClickable = true
+    }
+
+    fun setCustomPadding(padding: Float) {
+        setCustomPadding(padding, padding, padding, padding)
+    }
+
+    fun setCustomPadding(left: Float, top: Float, right: Float, bottom: Float) {
+        setPadding(
+            left.dpToPx(this).toInt(),
+            top.dpToPx(this).toInt(),
+            right.dpToPx(this).toInt(),
+            bottom.dpToPx(this).toInt(),
+        )
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -81,7 +89,7 @@ class ReactionView @JvmOverloads constructor(
         backgroundPaint.color =
             if (isSelected) selectedBackgroundColor else unselectedBackgroundColor
 
-        canvas.drawRoundRect(
+        if (isBackgroundVisible) canvas.drawRoundRect(
             0f,
             0f,
             width.toFloat(),
@@ -96,74 +104,14 @@ class ReactionView @JvmOverloads constructor(
         canvas.drawText(reaction, offsetX, offsetY, reactionPaint)
     }
 
-    override fun performClick(): Boolean {
-        isSelected = !isSelected
-        return super.performClick()
-    }
-
-    fun getReactionEntity(): ReactionEntity {
-        return ReactionEntity(emoji, count, isSelected)
-    }
-
-    fun setReaction(reactionEntity: ReactionEntity) {
-        emoji = reactionEntity.emoji
-        count = reactionEntity.count
-        isSelected = reactionEntity.selected
-    }
-
-    override fun onSaveInstanceState(): Parcelable {
-        val state = SavedState(super.onSaveInstanceState())
-        state.isSelected = isSelected
-        state.count = count
-        return state
-    }
-
-    override fun onRestoreInstanceState(state: Parcelable) {
-        if (state is SavedState) {
-            super.onRestoreInstanceState(state)
-            isSelected = state.isSelected
-            count = state.count
-
-        } else {
-            super.onRestoreInstanceState(state)
-        }
-    }
-
     private fun makeReaction() {
-        reaction = "$emoji $count"
+        reaction = if (isCountVisible) "$emoji $count" else emoji
         reactionPaint.textSize = size.spToPx(this)
-    }
-
-    private class SavedState : BaseSavedState, Parcelable {
-
-        var isSelected = false
-        var count = 0
-
-        constructor(superState: Parcelable?) : super(superState)
-
-        private constructor(source: Parcel) : super(source) {
-            isSelected = source.readInt() == 1
-            count = source.readInt()
-        }
-
-        override fun writeToParcel(destination: Parcel, flags: Int) {
-            super.writeToParcel(destination, flags)
-            destination.writeInt(if (isSelected) 1 else 0)
-            destination.writeInt(count)
-        }
-
-        override fun describeContents() = 0
-
-        companion object CREATOR : Parcelable.Creator<SavedState> {
-            override fun createFromParcel(parcel: Parcel) = SavedState(parcel)
-            override fun newArray(size: Int): Array<SavedState?> = arrayOfNulls(size)
-        }
     }
 
     private companion object {
         const val EMOJI_SIZE = 14f
+        const val EMOJI_START_COUNT = 1
         const val CORNER_RADIUS = 10f
-        const val DEFAULT_HORIZONTAL_PADDING = EMOJI_SIZE
-        const val DEFAULT_VERTICAL_PADDING = EMOJI_SIZE / 2
     }
 }

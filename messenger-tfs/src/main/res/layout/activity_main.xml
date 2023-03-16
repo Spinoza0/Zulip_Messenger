@@ -1,47 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.fragment.app.FragmentContainerView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragmentContainer"
+    android:name="com.spinoza.messenger_tfs.presentation.fragment.MessagesFragment"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.MainActivity">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <ImageView
-            android:id="@+id/avatarImageView"
-            android:layout_width="37dp"
-            android:layout_height="37dp"
-            android:contentDescription="@string/avatar"
-            android:src="@drawable/face" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:text="@string/click_on_message_below"
-            android:textSize="16sp" />
-
-        <com.spinoza.messenger_tfs.presentation.ui.MessageView
-            android:id="@+id/messageView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp" />
-
-        <Button
-            android:id="@+id/buttonMakeVisible"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/make_icon_add_visible" />
-
-        <Button
-            android:id="@+id/buttonMakeInvisible"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/make_icon_add_invisible" />
-
-    </LinearLayout>
-
-</androidx.core.widget.NestedScrollView>
+    tools:layout="@layout/fragment_messages"
+    tools:context=".presentation.activity.MainActivity" />

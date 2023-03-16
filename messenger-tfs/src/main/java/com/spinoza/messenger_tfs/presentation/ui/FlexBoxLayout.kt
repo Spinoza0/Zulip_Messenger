@@ -9,22 +9,25 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.children
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.ReactionEntity
+import com.spinoza.messenger_tfs.domain.model.FlexBoxGravity
 
 class FlexBoxLayout @JvmOverloads constructor(
     context: Context,
-    private val attrs: AttributeSet? = null,
-    private val defStyleAttr: Int = 0,
-    private val defStyleRes: Int = 0,
+    attrs: AttributeSet? = null,
+    defStyleAttr: Int = 0,
+    defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    private var internalMargin = 0
+    private var onChildrenClickListener: ((FlexBoxLayout, View) -> Unit)? = null
+
+    private var flexBoxMargin = 0
+    private var flexBoxGravity = FlexBoxGravity.START
     private val row = RowHelper()
     private var offsetX = 0
     private var offsetY = 0
 
     private val iconAdd = ImageView(context, attrs, defStyleAttr, defStyleRes).apply {
-        setImageResource(R.drawable.icon_add)
+        setImageResource(R.drawable.ic_add)
         setBackgroundResource(R.drawable.shape_flexboxlayout_icon_add)
 
         val width = ICON_ADD_WIDTH.dpToPx(this@FlexBoxLayout).toInt()
@@ -40,14 +43,29 @@ class FlexBoxLayout @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs, R.styleable.flexbox_layout) {
-            internalMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
+            val gravity = getInt(R.styleable.flexbox_layout_gravity, FlexBoxGravity.START.ordinal)
+            flexBoxGravity = FlexBoxGravity.values()[gravity]
+            flexBoxMargin = getDimension(R.styleable.flexbox_layout_margin, 0f).toInt()
         }
 
         setIconAddVisibility(false)
         addView(iconAdd)
     }
 
+    override fun removeAllViews() {
+        super.removeAllViews()
+        addView(iconAdd)
+    }
+
+    override fun removeViewAt(index: Int) {
+        if (index < childCount - 1)
+            super.removeViewAt(index)
+    }
+
     override fun addView(view: View) {
+        if (childCount > NO_CHILD) {
+            view.setOnClickListener(::onChildClick)
+        }
         super.addView(view, childCount - 1)
     }
 
@@ -55,8 +73,15 @@ class FlexBoxLayout @JvmOverloads constructor(
         val layoutWidth = r - l - paddingLeft - paddingRight
         var viewWidth: Int
         var viewHeight: Int
+        var startX = paddingLeft
 
-        row.movePositionToStart()
+        if (flexBoxGravity == FlexBoxGravity.CENTER) {
+            startX += (layoutWidth + paddingRight + flexBoxMargin - row.maxWidth) / 2
+        } else if (flexBoxGravity == FlexBoxGravity.END) {
+            startX += layoutWidth + paddingRight + flexBoxMargin - row.maxWidth
+        }
+
+        row.movePositionToStart(startX)
 
         children.forEach { view ->
             if (view.isVisible) {
@@ -77,14 +102,14 @@ class FlexBoxLayout @JvmOverloads constructor(
         var viewWidth: Int
         var viewHeight: Int
 
-        row.movePositionToStart()
+        row.movePositionToStart(paddingLeft)
 
         children.forEach { view ->
             if (view.isVisible) {
                 measureView(view, widthMeasureSpec, heightMeasureSpec)
                 viewWidth = view.getWidthWithMargins()
                 viewHeight = view.getHeightWithMargins()
-                if (row.needMovePositionToNextRow(viewWidth, layoutWidth)) {
+                if (row.needMovePositionToNextRow(viewWidth + paddingRight, layoutWidth)) {
                     row.movePositionToNextRow(viewHeight)
                 }
                 row.movePositionToRight(viewWidth)
@@ -104,32 +129,19 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
     }
 
+    fun setOnChildrenClickListener(listener: ((FlexBoxLayout, View) -> Unit)?) {
+        onChildrenClickListener = listener
+        for (index in 0 until childCount - 1) {
+            getChildAt(index).setOnClickListener(::onChildClick)
+        }
+    }
+
+    private fun onChildClick(view: View) {
+        onChildrenClickListener?.invoke(this, view)
+    }
+
     fun setIconAddVisibility(state: Boolean) {
         iconAdd.isVisible = state
-    }
-
-    fun getIconAddVisibility(): Boolean {
-        return iconAdd.isVisible
-    }
-
-    fun getReactionEntities(): List<ReactionEntity> {
-        val reactions = mutableListOf<ReactionEntity>()
-        children.forEach { view ->
-            if (view is ReactionView) {
-                reactions.add(view.getReactionEntity())
-            }
-        }
-        return reactions
-    }
-
-    fun setReactions(reactionEntities: List<ReactionEntity>) {
-        removeAllViews()
-        addView(iconAdd)
-        reactionEntities.forEach { reactionEntity ->
-            val reactionView = ReactionView(context, attrs, defStyleAttr, defStyleRes)
-            reactionView.setReaction(reactionEntity)
-            addView(reactionView)
-        }
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
@@ -189,8 +201,11 @@ class FlexBoxLayout @JvmOverloads constructor(
         var rowHeight: Int = 0
             private set
 
-        fun movePositionToStart() {
-            offsetX = paddingLeft
+        private var startX = 0
+
+        fun movePositionToStart(startX: Int) {
+            this.startX = startX
+            offsetX = startX
             offsetY = paddingTop
             maxWidth = offsetX
             maxHeight = offsetY
@@ -198,12 +213,12 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
 
         fun needMovePositionToNextRow(viewWidth: Int, layoutWidth: Int): Boolean {
-            return offsetX + viewWidth + paddingRight + internalMargin > layoutWidth
+            return offsetX + viewWidth > layoutWidth
         }
 
         fun movePositionToNextRow(newRowHeight: Int) {
-            offsetX = paddingLeft
-            offsetY += rowHeight + internalMargin
+            offsetX = startX
+            offsetY += rowHeight + flexBoxMargin
             maxHeight = offsetY
             rowHeight = newRowHeight
         }
@@ -213,12 +228,13 @@ class FlexBoxLayout @JvmOverloads constructor(
         }
 
         fun movePositionToRight(offsetWidth: Int) {
-            offsetX += offsetWidth + internalMargin
+            offsetX += offsetWidth + flexBoxMargin
             maxWidth = maxOf(maxWidth, offsetX)
         }
     }
 
     private companion object {
+        const val NO_CHILD = 0
         const val ICON_ADD_WIDTH = 45f
         const val ICON_ADD_HEIGHT = 30f
         const val ICON_ADD_HORIZONTAL_PADDING = 8f
