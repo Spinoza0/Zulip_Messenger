@@ -30,7 +30,7 @@ class ChannelUnfoldedDelegate : AdapterDelegate {
     }
 
     override fun isOfViewType(item: DelegateItem): Boolean {
-        return item is ChannelFoldedDelegateItem
+        return item is ChannelUnfoldedDelegateItem
     }
 
     class ViewHolder(private val binding: ChannelUnfoldedItemBinding) :
@@ -38,6 +38,7 @@ class ChannelUnfoldedDelegate : AdapterDelegate {
 
         fun bind(model: Channel) {
             binding.textViewChannel.text = model.name
+            binding.linearLayoutTopics.removeAllViews()
             model.topics.forEach { topic ->
                 val topicBinding = ChannelTopicItemBinding.inflate(
                     LayoutInflater.from(itemView.context),
