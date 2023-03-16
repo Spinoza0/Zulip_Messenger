@@ -9,9 +9,12 @@ import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetRepositoryStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 
 class MessagesFragmentViewModel(
@@ -20,11 +23,26 @@ class MessagesFragmentViewModel(
     private val updateReactionUseCase: UpdateReactionUseCase,
 ) : ViewModel() {
 
-    val state: SharedFlow<RepositoryState> = getRepositoryStateUseCase(TEST_USER_ID)
+    val repositoryState: SharedFlow<RepositoryState> = getRepositoryStateUseCase(TEST_USER_ID)
+    val messagesFragmentState: SharedFlow<MessagesFragmentState>
+        get() = _messagesFragmentState.asSharedFlow()
+
+    private val _messagesFragmentState =
+        MutableSharedFlow<MessagesFragmentState>()
 
     // for testing purpose
     fun getUserId(): Long {
         return TEST_USER_ID
+    }
+
+    fun doOnTextChanged(text: CharSequence?) {
+        val resId = if (text != null && text.toString().trim().isNotEmpty())
+            R.drawable.ic_send
+        else
+            R.drawable.ic_add_circle_outline
+        viewModelScope.launch {
+            _messagesFragmentState.emit(MessagesFragmentState(resId))
+        }
     }
 
     fun sendMessage(messageText: String): Boolean {

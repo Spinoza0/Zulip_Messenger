@@ -18,7 +18,9 @@ import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.RepositoryState
-import com.spinoza.messenger_tfs.domain.usecase.*
+import com.spinoza.messenger_tfs.domain.usecase.GetRepositoryStateUseCase
+import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
+import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
@@ -98,13 +100,19 @@ class MessagesFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            viewModel.state
+            viewModel.repositoryState
                 .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect(::handleState)
+                .collect(::handleRepositoryState)
+
+            viewModel.messagesFragmentState
+                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
+                .collect {
+                    binding.imageViewAction.setImageResource(it.buttonSendIconResId)
+                }
         }
     }
 
-    private fun handleState(state: RepositoryState) {
+    private fun handleRepositoryState(state: RepositoryState) {
         when (state) {
             is RepositoryState.Messages -> submitMessages(state.messages) {
                 when (state.position.type) {
@@ -135,7 +143,7 @@ class MessagesFragment : Fragment() {
         }
 
         binding.editTextMessage.doOnTextChanged { text, _, _, _ ->
-            changeButtonSendIcon(text != null && text.toString().trim().isNotEmpty())
+            viewModel.doOnTextChanged(text)
         }
     }
 
@@ -146,15 +154,6 @@ class MessagesFragment : Fragment() {
         )
         dialog.listener = viewModel::updateReaction
         dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
-    }
-
-    // TODO: логику перенести во viewModel
-    private fun changeButtonSendIcon(readyToSend: Boolean) {
-        val resId = if (readyToSend)
-            R.drawable.ic_send
-        else
-            R.drawable.ic_add_circle_outline
-        binding.imageViewAction.setImageResource(resId)
     }
 
     private fun sendMessage() {
