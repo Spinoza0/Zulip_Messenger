@@ -57,7 +57,7 @@ fun RecyclerView.smoothScrollToTargetPosition(targetPosition: Int) {
     this.smoothScrollToPosition(targetPosition)
 }
 
-fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Int) {
+fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Long) {
     if (changedMessageId == Message.UNDEFINED_ID) return
 
     var position = RecyclerView.NO_POSITION

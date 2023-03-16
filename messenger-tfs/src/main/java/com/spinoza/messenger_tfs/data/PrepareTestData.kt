@@ -9,7 +9,7 @@ import com.spinoza.messenger_tfs.domain.utils.emojiSet
 // for testing purpose
 fun prepareTestData(): List<MessageDto> {
     val countOfReactions = 5
-    val testUserId = 1
+    val testUserId = 1L
 
     val messages = mutableListOf<MessageDto>()
     val reactions = emojiSet.take(countOfReactions).associate { emoji ->
@@ -19,12 +19,12 @@ fun prepareTestData(): List<MessageDto> {
     repeat(20) { index ->
         val message = MessageDto(
             MessageDate("${index % 2 + 1} марта 2023"),
-            index,
+            index.toLong(),
             "User$index Name",
             "Message $index text",
             R.drawable.test_face,
             if (index % 3 == 0) reactions else emptyMap(),
-            index
+            index.toLong()
         )
         messages.add(message)
     }

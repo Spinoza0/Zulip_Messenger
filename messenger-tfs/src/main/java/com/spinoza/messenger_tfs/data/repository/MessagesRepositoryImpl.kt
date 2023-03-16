@@ -37,7 +37,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesLocalCache.addAll(prepareTestData())
     }
 
-    override fun getState(userId: Int): SharedFlow<RepositoryState> {
+    override fun getState(userId: Long): SharedFlow<RepositoryState> {
         CoroutineScope(Dispatchers.Default).launch {
             state.emit(RepositoryState.Messages(messagesLocalCache.toDomain(userId)))
         }
@@ -46,7 +46,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun sendMessage(message: Message) {
         val newMessageId = if (message.id == Message.UNDEFINED_ID) {
-            messagesLocalCache.size
+            messagesLocalCache.size.toLong()
         } else {
             message.id
         }
@@ -59,7 +59,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         )
     }
 
-    override suspend fun updateReaction(messageId: Int, userId: Int, reaction: String) {
+    override suspend fun updateReaction(messageId: Long, userId: Long, reaction: String) {
         val messageDto = messagesLocalCache.find { it.id == messageId } ?: return
         val reactionDto = messageDto.reactions[reaction]
         val newReactionsDto = messageDto.reactions.toMutableMap()
@@ -85,8 +85,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         )
     }
 
-    private fun List<Int>.removeIfExistsOrAddToList(value: Int): List<Int> {
-        val result = mutableListOf<Int>()
+    private fun List<Long>.removeIfExistsOrAddToList(value: Long): List<Long> {
+        val result = mutableListOf<Long>()
         var deletedFromList = false
         this.forEach { existingValue ->
             if (existingValue == value) {

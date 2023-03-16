@@ -22,7 +22,7 @@ class MessageView @JvmOverloads constructor(
     private val defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var messageId: Int = 0
+    var messageId: Long = 0L
         private set
 
     var name: String

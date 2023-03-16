@@ -13,7 +13,7 @@ import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
 
-    var listener: ((Int, Int, String) -> Unit)? = null
+    var listener: ((Long, Long, String) -> Unit)? = null
 
     private var _binding: FragmentDialogChooseReactionBinding? = null
     private val binding: FragmentDialogChooseReactionBinding
@@ -79,8 +79,8 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun parseParams() {
-        messageId = arguments?.getInt(MESSAGE_ID) ?: UNDEFINED_ID
-        userId = arguments?.getInt(USER_ID) ?: UNDEFINED_ID
+        messageId = arguments?.getLong(MESSAGE_ID) ?: UNDEFINED_ID
+        userId = arguments?.getLong(USER_ID) ?: UNDEFINED_ID
         if (messageId == UNDEFINED_ID || userId == UNDEFINED_ID)
             dismiss()
     }
@@ -88,16 +88,16 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     companion object {
         const val TAG = "ChooseReactionDialog"
         private const val REACTION_PADDING = 4f
-        private const val UNDEFINED_ID = -1
+        private const val UNDEFINED_ID = -1L
 
         private const val MESSAGE_ID = "messageId"
         private const val USER_ID = "userId"
 
-        fun newInstance(messageId: Int, userId: Int): ChooseReactionDialogFragment {
+        fun newInstance(messageId: Long, userId: Long): ChooseReactionDialogFragment {
             return ChooseReactionDialogFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(MESSAGE_ID, messageId)
-                    putInt(USER_ID, userId)
+                    putLong(MESSAGE_ID, messageId)
+                    putLong(USER_ID, userId)
                 }
             }
         }

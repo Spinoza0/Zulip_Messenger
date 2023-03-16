@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.SharedFlow
 
 interface MessagesRepository {
 
-    fun getState(userId: Int): SharedFlow<RepositoryState>
+    fun getState(userId: Long): SharedFlow<RepositoryState>
 
     suspend fun sendMessage(message: Message)
 
-    suspend fun updateReaction(messageId: Int, userId: Int, reaction: String)
+    suspend fun updateReaction(messageId: Long, userId: Long, reaction: String)
 }

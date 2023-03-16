@@ -12,7 +12,7 @@ import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import java.util.*
 
 fun List<Message>.groupByDate(
-    userId: Int,
+    userId: Long,
     onAvatarLongClickListener: ((MessageView) -> Unit)? = null,
     onReactionAddClickListener: ((MessageView) -> Unit)? = null,
     onReactionClickListener: ((MessageView, ReactionView) -> Unit)? = null,

@@ -11,8 +11,8 @@ class DateDelegateItem(
         return value
     }
 
-    override fun id(): Int {
-        return value.hashCode()
+    override fun id(): Long {
+        return value.hashCode().toLong()
     }
 
     override fun compareToOther(other: DelegateItem): Boolean {

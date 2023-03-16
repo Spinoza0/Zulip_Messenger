@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.SharedFlow
 
 class GetRepositoryStateUseCase(private val repository: MessagesRepository) {
 
-    operator fun invoke(userId: Int): SharedFlow<RepositoryState> {
+    operator fun invoke(userId: Long): SharedFlow<RepositoryState> {
         return repository.getState(userId)
     }
 }

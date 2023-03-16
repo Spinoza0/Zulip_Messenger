@@ -18,7 +18,7 @@ class CompanionMessageDelegateItem(
         return value
     }
 
-    override fun id(): Int {
+    override fun id(): Long {
         return value.id
     }
 

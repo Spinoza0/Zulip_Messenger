@@ -23,7 +23,7 @@ class MessagesFragmentViewModel(
     val state: SharedFlow<RepositoryState> = getRepositoryStateUseCase(TEST_USER_ID)
 
     // for testing purpose
-    fun getUserId(): Int {
+    fun getUserId(): Long {
         return TEST_USER_ID
     }
 
@@ -47,7 +47,7 @@ class MessagesFragmentViewModel(
         return false
     }
 
-    fun updateReaction(messageId: Int, userId: Int, reaction: String) {
+    fun updateReaction(messageId: Long, userId: Long, reaction: String) {
         viewModelScope.launch {
             updateReactionUseCase(messageId, userId, reaction)
         }
@@ -59,6 +59,6 @@ class MessagesFragmentViewModel(
 
     companion object {
         // for testing purpose
-        const val TEST_USER_ID = 100
+        const val TEST_USER_ID = 100L
     }
 }

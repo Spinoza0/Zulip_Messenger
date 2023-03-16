@@ -4,12 +4,12 @@ import com.spinoza.messenger_tfs.domain.model.MessageDate
 
 data class MessageDto(
     val date: MessageDate,
-    val userId: Int,
+    val userId: Long,
     val name: String,
     val content: String,
     val avatarResId: Int,
     val reactions: Map<String, ReactionParamDto>,
-    val id: Int,
+    val id: Long,
 ) : Comparable<MessageDto> {
     override fun compareTo(other: MessageDto): Int {
         return id.compareTo(other.id)
