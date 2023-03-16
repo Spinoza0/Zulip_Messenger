@@ -38,6 +38,8 @@
 
         <!-- Fragment Channels -->
         <item name="underline_color">@color/underline</item>
+        <item name="even_topic_color">@color/even_topic</item>
+        <item name="odd_topic_color">@color/odd_topic</item>
 
     </style>
 </resources>

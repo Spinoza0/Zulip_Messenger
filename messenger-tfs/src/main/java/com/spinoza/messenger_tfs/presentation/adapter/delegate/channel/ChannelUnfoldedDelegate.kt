@@ -43,14 +43,17 @@ class ChannelUnfoldedDelegate : AdapterDelegate {
             }
             binding.textViewChannel.text = channel.name
             binding.linearLayoutTopics.removeAllViews()
-            channel.topics.forEach { topic ->
+            channel.topics.forEachIndexed { index, topic ->
                 val topicBinding = ChannelTopicItemBinding.inflate(
                     LayoutInflater.from(itemView.context),
                     binding.root,
                     false
                 )
                 topicBinding.textViewTopic.text = topic.name
-                binding.linearLayoutTopics.addView(topicBinding.textViewTopic)
+                if (index % 2 == 0) {
+                    topicBinding.textViewTopic.setBackgroundColor(item.getAlternateColor())
+                }
+                binding.linearLayoutTopics.addView(topicBinding.root)
             }
         }
     }

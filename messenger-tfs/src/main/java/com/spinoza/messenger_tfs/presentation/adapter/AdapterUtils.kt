@@ -14,14 +14,23 @@ import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import java.util.*
 
-fun List<Channel>.toDelegateItems(onChannelClickListener: (Long) -> Unit): List<DelegateItem> {
+fun List<Channel>.toDelegateItems(
+    onChannelClickListener: (Long) -> Unit,
+    alternateColor: Int,
+): List<DelegateItem> {
 
     val delegateItemList = mutableListOf<DelegateItem>()
     this.forEach { channel ->
         if (channel.type == Channel.Type.FOLDED) {
             delegateItemList.add(ChannelFoldedDelegateItem(channel, onChannelClickListener))
         } else {
-            delegateItemList.add(ChannelUnfoldedDelegateItem(channel, onChannelClickListener))
+            delegateItemList.add(
+                ChannelUnfoldedDelegateItem(
+                    channel,
+                    onChannelClickListener,
+                    alternateColor
+                )
+            )
         }
     }
     return delegateItemList

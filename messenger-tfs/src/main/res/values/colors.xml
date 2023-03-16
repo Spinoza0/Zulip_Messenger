@@ -47,5 +47,9 @@
     <!-- Fragment Channels -->
     <color name="underline">#219653</color>
     <color name="underline_night">#219653</color>
+    <color name="even_topic">#2A9D8F</color>
+    <color name="even_topic_night">#2A9D8F</color>
+    <color name="odd_topic">#E9C46A</color>
+    <color name="odd_topic_night">#E9C46A</color>
 
 </resources>

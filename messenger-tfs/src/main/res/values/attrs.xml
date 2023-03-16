@@ -49,5 +49,7 @@
 
     <declare-styleable name="fragment_channels">
         <attr name="underline_color" format="color" />
+        <attr name="even_topic_color" format="color" />
+        <attr name="odd_topic_color" format="color" />
     </declare-styleable>
 </resources>

@@ -9,6 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
@@ -19,6 +20,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.channel.ChannelUn
 import com.spinoza.messenger_tfs.presentation.adapter.toDelegateItems
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState.SourceType
+import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
 import kotlinx.coroutines.launch
@@ -74,13 +76,17 @@ class ChannelsFragment : Fragment() {
     }
 
     private fun setupObservers() {
+        val alternateBackgroundColor = requireContext().getThemeColor(R.attr.odd_topic_color)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.state.collect { newState ->
                     when (newState) {
                         is ChannelsFragmentState.Source -> handleSourceState(newState.type)
                         is ChannelsFragmentState.Channels -> mainAdapter.submitList(
-                            newState.channels.toDelegateItems(viewModel::onChannelClickListener)
+                            newState.channels.toDelegateItems(
+                                viewModel::onChannelClickListener,
+                                alternateBackgroundColor
+                            )
                         )
 
                         // TODO: show errors

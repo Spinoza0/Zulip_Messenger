@@ -6,6 +6,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 class ChannelUnfoldedDelegateItem(
     private val value: Channel,
     private val onChannelClickListener: (Long) -> Unit,
+    private val alternateColor: Int,
 ) : DelegateItem {
 
     override fun content(): Any {
@@ -22,5 +23,9 @@ class ChannelUnfoldedDelegateItem(
 
     fun getOnChannelClickListener(): (Long) -> Unit {
         return onChannelClickListener
+    }
+
+    fun getAlternateColor(): Int {
+        return alternateColor
     }
 }
