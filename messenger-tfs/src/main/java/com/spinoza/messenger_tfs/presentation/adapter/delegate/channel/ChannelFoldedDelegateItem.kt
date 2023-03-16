@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 
 class ChannelFoldedDelegateItem(
     private val value: Channel,
+    private val onChannelClickListener: (Long) -> Unit,
 ) : DelegateItem {
 
     override fun content(): Any {
@@ -17,5 +18,9 @@ class ChannelFoldedDelegateItem(
 
     override fun compareToOther(other: DelegateItem): Boolean {
         return (other as ChannelFoldedDelegateItem).value == content()
+    }
+
+    fun getOnChannelClickListener(): (Long) -> Unit {
+        return onChannelClickListener
     }
 }

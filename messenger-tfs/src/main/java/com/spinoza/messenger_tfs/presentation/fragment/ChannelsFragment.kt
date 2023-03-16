@@ -11,7 +11,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
-import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
@@ -80,7 +79,12 @@ class ChannelsFragment : Fragment() {
                 viewModel.state.collect { newState ->
                     when (newState) {
                         is ChannelsFragmentState.Source -> handleSourceState(newState.type)
-                        is ChannelsFragmentState.Channels -> handleRepositoryState(newState.state)
+                        is ChannelsFragmentState.Channels -> mainAdapter.submitList(
+                            newState.channels.toDelegateItems(viewModel::onChannelClickListener)
+                        )
+
+                        // TODO: show errors
+                        is ChannelsFragmentState.Error -> {}
                     }
                 }
             }
@@ -97,16 +101,6 @@ class ChannelsFragment : Fragment() {
                 binding.textViewSubscribedUnderline.visibility = View.INVISIBLE
                 binding.textViewAllUnderline.visibility = View.VISIBLE
             }
-        }
-    }
-
-    private fun handleRepositoryState(state: RepositoryState) {
-        when (state) {
-            is RepositoryState.Channels -> {
-                mainAdapter.submitList(state.channels.toDelegateItems())
-            }
-            // TODO: show errors
-            else -> {}
         }
     }
 

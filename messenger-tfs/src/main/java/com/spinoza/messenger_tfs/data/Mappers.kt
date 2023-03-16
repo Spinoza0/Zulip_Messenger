@@ -63,8 +63,8 @@ private fun ReactionParamDto.toDomain(userId: Long): ReactionParam {
 
 private fun StreamDto.toDomain(): Channel {
     return Channel(
-        streamId = this.id,
-        name = this.name,
+        channelId = this.id,
+        name = "#${this.name}",
         topics = this.topics
     )
 }

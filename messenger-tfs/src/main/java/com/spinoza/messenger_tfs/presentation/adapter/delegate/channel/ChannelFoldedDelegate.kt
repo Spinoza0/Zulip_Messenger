@@ -25,7 +25,7 @@ class ChannelFoldedDelegate : AdapterDelegate {
         item: DelegateItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item.content() as Channel)
+        (holder as ViewHolder).bind(item as ChannelFoldedDelegateItem)
     }
 
     override fun isOfViewType(item: DelegateItem): Boolean {
@@ -35,8 +35,12 @@ class ChannelFoldedDelegate : AdapterDelegate {
     class ViewHolder(private val binding: ChannelFoldedItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(model: Channel) {
-            binding.textViewChannel.text = model.name
+        fun bind(item: ChannelFoldedDelegateItem) {
+            val channel = item.content() as Channel
+            binding.root.setOnClickListener {
+                item.getOnChannelClickListener().invoke(channel.channelId)
+            }
+            binding.textViewChannel.text = channel.name
         }
     }
 }
