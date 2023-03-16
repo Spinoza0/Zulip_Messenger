@@ -6,7 +6,9 @@
         <attr name="background_500_color" format="color" />
         <attr name="background_700_color" format="color" />
         <attr name="text_200_color" format="color" />
+        <attr name="text_300_color" format="color" />
         <attr name="text_500_color" format="color" />
+        <attr name="text_700_color" format="color" />
     </declare-styleable>
 
     <declare-styleable name="reaction_view">
@@ -39,14 +41,13 @@
 
     <declare-styleable name="channel">
         <attr name="channel_toolbar_background_color" format="color" />
-        <attr name="channel_toolbar_text_color" format="color" />
         <attr name="channel_new_message_text_background_color" format="color" />
         <attr name="channel_date_background_color" format="color" />
         <attr name="channel_date_text_color" format="color" />
         <attr name="channel_add_reactions_top_line_color" format="color" />
     </declare-styleable>
 
-    <declare-styleable name="bottom_navigation">
-        <attr name="bottom_navigation_unselected_color" format="color" />
+    <declare-styleable name="fragment_channels">
+        <attr name="underline_color" format="color" />
     </declare-styleable>
 </resources>

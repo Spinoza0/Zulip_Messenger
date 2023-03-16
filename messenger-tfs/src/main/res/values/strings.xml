@@ -15,4 +15,11 @@
     <string name="people">People</string>
     <string name="profile">Profile</string>
 
+    <!-- Fragment Channels -->
+    <string name="search">Search... (not implemented)</string>
+    <string name="all_streams">All Streams</string>
+    <string name="subscribed">Subscribed</string>
+    <string name="arrow_down">Arrow down</string>
+    <string name="arrow_up">Arrow up</string>
+
 </resources>

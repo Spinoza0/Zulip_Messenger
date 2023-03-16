@@ -15,10 +15,14 @@
     <color name="background_500_night">#1C1C1C</color>
     <color name="background_700">#121212</color>
     <color name="background_700_night">#121212</color>
-    <color name="text_200">#FAFAFA</color>
-    <color name="text_200_night">#FAFAFA</color>
-    <color name="text_500">#CCCCCC</color>
-    <color name="text_500_night">#CCCCCC</color>
+    <color name="text_200">#FFFFFF</color>
+    <color name="text_200_night">#FFFFFF</color>
+    <color name="text_300">#919191</color>
+    <color name="text_300_night">#919191</color>
+    <color name="text_500">#FAFAFA</color>
+    <color name="text_500_night">#FAFAFA</color>
+    <color name="text_700">#CCCCCC</color>
+    <color name="text_700_night">#CCCCCC</color>
 
     <!-- MessageView -->
     <color name="message_user_background_start">#2A9D8F</color>
@@ -31,8 +35,6 @@
     <!-- Channel -->
     <color name="channel_toolbar_background">#2A9D8F</color>
     <color name="channel_toolbar_background_night">#2A9D8F</color>
-    <color name="channel_toolbar_text">#FFFFFF</color>
-    <color name="channel_toolbar_text_night">#FFFFFF</color>
     <color name="channel_new_message_text_background">#282828</color>
     <color name="channel_new_message_text_background_night">#282828</color>
     <color name="channel_date_background">#070707</color>
@@ -42,8 +44,8 @@
     <color name="channel_add_reactions_top_line">#555555</color>
     <color name="channel_add_reactions_top_line_night">#555555</color>
 
-    <!-- Bottom Navigation-->
-    <color name="bottom_navigation_unselected">#919191</color>
-    <color name="bottom_navigation_unselected_night">#919191</color>
+    <!-- Fragment Channels -->
+    <color name="underline">#219653</color>
+    <color name="underline_night">#219653</color>
 
 </resources>

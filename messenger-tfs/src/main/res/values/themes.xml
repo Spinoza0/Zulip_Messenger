@@ -17,7 +17,9 @@
         <item name="background_500_color">@color/background_500</item>
         <item name="background_700_color">@color/background_700</item>
         <item name="text_200_color">@color/text_200</item>
+        <item name="text_300_color">@color/text_300</item>
         <item name="text_500_color">@color/text_500</item>
+        <item name="text_700_color">@color/text_700</item>
 
         <!-- MessageView -->
         <item name="message_user_background_start_color">@color/message_user_background_start</item>
@@ -26,7 +28,6 @@
 
         <!-- Channel -->
         <item name="channel_toolbar_background_color">@color/channel_toolbar_background</item>
-        <item name="channel_toolbar_text_color">@color/channel_toolbar_text</item>
         <item name="channel_new_message_text_background_color">
             @color/channel_new_message_text_background
         </item>
@@ -35,8 +36,8 @@
         <item name="channel_add_reactions_top_line_color">@color/channel_add_reactions_top_line
         </item>
 
-        <!-- Bottom Navigation-->
-        <item name="bottom_navigation_unselected_color">@color/bottom_navigation_unselected</item>
+        <!-- Fragment Channels -->
+        <item name="underline_color">@color/underline</item>
 
     </style>
 </resources>

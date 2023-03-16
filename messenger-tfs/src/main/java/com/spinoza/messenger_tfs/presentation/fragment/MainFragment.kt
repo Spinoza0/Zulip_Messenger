@@ -16,6 +16,7 @@ import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMainBinding
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
+import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 
 
 class MainFragment : Fragment(), OnItemSelectedListener {
@@ -70,6 +71,8 @@ class MainFragment : Fragment(), OnItemSelectedListener {
 
         binding.bottomNavigationView.setOnItemSelectedListener(this)
 
+        setupStatusBar()
+
         if (savedInstanceState == null) {
             localRouter.newRootScreen(Screens.Channels())
         }
@@ -99,6 +102,11 @@ class MainFragment : Fragment(), OnItemSelectedListener {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun setupStatusBar() {
+        requireActivity().window.statusBarColor =
+            requireContext().getThemeColor(R.attr.background_500_color)
     }
 
     companion object {

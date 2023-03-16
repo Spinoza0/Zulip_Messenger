@@ -7,13 +7,91 @@
     android:background="?attr/background_700_color"
     tools:context=".presentation.fragment.ChannelsFragment">
 
-    <TextView
-        android:layout_width="match_parent"
+    <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/editTextSearch"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="@string/channels"
-        android:textColor="@color/text_200"
+        android:background="?attr/background_500_color"
+        android:drawableEnd="@drawable/ic_search"
+        android:drawablePadding="8dp"
+        android:drawableTint="?attr/text_200_color"
+        android:hint="@string/search"
+        android:maxLines="1"
+        android:paddingVertical="20dp"
+        android:paddingStart="50dp"
+        android:paddingEnd="28dp"
+        android:textColor="?attr/text_200_color"
+        android:textColorHint="?attr/text_200_color"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewSubscribedStreams"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/background_500_color"
+        android:gravity="center_horizontal"
+        android:paddingTop="16dp"
+        android:text="@string/subscribed"
+        android:textColor="?attr/text_500_color"
+        android:textSize="22sp"
+        app:layout_constraintEnd_toStartOf="@id/textViewAllStreams"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/editTextSearch" />
+
+    <TextView
+        android:id="@+id/textViewAllStreams"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/background_500_color"
+        android:gravity="center_horizontal"
+        android:paddingTop="16dp"
+        android:text="@string/all_streams"
+        android:textColor="?attr/text_500_color"
+        android:textSize="22sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/textViewSubscribedStreams"
+        app:layout_constraintTop_toBottomOf="@id/editTextSearch" />
+
+    <TextView
+        android:id="@+id/textViewBox"
+        android:layout_width="match_parent"
+        android:layout_height="26dp"
+        android:background="?attr/background_500_color"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewSubscribedStreams" />
+
+    <TextView
+        android:id="@+id/textViewSubscribedUnderline"
+        android:layout_width="150dp"
+        android:layout_height="2dp"
+        android:background="@drawable/shape_underline"
+        app:layout_constraintEnd_toEndOf="@id/textViewSubscribedStreams"
+        app:layout_constraintStart_toStartOf="@id/textViewSubscribedStreams"
+        app:layout_constraintTop_toBottomOf="@id/textViewSubscribedStreams" />
+
+    <TextView
+        android:id="@+id/textViewAllUnderline"
+        android:layout_width="150dp"
+        android:layout_height="2dp"
+        android:background="@drawable/shape_underline"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="@id/textViewAllStreams"
+        app:layout_constraintStart_toStartOf="@id/textViewAllStreams"
+        app:layout_constraintTop_toBottomOf="@id/textViewAllStreams" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewChannels"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginHorizontal="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/textViewBox"
+        tools:listitem="@layout/channels_folded_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

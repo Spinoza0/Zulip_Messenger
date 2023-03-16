@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/background_700_color">
+
+    <TextView
+        android:id="@+id/textViewChannel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="24dp"
+        android:layout_marginStart="22dp"
+        android:layout_marginEnd="35dp"
+        android:textColor="?attr/text_500_color"
+        android:textSize="18sp"
+        tools:text="#general" />
+
+    <ImageView
+        android:id="@+id/imaveViewArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_marginVertical="24dp"
+        android:layout_marginEnd="40dp"
+        android:contentDescription="@string/arrow_down"
+        android:src="@drawable/ic_arrow_down" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_gravity="bottom"
+        android:background="?attr/background_500_color"
+        tools:text="#general" />
+
+</FrameLayout>

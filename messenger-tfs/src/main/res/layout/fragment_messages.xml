@@ -14,7 +14,7 @@
         android:background="?attr/channel_toolbar_background_color"
         android:navigationIcon="@drawable/ic_arrow_back"
         android:title="@string/channel_toolbar_text"
-        android:titleTextColor="?attr/channel_toolbar_text_color"
+        android:titleTextColor="?attr/text_200_color"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
