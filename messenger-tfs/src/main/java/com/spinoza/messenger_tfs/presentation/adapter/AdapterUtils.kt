@@ -1,15 +1,30 @@
 package com.spinoza.messenger_tfs.presentation.adapter
 
+import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.channel.ChannelFoldedDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.channel.ChannelUnfoldedDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import java.util.*
+
+fun List<Channel>.toDelegateItems(): List<DelegateItem> {
+    val delegateItemList = mutableListOf<DelegateItem>()
+    this.forEach { channel ->
+        if (channel.type == Channel.Type.FOLDED) {
+            delegateItemList.add(ChannelFoldedDelegateItem(channel))
+        } else {
+            delegateItemList.add(ChannelUnfoldedDelegateItem(channel))
+        }
+    }
+    return delegateItemList
+}
 
 fun List<Message>.groupByDate(
     userId: Long,

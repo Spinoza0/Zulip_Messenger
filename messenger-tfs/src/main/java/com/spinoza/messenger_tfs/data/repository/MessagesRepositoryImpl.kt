@@ -22,6 +22,8 @@ import java.util.*
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
+    private val userId = TEST_USER_ID
+
     private val state = MutableStateFlow<RepositoryState>(
         RepositoryState.Idle
     )
@@ -33,10 +35,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesLocalCache.addAll(prepareTestData())
     }
 
+    override fun getUserId(): Long {
+        return userId
+    }
+
     // TODO: подумать о вынесении в init или конструктор, не забыть про userId - скорее всего
     //  userId будет передаваться через метод фильтрации (stream/topic) или к этому моменту его
     //  передача перестанет быть актуальной (поменяется структура данных)
-    override fun getState(userId: Long): StateFlow<RepositoryState> {
+    override fun getState(): StateFlow<RepositoryState> {
         state.value = RepositoryState.Messages(messagesLocalCache.toDomain(userId))
         return state.asStateFlow()
     }
@@ -65,7 +71,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         )
     }
 
-    override suspend fun updateReaction(messageId: Long, userId: Long, reaction: String) {
+    override suspend fun updateReaction(messageId: Long, reaction: String) {
         val messageDto = messagesLocalCache.find { it.id == messageId } ?: return
         val reactionDto = messageDto.reactions[reaction]
         val newReactionsDto = messageDto.reactions.toMutableMap()
@@ -108,6 +114,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     companion object {
+
+        // TODO: for testing purpose
+        const val TEST_USER_ID = 100L
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit

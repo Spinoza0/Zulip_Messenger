@@ -5,7 +5,9 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface MessagesRepository {
 
-    fun getState(userId: Long): StateFlow<RepositoryState>
+    fun getUserId(): Long
+
+    fun getState(): StateFlow<RepositoryState>
 
     fun getAllChannels()
 
@@ -13,5 +15,5 @@ interface MessagesRepository {
 
     suspend fun sendMessage(message: Message)
 
-    suspend fun updateReaction(messageId: Long, userId: Long, reaction: String)
+    suspend fun updateReaction(messageId: Long, reaction: String)
 }

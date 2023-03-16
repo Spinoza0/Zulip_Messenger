@@ -4,7 +4,7 @@ import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 
 class UpdateReactionUseCase(private val repository: MessagesRepository) {
 
-    suspend operator fun invoke(messageId: Long, userId: Long, reactionValue: String) {
-        repository.updateReaction(messageId, userId, reactionValue)
+    suspend operator fun invoke(messageId: Long, reactionValue: String) {
+        repository.updateReaction(messageId, reactionValue)
     }
 }

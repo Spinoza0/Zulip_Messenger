@@ -7,6 +7,7 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetRepositoryStateUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetUserIdUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
@@ -19,11 +20,12 @@ import kotlinx.coroutines.launch
 
 class MessagesFragmentViewModel(
     getRepositoryStateUseCase: GetRepositoryStateUseCase,
+    private val getUserIdUseCase: GetUserIdUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
 ) : ViewModel() {
 
-    val repositoryState: StateFlow<RepositoryState> = getRepositoryStateUseCase(TEST_USER_ID)
+    val repositoryState: StateFlow<RepositoryState> = getRepositoryStateUseCase()
 
     val messagesFragmentState: StateFlow<MessagesFragmentState>
         get() = _messagesFragmentState.asStateFlow()
@@ -31,10 +33,7 @@ class MessagesFragmentViewModel(
     private val _messagesFragmentState =
         MutableStateFlow<MessagesFragmentState>(MessagesFragmentState(R.drawable.ic_add_circle_outline))
 
-    // for testing purpose
-    fun getUserId(): Long {
-        return TEST_USER_ID
-    }
+    fun getUserId() = getUserIdUseCase()
 
     fun doOnTextChanged(text: CharSequence?) {
         val resId = if (text != null && text.toString().trim().isNotEmpty())
@@ -50,8 +49,8 @@ class MessagesFragmentViewModel(
                 val message = Message(
                     // test data
                     MessageDate("2 марта 2023"),
-                    TEST_USER_ID,
-                    "Name $TEST_USER_ID",
+                    100L,
+                    "John Dow",
                     messageText,
                     R.drawable.test_face,
                     emptyMap(),
@@ -64,18 +63,13 @@ class MessagesFragmentViewModel(
         return false
     }
 
-    fun updateReaction(messageId: Long, userId: Long, reaction: String) {
+    fun updateReaction(messageId: Long, reaction: String) {
         viewModelScope.launch {
-            updateReactionUseCase(messageId, userId, reaction)
+            updateReactionUseCase(messageId, reaction)
         }
     }
 
     fun updateReaction(messageView: MessageView, reactionView: ReactionView) {
-        updateReaction(messageView.messageId, TEST_USER_ID, reactionView.emoji)
-    }
-
-    companion object {
-        // for testing purpose
-        const val TEST_USER_ID = 100L
+        updateReaction(messageView.messageId, reactionView.emoji)
     }
 }
