@@ -1,9 +1,9 @@
-package com.spinoza.messenger_tfs.data.model
+package com.spinoza.messenger_tfs.domain.model
 
 /**
  * @param name String. The name of the topic.
  *
  * */
-class TopicDto(
+data class Topic(
     val name: String,
 )

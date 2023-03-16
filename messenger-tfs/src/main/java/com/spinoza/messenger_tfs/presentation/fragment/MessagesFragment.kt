@@ -17,11 +17,11 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.model.RepositoryState
+import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetRepositoryStateUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
-import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.MessagesFragmentAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
@@ -44,8 +44,8 @@ class MessagesFragment : Fragment() {
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
-    private val mainAdapter: MainAdapter by lazy {
-        MainAdapter().apply {
+    private val messagesFragmentAdapter: MessagesFragmentAdapter by lazy {
+        MessagesFragmentAdapter().apply {
             addDelegate(CompanionMessageDelegate())
             addDelegate(UserMessageDelegate())
             addDelegate(DateDelegate())
@@ -60,11 +60,12 @@ class MessagesFragment : Fragment() {
         )
     }
 
-    private val onBackPressedCallback = object : OnBackPressedCallback(true) {
-        override fun handleOnBackPressed() {
-            openMainFragment()
+    private val onBackPressedCallback =
+        object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                openMainFragment()
+            }
         }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -97,7 +98,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.recyclerViewMessages.adapter = mainAdapter
+        binding.recyclerViewMessages.adapter = messagesFragmentAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
     }
 
@@ -122,7 +123,7 @@ class MessagesFragment : Fragment() {
             is RepositoryState.Messages -> submitMessages(state.messages) {
                 when (state.position.type) {
                     MessagePosition.Type.LAST_POSITION -> {
-                        val lastItemPosition = mainAdapter.itemCount - 1
+                        val lastItemPosition = messagesFragmentAdapter.itemCount - 1
                         binding.recyclerViewMessages.smoothScrollToPosition(lastItemPosition)
                     }
                     MessagePosition.Type.EXACTLY -> {
@@ -135,7 +136,7 @@ class MessagesFragment : Fragment() {
             }
             // TODO: show error
             is RepositoryState.Error -> {}
-            is RepositoryState.Idle -> {}
+            else -> {}
         }
     }
 
@@ -169,7 +170,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
-        mainAdapter.submitList(
+        messagesFragmentAdapter.submitList(
             messages.groupByDate(
                 userId = viewModel.getUserId(),
                 onReactionAddClickListener = ::onReactionAddClickListener,

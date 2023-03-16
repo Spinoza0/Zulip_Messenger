@@ -2,10 +2,16 @@ package com.spinoza.messenger_tfs.data
 
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
+import com.spinoza.messenger_tfs.data.model.StreamDto
+import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import java.util.*
 import kotlin.random.Random
+
+fun List<StreamDto>.toDomain(): List<Channel> {
+    return this.map { it.toDomain() }
+}
 
 fun MessageDto.toDomain(userId: Long): Message {
     return Message(
@@ -22,10 +28,6 @@ fun MessageDto.toDomain(userId: Long): Message {
 
 fun TreeSet<MessageDto>.toDomain(userId: Long): List<Message> {
     return this.map { it.toDomain(userId) }
-}
-
-private fun ReactionParamDto.toDomain(userId: Long): ReactionParam {
-    return ReactionParam(this.usersIds.size, this.usersIds.contains(userId))
 }
 
 fun Message.toDto(userId: Long, messageId: Long): MessageDto {
@@ -53,4 +55,16 @@ private fun Map<String, ReactionParamDto>.toDomain(userId: Long): Map<String, Re
 
 private fun Map<String, ReactionParam>.toDto(userId: Long): Map<String, ReactionParamDto> {
     return this.map { it.key to ReactionParamDto(listOf(userId)) }.toMap()
+}
+
+private fun ReactionParamDto.toDomain(userId: Long): ReactionParam {
+    return ReactionParam(this.usersIds.size, this.usersIds.contains(userId))
+}
+
+private fun StreamDto.toDomain(): Channel {
+    return Channel(
+        streamId = this.id,
+        name = this.name,
+        topics = this.topics
+    )
 }

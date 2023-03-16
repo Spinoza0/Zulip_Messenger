@@ -3,12 +3,13 @@ package com.spinoza.messenger_tfs.data.repository
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
 import com.spinoza.messenger_tfs.data.prepareTestData
+import com.spinoza.messenger_tfs.data.streamsDto
 import com.spinoza.messenger_tfs.data.toDomain
 import com.spinoza.messenger_tfs.data.toDto
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.model.RepositoryState
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,11 +34,20 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     // TODO: подумать о вынесении в init или конструктор, не забыть про userId - скорее всего
-    //  userId будет передаваться через метод фильтрации (stream/topic) или к этому момент его
+    //  userId будет передаваться через метод фильтрации (stream/topic) или к этому моменту его
     //  передача перестанет быть актуальной (поменяется структура данных)
     override fun getState(userId: Long): StateFlow<RepositoryState> {
         state.value = RepositoryState.Messages(messagesLocalCache.toDomain(userId))
         return state.asStateFlow()
+    }
+
+    override fun getAllChannels() {
+        state.value = RepositoryState.Channels(streamsDto.toDomain())
+    }
+
+    override fun getSubscribedChannels() {
+        getAllChannels()
+        // TODO: "Not yet implemented"
     }
 
     override suspend fun sendMessage(message: Message) {

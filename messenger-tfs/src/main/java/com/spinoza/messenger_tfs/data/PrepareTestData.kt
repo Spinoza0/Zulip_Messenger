@@ -4,28 +4,28 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
 import com.spinoza.messenger_tfs.data.model.StreamDto
-import com.spinoza.messenger_tfs.data.model.TopicDto
 import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import kotlin.random.Random
 
 // for testing purpose
 
-val topicsDto1 = listOf(
-    TopicDto("jokes"),
-    TopicDto("weather"),
+val topics1 = listOf(
+    Topic("jokes"),
+    Topic("weather"),
 )
 
-val topicsDto2 = listOf(
-    TopicDto("testing"),
-    TopicDto("development"),
+val topics2 = listOf(
+    Topic("testing"),
+    Topic("development"),
 )
 
 val streamsDto = listOf(
-    StreamDto(0L, "general", topicsDto1),
-    StreamDto(1L, "Development", topicsDto2),
-    StreamDto(2L, "Design", topicsDto2),
-    StreamDto(3L, "PR", topicsDto1),
+    StreamDto(0L, "general", topics1),
+    StreamDto(1L, "Development", topics2),
+    StreamDto(2L, "Design", topics2),
+    StreamDto(3L, "PR", topics1),
 )
 
 fun prepareTestData(): List<MessageDto> {
