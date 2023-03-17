@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.fragment
+package com.spinoza.messenger_tfs.presentation.fragment.menu
 
 import android.os.Bundle
 import android.view.LayoutInflater

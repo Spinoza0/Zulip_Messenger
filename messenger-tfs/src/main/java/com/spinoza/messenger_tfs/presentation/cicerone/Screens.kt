@@ -1,9 +1,9 @@
 package com.spinoza.messenger_tfs.presentation.cicerone
 
 import com.github.terrakok.cicerone.androidx.FragmentScreen
-import com.spinoza.messenger_tfs.presentation.fragment.MainChannelsFragment
-import com.spinoza.messenger_tfs.presentation.fragment.MainPeopleFragment
-import com.spinoza.messenger_tfs.presentation.fragment.MainProfileFragment
+import com.spinoza.messenger_tfs.presentation.fragment.menu.MainChannelsFragment
+import com.spinoza.messenger_tfs.presentation.fragment.menu.MainPeopleFragment
+import com.spinoza.messenger_tfs.presentation.fragment.menu.MainProfileFragment
 import com.spinoza.messenger_tfs.presentation.fragment.MessagesFragment
 
 object Screens {

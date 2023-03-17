@@ -8,5 +8,5 @@
     android:background="?attr/background_700_color"
     android:orientation="vertical"
     app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-    tools:context=".presentation.fragment.ChannelsPageFragment"
+    tools:context=".presentation.fragment.menu.ChannelsPageFragment"
     tools:listitem="@layout/channel_item" />
