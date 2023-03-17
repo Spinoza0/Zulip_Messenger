@@ -72,7 +72,6 @@ class ChannelsFragment : Fragment() {
     }
 
     private fun setupObservers() {
-        val alternateBackgroundColor = requireContext().getThemeColor(R.attr.odd_topic_color)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.state.collect { state ->
@@ -110,13 +109,18 @@ class ChannelsFragment : Fragment() {
             }
             Channel.Type.UNFOLDED -> {
                 state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_up)
-                state.topics.forEach { topic ->
+                val alternateBackgroundColor =
+                    requireContext().getThemeColor(R.attr.odd_topic_color)
+                state.topics.forEachIndexed() { index, topic ->
                     val topicBinding = TopicItemBinding.inflate(
                         LayoutInflater.from(state.binding.linearLayoutTopics.context),
                         state.binding.linearLayoutTopics,
                         false
                     )
                     topicBinding.textViewTopic.text = topic.name
+                    if (index % 2 == 0) {
+                        topicBinding.textViewTopic.setBackgroundColor(alternateBackgroundColor)
+                    }
                     state.binding.linearLayoutTopics.addView(topicBinding.root)
                 }
             }
