@@ -46,10 +46,14 @@ class ChannelsFragmentViewModel(
         for (index in 0 until channelsLocalCache.size) {
             val oldChannel = channelsLocalCache[index]
             if (oldChannel.channelId == channel.channelId) {
-                val newChannel = channel.copy(type = getNewChannelType(oldChannel.type))
+                val newType = getNewChannelType(oldChannel.type)
+                val newChannel = channel.copy(type = newType)
                 channelsLocalCache[index] = newChannel
-                _state.value =
-                    ChannelsFragmentState.Topics(newChannel.topics, newChannel, itemBinding)
+                val topics = if (newType == Channel.Type.FOLDED)
+                    listOf()
+                else
+                    newChannel.topics
+                _state.value = ChannelsFragmentState.Topics(topics, newChannel, itemBinding)
                 break
             }
         }

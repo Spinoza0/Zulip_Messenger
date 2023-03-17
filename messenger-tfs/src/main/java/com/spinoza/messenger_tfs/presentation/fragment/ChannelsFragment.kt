@@ -12,11 +12,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
-import com.spinoza.messenger_tfs.databinding.TopicItemBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState.SourceType
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
@@ -31,7 +31,12 @@ class ChannelsFragment : Fragment() {
         get() = _binding ?: throw RuntimeException("FragmentChannelsBinding == null")
 
     private val adapter by lazy {
-        ChannelsAdapter(viewModel::onChannelClickListener)
+        ChannelsAdapter(
+            requireContext().getThemeColor(R.attr.even_topic_color),
+            requireContext().getThemeColor(R.attr.odd_topic_color),
+            viewModel::onChannelClickListener,
+            ::onTopicClickListener
+        )
     }
 
     private val viewModel: ChannelsFragmentViewModel by viewModels {
@@ -71,6 +76,10 @@ class ChannelsFragment : Fragment() {
         }
     }
 
+    private fun onTopicClickListener(channelId: Long, topic: String) {
+        TODO()
+    }
+
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -102,29 +111,15 @@ class ChannelsFragment : Fragment() {
     }
 
     private fun handleTopicsState(state: ChannelsFragmentState.Topics) {
-        state.binding.linearLayoutTopics.removeAllViews()
         when (state.channel.type) {
             Channel.Type.FOLDED -> {
                 state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_down)
             }
             Channel.Type.UNFOLDED -> {
                 state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_up)
-                val alternateBackgroundColor =
-                    requireContext().getThemeColor(R.attr.odd_topic_color)
-                state.topics.forEachIndexed() { index, topic ->
-                    val topicBinding = TopicItemBinding.inflate(
-                        LayoutInflater.from(state.binding.linearLayoutTopics.context),
-                        state.binding.linearLayoutTopics,
-                        false
-                    )
-                    topicBinding.textViewTopic.text = topic.name
-                    if (index % 2 == 0) {
-                        topicBinding.textViewTopic.setBackgroundColor(alternateBackgroundColor)
-                    }
-                    state.binding.linearLayoutTopics.addView(topicBinding.root)
-                }
             }
         }
+        (state.binding.recyclerViewTopics.adapter as TopicAdapter).submitList(state.topics)
     }
 
     override fun onDestroyView() {

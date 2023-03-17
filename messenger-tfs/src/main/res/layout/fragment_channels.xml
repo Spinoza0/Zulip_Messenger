@@ -95,6 +95,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textViewBox"
-        tools:listitem="@layout/channel_folded_item" />
+        tools:listitem="@layout/channel_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
