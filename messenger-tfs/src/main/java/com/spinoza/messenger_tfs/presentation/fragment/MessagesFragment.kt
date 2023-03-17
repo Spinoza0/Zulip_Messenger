@@ -87,6 +87,7 @@ class MessagesFragment : Fragment() {
 
         parseParams()
         setupScreen()
+        viewModel.getMessages()
     }
 
     private fun setupScreen() {
@@ -112,14 +113,16 @@ class MessagesFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.state.collect { state ->
-                    when (state) {
-                        is MessagesFragmentState.Repository -> handleRepositoryState(state.state)
-                        is MessagesFragmentState.SendIconImage -> {
-                            binding.imageViewAction.setImageResource(state.resId)
-                        }
-                    }
-                }
+                viewModel.state.collect(::handleMessagesFragmentState)
+            }
+        }
+    }
+
+    private fun handleMessagesFragmentState(state: MessagesFragmentState) {
+        when (state) {
+            is MessagesFragmentState.Repository -> handleRepositoryState(state.state)
+            is MessagesFragmentState.SendIconImage -> {
+                binding.imageViewAction.setImageResource(state.resId)
             }
         }
     }

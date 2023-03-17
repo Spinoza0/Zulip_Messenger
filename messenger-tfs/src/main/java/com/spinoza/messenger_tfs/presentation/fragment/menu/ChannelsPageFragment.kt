@@ -1,58 +1,39 @@
 package com.spinoza.messenger_tfs.presentation.fragment.menu
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
-import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
-import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
 class ChannelsPageFragment : Fragment() {
+
+    lateinit var adapter: ChannelsAdapter
+
+    private lateinit var channelsViewModel: ChannelsViewModel
+    private var allChannels = false
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
 
-    private var allChannels = false
-
-    private val adapter by lazy {
-        ChannelsAdapter(
-            requireContext().getThemeColor(R.attr.even_topic_color),
-            requireContext().getThemeColor(R.attr.odd_topic_color),
-            viewModel::onChannelClickListener,
-            ::onTopicClickListener
-        )
-    }
-
-    private val viewModel: ChannelsFragmentViewModel by viewModels {
-        val getChannelsUseCase = if (allChannels) {
-            GetAllChannelsUseCase(MessagesRepositoryImpl.getInstance())
-        } else {
-            GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance())
-        }
-        ChannelsFragmentViewModelFactory(
-            getChannelsUseCase,
-            GetTopicsUseCase(MessagesRepositoryImpl.getInstance())
-        )
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        channelsViewModel = parentFragment as ChannelsViewModel
     }
 
     override fun onCreateView(
@@ -69,9 +50,17 @@ class ChannelsPageFragment : Fragment() {
         parseParams()
         setupRecyclerView()
         setupObservers()
+        channelsViewModel.getChannels(allChannels)
     }
 
     private fun setupRecyclerView() {
+        adapter = ChannelsAdapter(
+            allChannels,
+            requireContext().getThemeColor(R.attr.even_topic_color),
+            requireContext().getThemeColor(R.attr.odd_topic_color),
+            channelsViewModel::onChannelClickListener,
+            ::onTopicClickListener
+        )
         binding.recyclerViewChannels.adapter = adapter
     }
 
@@ -82,7 +71,7 @@ class ChannelsPageFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.state.collect { state ->
+                channelsViewModel.getState(allChannels).collect { state ->
                     when (state) {
                         is ChannelsFragmentState.Channels -> adapter.submitList(state.channels)
                         is ChannelsFragmentState.Topics -> handleTopicsState(state)

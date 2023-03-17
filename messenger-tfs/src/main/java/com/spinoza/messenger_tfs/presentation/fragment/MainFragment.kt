@@ -65,13 +65,9 @@ class MainFragment : Fragment(), OnItemSelectedListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.bottomNavigationView.setOnItemSelectedListener(this)
-
         setupStatusBar()
-
-        if (savedInstanceState == null) {
-            localRouter.newRootScreen(Screens.Channels())
-        }
+        binding.bottomNavigationView.setOnItemSelectedListener(this)
+        localRouter.newRootScreen(Screens.Channels())
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -108,11 +104,5 @@ class MainFragment : Fragment(), OnItemSelectedListener {
     private fun setupStatusBar() {
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.background_500_color)
-    }
-
-    companion object {
-        fun newInstance(): MainFragment {
-            return MainFragment()
-        }
     }
 }

@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MessagesFragmentViewModel(
-    getMessagesUseCase: GetMessagesUseCase,
+    private val getMessagesUseCase: GetMessagesUseCase,
     private val getUserIdUseCase: GetUserIdUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
@@ -38,7 +38,7 @@ class MessagesFragmentViewModel(
 
     private val channelFilter = ChannelFilter(channel.channelId, topicName)
 
-    init {
+    fun getMessages() {
         viewModelScope.launch {
             _state.value = MessagesFragmentState.Repository(getMessagesUseCase(channelFilter))
         }

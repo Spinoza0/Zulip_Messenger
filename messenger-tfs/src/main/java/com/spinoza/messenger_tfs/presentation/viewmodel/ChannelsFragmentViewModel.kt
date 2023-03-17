@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
-import com.spinoza.messenger_tfs.domain.usecase.GetChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,51 +15,99 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ChannelsFragmentViewModel(
-    private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicsUseCase: GetTopicsUseCase,
+    private val getSubscribedChannelsUseCase: GetSubscribedChannelsUseCase,
+    private val getAllChannelsUseCase: GetAllChannelsUseCase,
 ) : ViewModel() {
 
-    val state: StateFlow<ChannelsFragmentState>
-        get() = _state.asStateFlow()
+    val stateAllChannels: StateFlow<ChannelsFragmentState>
+        get() = _stateAllChannels.asStateFlow()
+    val stateSubscribedChannels: StateFlow<ChannelsFragmentState>
+        get() = _stateSubscribedChannels.asStateFlow()
 
-    private val channelsLocalCache = mutableListOf<Channel>()
-
-    private val _state =
+    private val allChannelsCache = mutableListOf<Channel>()
+    private val subscribedChannelsCache = mutableListOf<Channel>()
+    private val _stateAllChannels =
+        MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Idle)
+    private val _stateSubscribedChannels =
         MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Idle)
 
-    init {
-        getChannels()
-    }
-
-    fun onChannelClickListener(channel: Channel, itemBinding: ChannelItemBinding) {
+    fun getChannels(allChannels: Boolean) {
         viewModelScope.launch {
-            changeChannelType(channel, itemBinding)
+            val cache: MutableList<Channel>
+            val state: RepositoryState
+            if (allChannels) {
+                cache = allChannelsCache
+                state = getAllChannelsUseCase()
+            } else {
+                cache = subscribedChannelsCache
+                state = getSubscribedChannelsUseCase()
+            }
+
+            val result = when (state) {
+                is RepositoryState.Channels -> {
+                    cache.clear()
+                    cache.addAll(state.channels)
+                    ChannelsFragmentState.Channels(cache)
+                }
+                is RepositoryState.Error -> ChannelsFragmentState.Error(state.text)
+                else -> ChannelsFragmentState.Error(UNKNOWN_ERROR)
+            }
+
+            if (allChannels) {
+                _stateAllChannels.value = result
+            } else {
+                _stateSubscribedChannels.value = result
+            }
         }
     }
 
-    private suspend fun changeChannelType(channel: Channel, itemBinding: ChannelItemBinding) {
-        for (index in 0 until channelsLocalCache.size) {
-            val oldChannel = channelsLocalCache[index]
-            if (oldChannel.channelId == channel.channelId) {
-                val newType = getNewChannelType(oldChannel.type)
-                val newChannel = channel.copy(type = newType)
-                var success = true
-                if (newType == Channel.Type.FOLDED) {
-                    _state.value = ChannelsFragmentState.Topics(listOf(), newChannel, itemBinding)
-                } else {
-                    val result = getTopicsUseCase(channel.channelId)
-                    if (result is RepositoryState.Topics) {
-                        _state.value =
-                            ChannelsFragmentState.Topics(result.topics, newChannel, itemBinding)
-                    } else if (result is RepositoryState.Error) {
-                        _state.value = ChannelsFragmentState.Error(result.text)
-                        success = false
+    fun onChannelClickListener(
+        allChannels: Boolean,
+        channel: Channel,
+        itemBinding: ChannelItemBinding,
+    ) {
+        viewModelScope.launch {
+            val cache = if (allChannels) {
+                allChannelsCache
+            } else {
+                subscribedChannelsCache
+            }
+
+            for (index in 0 until cache.size) {
+                val oldChannel = cache[index]
+                if (oldChannel.channelId == channel.channelId) {
+                    val newType = getNewChannelType(oldChannel.type)
+                    val newChannel = channel.copy(type = newType)
+                    var success = true
+                    var result: ChannelsFragmentState = ChannelsFragmentState.Idle
+                    if (newType == Channel.Type.FOLDED) {
+                        result = ChannelsFragmentState.Topics(listOf(), newChannel, itemBinding)
+                    } else {
+                        val repositoryState = getTopicsUseCase(channel.channelId)
+                        if (repositoryState is RepositoryState.Topics) {
+                            result =
+                                ChannelsFragmentState.Topics(
+                                    repositoryState.topics,
+                                    newChannel,
+                                    itemBinding
+                                )
+                        } else if (repositoryState is RepositoryState.Error) {
+                            result = ChannelsFragmentState.Error(repositoryState.text)
+                            success = false
+                        }
                     }
+                    if (allChannels) {
+                        _stateAllChannels.value = result
+                    } else {
+                        _stateSubscribedChannels.value = result
+                    }
+
+                    if (success) {
+                        cache[index] = newChannel
+                    }
+                    break
                 }
-                if (success) {
-                    channelsLocalCache[index] = newChannel
-                }
-                break
             }
         }
     }
@@ -71,25 +120,8 @@ class ChannelsFragmentViewModel(
         }
     }
 
-    private fun getChannels() {
-        viewModelScope.launch {
-            _state.value = updateCache(getChannelsUseCase())
-        }
-    }
-
-    private fun updateCache(state: RepositoryState): ChannelsFragmentState {
-        return when (state) {
-            is RepositoryState.Channels -> {
-                channelsLocalCache.clear()
-                channelsLocalCache.addAll(state.channels)
-                ChannelsFragmentState.Channels(channelsLocalCache)
-            }
-            is RepositoryState.Error -> ChannelsFragmentState.Error(state.text)
-            else -> ChannelsFragmentState.Error(UNKNOWN_ERROR)
-        }
-    }
-
     companion object {
+        // TODO: process errors
         private const val UNKNOWN_ERROR = ""
     }
 }
