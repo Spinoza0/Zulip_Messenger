@@ -75,8 +75,8 @@ class ChannelsPageFragment : Fragment() {
         binding.recyclerViewChannels.adapter = adapter
     }
 
-    private fun onTopicClickListener(channelId: Long, topicName: String) {
-        MessengerApp.router.navigateTo(Screens.Messages(channelId, topicName))
+    private fun onTopicClickListener(channel: Channel, topicName: String) {
+        MessengerApp.router.navigateTo(Screens.Messages(channel, topicName))
     }
 
     private fun setupObservers() {

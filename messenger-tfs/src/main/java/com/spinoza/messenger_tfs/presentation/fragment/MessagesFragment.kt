@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.fragment
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,7 @@ import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
+import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
@@ -25,9 +27,9 @@ import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
@@ -43,8 +45,8 @@ class MessagesFragment : Fragment() {
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
-    private var channelId: Long = UNDEFINED_ID
-    private var topicName: String = EMPTY_STRING
+    private lateinit var channel: Channel
+    private lateinit var topicName: String
 
     private val mainAdapter: MainAdapter by lazy {
         MainAdapter().apply {
@@ -60,7 +62,7 @@ class MessagesFragment : Fragment() {
             GetUserIdUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            channelId,
+            channel,
             topicName
         )
     }
@@ -92,9 +94,12 @@ class MessagesFragment : Fragment() {
         setupRecyclerView()
         setupObservers()
         setupListeners()
+        binding.textViewTopic.text =
+            String.format(getString(R.string.topic_title_template), topicName)
     }
 
     private fun setupStatusBar() {
+        binding.toolbar.title = "#${channel.name}"
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.channel_toolbar_background_color)
     }
@@ -205,24 +210,33 @@ class MessagesFragment : Fragment() {
         MessengerApp.router.exit()
     }
 
+    @Suppress("deprecation")
     private fun parseParams() {
-        channelId = arguments?.getLong(EXTRA_CHANNEL_ID) ?: UNDEFINED_ID
         topicName = arguments?.getString(EXTRA_TOPIC_NAME) ?: EMPTY_STRING
-        if (channelId == UNDEFINED_ID || topicName.isEmpty())
+        val newChannel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getParcelable(EXTRA_CHANNEL, Channel::class.java)
+        } else {
+            arguments?.getParcelable(EXTRA_CHANNEL)
+        }
+
+        if (newChannel == null || newChannel.channelId == UNDEFINED_ID || topicName.isEmpty()) {
             openMainFragment()
+        } else {
+            channel = newChannel
+        }
     }
 
     companion object {
 
         private const val UNDEFINED_ID = -1L
         private const val EMPTY_STRING = ""
-        private const val EXTRA_CHANNEL_ID = "channelId"
+        private const val EXTRA_CHANNEL = "channel"
         private const val EXTRA_TOPIC_NAME = "topic"
 
-        fun newInstance(channelId: Long, topicName: String): MessagesFragment {
+        fun newInstance(channel: Channel, topicName: String): MessagesFragment {
             return MessagesFragment().apply {
                 arguments = Bundle().apply {
-                    putLong(EXTRA_CHANNEL_ID, channelId)
+                    putParcelable(EXTRA_CHANNEL, channel)
                     putString(EXTRA_TOPIC_NAME, topicName)
                 }
             }

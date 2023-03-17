@@ -1,15 +1,16 @@
 package com.spinoza.messenger_tfs.presentation.cicerone
 
 import com.github.terrakok.cicerone.androidx.FragmentScreen
+import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.presentation.fragment.MessagesFragment
 import com.spinoza.messenger_tfs.presentation.fragment.menu.MainChannelsFragment
 import com.spinoza.messenger_tfs.presentation.fragment.menu.MainPeopleFragment
 import com.spinoza.messenger_tfs.presentation.fragment.menu.MainProfileFragment
-import com.spinoza.messenger_tfs.presentation.fragment.MessagesFragment
 
 object Screens {
 
-    fun Messages(channelId: Long, topicName: String) = FragmentScreen {
-        MessagesFragment.newInstance(channelId, topicName)
+    fun Messages(channel: Channel, topicName: String) = FragmentScreen {
+        MessagesFragment.newInstance(channel, topicName)
     }
 
     fun Channels() = FragmentScreen { MainChannelsFragment.newInstance() }

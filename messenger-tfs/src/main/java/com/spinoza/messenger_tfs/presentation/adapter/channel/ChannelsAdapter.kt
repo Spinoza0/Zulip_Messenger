@@ -11,7 +11,7 @@ class ChannelsAdapter(
     private val evenColor: Int,
     private val oddColor: Int,
     private val onChannelClickListener: (Channel, ChannelItemBinding) -> Unit,
-    private val onTopicClickListener: (Long, String) -> Unit,
+    private val onTopicClickListener: (Channel, String) -> Unit,
 ) : ListAdapter<Channel, ChannelViewHolder>(ChannelDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChannelViewHolder {

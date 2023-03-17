@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
@@ -23,7 +24,7 @@ class MessagesFragmentViewModel(
     private val getUserIdUseCase: GetUserIdUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
-    channelId: Long,
+    channel: Channel,
     topicName: String,
 ) : ViewModel() {
 
@@ -35,7 +36,7 @@ class MessagesFragmentViewModel(
             MessagesFragmentState.SendIconImage(R.drawable.ic_add_circle_outline)
         )
 
-    private val channelFilter = ChannelFilter(channelId, topicName)
+    private val channelFilter = ChannelFilter(channel.channelId, topicName)
 
     init {
         viewModelScope.launch {

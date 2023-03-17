@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 
@@ -11,7 +12,7 @@ class MessagesFragmentViewModelFactory(
     private val getUserIdUseCase: GetUserIdUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
-    private val channelId: Long,
+    private val channel: Channel,
     private val topicName: String,
 ) : ViewModelProvider.Factory {
 
@@ -21,7 +22,7 @@ class MessagesFragmentViewModelFactory(
             getUserIdUseCase,
             sendMessageUseCase,
             updateReactionUseCase,
-            channelId,
+            channel,
             topicName
         ) as T
     }
