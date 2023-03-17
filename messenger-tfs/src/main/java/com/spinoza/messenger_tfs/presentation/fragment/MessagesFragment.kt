@@ -27,7 +27,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView

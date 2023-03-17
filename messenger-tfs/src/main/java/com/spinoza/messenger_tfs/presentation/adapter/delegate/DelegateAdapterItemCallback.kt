@@ -1,7 +1,6 @@
-package com.spinoza.messenger_tfs.presentation.adapter
+package com.spinoza.messenger_tfs.presentation.adapter.delegate
 
 import androidx.recyclerview.widget.DiffUtil
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 
 class DelegateAdapterItemCallback : DiffUtil.ItemCallback<DelegateItem>() {
 

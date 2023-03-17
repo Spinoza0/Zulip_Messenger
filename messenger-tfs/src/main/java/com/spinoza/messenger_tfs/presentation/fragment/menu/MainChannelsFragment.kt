@@ -16,15 +16,6 @@ class MainChannelsFragment : Fragment() {
     private val binding: FragmentMainChannelsBinding
         get() = _binding ?: throw RuntimeException("FragmentMainChannelsBinding == null")
 
-    private val childFragments = listOf(
-        ChannelsPageFragment.newInstance(false),
-        ChannelsPageFragment.newInstance(true)
-    )
-
-    private val viewPagerAdapter by lazy {
-        ViewPagerAdapter(requireActivity().supportFragmentManager, lifecycle, childFragments)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -40,6 +31,13 @@ class MainChannelsFragment : Fragment() {
     }
 
     private fun setupTabLayoutMediator() {
+        val childFragments = listOf(
+            ChannelsPageFragment.newInstance(false),
+            ChannelsPageFragment.newInstance(true)
+        )
+
+        val viewPagerAdapter = ViewPagerAdapter(childFragmentManager, lifecycle, childFragments)
+
         binding.viewPager.adapter = viewPagerAdapter
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             when (position) {

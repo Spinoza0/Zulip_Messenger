@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.bind
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.bind
 
 class UserMessageDelegate : AdapterDelegate {
 

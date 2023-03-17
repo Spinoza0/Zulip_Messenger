@@ -4,6 +4,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItemCallback
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 
 class MainAdapter :
