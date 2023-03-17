@@ -6,6 +6,7 @@ import com.spinoza.messenger_tfs.data.prepareTestData
 import com.spinoza.messenger_tfs.data.streamsDto
 import com.spinoza.messenger_tfs.data.toDomain
 import com.spinoza.messenger_tfs.data.toDto
+import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -31,8 +32,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return userId
     }
 
-    override suspend fun getMessages(): RepositoryState {
-        return RepositoryState.Messages(messagesLocalCache.toDomain(userId))
+    override suspend fun getMessages(channelFilter: ChannelFilter): RepositoryState {
+        return RepositoryState.Messages(messagesLocalCache.toDomain(userId, channelFilter))
     }
 
     // TODO: "Not yet implemented"
@@ -51,20 +52,34 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return RepositoryState.Topics(topics)
     }
 
-    override suspend fun sendMessage(message: Message): RepositoryState {
+    override suspend fun sendMessage(
+        message: Message,
+        channelFilter: ChannelFilter,
+    ): RepositoryState {
         val newMessageId = if (message.id == Message.UNDEFINED_ID) {
             messagesLocalCache.size.toLong()
         } else {
             message.id
         }
-        messagesLocalCache.add(message.toDto(message.userId, newMessageId))
+        messagesLocalCache.add(
+            message.toDto(
+                userId = message.userId,
+                messageId = newMessageId,
+                channelId = channelFilter.id,
+                topicName = channelFilter.topic
+            )
+        )
         return RepositoryState.Messages(
-            messagesLocalCache.toDomain(message.userId),
+            messagesLocalCache.toDomain(message.userId, channelFilter),
             MessagePosition(type = MessagePosition.Type.LAST_POSITION)
         )
     }
 
-    override suspend fun updateReaction(messageId: Long, reaction: String): RepositoryState {
+    override suspend fun updateReaction(
+        messageId: Long,
+        reaction: String,
+        channelFilter: ChannelFilter,
+    ): RepositoryState {
         val messageDto = messagesLocalCache.find { it.id == messageId }
             ?: return RepositoryState.Error(String.format(ERROR_USER_NOT_FOUND, userId))
 
@@ -85,7 +100,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesLocalCache.removeIf { it.id == messageId }
         messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
         return RepositoryState.Messages(
-            messagesLocalCache.toDomain(userId),
+            messagesLocalCache.toDomain(userId, channelFilter),
             MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
         )
     }

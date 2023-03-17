@@ -10,8 +10,8 @@ data class MessageDto(
     val content: String,
     val avatarResId: Int,
     val reactions: Map<String, ReactionParamDto>,
-    val streamId: Long,
-    val subject: String,
+    val channelId: Long,
+    val topicName: String,
 ) : Comparable<MessageDto> {
     override fun compareTo(other: MessageDto): Int {
         return id.compareTo(other.id)

@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
@@ -22,6 +23,8 @@ class MessagesFragmentViewModel(
     private val getUserIdUseCase: GetUserIdUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
+    channelId: Long,
+    topicName: String,
 ) : ViewModel() {
 
     val state: StateFlow<MessagesFragmentState>
@@ -32,9 +35,11 @@ class MessagesFragmentViewModel(
             MessagesFragmentState.SendIconImage(R.drawable.ic_add_circle_outline)
         )
 
+    private val channelFilter = ChannelFilter(channelId, topicName)
+
     init {
         viewModelScope.launch {
-            _state.value = MessagesFragmentState.Repository(getMessagesUseCase())
+            _state.value = MessagesFragmentState.Repository(getMessagesUseCase(channelFilter))
         }
     }
 
@@ -62,9 +67,7 @@ class MessagesFragmentViewModel(
                     false
                 )
                 _state.value = MessagesFragmentState.Repository(
-                    sendMessageUseCase(
-                        message
-                    )
+                    sendMessageUseCase(message, channelFilter)
                 )
             }
             return true
@@ -75,10 +78,7 @@ class MessagesFragmentViewModel(
     fun updateReaction(messageId: Long, reaction: String) {
         viewModelScope.launch {
             _state.value = MessagesFragmentState.Repository(
-                updateReactionUseCase(
-                    messageId,
-                    reaction
-                )
+                updateReactionUseCase(messageId, reaction, channelFilter)
             )
         }
     }

@@ -11,6 +11,8 @@ class MessagesFragmentViewModelFactory(
     private val getUserIdUseCase: GetUserIdUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
+    private val channelId: Long,
+    private val topicName: String,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -18,7 +20,9 @@ class MessagesFragmentViewModelFactory(
             getMessagesUseCase,
             getUserIdUseCase,
             sendMessageUseCase,
-            updateReactionUseCase
+            updateReactionUseCase,
+            channelId,
+            topicName
         ) as T
     }
 }

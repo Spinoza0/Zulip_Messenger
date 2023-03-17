@@ -4,10 +4,10 @@ import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
 import com.spinoza.messenger_tfs.data.model.StreamDto
 import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import java.util.*
-import kotlin.random.Random
 
 fun List<StreamDto>.toDomain(): List<Channel> {
     return this.map { it.toDomain() }
@@ -26,15 +26,13 @@ fun MessageDto.toDomain(userId: Long): Message {
     )
 }
 
-fun TreeSet<MessageDto>.toDomain(userId: Long): List<Message> {
-    return this.map { it.toDomain(userId) }
+fun TreeSet<MessageDto>.toDomain(userId: Long, channelFilter: ChannelFilter): List<Message> {
+    return this.filter {
+        it.channelId == channelFilter.id && it.topicName == channelFilter.topic
+    }.map { it.toDomain(userId) }
 }
 
-fun Message.toDto(userId: Long, messageId: Long): MessageDto {
-
-    // TODO: сделано в целях тестирования, убрать, заменить на реальные данные
-    val stream = streamsDto[Random.nextInt(streamsDto.size)]
-    val topic = stream.topics[Random.nextInt(stream.topics.size)]
+fun Message.toDto(userId: Long, messageId: Long, channelId: Long, topicName: String): MessageDto {
 
     return MessageDto(
         date = this.date,
@@ -44,8 +42,8 @@ fun Message.toDto(userId: Long, messageId: Long): MessageDto {
         avatarResId = this.avatarResId,
         reactions = this.reactions.toDto(userId),
         id = messageId,
-        streamId = stream.id,
-        subject = topic.name
+        channelId = channelId,
+        topicName = topicName
     )
 }
 

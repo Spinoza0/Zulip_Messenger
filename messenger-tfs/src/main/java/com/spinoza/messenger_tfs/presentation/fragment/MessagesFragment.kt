@@ -60,6 +60,8 @@ class MessagesFragment : Fragment() {
             GetUserIdUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
+            channelId,
+            topicName
         )
     }
 
