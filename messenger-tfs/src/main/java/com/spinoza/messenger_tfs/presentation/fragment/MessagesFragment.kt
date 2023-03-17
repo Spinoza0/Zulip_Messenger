@@ -87,7 +87,6 @@ class MessagesFragment : Fragment() {
 
         parseParams()
         setupScreen()
-        viewModel.getMessages()
     }
 
     private fun setupScreen() {
@@ -112,7 +111,7 @@ class MessagesFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::handleMessagesFragmentState)
             }
         }
@@ -197,6 +196,9 @@ class MessagesFragment : Fragment() {
             requireActivity(),
             onBackPressedCallback
         )
+
+        viewModel.doOnTextChanged(binding.editTextMessage.text)
+        viewModel.getMessages()
     }
 
     override fun onPause() {

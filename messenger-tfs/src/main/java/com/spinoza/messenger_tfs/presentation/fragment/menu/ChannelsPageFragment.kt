@@ -50,6 +50,10 @@ class ChannelsPageFragment : Fragment() {
         parseParams()
         setupRecyclerView()
         setupObservers()
+    }
+
+    override fun onResume() {
+        super.onResume()
         channelsViewModel.getChannels(allChannels)
     }
 
@@ -70,18 +74,20 @@ class ChannelsPageFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                channelsViewModel.getState(allChannels).collect { state ->
-                    when (state) {
-                        is ChannelsFragmentState.Channels -> adapter.submitList(state.channels)
-                        is ChannelsFragmentState.Topics -> handleTopicsState(state)
-                        is ChannelsFragmentState.Idle -> {}
-
-                        // TODO: show errors
-                        is ChannelsFragmentState.Error -> {}
-                    }
-                }
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                channelsViewModel.getState(allChannels).collect(::handleChannelsFragmentState)
             }
+        }
+    }
+
+    private fun handleChannelsFragmentState(state: ChannelsFragmentState) {
+        when (state) {
+            is ChannelsFragmentState.Channels -> adapter.submitList(state.channels)
+            is ChannelsFragmentState.Topics -> handleTopicsState(state)
+            is ChannelsFragmentState.Idle -> {}
+
+            // TODO: show errors
+            is ChannelsFragmentState.Error -> {}
         }
     }
 
