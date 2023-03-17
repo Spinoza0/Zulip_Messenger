@@ -6,11 +6,13 @@ interface MessagesRepository {
 
     fun getUserId(): Long
 
-    fun getMessages(): RepositoryState
+    suspend fun getMessages(): RepositoryState
 
-    fun getAllChannels(): RepositoryState
+    suspend fun getAllChannels(): RepositoryState
 
-    fun getSubscribedChannels(): RepositoryState
+    suspend fun getSubscribedChannels(): RepositoryState
+
+    suspend fun getTopics(channelId: Long): RepositoryState
 
     suspend fun sendMessage(message: Message): RepositoryState
 

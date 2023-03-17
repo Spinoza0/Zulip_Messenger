@@ -5,7 +5,7 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 
 class GetAllChannelsUseCase(private val repository: MessagesRepository) : GetChannelsUseCase {
 
-    override operator fun invoke(): RepositoryState {
+    override suspend operator fun invoke(): RepositoryState {
         return repository.getAllChannels()
     }
 }

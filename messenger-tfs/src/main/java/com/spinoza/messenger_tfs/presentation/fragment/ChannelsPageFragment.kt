@@ -16,6 +16,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
@@ -48,7 +49,10 @@ class ChannelsPageFragment : Fragment() {
         } else {
             GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance())
         }
-        ChannelsFragmentViewModelFactory(getChannelsUseCase)
+        ChannelsFragmentViewModelFactory(
+            getChannelsUseCase,
+            GetTopicsUseCase(MessagesRepositoryImpl.getInstance())
+        )
     }
 
     override fun onCreateView(

@@ -4,5 +4,5 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 
 interface GetChannelsUseCase {
 
-    operator fun invoke(): RepositoryState
+    suspend operator fun invoke(): RepositoryState
 }

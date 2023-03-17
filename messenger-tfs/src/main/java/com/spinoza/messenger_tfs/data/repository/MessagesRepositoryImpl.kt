@@ -31,17 +31,24 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return userId
     }
 
-    override fun getMessages(): RepositoryState {
+    override suspend fun getMessages(): RepositoryState {
         return RepositoryState.Messages(messagesLocalCache.toDomain(userId))
     }
 
-    override fun getAllChannels(): RepositoryState {
+    // TODO: "Not yet implemented"
+    override suspend fun getAllChannels(): RepositoryState {
         return RepositoryState.Channels(streamsDto.toDomain())
     }
 
-    override fun getSubscribedChannels(): RepositoryState {
+    // TODO: "Not yet implemented"
+    override suspend fun getSubscribedChannels(): RepositoryState {
         return getAllChannels()
-        // TODO: "Not yet implemented"
+    }
+
+    // TODO: "Not yet implemented"
+    override suspend fun getTopics(channelId: Long): RepositoryState {
+        val topics = streamsDto.find { it.id == channelId }?.topics ?: listOf()
+        return RepositoryState.Topics(topics)
     }
 
     override suspend fun sendMessage(message: Message): RepositoryState {

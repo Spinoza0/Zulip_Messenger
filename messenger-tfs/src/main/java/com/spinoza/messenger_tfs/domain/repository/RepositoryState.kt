@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.domain.repository
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
+import com.spinoza.messenger_tfs.domain.model.Topic
 
 sealed class RepositoryState {
 
@@ -14,4 +15,6 @@ sealed class RepositoryState {
     ) : RepositoryState()
 
     class Channels(val channels: List<Channel>) : RepositoryState()
+
+    class Topics(val topics: List<Topic>) : RepositoryState()
 }

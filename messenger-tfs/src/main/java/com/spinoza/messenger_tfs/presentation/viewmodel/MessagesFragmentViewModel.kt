@@ -33,7 +33,9 @@ class MessagesFragmentViewModel(
         )
 
     init {
-        _state.value = MessagesFragmentState.Repository(getMessagesUseCase())
+        viewModelScope.launch {
+            _state.value = MessagesFragmentState.Repository(getMessagesUseCase())
+        }
     }
 
     fun getUserId() = getUserIdUseCase()
