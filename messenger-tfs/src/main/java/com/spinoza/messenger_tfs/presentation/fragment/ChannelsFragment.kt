@@ -12,12 +12,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
+import com.spinoza.messenger_tfs.databinding.TopicItemBinding
+import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
-import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.channel.ChannelFoldedDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.channel.ChannelUnfoldedDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.toDelegateItems
+import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState.SourceType
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
@@ -31,11 +30,8 @@ class ChannelsFragment : Fragment() {
     private val binding: FragmentChannelsBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsBinding == null")
 
-    private val mainAdapter: MainAdapter by lazy {
-        MainAdapter().apply {
-            addDelegate(ChannelFoldedDelegate())
-            addDelegate(ChannelUnfoldedDelegate())
-        }
+    private val adapter by lazy {
+        ChannelsAdapter(viewModel::onChannelClickListener)
     }
 
     private val viewModel: ChannelsFragmentViewModel by viewModels {
@@ -60,7 +56,7 @@ class ChannelsFragment : Fragment() {
     }
 
     private fun setupScreen() {
-        binding.recyclerViewChannels.adapter = mainAdapter
+        binding.recyclerViewChannels.adapter = adapter
 
         setupListeners()
         setupObservers()
@@ -79,15 +75,11 @@ class ChannelsFragment : Fragment() {
         val alternateBackgroundColor = requireContext().getThemeColor(R.attr.odd_topic_color)
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.state.collect { newState ->
-                    when (newState) {
-                        is ChannelsFragmentState.Source -> handleSourceState(newState.type)
-                        is ChannelsFragmentState.Channels -> mainAdapter.submitList(
-                            newState.channels.toDelegateItems(
-                                viewModel::onChannelClickListener,
-                                alternateBackgroundColor
-                            )
-                        )
+                viewModel.state.collect { state ->
+                    when (state) {
+                        is ChannelsFragmentState.Source -> handleSourceState(state.type)
+                        is ChannelsFragmentState.Channels -> adapter.submitList(state.channels)
+                        is ChannelsFragmentState.Topics -> handleTopicsState(state)
 
                         // TODO: show errors
                         is ChannelsFragmentState.Error -> {}
@@ -106,6 +98,27 @@ class ChannelsFragment : Fragment() {
             SourceType.ALL -> {
                 binding.textViewSubscribedUnderline.visibility = View.INVISIBLE
                 binding.textViewAllUnderline.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun handleTopicsState(state: ChannelsFragmentState.Topics) {
+        state.binding.linearLayoutTopics.removeAllViews()
+        when (state.channel.type) {
+            Channel.Type.FOLDED -> {
+                state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_down)
+            }
+            Channel.Type.UNFOLDED -> {
+                state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_up)
+                state.topics.forEach { topic ->
+                    val topicBinding = TopicItemBinding.inflate(
+                        LayoutInflater.from(state.binding.linearLayoutTopics.context),
+                        state.binding.linearLayoutTopics,
+                        false
+                    )
+                    topicBinding.textViewTopic.text = topic.name
+                    state.binding.linearLayoutTopics.addView(topicBinding.root)
+                }
             }
         }
     }

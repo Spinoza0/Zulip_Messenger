@@ -1,0 +1,16 @@
+package com.spinoza.messenger_tfs.presentation.adapter.channel
+
+import androidx.recyclerview.widget.RecyclerView
+import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
+import com.spinoza.messenger_tfs.domain.model.Channel
+
+class ChannelViewHolder(private val binding: ChannelItemBinding) :
+    RecyclerView.ViewHolder(binding.root) {
+
+    fun bind(channel: Channel, onClickListener: (Channel, ChannelItemBinding) -> Unit) {
+        binding.textViewChannel.text = channel.name
+        binding.root.setOnClickListener {
+            onClickListener.invoke(channel, binding)
+        }
+    }
+}

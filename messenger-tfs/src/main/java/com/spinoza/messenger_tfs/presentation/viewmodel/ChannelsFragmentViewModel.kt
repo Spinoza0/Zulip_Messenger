@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
@@ -41,18 +42,20 @@ class ChannelsFragmentViewModel(
         }
     }
 
-    fun onChannelClickListener(channelId: Long) {
+    fun onChannelClickListener(channel: Channel, itemBinding: ChannelItemBinding) {
         for (index in 0 until channelsLocalCache.size) {
-            val channel = channelsLocalCache[index]
-            if (channel.channelId == channelId) {
-                channelsLocalCache[index] = channel.copy(type = getNewChannelType(channel.type))
-                _state.value = ChannelsFragmentState.Channels(channelsLocalCache)
+            val oldChannel = channelsLocalCache[index]
+            if (oldChannel.channelId == channel.channelId) {
+                val newChannel = channel.copy(type = getNewChannelType(oldChannel.type))
+                channelsLocalCache[index] = newChannel
+                _state.value =
+                    ChannelsFragmentState.Topics(newChannel.topics, newChannel, itemBinding)
                 break
             }
         }
     }
 
-    fun getNewChannelType(type: Channel.Type): Channel.Type {
+    private fun getNewChannelType(type: Channel.Type): Channel.Type {
         return if (type == Channel.Type.FOLDED) {
             Channel.Type.UNFOLDED
         } else {
