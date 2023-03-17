@@ -12,7 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
+import com.spinoza.messenger_tfs.databinding.FragmentMainChannelsBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
@@ -28,9 +28,9 @@ import kotlinx.coroutines.launch
 
 class ChannelsFragment : Fragment() {
 
-    private var _binding: FragmentChannelsBinding? = null
-    private val binding: FragmentChannelsBinding
-        get() = _binding ?: throw RuntimeException("FragmentChannelsBinding == null")
+    private var _binding: FragmentMainChannelsBinding? = null
+    private val binding: FragmentMainChannelsBinding
+        get() = _binding ?: throw RuntimeException("FragmentMainChannelsBinding == null")
 
     private val adapter by lazy {
         ChannelsAdapter(
@@ -52,7 +52,7 @@ class ChannelsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentChannelsBinding.inflate(inflater, container, false)
+        _binding = FragmentMainChannelsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
