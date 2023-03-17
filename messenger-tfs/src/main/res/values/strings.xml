@@ -18,7 +18,7 @@
     <!-- Fragment Channels -->
     <string name="search">Search... (not implemented)</string>
     <string name="all_streams">All Streams</string>
-    <string name="subscribed">Subscribed</string>
+    <string name="subscribed_streams">Subscribed</string>
     <string name="arrow">Arrow</string>
 
 </resources>

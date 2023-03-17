@@ -12,7 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.databinding.FragmentMainChannelsBinding
+import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
@@ -20,17 +20,18 @@ import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
-import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState.SourceType
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
-class ChannelsFragment : Fragment() {
+class ChannelsPageFragment : Fragment() {
 
-    private var _binding: FragmentMainChannelsBinding? = null
-    private val binding: FragmentMainChannelsBinding
-        get() = _binding ?: throw RuntimeException("FragmentMainChannelsBinding == null")
+    private var _binding: FragmentChannelsPageBinding? = null
+    private val binding: FragmentChannelsPageBinding
+        get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
+
+    private var allChannels = false
 
     private val adapter by lazy {
         ChannelsAdapter(
@@ -42,40 +43,32 @@ class ChannelsFragment : Fragment() {
     }
 
     private val viewModel: ChannelsFragmentViewModel by viewModels {
-        ChannelsFragmentViewModelFactory(
-            GetAllChannelsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance()),
-        )
+        val getChannelsUseCase = if (allChannels) {
+            GetAllChannelsUseCase(MessagesRepositoryImpl.getInstance())
+        } else {
+            GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance())
+        }
+        ChannelsFragmentViewModelFactory(getChannelsUseCase)
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentMainChannelsBinding.inflate(inflater, container, false)
+        _binding = FragmentChannelsPageBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupScreen()
-    }
-
-    private fun setupScreen() {
-        binding.recyclerViewChannels.adapter = adapter
-
-        setupListeners()
+        parseParams()
+        setupRecyclerView()
         setupObservers()
     }
 
-    private fun setupListeners() {
-        binding.textViewSubscribedStreams.setOnClickListener {
-            viewModel.switchSource(SourceType.SUBSCRIBED)
-        }
-        binding.textViewAllStreams.setOnClickListener {
-            viewModel.switchSource(SourceType.ALL)
-        }
+    private fun setupRecyclerView() {
+        binding.recyclerViewChannels.adapter = adapter
     }
 
     private fun onTopicClickListener(channelId: Long, topicName: String) {
@@ -87,27 +80,14 @@ class ChannelsFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.state.collect { state ->
                     when (state) {
-                        is ChannelsFragmentState.Source -> handleSourceState(state.type)
                         is ChannelsFragmentState.Channels -> adapter.submitList(state.channels)
                         is ChannelsFragmentState.Topics -> handleTopicsState(state)
+                        is ChannelsFragmentState.Idle -> {}
 
                         // TODO: show errors
                         is ChannelsFragmentState.Error -> {}
                     }
                 }
-            }
-        }
-    }
-
-    private fun handleSourceState(type: SourceType) {
-        when (type) {
-            SourceType.SUBSCRIBED -> {
-                binding.textViewSubscribedUnderline.visibility = View.VISIBLE
-                binding.textViewAllUnderline.visibility = View.INVISIBLE
-            }
-            SourceType.ALL -> {
-                binding.textViewSubscribedUnderline.visibility = View.INVISIBLE
-                binding.textViewAllUnderline.visibility = View.VISIBLE
             }
         }
     }
@@ -124,14 +104,25 @@ class ChannelsFragment : Fragment() {
         (state.binding.recyclerViewTopics.adapter as TopicAdapter).submitList(state.topics)
     }
 
+    private fun parseParams() {
+        allChannels = arguments?.getBoolean(EXTRA_ALL_CHANNELS, false) ?: false
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 
     companion object {
-        fun newInstance(): ChannelsFragment {
-            return ChannelsFragment()
+
+        private const val EXTRA_ALL_CHANNELS = "allChannels"
+
+        fun newInstance(allChannels: Boolean): ChannelsPageFragment {
+            return ChannelsPageFragment().apply {
+                arguments = Bundle().apply {
+                    putBoolean(EXTRA_ALL_CHANNELS, allChannels)
+                }
+            }
         }
     }
 }

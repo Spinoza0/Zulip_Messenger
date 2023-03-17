@@ -7,14 +7,10 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewMode
 
 @Suppress("UNCHECKED_CAST")
 class ChannelsFragmentViewModelFactory(
-    private val getAllChannelsUseCase: GetAllChannelsUseCase,
-    private val getSubscribedChannelsUseCase: GetSubscribedChannelsUseCase,
+    private val getChannelsUseCase: GetChannelsUseCase,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ChannelsFragmentViewModel(
-            getAllChannelsUseCase,
-            getSubscribedChannelsUseCase,
-        ) as T
+        return ChannelsFragmentViewModel(getChannelsUseCase) as T
     }
 }

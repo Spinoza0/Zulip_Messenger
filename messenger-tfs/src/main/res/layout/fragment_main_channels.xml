@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/background_700_color"
-    tools:context=".presentation.fragment.ChannelsFragment">
+    android:orientation="vertical"
+    tools:context=".presentation.fragment.ChannelsPageFragment">
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/editTextSearch"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/background_500_color"
         android:drawableEnd="@drawable/ic_search"
@@ -22,79 +23,29 @@
         android:paddingEnd="28dp"
         android:textColor="?attr/text_200_color"
         android:textColorHint="?attr/text_200_color"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:textSize="24sp" />
 
-    <TextView
-        android:id="@+id/textViewSubscribedStreams"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="?attr/background_500_color"
-        android:gravity="center_horizontal"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp"
-        android:text="@string/subscribed"
-        android:textColor="?attr/text_500_color"
-        android:textSize="22sp"
-        app:layout_constraintEnd_toStartOf="@id/textViewAllStreams"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editTextSearch" />
-
-    <TextView
-        android:id="@+id/textViewAllStreams"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="?attr/background_500_color"
-        android:gravity="center_horizontal"
-        android:paddingTop="16dp"
-        android:paddingBottom="8dp"
-        android:text="@string/all_streams"
-        android:textColor="?attr/text_500_color"
-        android:textSize="22sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/textViewSubscribedStreams"
-        app:layout_constraintTop_toBottomOf="@id/editTextSearch" />
-
-    <TextView
-        android:id="@+id/textViewBox"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_height="26dp"
+        android:layout_height="wrap_content"
         android:background="?attr/background_500_color"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewSubscribedStreams" />
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        app:tabIndicator="@drawable/shape_channels_tab_indicator"
+        app:tabIndicatorColor="?attr/underline_color"
+        app:tabIndicatorFullWidth="false"
+        app:tabIndicatorHeight="2dp"
+        app:tabMode="fixed"
+        app:tabSelectedTextColor="?attr/text_500_color"
+        app:tabTextAppearance="@style/ChannelsTabStyle"
+        app:tabTextColor="?attr/text_500_color">
 
-    <TextView
-        android:id="@+id/textViewSubscribedUnderline"
-        android:layout_width="150dp"
-        android:layout_height="2dp"
-        android:background="@drawable/shape_underline"
-        app:layout_constraintEnd_toEndOf="@id/textViewSubscribedStreams"
-        app:layout_constraintStart_toStartOf="@id/textViewSubscribedStreams"
-        app:layout_constraintTop_toBottomOf="@id/textViewSubscribedStreams" />
+    </com.google.android.material.tabs.TabLayout>
 
-    <TextView
-        android:id="@+id/textViewAllUnderline"
-        android:layout_width="150dp"
-        android:layout_height="2dp"
-        android:background="@drawable/shape_underline"
-        android:visibility="invisible"
-        app:layout_constraintEnd_toEndOf="@id/textViewAllStreams"
-        app:layout_constraintStart_toStartOf="@id/textViewAllStreams"
-        app:layout_constraintTop_toBottomOf="@id/textViewAllStreams" />
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewChannels"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewBox"
-        tools:listitem="@layout/channel_item" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

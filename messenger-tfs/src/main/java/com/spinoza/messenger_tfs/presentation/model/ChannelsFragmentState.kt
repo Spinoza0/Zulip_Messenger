@@ -6,9 +6,9 @@ import com.spinoza.messenger_tfs.domain.model.Topic
 
 sealed class ChannelsFragmentState {
 
-    class Error(val text: String) : ChannelsFragmentState()
+    object Idle : ChannelsFragmentState()
 
-    class Source(val type: SourceType) : ChannelsFragmentState()
+    class Error(val text: String) : ChannelsFragmentState()
 
     class Channels(val channels: List<Channel>) : ChannelsFragmentState()
 
@@ -17,8 +17,4 @@ sealed class ChannelsFragmentState {
         val channel: Channel,
         val binding: ChannelItemBinding,
     ) : ChannelsFragmentState()
-
-    enum class SourceType {
-        SUBSCRIBED, ALL
-    }
 }

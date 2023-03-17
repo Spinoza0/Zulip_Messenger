@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.spinoza.messenger_tfs.databinding.FragmentMainProfileBinding
 
-class ProfileFragment : Fragment() {
+class MainProfileFragment : Fragment() {
 
     private var _binding: FragmentMainProfileBinding? = null
     private val binding: FragmentMainProfileBinding
@@ -27,8 +27,8 @@ class ProfileFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(): ProfileFragment {
-            return ProfileFragment()
+        fun newInstance(): MainProfileFragment {
+            return MainProfileFragment()
         }
     }
 }
