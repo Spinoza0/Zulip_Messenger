@@ -12,7 +12,6 @@ import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.google.android.material.navigation.NavigationBarView.OnItemSelectedListener
-import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMainBinding
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
@@ -79,9 +78,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         when (item.itemId) {
             R.id.menu_channels -> localRouter.replaceScreen(Screens.Channels())
             R.id.menu_people -> localRouter.replaceScreen(Screens.People())
-            // TODO: сделано в целях тестирования, убрать и вернуть закомментированное
-            R.id.menu_profile -> MessengerApp.router.replaceScreen(Screens.Messages())
-            // R.id.menu_profile -> localRouter.replaceScreen(Screens.Profile())
+            R.id.menu_profile -> localRouter.replaceScreen(Screens.Profile())
         }
         return true
     }

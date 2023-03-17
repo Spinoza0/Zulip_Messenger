@@ -9,6 +9,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
@@ -17,6 +18,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
+import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState.SourceType
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
@@ -76,8 +78,8 @@ class ChannelsFragment : Fragment() {
         }
     }
 
-    private fun onTopicClickListener(channelId: Long, topic: String) {
-        TODO()
+    private fun onTopicClickListener(channelId: Long, topicName: String) {
+        MessengerApp.router.navigateTo(Screens.Messages(channelId, topicName))
     }
 
     private fun setupObservers() {

@@ -7,7 +7,9 @@ object Screens {
 
     fun Main() = FragmentScreen { MainFragment.newInstance() }
 
-    fun Messages() = FragmentScreen { MessagesFragment.newInstance() }
+    fun Messages(channelId: Long, topicName: String) = FragmentScreen {
+        MessagesFragment.newInstance(channelId, topicName)
+    }
 
     fun Channels() = FragmentScreen { ChannelsFragment.newInstance() }
 

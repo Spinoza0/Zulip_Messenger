@@ -29,7 +29,6 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
-import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
@@ -43,6 +42,9 @@ class MessagesFragment : Fragment() {
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
+
+    private var channelId: Long = UNDEFINED_ID
+    private var topicName: String = EMPTY_STRING
 
     private val mainAdapter: MainAdapter by lazy {
         MainAdapter().apply {
@@ -79,6 +81,7 @@ class MessagesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        parseParams()
         setupScreen()
     }
 
@@ -197,13 +200,30 @@ class MessagesFragment : Fragment() {
     }
 
     private fun openMainFragment() {
-        MessengerApp.router.replaceScreen(Screens.Main())
+        MessengerApp.router.exit()
+    }
+
+    private fun parseParams() {
+        channelId = arguments?.getLong(EXTRA_CHANNEL_ID) ?: UNDEFINED_ID
+        topicName = arguments?.getString(EXTRA_TOPIC_NAME) ?: EMPTY_STRING
+        if (channelId == UNDEFINED_ID || topicName.isEmpty())
+            openMainFragment()
     }
 
     companion object {
 
-        fun newInstance(): MessagesFragment {
-            return MessagesFragment()
+        private const val UNDEFINED_ID = -1L
+        private const val EMPTY_STRING = ""
+        private const val EXTRA_CHANNEL_ID = "channelId"
+        private const val EXTRA_TOPIC_NAME = "topic"
+
+        fun newInstance(channelId: Long, topicName: String): MessagesFragment {
+            return MessagesFragment().apply {
+                arguments = Bundle().apply {
+                    putLong(EXTRA_CHANNEL_ID, channelId)
+                    putString(EXTRA_TOPIC_NAME, topicName)
+                }
+            }
         }
     }
 }
