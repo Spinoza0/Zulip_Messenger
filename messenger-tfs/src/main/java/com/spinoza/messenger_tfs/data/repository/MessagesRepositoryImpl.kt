@@ -1,14 +1,12 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.data.channelsDto
+import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
-import com.spinoza.messenger_tfs.data.prepareTestData
-import com.spinoza.messenger_tfs.data.toDomain
-import com.spinoza.messenger_tfs.data.toDto
 import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
+import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import java.util.*
@@ -19,7 +17,8 @@ import java.util.*
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
-    private val userId = TEST_USER_ID
+    // TODO: for testing purpose
+    private val user = testUserDto
 
     private val messagesLocalCache = TreeSet<MessageDto>()
 
@@ -28,15 +27,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesLocalCache.addAll(prepareTestData())
     }
 
-    override fun getUserId(): Long {
-        return userId
+    override fun getUser(): User {
+        return user.toDomain()
     }
 
     override suspend fun getMessages(channelFilter: ChannelFilter): RepositoryState {
-        return RepositoryState.Messages(messagesLocalCache.toDomain(userId, channelFilter))
+        return RepositoryState.Messages(messagesLocalCache.toDomain(user.userId, channelFilter))
     }
 
-    // TODO: "Not yet implemented"
     override suspend fun getAllChannels(): RepositoryState {
         return RepositoryState.Channels(channelsDto.toDomain())
     }
@@ -46,7 +44,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return getAllChannels()
     }
 
-    // TODO: "Not yet implemented"
     override suspend fun getTopics(channelId: Long): RepositoryState {
         val topics = channelsDto
             .find { it.id == channelId }
@@ -66,14 +63,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
         messagesLocalCache.add(
             message.toDto(
-                userId = message.userId,
+                userId = message.user.userId,
                 messageId = newMessageId,
                 channelId = channelFilter.channelId,
                 topicName = channelFilter.topicName
             )
         )
         return RepositoryState.Messages(
-            messagesLocalCache.toDomain(message.userId, channelFilter),
+            messagesLocalCache.toDomain(message.user.userId, channelFilter),
             MessagePosition(type = MessagePosition.Type.LAST_POSITION)
         )
     }
@@ -84,26 +81,26 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         channelFilter: ChannelFilter,
     ): RepositoryState {
         val messageDto = messagesLocalCache.find { it.id == messageId }
-            ?: return RepositoryState.Error(String.format(ERROR_USER_NOT_FOUND, userId))
+            ?: return RepositoryState.Error(String.format(ERROR_USER_NOT_FOUND, user.userId))
 
         val reactionDto = messageDto.reactions[reaction]
         val newReactionsDto = messageDto.reactions.toMutableMap()
 
         if (reactionDto != null) {
-            val newUsersIds = reactionDto.usersIds.removeIfExistsOrAddToList(userId)
+            val newUsersIds = reactionDto.usersIds.removeIfExistsOrAddToList(user.userId)
             if (newUsersIds.isNotEmpty()) {
                 newReactionsDto[reaction] = ReactionParamDto(newUsersIds)
             } else {
                 newReactionsDto.remove(reaction)
             }
         } else {
-            newReactionsDto[reaction] = ReactionParamDto(listOf(userId))
+            newReactionsDto[reaction] = ReactionParamDto(listOf(user.userId))
         }
 
         messagesLocalCache.removeIf { it.id == messageId }
         messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
         return RepositoryState.Messages(
-            messagesLocalCache.toDomain(userId, channelFilter),
+            messagesLocalCache.toDomain(user.userId, channelFilter),
             MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
         )
     }
@@ -125,9 +122,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     companion object {
-
-        // TODO: for testing purpose
-        const val TEST_USER_ID = 100L
 
         // TODO: extract to string resources
         private const val ERROR_USER_NOT_FOUND = "User %s not found"

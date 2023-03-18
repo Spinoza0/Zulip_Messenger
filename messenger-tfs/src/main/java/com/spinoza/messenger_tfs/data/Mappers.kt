@@ -1,11 +1,18 @@
 package com.spinoza.messenger_tfs.data
 
-import com.spinoza.messenger_tfs.data.model.ChannelDto
-import com.spinoza.messenger_tfs.data.model.MessageDto
-import com.spinoza.messenger_tfs.data.model.ReactionParamDto
-import com.spinoza.messenger_tfs.data.model.TopicDto
+import com.spinoza.messenger_tfs.data.model.*
 import com.spinoza.messenger_tfs.domain.model.*
 import java.util.*
+
+fun User.toDto(): UserDto {
+    return UserDto(
+        userId = this.userId,
+        isActive = this.isActive,
+        email = this.email,
+        full_name = this.full_name,
+        avatar_url = this.avatar_url
+    )
+}
 
 fun List<TopicDto>.toDomain(messages: TreeSet<MessageDto>, channelId: Long): List<Topic> {
     return this.map { it.toDomain(messages, channelId) }
@@ -18,10 +25,8 @@ fun List<ChannelDto>.toDomain(): List<Channel> {
 fun MessageDto.toDomain(userId: Long): Message {
     return Message(
         date = this.date,
-        userId = this.userId,
-        name = this.name,
+        user = this.user.toDomain(),
         content = this.content,
-        avatarResId = this.avatarResId,
         reactions = this.reactions.toDomain(userId),
         isIconAddVisible = this.reactions.isNotEmpty(),
         id = this.id
@@ -35,13 +40,10 @@ fun TreeSet<MessageDto>.toDomain(userId: Long, channelFilter: ChannelFilter): Li
 }
 
 fun Message.toDto(userId: Long, messageId: Long, channelId: Long, topicName: String): MessageDto {
-
     return MessageDto(
         date = this.date,
-        userId = this.userId,
-        name = this.name,
+        user = this.user.toDto(),
         content = this.content,
-        avatarResId = this.avatarResId,
         reactions = this.reactions.toDto(userId),
         id = messageId,
         channelId = channelId,
@@ -59,6 +61,16 @@ private fun Map<String, ReactionParam>.toDto(userId: Long): Map<String, Reaction
 
 private fun ReactionParamDto.toDomain(userId: Long): ReactionParam {
     return ReactionParam(this.usersIds.size, this.usersIds.contains(userId))
+}
+
+fun UserDto.toDomain(): User {
+    return User(
+        userId = this.userId,
+        isActive = this.isActive,
+        email = this.email,
+        full_name = this.full_name,
+        avatar_url = this.avatar_url ?: ""
+    )
 }
 
 private fun ChannelDto.toDomain(): Channel {

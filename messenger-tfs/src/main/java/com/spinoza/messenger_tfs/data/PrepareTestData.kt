@@ -1,10 +1,6 @@
 package com.spinoza.messenger_tfs.data
 
-import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.model.ChannelDto
-import com.spinoza.messenger_tfs.data.model.MessageDto
-import com.spinoza.messenger_tfs.data.model.ReactionParamDto
-import com.spinoza.messenger_tfs.data.model.TopicDto
+import com.spinoza.messenger_tfs.data.model.*
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
@@ -29,6 +25,26 @@ val channelsDto = listOf(
     ChannelDto(3L, "PR", topics1),
 )
 
+val testUserDto = UserDto(
+    100,
+    true,
+    "TestUser@mail.com",
+    "Test User",
+    "https://cs11.pikabu.ru/post_img/2020/04/12/9/158670440816531661.png"
+)
+
+
+val usersDto = listOf(
+    UserDto(
+        1,
+        true,
+        "fakeemail@mail.com",
+        "Darrel Steward",
+        "https://cs11.pikabu.ru/post_img/big/2020/04/12/9/1586704514168132921.png"
+    ),
+    UserDto(2, false, "vasyapupkin@mail.ru", "Vasya Pupkin", null)
+)
+
 fun prepareTestData(): List<MessageDto> {
     val countOfReactions = 5
     val testUserId = 1L
@@ -41,13 +57,12 @@ fun prepareTestData(): List<MessageDto> {
     repeat(20) { index ->
         val stream = channelsDto[Random.nextInt(channelsDto.size)]
         val topic = stream.topics[Random.nextInt(stream.topics.size)]
+        val user = usersDto[Random.nextInt(usersDto.size)]
         val message = MessageDto(
             index.toLong(),
             MessageDate("${index % 2 + 1} марта 2023"),
-            index.toLong(),
-            "User$index Name",
+            user,
             "Message $index text",
-            R.drawable.test_face,
             if (index % 3 == 0) reactions else emptyMap(),
             stream.id,
             topic.name

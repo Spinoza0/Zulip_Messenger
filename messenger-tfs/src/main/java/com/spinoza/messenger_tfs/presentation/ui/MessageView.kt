@@ -1,12 +1,11 @@
 package com.spinoza.messenger_tfs.presentation.ui
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
@@ -30,6 +29,9 @@ class MessageView @JvmOverloads constructor(
         set(value) {
             binding.nameTextView.text = value
         }
+
+    val avatarImage: ImageView
+        get() = binding.avatarImageView
 
     private var content: String
         get() = binding.contentTextView.text.toString()
@@ -173,16 +175,6 @@ class MessageView @JvmOverloads constructor(
         return p is MarginLayoutParams
     }
 
-    private fun setRoundAvatar(resId: Int) {
-        val bitmap = BitmapFactory.decodeResource(resources, resId)
-        setRoundAvatar(bitmap)
-    }
-
-    private fun setRoundAvatar(bitmap: Bitmap) {
-        val size = binding.avatarImageView.layoutParams.width.toFloat().dpToPx(this)
-        binding.avatarImageView.setImageBitmap(bitmap.getRounded(size))
-    }
-
     fun setOnAvatarClickListener(listener: ((MessageView) -> Unit)?) {
         binding.avatarImageView.setOnClickListener {
             listener?.invoke(this@MessageView)
@@ -232,10 +224,9 @@ class MessageView @JvmOverloads constructor(
 
     fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
         messageId = message.id
-        name = message.name
+        name = message.user.full_name
         content = message.content
         this.reactionsGravity = reactionsGravity
-        setRoundAvatar(message.avatarResId)
         setIconAddVisibility(message.isIconAddVisible)
         binding.reactionsFlexBoxLayout.removeAllViews()
         message.reactions.forEach {

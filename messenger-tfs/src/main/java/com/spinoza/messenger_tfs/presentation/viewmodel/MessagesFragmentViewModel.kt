@@ -8,7 +8,7 @@ import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUserIdUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
@@ -20,13 +20,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MessagesFragmentViewModel(
+    getUserUseCase: GetUserUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
-    private val getUserIdUseCase: GetUserIdUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
     channel: Channel,
     topicName: String,
 ) : ViewModel() {
+
+    val user = getUserUseCase()
 
     val state: StateFlow<MessagesFragmentState>
         get() = _state.asStateFlow()
@@ -44,8 +46,6 @@ class MessagesFragmentViewModel(
         }
     }
 
-    fun getUserId() = getUserIdUseCase()
-
     fun doOnTextChanged(text: CharSequence?) {
         val resId = if (text != null && text.toString().trim().isNotEmpty())
             R.drawable.ic_send
@@ -60,10 +60,8 @@ class MessagesFragmentViewModel(
                 val message = Message(
                     // test data
                     MessageDate("2 марта 2023"),
-                    100L,
-                    "John Dow",
+                    user,
                     messageText,
-                    R.drawable.test_face,
                     emptyMap(),
                     false
                 )

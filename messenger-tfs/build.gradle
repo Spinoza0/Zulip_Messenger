@@ -53,5 +53,8 @@ dependencies {
     kapt(room.compiler)
     implementation room.ktx
 
+    implementation glide.glide
+    kapt(glide.compiler)
+
     debugImplementation leakcanary
 }

@@ -8,8 +8,8 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewMode
 
 @Suppress("UNCHECKED_CAST")
 class MessagesFragmentViewModelFactory(
+    private val getUserUseCase: GetUserUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
-    private val getUserIdUseCase: GetUserIdUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
     private val channel: Channel,
@@ -18,8 +18,8 @@ class MessagesFragmentViewModelFactory(
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return MessagesFragmentViewModel(
+            getUserUseCase,
             getMessagesUseCase,
-            getUserIdUseCase,
             sendMessageUseCase,
             updateReactionUseCase,
             channel,

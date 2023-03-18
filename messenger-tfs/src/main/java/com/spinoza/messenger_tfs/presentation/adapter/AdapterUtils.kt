@@ -1,5 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.adapter
 
+import com.bumptech.glide.Glide
+import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.TopicItemBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
@@ -35,7 +37,7 @@ fun List<Message>.groupByDate(
         }
 
         allDayMessages.forEach { message ->
-            if (message.userId == userId) {
+            if (message.user.userId == userId) {
                 delegateItemList.add(
                     UserMessageDelegateItem(
                         message,
@@ -61,7 +63,13 @@ fun List<Message>.groupByDate(
 }
 
 fun MessageView.bind(item: MessageDelegateItem) {
-    setMessage(item.content() as Message, item.getGravity())
+    val message = item.content() as Message
+    setMessage(message, item.getGravity())
+    Glide.with(avatarImage)
+        .load(message.user.avatar_url)
+        .circleCrop()
+        .error(R.drawable.face)
+        .into(avatarImage)
     setOnAvatarClickListener(item.onAvatarLongClickListener())
     setOnMessageLongClickListener(item.onReactionAddClickListener())
     setOnReactionClickListener(item.onReactionClickListener())

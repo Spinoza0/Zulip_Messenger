@@ -2,10 +2,11 @@ package com.spinoza.messenger_tfs.domain.repository
 
 import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.User
 
 interface MessagesRepository {
 
-    fun getUserId(): Long
+    fun getUser(): User
 
     suspend fun getMessages(channelFilter: ChannelFilter): RepositoryState
 
