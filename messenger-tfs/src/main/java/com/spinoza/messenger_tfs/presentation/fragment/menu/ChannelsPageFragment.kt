@@ -20,6 +20,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsViewModel
 import kotlinx.coroutines.launch
 
 class ChannelsPageFragment : Fragment() {

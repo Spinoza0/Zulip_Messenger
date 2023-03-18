@@ -18,6 +18,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.ViewPagerAdapter
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
 import kotlinx.coroutines.flow.StateFlow
 

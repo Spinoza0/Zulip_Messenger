@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.fragment.menu
+package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
