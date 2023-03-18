@@ -130,7 +130,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return RepositoryState.Messages(
             messagesLocalCache.toDomain(currentUser.userId, channelFilter),
             MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
-
         )
     }
 

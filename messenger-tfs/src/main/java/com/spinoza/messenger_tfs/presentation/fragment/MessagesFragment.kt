@@ -30,6 +30,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToChangedMessage
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
@@ -148,12 +149,6 @@ class MessagesFragment : Fragment() {
                         )
                         Toast.makeText(context, text, Toast.LENGTH_LONG).show()
                     }
-                    MessagePosition.Type.EXACTLY -> {
-                        binding.recyclerViewMessages.smoothScrollToChangedMessage(
-                            state.position.messageId
-                        )
-                    }
-                    else -> {}
                 }
             }
             else -> {}
