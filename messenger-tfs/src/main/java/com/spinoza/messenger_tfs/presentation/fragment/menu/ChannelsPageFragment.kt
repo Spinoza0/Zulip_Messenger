@@ -15,6 +15,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
@@ -58,10 +59,15 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
+        val context = requireContext()
+        val topicConfig = TopicAdapterConfig(
+            context.getString(R.string.channels_topic_template),
+            context.getThemeColor(R.attr.even_topic_color),
+            context.getThemeColor(R.attr.odd_topic_color)
+        )
         adapter = ChannelsAdapter(
             allChannels,
-            requireContext().getThemeColor(R.attr.even_topic_color),
-            requireContext().getThemeColor(R.attr.odd_topic_color),
+            topicConfig,
             channelsViewModel::onChannelClickListener,
             ::onTopicClickListener
         )

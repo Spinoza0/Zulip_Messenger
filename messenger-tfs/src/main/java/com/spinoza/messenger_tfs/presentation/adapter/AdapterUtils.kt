@@ -1,10 +1,14 @@
-package com.spinoza.messenger_tfs.presentation.adapter.delegate
+package com.spinoza.messenger_tfs.presentation.adapter
 
+import com.spinoza.messenger_tfs.databinding.TopicItemBinding
+import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.MessageDelegateItem
+import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.MessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
@@ -60,4 +64,18 @@ fun MessageView.bind(item: MessageDelegateItem) {
     setOnAvatarClickListener(item.onAvatarLongClickListener())
     setOnMessageLongClickListener(item.onReactionAddClickListener())
     setOnReactionClickListener(item.onReactionClickListener())
+}
+
+fun TopicItemBinding.bind(
+    channel: Channel,
+    topic: Topic,
+    color: Int,
+    template: String,
+    onClickListener: ((Channel, String) -> Unit)?,
+) {
+    this.textViewTopic.text = String.format(template, topic.name, topic.messageCount)
+    this.textViewTopic.setBackgroundColor(color)
+    this.root.setOnClickListener {
+        onClickListener?.invoke(channel, topic.name)
+    }
 }

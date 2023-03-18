@@ -6,11 +6,11 @@ import androidx.recyclerview.widget.ListAdapter
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
 
 class ChannelsAdapter(
     private val allChannels: Boolean,
-    private val evenColor: Int,
-    private val oddColor: Int,
+    private val topicConfig: TopicAdapterConfig,
     private val onChannelClickListener: (Boolean, Channel, ChannelItemBinding) -> Unit,
     private val onTopicClickListener: (Channel, String) -> Unit,
 ) : ListAdapter<Channel, ChannelViewHolder>(ChannelDiffCallback()) {
@@ -21,7 +21,7 @@ class ChannelsAdapter(
             parent,
             false
         )
-        binding.recyclerViewTopics.adapter = TopicAdapter(evenColor, oddColor)
+        binding.recyclerViewTopics.adapter = TopicAdapter(topicConfig)
         return ChannelViewHolder(binding)
     }
 

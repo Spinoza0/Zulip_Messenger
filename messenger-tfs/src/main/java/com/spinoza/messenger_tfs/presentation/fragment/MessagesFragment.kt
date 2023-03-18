@@ -27,7 +27,7 @@ import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.groupByDate
+import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
@@ -95,7 +95,7 @@ class MessagesFragment : Fragment() {
         setupObservers()
         setupListeners()
         binding.textViewTopic.text =
-            String.format(getString(R.string.topic_title_template), topicName)
+            String.format(getString(R.string.messages_topic_template), topicName)
     }
 
     private fun setupStatusBar() {
