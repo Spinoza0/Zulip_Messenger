@@ -7,8 +7,8 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MessagesFragmentViewModel(
-    getUserUseCase: GetUserUseCase,
+    getCurrentUserUseCase: GetCurrentUserUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
@@ -28,7 +28,7 @@ class MessagesFragmentViewModel(
     topicName: String,
 ) : ViewModel() {
 
-    val user = getUserUseCase()
+    val user = getCurrentUserUseCase()
 
     val state: StateFlow<MessagesFragmentState>
         get() = _state.asStateFlow()

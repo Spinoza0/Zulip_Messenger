@@ -21,10 +21,7 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
-import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
-import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
-import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
@@ -58,7 +55,7 @@ class MessagesFragment : Fragment() {
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
-            GetUserUseCase(MessagesRepositoryImpl.getInstance()),
+            GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
@@ -143,7 +140,15 @@ class MessagesFragment : Fragment() {
                 }
             }
             is RepositoryState.Error -> {
-                Toast.makeText(context, state.text, Toast.LENGTH_LONG).show()
+                when (state.type) {
+                    RepositoryState.ErrorType.USER_WITH_ID_NOT_FOUND -> {
+                        val text = String.format(
+                            getString(R.string.error_user_not_found),
+                            state.text
+                        )
+                        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+                    }
+                }
             }
             else -> {}
         }
@@ -180,7 +185,7 @@ class MessagesFragment : Fragment() {
     private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
         mainAdapter.submitList(
             messages.groupByDate(
-                userId = viewModel.user.userId,
+                user = viewModel.user,
                 onReactionAddClickListener = ::onReactionAddClickListener,
                 onReactionClickListener = viewModel::updateReaction
             )
@@ -224,7 +229,9 @@ class MessagesFragment : Fragment() {
             arguments?.getParcelable(EXTRA_CHANNEL)
         }
 
-        if (newChannel == null || newChannel.channelId == UNDEFINED_ID || topicName.isEmpty()) {
+        if (newChannel == null || newChannel.channelId == Channel.UNDEFINED_ID ||
+            topicName.isEmpty()
+        ) {
             openMainFragment()
         } else {
             channel = newChannel
@@ -233,7 +240,6 @@ class MessagesFragment : Fragment() {
 
     companion object {
 
-        private const val UNDEFINED_ID = -1L
         private const val EMPTY_STRING = ""
         private const val EXTRA_CHANNEL = "channel"
         private const val EXTRA_TOPIC_NAME = "topic"

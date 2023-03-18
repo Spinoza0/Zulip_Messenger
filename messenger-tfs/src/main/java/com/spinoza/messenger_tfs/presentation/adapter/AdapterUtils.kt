@@ -3,10 +3,7 @@ package com.spinoza.messenger_tfs.presentation.adapter
 import com.bumptech.glide.Glide
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.TopicItemBinding
-import com.spinoza.messenger_tfs.domain.model.Channel
-import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegateItem
@@ -18,7 +15,7 @@ import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import java.util.*
 
 fun List<Message>.groupByDate(
-    userId: Long,
+    user: User,
     onAvatarLongClickListener: ((MessageView) -> Unit)? = null,
     onReactionAddClickListener: ((MessageView) -> Unit)? = null,
     onReactionClickListener: ((MessageView, ReactionView) -> Unit)? = null,
@@ -37,7 +34,7 @@ fun List<Message>.groupByDate(
         }
 
         allDayMessages.forEach { message ->
-            if (message.user.userId == userId) {
+            if (message.user.userId == user.userId) {
                 delegateItemList.add(
                     UserMessageDelegateItem(
                         message,
@@ -83,7 +80,7 @@ fun TopicItemBinding.bind(
 ) {
     val color = if (position % 2 == 0) {
         config.evenColor
-    }else {
+    } else {
         config.oddColor
     }
     this.textViewTopic.text = String.format(config.template, topic.name, topic.messageCount)

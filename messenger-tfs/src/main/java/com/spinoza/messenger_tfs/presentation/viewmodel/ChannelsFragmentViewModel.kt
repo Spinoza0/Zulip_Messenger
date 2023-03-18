@@ -47,7 +47,7 @@ class ChannelsFragmentViewModel(
             val result = when (state) {
                 is RepositoryState.Channels -> {
                     cache.clear()
-                    cache.addAll(state.channels)
+                    cache.addAll(state.value)
                     ChannelsFragmentState.Channels(cache)
                 }
                 is RepositoryState.Error -> ChannelsFragmentState.Error(state.text)
@@ -88,7 +88,7 @@ class ChannelsFragmentViewModel(
                         if (repositoryState is RepositoryState.Topics) {
                             result =
                                 ChannelsFragmentState.Topics(
-                                    repositoryState.topics,
+                                    repositoryState.value,
                                     newChannel,
                                     itemBinding
                                 )

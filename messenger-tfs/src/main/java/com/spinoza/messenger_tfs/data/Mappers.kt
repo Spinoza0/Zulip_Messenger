@@ -4,7 +4,7 @@ import com.spinoza.messenger_tfs.data.model.*
 import com.spinoza.messenger_tfs.domain.model.*
 import java.util.*
 
-fun User.toDto(): UserDto {
+private fun User.toDto(): UserDto {
     return UserDto(
         userId = this.userId,
         isActive = this.isActive,
@@ -12,6 +12,10 @@ fun User.toDto(): UserDto {
         full_name = this.full_name,
         avatar_url = this.avatar_url
     )
+}
+
+fun List<UserDto>.listToDomain(): List<User> {
+    return this.map { it.toDomain() }
 }
 
 fun List<TopicDto>.toDomain(messages: TreeSet<MessageDto>, channelId: Long): List<Topic> {

@@ -11,4 +11,8 @@ data class Channel(
 ) : Parcelable {
 
     enum class Type { FOLDED, UNFOLDED }
+
+    companion object {
+        const val UNDEFINED_ID = -1L
+    }
 }

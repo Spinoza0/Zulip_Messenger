@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.data.repository
 import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
+import com.spinoza.messenger_tfs.data.model.UserDto
 import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
@@ -18,7 +19,7 @@ import java.util.*
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     // TODO: for testing purpose
-    private val user = testUserDto
+    private val currentUser = testUserDto
 
     private val messagesLocalCache = TreeSet<MessageDto>()
 
@@ -27,12 +28,35 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesLocalCache.addAll(prepareTestData())
     }
 
-    override fun getUser(): User {
-        return user.toDomain()
+    override fun getCurrentUser(): User {
+        return currentUser.toDomain()
+    }
+
+    override suspend fun getUser(userId: Long): RepositoryState {
+        val user: UserDto? = if (userId == User.CURRENT_USER) {
+            currentUser
+        } else {
+            usersDto.find { it.userId == userId }
+        }
+
+        return if (user != null) {
+            RepositoryState.Users(listOf(user.toDomain()))
+        } else {
+            RepositoryState.Error(RepositoryState.ErrorType.USER_WITH_ID_NOT_FOUND, "$userId")
+        }
+    }
+
+    override suspend fun getAllUsers(): RepositoryState {
+        return RepositoryState.Users(usersDto.listToDomain())
     }
 
     override suspend fun getMessages(channelFilter: ChannelFilter): RepositoryState {
-        return RepositoryState.Messages(messagesLocalCache.toDomain(user.userId, channelFilter))
+        return RepositoryState.Messages(
+            messagesLocalCache.toDomain(
+                currentUser.userId,
+                channelFilter
+            )
+        )
     }
 
     override suspend fun getAllChannels(): RepositoryState {
@@ -80,27 +104,31 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         reaction: String,
         channelFilter: ChannelFilter,
     ): RepositoryState {
-        val messageDto = messagesLocalCache.find { it.id == messageId }
-            ?: return RepositoryState.Error(String.format(ERROR_USER_NOT_FOUND, user.userId))
+        val messageDto = messagesLocalCache
+            .find { it.id == messageId }
+            ?: return RepositoryState.Error(
+                RepositoryState.ErrorType.USER_WITH_ID_NOT_FOUND,
+                "${currentUser.userId}"
+            )
 
         val reactionDto = messageDto.reactions[reaction]
         val newReactionsDto = messageDto.reactions.toMutableMap()
 
         if (reactionDto != null) {
-            val newUsersIds = reactionDto.usersIds.removeIfExistsOrAddToList(user.userId)
+            val newUsersIds = reactionDto.usersIds.removeIfExistsOrAddToList(currentUser.userId)
             if (newUsersIds.isNotEmpty()) {
                 newReactionsDto[reaction] = ReactionParamDto(newUsersIds)
             } else {
                 newReactionsDto.remove(reaction)
             }
         } else {
-            newReactionsDto[reaction] = ReactionParamDto(listOf(user.userId))
+            newReactionsDto[reaction] = ReactionParamDto(listOf(currentUser.userId))
         }
 
         messagesLocalCache.removeIf { it.id == messageId }
         messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
         return RepositoryState.Messages(
-            messagesLocalCache.toDomain(user.userId, channelFilter),
+            messagesLocalCache.toDomain(currentUser.userId, channelFilter),
             MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
         )
     }
@@ -122,9 +150,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     companion object {
-
-        // TODO: extract to string resources
-        private const val ERROR_USER_NOT_FOUND = "User %s not found"
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit
