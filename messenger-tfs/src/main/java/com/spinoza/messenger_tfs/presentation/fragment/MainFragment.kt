@@ -67,7 +67,9 @@ class MainFragment : Fragment(), OnItemSelectedListener {
 
         setupStatusBar()
         binding.bottomNavigationView.setOnItemSelectedListener(this)
-        localRouter.newRootScreen(Screens.Channels())
+        if (savedInstanceState == null) {
+            localRouter.newRootScreen(Screens.Channels())
+        }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
