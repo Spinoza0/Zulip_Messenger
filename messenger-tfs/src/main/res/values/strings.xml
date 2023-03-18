@@ -14,6 +14,9 @@
     <string name="people">People</string>
     <string name="profile">Profile</string>
 
+    <!-- Errors -->
+    <string name="error_user_not_found">User not found: %s</string>
+
     <!-- Fragment Channels -->
     <string name="search">Search... (TODO)</string>
     <string name="all_streams">All Streams</string>
@@ -25,7 +28,10 @@
     <string name="users">Users... (TODO)</string>
     <string name="online_status">Online status</string>
 
-    <!-- Errors -->
-    <string name="error_user_not_found">User not found: %s</string>
+    <!-- Fragment Profile -->
+    <string name="in_a_meeting">In a meeting</string>
+    <string name="online">online</string>
+    <string name="offline">offline</string>
+    <string name="log_out">Log out</string>
 
 </resources>

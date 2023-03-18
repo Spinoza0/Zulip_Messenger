@@ -3,5 +3,5 @@
     <size
         android:width="17dp"
         android:height="17dp" />
-    <solid android:color="?attr/circle_active_color" />
+    <solid android:color="?attr/online_color" />
 </shape>

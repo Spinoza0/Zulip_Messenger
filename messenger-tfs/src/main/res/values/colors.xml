@@ -67,9 +67,12 @@
     <!-- Fragment People -->
     <color name="circle_border">#C4C4C4</color>
     <color name="circle_border_night">#C4C4C4</color>
-    <color name="circle_active">#4AB54D</color>
-    <color name="circle_active_night">#4AB54D</color>
-    <color name="circle_inactive">#424242</color>
-    <color name="circle_inactive_night">#424242</color>
+    <color name="online">#4AB54D</color>
+    <color name="online_night">#4AB54D</color>
+    <color name="offline">#424242</color>
+    <color name="offline_night">#424242</color>
+
+    <!-- Fragment Profile -->
+    <color name="button_logout">#1B1B1B</color>
 
 </resources>

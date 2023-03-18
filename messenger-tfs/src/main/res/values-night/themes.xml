@@ -53,8 +53,11 @@
 
         <!-- Fragment People -->
         <item name="circle_border_color">@color/circle_border_night</item>
-        <item name="circle_active_color">@color/circle_active_night</item>
-        <item name="circle_inactive_color">@color/circle_inactive_night</item>
+        <item name="online_color">@color/online_night</item>
+        <item name="offline_color">@color/offline_night</item>
+
+        <!-- Fragment Profile -->
+        <item name="button_logout_color">@color/button_logout</item>
 
     </style>
 </resources>

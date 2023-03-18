@@ -99,7 +99,7 @@ fun UserItemBinding.bind(user: User) {
             .error(R.drawable.face)
             .into(imageViewAvatar)
         val image =
-            if (user.isActive) R.drawable.shape_circle_active else R.drawable.shape_circle_inactive
+            if (user.isActive) R.drawable.shape_circle_online else R.drawable.shape_circle_offline
         imageViewCircle.setImageResource(image)
     }
 }

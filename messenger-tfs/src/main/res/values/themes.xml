@@ -49,8 +49,11 @@
 
         <!-- Fragment People -->
         <item name="circle_border_color">@color/circle_border</item>
-        <item name="circle_active_color">@color/circle_active</item>
-        <item name="circle_inactive_color">@color/circle_inactive</item>
+        <item name="online_color">@color/online</item>
+        <item name="offline_color">@color/offline</item>
+
+        <!-- Fragment Profile -->
+        <item name="button_logout_color">@color/button_logout</item>
 
     </style>
 </resources>

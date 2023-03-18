@@ -61,8 +61,12 @@
 
     <declare-styleable name="fragment_people">
         <attr name="circle_border_color" format="color" />
-        <attr name="circle_active_color" format="color" />
-        <attr name="circle_inactive_color" format="color" />
+        <attr name="online_color" format="color" />
+        <attr name="offline_color" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="fragment_profile">
+        <attr name="button_logout_color" format="color" />
     </declare-styleable>
 
 </resources>
