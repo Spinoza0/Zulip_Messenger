@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.presentation.adapter
 import com.bumptech.glide.Glide
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.TopicItemBinding
+import com.spinoza.messenger_tfs.databinding.UserItemBinding
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegateItem
@@ -78,14 +79,27 @@ fun TopicItemBinding.bind(
     position: Int,
     config: TopicAdapterConfig,
 ) {
-    val color = if (position % 2 == 0) {
-        config.evenColor
-    } else {
-        config.oddColor
+    val color = if (position % 2 == 0) config.evenColor else config.oddColor
+    with(this) {
+        textViewTopic.text = String.format(config.template, topic.name, topic.messageCount)
+        textViewTopic.setBackgroundColor(color)
+        root.setOnClickListener {
+            config.onClickListener.invoke(channel, topic.name)
+        }
     }
-    this.textViewTopic.text = String.format(config.template, topic.name, topic.messageCount)
-    this.textViewTopic.setBackgroundColor(color)
-    this.root.setOnClickListener {
-        config.onClickListener.invoke(channel, topic.name)
+}
+
+fun UserItemBinding.bind(user: User) {
+    with(this) {
+        textViewName.text = user.full_name
+        textViewEmail.text = user.email
+        Glide.with(imageViewAvatar)
+            .load(user.avatar_url)
+            .circleCrop()
+            .error(R.drawable.face)
+            .into(imageViewAvatar)
+        val image =
+            if (user.isActive) R.drawable.shape_circle_active else R.drawable.shape_circle_inactive
+        imageViewCircle.setImageResource(image)
     }
 }

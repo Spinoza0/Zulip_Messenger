@@ -6,7 +6,7 @@ import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import kotlin.random.Random
 
-// for testing purpose
+// TODO: for testing purpose
 
 val topics1 = listOf(
     TopicDto("jokes", Message.UNDEFINED_ID),
@@ -42,7 +42,14 @@ val usersDto = listOf(
         "Darrel Steward",
         "https://cs11.pikabu.ru/post_img/big/2020/04/12/9/1586704514168132921.png"
     ),
-    UserDto(2, false, "vasyapupkin@mail.ru", "Vasya Pupkin", null)
+    UserDto(2, false, "vasyapupkin@mail.ru", "Vasya Pupkin", null),
+    UserDto(
+        3,
+        true,
+        "max@mail.ru",
+        "Maxim Ivanov",
+        "https://cs14.pikabu.ru/post_img/big/2023/02/13/8/1676295806139337963.png"
+    )
 )
 
 fun prepareTestData(): List<MessageDto> {
