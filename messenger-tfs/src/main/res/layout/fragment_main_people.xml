@@ -23,7 +23,7 @@
         android:paddingEnd="28dp"
         android:textColor="?attr/text_200_color"
         android:textColorHint="?attr/text_200_color"
-        android:textSize="24sp" />
+        android:textSize="22sp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewUsers"
