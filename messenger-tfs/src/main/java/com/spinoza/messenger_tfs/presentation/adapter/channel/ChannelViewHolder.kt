@@ -12,15 +12,11 @@ class ChannelViewHolder(private val binding: ChannelItemBinding) :
         allChannels: Boolean,
         channel: Channel,
         onClickListener: (Boolean, Channel, ChannelItemBinding) -> Unit,
-        onTopicClickListener: (Channel, String) -> Unit,
     ) {
         binding.textViewChannel.text = String.format("#%s", channel.name)
         binding.root.setOnClickListener {
             onClickListener.invoke(allChannels, channel, binding)
         }
-        with(binding.recyclerViewTopics.adapter as TopicAdapter) {
-            this.channel = channel
-            this.onClickListener = onTopicClickListener
-        }
+        (binding.recyclerViewTopics.adapter as TopicAdapter).channel = channel
     }
 }

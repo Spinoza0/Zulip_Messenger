@@ -12,7 +12,6 @@ class ChannelsAdapter(
     private val allChannels: Boolean,
     private val topicConfig: TopicAdapterConfig,
     private val onChannelClickListener: (Boolean, Channel, ChannelItemBinding) -> Unit,
-    private val onTopicClickListener: (Channel, String) -> Unit,
 ) : ListAdapter<Channel, ChannelViewHolder>(ChannelDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChannelViewHolder {
@@ -26,6 +25,6 @@ class ChannelsAdapter(
     }
 
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
-        holder.bind(allChannels, getItem(position), onChannelClickListener, onTopicClickListener)
+        holder.bind(allChannels, getItem(position), onChannelClickListener)
     }
 }

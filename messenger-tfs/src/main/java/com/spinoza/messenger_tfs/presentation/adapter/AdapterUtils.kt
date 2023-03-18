@@ -10,6 +10,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.MessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import java.util.*
@@ -70,12 +71,11 @@ fun TopicItemBinding.bind(
     channel: Channel,
     topic: Topic,
     color: Int,
-    template: String,
-    onClickListener: ((Channel, String) -> Unit)?,
+    config: TopicAdapterConfig,
 ) {
-    this.textViewTopic.text = String.format(template, topic.name, topic.messageCount)
+    this.textViewTopic.text = String.format(config.template, topic.name, topic.messageCount)
     this.textViewTopic.setBackgroundColor(color)
     this.root.setOnClickListener {
-        onClickListener?.invoke(channel, topic.name)
+        config.onClickListener.invoke(channel, topic.name)
     }
 }

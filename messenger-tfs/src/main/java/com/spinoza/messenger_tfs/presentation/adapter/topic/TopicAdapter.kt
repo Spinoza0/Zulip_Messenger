@@ -12,7 +12,6 @@ class TopicAdapter(private val config: TopicAdapterConfig) :
     ListAdapter<Topic, TopicViewHolder>(TopicDiffCallback()) {
 
     lateinit var channel: Channel
-    var onClickListener: ((Channel, String) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TopicViewHolder {
         val binding = TopicItemBinding.inflate(
@@ -25,6 +24,6 @@ class TopicAdapter(private val config: TopicAdapterConfig) :
 
     override fun onBindViewHolder(holder: TopicViewHolder, position: Int) {
         val color = if (position % 2 == 0) config.evenColor else config.oddColor
-        holder.binding.bind(channel, getItem(position), color, config.template, onClickListener)
+        holder.binding.bind(channel, getItem(position), color, config)
     }
 }

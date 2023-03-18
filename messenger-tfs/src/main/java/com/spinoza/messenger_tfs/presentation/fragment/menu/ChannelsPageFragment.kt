@@ -63,14 +63,11 @@ class ChannelsPageFragment : Fragment() {
         val topicConfig = TopicAdapterConfig(
             context.getString(R.string.channels_topic_template),
             context.getThemeColor(R.attr.even_topic_color),
-            context.getThemeColor(R.attr.odd_topic_color)
-        )
-        adapter = ChannelsAdapter(
-            allChannels,
-            topicConfig,
-            channelsViewModel::onChannelClickListener,
+            context.getThemeColor(R.attr.odd_topic_color),
             ::onTopicClickListener
         )
+        adapter =
+            ChannelsAdapter(allChannels, topicConfig, channelsViewModel::onChannelClickListener)
         binding.recyclerViewChannels.adapter = adapter
     }
 
