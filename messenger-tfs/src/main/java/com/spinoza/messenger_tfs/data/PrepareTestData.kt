@@ -30,7 +30,8 @@ val testUserDto = UserDto(
     true,
     "TestUser@mail.com",
     "Test User",
-    "https://cs11.pikabu.ru/post_img/2020/04/12/9/158670440816531661.png"
+    "https://cs11.pikabu.ru/post_img/2020/04/12/9/158670440816531661.png",
+    "Working..."
 )
 
 
@@ -40,15 +41,24 @@ val usersDto = listOf(
         true,
         "fakeemail@mail.com",
         "Darrel Steward",
-        "https://cs11.pikabu.ru/post_img/big/2020/04/12/9/1586704514168132921.png"
+        "https://cs11.pikabu.ru/post_img/big/2020/04/12/9/1586704514168132921.png",
+        "In a meeting"
     ),
-    UserDto(2, false, "vasyapupkin@mail.ru", "Vasya Pupkin", null),
+    UserDto(
+        2,
+        false,
+        "vasyapupkin@mail.ru",
+        "Vasya Pupkin",
+        null,
+        "On vacation"
+    ),
     UserDto(
         3,
         true,
         "max@mail.ru",
         "Maxim Ivanov",
-        "https://cs14.pikabu.ru/post_img/big/2023/02/13/8/1676295806139337963.png"
+        "https://cs14.pikabu.ru/post_img/big/2023/02/13/8/1676295806139337963.png",
+        null
     )
 )
 

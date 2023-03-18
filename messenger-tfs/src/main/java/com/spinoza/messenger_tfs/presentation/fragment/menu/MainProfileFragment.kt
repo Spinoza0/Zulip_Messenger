@@ -45,6 +45,12 @@ class MainProfileFragment : Fragment() {
     private fun setupScreen() {
         with(viewModel.user) {
             binding.textViewName.text = this.full_name
+            binding.textViewStatus.text = this.status
+            if (this.status.isEmpty()) {
+                binding.textViewStatus.visibility = View.GONE
+            } else {
+                binding.textViewStatus.text = this.status
+            }
             if (this.isActive) {
                 binding.textViewStatusOnline.visibility = View.VISIBLE
                 binding.textViewStatusOffline.visibility = View.GONE

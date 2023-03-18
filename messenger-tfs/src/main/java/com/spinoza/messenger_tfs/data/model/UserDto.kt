@@ -6,4 +6,5 @@ data class UserDto(
     val email: String,
     val full_name: String,
     val avatar_url: String?,
+    val status: String?
 )

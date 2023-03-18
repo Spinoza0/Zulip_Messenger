@@ -10,7 +10,8 @@ private fun User.toDto(): UserDto {
         isActive = this.isActive,
         email = this.email,
         full_name = this.full_name,
-        avatar_url = this.avatar_url
+        avatar_url = this.avatar_url,
+        status = this.status
     )
 }
 
@@ -73,7 +74,8 @@ fun UserDto.toDomain(): User {
         isActive = this.isActive,
         email = this.email,
         full_name = this.full_name,
-        avatar_url = this.avatar_url ?: ""
+        avatar_url = this.avatar_url ?: "",
+        status = this.status ?: ""
     )
 }
 

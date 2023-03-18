@@ -10,6 +10,7 @@ data class User(
     val email: String,
     val full_name: String,
     val avatar_url: String,
+    val status: String
 ) : Parcelable {
     companion object {
         const val CURRENT_USER = -1L

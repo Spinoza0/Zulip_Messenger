@@ -29,7 +29,6 @@
     <string name="online_status">Online status</string>
 
     <!-- Fragment Profile -->
-    <string name="in_a_meeting">In a meeting</string>
     <string name="online">online</string>
     <string name="offline">offline</string>
     <string name="log_out">Log out</string>

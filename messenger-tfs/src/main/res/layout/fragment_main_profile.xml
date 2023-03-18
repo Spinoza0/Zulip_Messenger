@@ -35,7 +35,7 @@
     <androidx.constraintlayout.helper.widget.Flow
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="textViewStatusTitle,textViewStatusOnline,textViewStatusOffline"
+        app:constraint_referenced_ids="textViewStatus,textViewStatusOnline,textViewStatusOffline"
         app:flow_horizontalStyle="packed"
         app:flow_wrapMode="chain"
         app:layout_constraintEnd_toEndOf="parent"
@@ -43,16 +43,16 @@
         app:layout_constraintTop_toBottomOf="@id/textViewName" />
 
     <TextView
-        android:id="@+id/textViewStatusTitle"
+        android:id="@+id/textViewStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:paddingStart="0dp"
         android:paddingEnd="20dp"
-        android:text="@string/in_a_meeting"
         android:textColor="?attr/text_500_color"
         android:textSize="20sp"
-        app:layout_constraintTop_toBottomOf="@id/textViewName" />
+        app:layout_constraintTop_toBottomOf="@id/textViewName"
+        tools:text="In a meeting" />
 
     <TextView
         android:id="@+id/textViewStatusOnline"
@@ -84,6 +84,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textViewStatusTitle" />
+        app:layout_constraintTop_toBottomOf="@id/textViewStatus" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
