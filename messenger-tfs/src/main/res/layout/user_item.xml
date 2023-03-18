@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/background_700_color">
+
+    <ImageView
+        android:id="@+id/imageViewAvatar"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:contentDescription="@string/avatar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/face" />
+
+    <ImageView
+        android:id="@+id/imageViewCircleBorder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:contentDescription="@string/online_status"
+        android:src="@drawable/shape_circle_border"
+        app:layout_constraintBottom_toBottomOf="@id/imageViewAvatar"
+        app:layout_constraintEnd_toEndOf="@id/imageViewAvatar" />
+
+    <ImageView
+        android:id="@+id/imageViewCircle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/online_status"
+        android:src="@drawable/shape_circle_active"
+        app:layout_constraintBottom_toBottomOf="@id/imageViewCircleBorder"
+        app:layout_constraintEnd_toEndOf="@id/imageViewCircleBorder"
+        app:layout_constraintStart_toStartOf="@id/imageViewCircleBorder"
+        app:layout_constraintTop_toTopOf="@id/imageViewCircleBorder" />
+
+    <TextView
+        android:id="@+id/textViewName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="8dp"
+        android:textColor="?attr/text_300_color"
+        app:layout_constraintStart_toEndOf="@id/imageViewAvatar"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@tools:sample/full_names" />
+
+    <TextView
+        android:id="@+id/textViewEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="?attr/text_700_color"
+        app:layout_constraintStart_toStartOf="@id/textViewName"
+        app:layout_constraintTop_toBottomOf="@id/textViewName"
+        tools:text="@tools:sample/cities" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
