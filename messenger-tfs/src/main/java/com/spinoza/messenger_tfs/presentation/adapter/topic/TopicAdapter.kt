@@ -23,7 +23,6 @@ class TopicAdapter(private val config: TopicAdapterConfig) :
     }
 
     override fun onBindViewHolder(holder: TopicViewHolder, position: Int) {
-        val color = if (position % 2 == 0) config.evenColor else config.oddColor
-        holder.binding.bind(channel, getItem(position), color, config)
+        holder.binding.bind(channel, getItem(position), position, config)
     }
 }

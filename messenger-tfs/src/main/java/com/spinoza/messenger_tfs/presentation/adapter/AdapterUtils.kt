@@ -78,9 +78,14 @@ fun MessageView.bind(item: MessageDelegateItem) {
 fun TopicItemBinding.bind(
     channel: Channel,
     topic: Topic,
-    color: Int,
+    position: Int,
     config: TopicAdapterConfig,
 ) {
+    val color = if (position % 2 == 0) {
+        config.evenColor
+    }else {
+        config.oddColor
+    }
     this.textViewTopic.text = String.format(config.template, topic.name, topic.messageCount)
     this.textViewTopic.setBackgroundColor(color)
     this.root.setOnClickListener {
