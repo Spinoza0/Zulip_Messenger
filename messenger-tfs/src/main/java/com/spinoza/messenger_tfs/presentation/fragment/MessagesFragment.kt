@@ -28,6 +28,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
+import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
@@ -218,7 +219,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun openMainFragment() {
-        MessengerApp.router.exit()
+        MessengerApp.router.replaceScreen(Screens.Main())
     }
 
     @Suppress("deprecation")

@@ -74,7 +74,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun onTopicClickListener(channel: Channel, topicName: String) {
-        MessengerApp.router.navigateTo(Screens.Messages(channel, topicName))
+        MessengerApp.router.replaceScreen(Screens.Messages(channel, topicName))
     }
 
     private fun setupObservers() {

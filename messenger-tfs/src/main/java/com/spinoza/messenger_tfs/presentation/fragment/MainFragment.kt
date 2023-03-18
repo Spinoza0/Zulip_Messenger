@@ -107,4 +107,11 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.background_500_color)
     }
+
+    companion object {
+
+        fun newInstance(): MainFragment {
+            return MainFragment()
+        }
+    }
 }
