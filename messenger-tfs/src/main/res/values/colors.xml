@@ -11,18 +11,26 @@
     <!-- Common messenger colors -->
     <color name="background_200">#3A3A3A</color>
     <color name="background_200_night">#3A3A3A</color>
+    <color name="background_300">#282828</color>
+    <color name="background_300_night">#282828</color>
+    <color name="background_400">#1E1E1E</color>
+    <color name="background_400_night">#1E1E1E</color>
     <color name="background_500">#1C1C1C</color>
     <color name="background_500_night">#1C1C1C</color>
     <color name="background_700">#121212</color>
     <color name="background_700_night">#121212</color>
     <color name="text_200">#FFFFFF</color>
     <color name="text_200_night">#FFFFFF</color>
-    <color name="text_300">#919191</color>
-    <color name="text_300_night">#919191</color>
-    <color name="text_500">#FAFAFA</color>
-    <color name="text_500_night">#FAFAFA</color>
-    <color name="text_700">#CCCCCC</color>
-    <color name="text_700_night">#CCCCCC</color>
+    <color name="text_300">#FAFAFA</color>
+    <color name="text_300_night">#FAFAFA</color>
+    <color name="text_500">#CCCCCC</color>
+    <color name="text_500_night">#CCCCCC</color>
+    <color name="text_700">#A1A1A1</color>
+    <color name="text_700_night">#A1A1A1</color>
+    <color name="text_800">#919191</color>
+    <color name="text_800_night">#919191</color>
+    <color name="text_900">#464646</color>
+    <color name="text_900_night">#464646</color>
 
     <!-- MessageView -->
     <color name="message_user_background_start">#2A9D8F</color>
@@ -43,6 +51,10 @@
     <color name="channel_date_text_night">#999999</color>
     <color name="channel_add_reactions_top_line">#555555</color>
     <color name="channel_add_reactions_top_line_night">#555555</color>
+    <color name="channel_icon_circle">#464646</color>
+    <color name="channel_icon_circle_night">#464646</color>
+    <color name="channel_icon_send">#2A9D8F</color>
+    <color name="channel_icon_send_night">#2A9D8F</color>
 
     <!-- Fragment Channels -->
     <color name="underline">#219653</color>
@@ -51,5 +63,13 @@
     <color name="even_topic_night">#2A9D8F</color>
     <color name="odd_topic">#E9C46A</color>
     <color name="odd_topic_night">#E9C46A</color>
+
+    <!-- Fragment People -->
+    <color name="circle_border">#C4C4C4</color>
+    <color name="circle_border_night">#C4C4C4</color>
+    <color name="circle_active">#4AB54D</color>
+    <color name="circle_active_night">#4AB54D</color>
+    <color name="circle_inactive">#424242</color>
+    <color name="circle_inactive_night">#424242</color>
 
 </resources>

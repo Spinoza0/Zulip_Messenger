@@ -21,4 +21,8 @@
     <string name="arrow">Arrow</string>
     <string name="channels_topic_template">"%s     %s mes"</string>
 
+    <!-- Fragment People -->
+    <string name="users">Users... (not implemented)</string>
+    <string name="online_status">Online status</string>
+
 </resources>

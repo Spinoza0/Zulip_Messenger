@@ -14,12 +14,16 @@
 
         <!-- Common messenger colors -->
         <item name="background_200_color">@color/background_200_night</item>
+        <item name="background_300_color">@color/background_300_night</item>
+        <item name="background_400_color">@color/background_400_night</item>
         <item name="background_500_color">@color/background_500_night</item>
         <item name="background_700_color">@color/background_700_night</item>
         <item name="text_200_color">@color/text_200_night</item>
         <item name="text_300_color">@color/text_300_night</item>
         <item name="text_500_color">@color/text_500_night</item>
         <item name="text_700_color">@color/text_700_night</item>
+        <item name="text_800_color">@color/text_800_night</item>
+        <item name="text_900_color">@color/text_900_night</item>
 
         <!-- MessageView -->
         <item name="message_user_background_start_color">
@@ -39,11 +43,18 @@
         <item name="channel_add_reactions_top_line_color">
             @color/channel_add_reactions_top_line_night
         </item>
+        <item name="channel_icon_circle_color">@color/channel_icon_circle_night</item>
+        <item name="channel_icon_send_color">@color/channel_icon_send_night</item>
 
         <!-- Fragment Channels -->
         <item name="underline_color">@color/underline_night</item>
         <item name="even_topic_color">@color/even_topic_night</item>
         <item name="odd_topic_color">@color/odd_topic_night</item>
+
+        <!-- Fragment People -->
+        <item name="circle_border_color">@color/circle_border_night</item>
+        <item name="circle_active_color">@color/circle_active_night</item>
+        <item name="circle_inactive_color">@color/circle_inactive_night</item>
 
     </style>
 </resources>

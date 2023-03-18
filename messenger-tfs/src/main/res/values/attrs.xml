@@ -3,12 +3,16 @@
 
     <declare-styleable name="messenger_common">
         <attr name="background_200_color" format="color" />
+        <attr name="background_300_color" format="color" />
+        <attr name="background_400_color" format="color" />
         <attr name="background_500_color" format="color" />
         <attr name="background_700_color" format="color" />
         <attr name="text_200_color" format="color" />
         <attr name="text_300_color" format="color" />
         <attr name="text_500_color" format="color" />
         <attr name="text_700_color" format="color" />
+        <attr name="text_800_color" format="color" />
+        <attr name="text_900_color" format="color" />
     </declare-styleable>
 
     <declare-styleable name="reaction_view">
@@ -45,6 +49,8 @@
         <attr name="channel_date_background_color" format="color" />
         <attr name="channel_date_text_color" format="color" />
         <attr name="channel_add_reactions_top_line_color" format="color" />
+        <attr name="channel_icon_circle_color" format="color" />
+        <attr name="channel_icon_send_color" format="color" />
     </declare-styleable>
 
     <declare-styleable name="fragment_channels">
@@ -52,4 +58,11 @@
         <attr name="even_topic_color" format="color" />
         <attr name="odd_topic_color" format="color" />
     </declare-styleable>
+
+    <declare-styleable name="fragment_people">
+        <attr name="circle_border_color" format="color" />
+        <attr name="circle_active_color" format="color" />
+        <attr name="circle_inactive_color" format="color" />
+    </declare-styleable>
+
 </resources>

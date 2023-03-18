@@ -37,9 +37,9 @@
         app:tabIndicatorFullWidth="false"
         app:tabIndicatorHeight="2dp"
         app:tabMode="fixed"
-        app:tabSelectedTextColor="?attr/text_500_color"
+        app:tabSelectedTextColor="?attr/text_300_color"
         app:tabTextAppearance="@style/ChannelsTabStyle"
-        app:tabTextColor="?attr/text_500_color">
+        app:tabTextColor="?attr/text_300_color">
 
     </com.google.android.material.tabs.TabLayout>
 
