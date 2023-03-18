@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.fragment.menu
 
 import android.content.Context
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -98,9 +99,11 @@ class ChannelsPageFragment : Fragment() {
         when (state.channel.type) {
             Channel.Type.FOLDED -> {
                 state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_down)
+                state.binding.textViewChannel.setTypeface(null, Typeface.NORMAL)
             }
             Channel.Type.UNFOLDED -> {
                 state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_up)
+                state.binding.textViewChannel.setTypeface(null, Typeface.BOLD)
             }
         }
         (state.binding.recyclerViewTopics.adapter as TopicAdapter).submitList(state.topics)
