@@ -1,9 +1,9 @@
 package com.spinoza.messenger_tfs.data.repository
 
+import com.spinoza.messenger_tfs.data.channelsDto
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
 import com.spinoza.messenger_tfs.data.prepareTestData
-import com.spinoza.messenger_tfs.data.streamsDto
 import com.spinoza.messenger_tfs.data.toDomain
 import com.spinoza.messenger_tfs.data.toDto
 import com.spinoza.messenger_tfs.domain.model.ChannelFilter
@@ -38,7 +38,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     // TODO: "Not yet implemented"
     override suspend fun getAllChannels(): RepositoryState {
-        return RepositoryState.Channels(streamsDto.toDomain())
+        return RepositoryState.Channels(channelsDto.toDomain())
     }
 
     // TODO: "Not yet implemented"
@@ -48,7 +48,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     // TODO: "Not yet implemented"
     override suspend fun getTopics(channelId: Long): RepositoryState {
-        val topics = streamsDto.find { it.id == channelId }?.topics ?: listOf()
+        val topics = channelsDto
+            .find { it.id == channelId }
+            ?.topics
+            ?.toDomain(messagesLocalCache, channelId) ?: listOf()
         return RepositoryState.Topics(topics)
     }
 
@@ -65,8 +68,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             message.toDto(
                 userId = message.userId,
                 messageId = newMessageId,
-                channelId = channelFilter.id,
-                topicName = channelFilter.topic
+                channelId = channelFilter.channelId,
+                topicName = channelFilter.topicName
             )
         )
         return RepositoryState.Messages(

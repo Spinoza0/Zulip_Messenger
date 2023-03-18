@@ -1,31 +1,32 @@
 package com.spinoza.messenger_tfs.data
 
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.data.model.ChannelDto
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
-import com.spinoza.messenger_tfs.data.model.StreamDto
+import com.spinoza.messenger_tfs.data.model.TopicDto
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import kotlin.random.Random
 
 // for testing purpose
 
 val topics1 = listOf(
-    Topic("jokes"),
-    Topic("weather"),
+    TopicDto("jokes", Message.UNDEFINED_ID),
+    TopicDto("weather", Message.UNDEFINED_ID),
 )
 
 val topics2 = listOf(
-    Topic("testing"),
-    Topic("development"),
+    TopicDto("testing", Message.UNDEFINED_ID),
+    TopicDto("development", Message.UNDEFINED_ID),
 )
 
-val streamsDto = listOf(
-    StreamDto(0L, "general", topics1),
-    StreamDto(1L, "Development", topics2),
-    StreamDto(2L, "Design", topics2),
-    StreamDto(3L, "PR", topics1),
+val channelsDto = listOf(
+    ChannelDto(0L, "general", topics1),
+    ChannelDto(1L, "Development", topics2),
+    ChannelDto(2L, "Design", topics2),
+    ChannelDto(3L, "PR", topics1),
 )
 
 fun prepareTestData(): List<MessageDto> {
@@ -38,7 +39,7 @@ fun prepareTestData(): List<MessageDto> {
     }
 
     repeat(20) { index ->
-        val stream = streamsDto[Random.nextInt(streamsDto.size)]
+        val stream = channelsDto[Random.nextInt(channelsDto.size)]
         val topic = stream.topics[Random.nextInt(stream.topics.size)]
         val message = MessageDto(
             index.toLong(),
