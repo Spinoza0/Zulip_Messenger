@@ -48,9 +48,7 @@
         <item name="odd_topic_color">@color/odd_topic</item>
 
         <!-- Fragment People -->
-        <item name="circle_border_color">@color/circle_border</item>
         <item name="online_color">@color/online</item>
-        <item name="offline_color">@color/offline</item>
 
         <!-- Fragment Profile -->
         <item name="button_logout_color">@color/button_logout</item>

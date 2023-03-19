@@ -61,7 +61,7 @@ class MainProfileFragment : Fragment() {
             Glide.with(binding.imageViewAvatar)
                 .load(this.avatar_url)
                 .transform(RoundedCorners(20))
-                .error(R.drawable.face)
+                .error(R.drawable.ic_default_avatar)
                 .into(binding.imageViewAvatar)
         }
     }

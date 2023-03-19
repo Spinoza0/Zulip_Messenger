@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.adapter
 
+import android.view.View
 import com.bumptech.glide.Glide
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.TopicItemBinding
@@ -66,7 +67,7 @@ fun MessageView.bind(item: MessageDelegateItem) {
     Glide.with(avatarImage)
         .load(message.user.avatar_url)
         .circleCrop()
-        .error(R.drawable.face)
+        .error(R.drawable.ic_default_avatar)
         .into(avatarImage)
     setOnAvatarClickListener(item.onAvatarLongClickListener())
     setOnMessageLongClickListener(item.onReactionAddClickListener())
@@ -96,10 +97,10 @@ fun UserItemBinding.bind(user: User) {
         Glide.with(imageViewAvatar)
             .load(user.avatar_url)
             .circleCrop()
-            .error(R.drawable.face)
+            .error(R.drawable.ic_default_avatar)
             .into(imageViewAvatar)
-        val image =
-            if (user.isActive) R.drawable.shape_circle_online else R.drawable.shape_circle_offline
-        imageViewCircle.setImageResource(image)
+        val visibility = if (user.isActive) View.VISIBLE else View.GONE
+        imageViewCircleBorder.visibility = visibility
+        imageViewCircle.visibility = visibility
     }
 }

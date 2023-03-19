@@ -15,13 +15,12 @@
         android:contentDescription="@string/avatar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:src="@drawable/face" />
+        tools:src="@drawable/ic_default_avatar" />
 
     <ImageView
         android:id="@+id/imageViewCircleBorder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="1dp"
         android:contentDescription="@string/online_status"
         android:src="@drawable/shape_circle_border"
         app:layout_constraintBottom_toBottomOf="@id/imageViewAvatar"
@@ -32,11 +31,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="@string/online_status"
+        android:src="@drawable/shape_circle_online"
         app:layout_constraintBottom_toBottomOf="@id/imageViewCircleBorder"
         app:layout_constraintEnd_toEndOf="@id/imageViewCircleBorder"
         app:layout_constraintStart_toStartOf="@id/imageViewCircleBorder"
-        app:layout_constraintTop_toTopOf="@id/imageViewCircleBorder"
-        tools:src="@drawable/shape_circle_online" />
+        app:layout_constraintTop_toTopOf="@id/imageViewCircleBorder" />
 
     <TextView
         android:id="@+id/textViewName"
