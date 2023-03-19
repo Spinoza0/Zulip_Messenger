@@ -37,6 +37,16 @@ class ItemChannelsFragment : Fragment(), ChannelsViewModel {
         )
     }
 
+    private val tabLayoutMediator by lazy {
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            when (position) {
+                0 -> tab.setText(R.string.subscribed_streams)
+                1 -> tab.setText(R.string.all_streams)
+                else -> throw RuntimeException("Unknown tab position: $position")
+            }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -60,13 +70,7 @@ class ItemChannelsFragment : Fragment(), ChannelsViewModel {
         val viewPagerAdapter = ViewPagerAdapter(childFragmentManager, lifecycle, childFragments)
 
         binding.viewPager.adapter = viewPagerAdapter
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            when (position) {
-                0 -> tab.setText(R.string.subscribed_streams)
-                1 -> tab.setText(R.string.all_streams)
-                else -> throw RuntimeException("Unknown tab position: $position")
-            }
-        }.attach()
+        tabLayoutMediator.attach()
     }
 
     override fun getChannels(allChannels: Boolean) {
@@ -87,6 +91,7 @@ class ItemChannelsFragment : Fragment(), ChannelsViewModel {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        tabLayoutMediator.detach()
         binding.viewPager.adapter = null
         _binding = null
     }
