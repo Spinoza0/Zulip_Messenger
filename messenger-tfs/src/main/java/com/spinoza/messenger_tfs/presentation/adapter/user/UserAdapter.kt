@@ -4,13 +4,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import com.spinoza.messenger_tfs.databinding.UserItemBinding
-import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.presentation.adapter.bind
 
-class UserAdapter : ListAdapter<User, UserViewHolder>(UserDiffCallback()) {
-
-    lateinit var channel: Channel
+class UserAdapter(
+    private val onClickListener: (Long) -> Unit,
+) : ListAdapter<User, UserViewHolder>(UserDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
         val binding = UserItemBinding.inflate(
@@ -22,6 +21,6 @@ class UserAdapter : ListAdapter<User, UserViewHolder>(UserDiffCallback()) {
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-        holder.binding.bind(getItem(position))
+        holder.binding.bind(getItem(position), onClickListener)
     }
 }

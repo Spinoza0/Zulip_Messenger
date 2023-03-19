@@ -90,17 +90,18 @@ fun TopicItemBinding.bind(
     }
 }
 
-fun UserItemBinding.bind(user: User) {
-    with(this) {
-        textViewName.text = user.full_name
-        textViewEmail.text = user.email
-        Glide.with(imageViewAvatar)
-            .load(user.avatar_url)
-            .circleCrop()
-            .error(R.drawable.ic_default_avatar)
-            .into(imageViewAvatar)
-        val visibility = if (user.isActive) View.VISIBLE else View.GONE
-        imageViewCircleBorder.visibility = visibility
-        imageViewCircle.visibility = visibility
+fun UserItemBinding.bind(user: User, onClickListener: (Long) -> Unit) {
+    textViewName.text = user.full_name
+    textViewEmail.text = user.email
+    Glide.with(imageViewAvatar)
+        .load(user.avatar_url)
+        .circleCrop()
+        .error(R.drawable.ic_default_avatar)
+        .into(imageViewAvatar)
+    val visibility = if (user.isActive) View.VISIBLE else View.GONE
+    imageViewCircleBorder.visibility = visibility
+    imageViewCircle.visibility = visibility
+    root.setOnClickListener {
+        onClickListener(user.userId)
     }
 }

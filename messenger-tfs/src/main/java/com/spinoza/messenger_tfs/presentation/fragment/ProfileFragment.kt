@@ -19,6 +19,7 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
+import com.spinoza.messenger_tfs.presentation.ui.setup
 import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ProfileFragmentViewModelFactory
 import kotlinx.coroutines.launch
@@ -62,7 +63,6 @@ class ProfileFragment : Fragment() {
         setupListeners()
         setupObservers()
         setupScreen()
-        viewModel.getUserInfo(userId)
     }
 
     private fun setupListeners() {
@@ -83,12 +83,14 @@ class ProfileFragment : Fragment() {
         binding.toolbar.visibility = View.VISIBLE
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.background_700_color)
+        viewModel.getUserInfo(userId)
     }
 
     private fun handleRepositoryState(state: RepositoryState) {
         when (state) {
             is RepositoryState.Users -> {
-                TODO()
+                val user = state.value[FIRST_VALUE]
+                binding.setup(user)
             }
             is RepositoryState.Error -> {
                 when (state.type) {
@@ -138,6 +140,7 @@ class ProfileFragment : Fragment() {
 
         private const val EXTRA_USER_ID = "userId"
         private const val UNDEFINED_USER_ID = -1L
+        private const val FIRST_VALUE = 0
 
         fun newInstance(userId: Long): ProfileFragment {
             return ProfileFragment().apply {

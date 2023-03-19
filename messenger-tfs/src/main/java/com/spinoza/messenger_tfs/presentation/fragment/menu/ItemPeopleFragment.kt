@@ -10,11 +10,13 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.user.UserAdapter
+import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.viewmodel.MainPeopleFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MainPeopleFragmentViewModelFactory
 import kotlinx.coroutines.launch
@@ -31,7 +33,7 @@ class ItemPeopleFragment : Fragment() {
         )
     }
 
-    val adapter by lazy { UserAdapter() }
+    val adapter by lazy { UserAdapter(::onUserClickListener) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -69,6 +71,10 @@ class ItemPeopleFragment : Fragment() {
             }
             else -> {}
         }
+    }
+
+    private fun onUserClickListener(userId: Long) {
+        MessengerApp.router.navigateTo(Screens.UserProfile(userId))
     }
 
     override fun onDestroyView() {

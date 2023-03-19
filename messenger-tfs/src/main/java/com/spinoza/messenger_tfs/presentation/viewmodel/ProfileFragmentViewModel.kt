@@ -25,7 +25,9 @@ class ProfileFragmentViewModel(
 
     fun getUserInfo(userId: Long) {
         viewModelScope.launch {
-            getUserUseCase?.invoke(userId)
+            getUserUseCase?.let {
+                _state.value = getUserUseCase.invoke(userId)
+            }
         }
     }
 }
