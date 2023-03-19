@@ -35,7 +35,7 @@ class ItemPeopleFragment : Fragment() {
         )
     }
 
-    val adapter by lazy { UserAdapter(::onUserClickListener) }
+    private lateinit var adapter: UserAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,6 +54,7 @@ class ItemPeopleFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
+        adapter = UserAdapter(::onUserClickListener)
         binding.recyclerViewUsers.adapter = adapter
     }
 
@@ -85,7 +86,6 @@ class ItemPeopleFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding.recyclerViewUsers.adapter = null
         _binding = null
     }
 

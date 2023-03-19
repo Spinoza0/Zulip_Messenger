@@ -24,28 +24,9 @@ class MainFragment : Fragment(), OnItemSelectedListener {
     private val binding: FragmentMainBinding
         get() = _binding ?: throw RuntimeException("FragmentMainBinding == null")
 
-    lateinit var navigatorHolder: NavigatorHolder
-    lateinit var localRouter: Router
-    private val localNavigator by lazy {
-        AppNavigator(requireActivity(), R.id.fragmentContainer, childFragmentManager)
-    }
-
-    private val onBackPressedCallback by lazy {
-        object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                when (binding.bottomNavigationView.selectedItemId) {
-                    R.id.menu_channels -> {
-                        requireActivity().moveTaskToBack(true)
-                        requireActivity().finish()
-                    }
-                    R.id.menu_people, R.id.menu_profile -> {
-                        localRouter.replaceScreen(Screens.ItemChannels())
-                        binding.bottomNavigationView.selectedItemId = R.id.menu_channels
-                    }
-                }
-            }
-        }
-    }
+    private lateinit var navigatorHolder: NavigatorHolder
+    private lateinit var localRouter: Router
+    private lateinit var onBackPressedCallback: OnBackPressedCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,8 +50,38 @@ class MainFragment : Fragment(), OnItemSelectedListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupNavigation()
+        setupOnBackPressedCallback()
         setupStatusBar()
+    }
+
+    private fun setupOnBackPressedCallback() {
+        onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                when (binding.bottomNavigationView.selectedItemId) {
+                    R.id.menu_channels -> {
+                        requireActivity().moveTaskToBack(true)
+                        requireActivity().finish()
+                    }
+                    R.id.menu_people, R.id.menu_profile -> {
+                        localRouter.replaceScreen(Screens.ItemChannels())
+                        binding.bottomNavigationView.selectedItemId = R.id.menu_channels
+                    }
+                }
+            }
+        }
+
+        requireActivity().onBackPressedDispatcher.addCallback(
+            requireActivity(),
+            onBackPressedCallback
+        )
+    }
+
+    private fun setupNavigation() {
         binding.bottomNavigationView.setOnItemSelectedListener(this)
+        val localNavigator =
+            AppNavigator(requireActivity(), R.id.fragmentContainer, childFragmentManager)
+        navigatorHolder.setNavigator(localNavigator)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -82,19 +93,8 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         return true
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        requireActivity().onBackPressedDispatcher.addCallback(
-            requireActivity(),
-            onBackPressedCallback
-        )
-
-        navigatorHolder.setNavigator(localNavigator)
-    }
-
-    override fun onPause() {
-        super.onPause()
+    override fun onStop() {
+        super.onStop()
         navigatorHolder.removeNavigator()
         onBackPressedCallback.remove()
     }

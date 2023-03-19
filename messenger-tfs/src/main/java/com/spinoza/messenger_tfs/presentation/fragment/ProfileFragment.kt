@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
 
+    private lateinit var onBackPressedCallback: OnBackPressedCallback
     private var _binding: FragmentProfileBinding? = null
     private val binding: FragmentProfileBinding
         get() = _binding
@@ -42,14 +43,6 @@ class ProfileFragment : Fragment() {
         )
     }
 
-    private val onBackPressedCallback by lazy {
-        object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                goBack()
-            }
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -62,6 +55,7 @@ class ProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         parseParams()
+        setupOnBackPressedCallback()
         setupListeners()
         setupObservers()
         setupScreen()
@@ -124,18 +118,25 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
+    private fun setupOnBackPressedCallback() {
+        onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goBack()
+            }
+        }
         requireActivity().onBackPressedDispatcher.addCallback(
             requireActivity(),
             onBackPressedCallback
         )
     }
 
+    override fun onStop() {
+        super.onStop()
+        onBackPressedCallback.remove()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
-        onBackPressedCallback.remove()
         _binding = null
     }
 

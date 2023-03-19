@@ -37,15 +37,7 @@ class ItemChannelsFragment : Fragment(), ChannelsViewModel {
         )
     }
 
-    private val tabLayoutMediator by lazy {
-        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            when (position) {
-                0 -> tab.setText(R.string.subscribed_streams)
-                1 -> tab.setText(R.string.all_streams)
-                else -> throw RuntimeException("Unknown tab position: $position")
-            }
-        }
-    }
+    private lateinit var tabLayoutMediator: TabLayoutMediator
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,18 +50,27 @@ class ItemChannelsFragment : Fragment(), ChannelsViewModel {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupTabLayoutMediator()
+        setupViewPager()
     }
 
-    private fun setupTabLayoutMediator() {
+    private fun setupViewPager() {
         val childFragments = listOf(
             ChannelsPageFragment.newInstance(false),
             ChannelsPageFragment.newInstance(true)
         )
 
         val viewPagerAdapter = ViewPagerAdapter(childFragmentManager, lifecycle, childFragments)
-
         binding.viewPager.adapter = viewPagerAdapter
+
+        tabLayoutMediator =
+            TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+                when (position) {
+                    0 -> tab.setText(R.string.subscribed_streams)
+                    1 -> tab.setText(R.string.all_streams)
+                    else -> throw RuntimeException("Unknown tab position: $position")
+                }
+            }
+
         tabLayoutMediator.attach()
     }
 
@@ -89,10 +90,14 @@ class ItemChannelsFragment : Fragment(), ChannelsViewModel {
         viewModel.onChannelClickListener(allChannels, channel, itemBinding)
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
+    override fun onStop() {
+        super.onStop()
         tabLayoutMediator.detach()
         binding.viewPager.adapter = null
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
         _binding = null
     }
 

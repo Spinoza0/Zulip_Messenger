@@ -43,14 +43,8 @@ class MessagesFragment : Fragment() {
 
     private lateinit var channel: Channel
     private lateinit var topicName: String
-
-    private val mainAdapter: MainAdapter by lazy {
-        MainAdapter().apply {
-            addDelegate(CompanionMessageDelegate())
-            addDelegate(UserMessageDelegate())
-            addDelegate(DateDelegate())
-        }
-    }
+    private lateinit var mainAdapter: MainAdapter
+    private lateinit var onBackPressedCallback: OnBackPressedCallback
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
@@ -61,14 +55,6 @@ class MessagesFragment : Fragment() {
             channel,
             topicName
         )
-    }
-
-    private val onBackPressedCallback by lazy {
-        object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                goBack()
-            }
-        }
     }
 
     override fun onCreateView(
@@ -83,16 +69,33 @@ class MessagesFragment : Fragment() {
 
         parseParams()
         setupScreen()
+        if (savedInstanceState == null) {
+            setupRecyclerView()
+            viewModel.doOnTextChanged(binding.editTextMessage.text)
+            viewModel.getMessages()
+        }
     }
 
     private fun setupScreen() {
+        setupOnBackPressedCallback()
         setupStatusBar()
-        setupRecyclerView()
         setupObservers()
         setupListeners()
 
         binding.textViewTopic.text =
             String.format(getString(R.string.messages_topic_template), topicName)
+    }
+
+    private fun setupOnBackPressedCallback() {
+        onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goBack()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(
+            requireActivity(),
+            onBackPressedCallback
+        )
     }
 
     private fun setupStatusBar() {
@@ -102,6 +105,11 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
+        mainAdapter = MainAdapter().apply {
+            addDelegate(CompanionMessageDelegate())
+            addDelegate(UserMessageDelegate())
+            addDelegate(DateDelegate())
+        }
         binding.recyclerViewMessages.adapter = mainAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
     }
@@ -203,26 +211,13 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        requireActivity().onBackPressedDispatcher.addCallback(
-            requireActivity(),
-            onBackPressedCallback
-        )
-
-        viewModel.doOnTextChanged(binding.editTextMessage.text)
-        viewModel.getMessages()
-    }
-
-    override fun onPause() {
-        super.onPause()
+    override fun onStop() {
+        super.onStop()
         onBackPressedCallback.remove()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding.recyclerViewMessages.adapter = null
         _binding = null
     }
 
