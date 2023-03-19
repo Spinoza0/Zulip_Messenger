@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="?attr/background_700_color"
     android:orientation="vertical"
-    tools:context=".presentation.fragment.menu.MainPeopleFragment">
+    tools:context=".presentation.fragment.menu.ItemPeopleFragment">
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/editTextSearch"

@@ -219,7 +219,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun openMainFragment() {
-        MessengerApp.router.replaceScreen(Screens.Main())
+        MessengerApp.router.replaceScreen(Screens.MainMenu())
     }
 
     @Suppress("deprecation")

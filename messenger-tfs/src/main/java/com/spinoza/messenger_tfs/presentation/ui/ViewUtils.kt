@@ -1,10 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.ui
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Path
-import android.graphics.Rect
 import android.util.TypedValue
 import android.view.View
 import androidx.core.view.marginBottom
@@ -13,7 +9,10 @@ import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 
@@ -95,16 +94,24 @@ fun Context.getThemeColor(attr: Int): Int {
     return typedValue.data
 }
 
-fun Bitmap.getRounded(size: Float): Bitmap {
-    val result = Bitmap.createBitmap(size.toInt(), size.toInt(), Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(result)
-    val path = Path()
-    path.addCircle((size - 1) / 2, (size - 1) / 2, size / 2, Path.Direction.CCW)
-    canvas.clipPath(path)
-    canvas.drawBitmap(
-        this,
-        Rect(0, 0, this.width, this.height),
-        Rect(0, 0, size.toInt(), size.toInt()), null
-    )
-    return result
+fun FragmentProfileBinding.setup(user: User) {
+    textViewName.text = user.full_name
+    textViewStatus.text = user.status
+    if (user.status.isEmpty()) {
+        textViewStatus.visibility = View.GONE
+    } else {
+        textViewStatus.text = user.status
+    }
+    if (user.isActive) {
+        textViewStatusOnline.visibility = View.VISIBLE
+        textViewStatusOffline.visibility = View.GONE
+    } else {
+        textViewStatusOnline.visibility = View.GONE
+        textViewStatusOffline.visibility = View.VISIBLE
+    }
+    com.bumptech.glide.Glide.with(imageViewAvatar)
+        .load(user.avatar_url)
+        .transform(RoundedCorners(20))
+        .error(com.spinoza.messenger_tfs.R.drawable.ic_default_avatar)
+        .into(imageViewAvatar)
 }

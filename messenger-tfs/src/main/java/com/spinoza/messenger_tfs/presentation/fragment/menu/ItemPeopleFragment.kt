@@ -11,7 +11,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.databinding.FragmentMainPeopleBinding
+import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
 import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.user.UserAdapter
@@ -19,11 +19,11 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.MainPeopleFragmentViewMo
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MainPeopleFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
-class MainPeopleFragment : Fragment() {
+class ItemPeopleFragment : Fragment() {
 
-    private var _binding: FragmentMainPeopleBinding? = null
-    private val binding: FragmentMainPeopleBinding
-        get() = _binding ?: throw RuntimeException("FragmentMainPeopleBinding == null")
+    private var _binding: FragmentItemPeopleBinding? = null
+    private val binding: FragmentItemPeopleBinding
+        get() = _binding ?: throw RuntimeException("FragmentItemPeopleBinding == null")
 
     private val viewModel: MainPeopleFragmentViewModel by viewModels {
         MainPeopleFragmentViewModelFactory(
@@ -37,7 +37,7 @@ class MainPeopleFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentMainPeopleBinding.inflate(inflater, container, false)
+        _binding = FragmentItemPeopleBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -77,8 +77,8 @@ class MainPeopleFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(): MainPeopleFragment {
-            return MainPeopleFragment()
+        fun newInstance(): ItemPeopleFragment {
+            return ItemPeopleFragment()
         }
     }
 }

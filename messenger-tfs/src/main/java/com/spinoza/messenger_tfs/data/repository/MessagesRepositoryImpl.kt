@@ -3,7 +3,6 @@ package com.spinoza.messenger_tfs.data.repository
 import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
-import com.spinoza.messenger_tfs.data.model.UserDto
 import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
@@ -33,12 +32,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun getUser(userId: Long): RepositoryState {
-        val user: UserDto? = if (userId == User.CURRENT_USER) {
-            currentUser
-        } else {
-            usersDto.find { it.userId == userId }
-        }
-
+        val user = usersDto.find { it.userId == userId }
         return if (user != null) {
             RepositoryState.Users(listOf(user.toDomain()))
         } else {

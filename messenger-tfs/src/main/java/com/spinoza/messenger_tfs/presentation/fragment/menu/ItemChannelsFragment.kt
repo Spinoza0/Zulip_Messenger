@@ -10,7 +10,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
-import com.spinoza.messenger_tfs.databinding.FragmentMainChannelsBinding
+import com.spinoza.messenger_tfs.databinding.FragmentItemChannelsBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
@@ -22,11 +22,11 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
 import kotlinx.coroutines.flow.StateFlow
 
-class MainChannelsFragment : Fragment(), ChannelsViewModel {
+class ItemChannelsFragment : Fragment(), ChannelsViewModel {
 
-    private var _binding: FragmentMainChannelsBinding? = null
-    private val binding: FragmentMainChannelsBinding
-        get() = _binding ?: throw RuntimeException("FragmentMainChannelsBinding == null")
+    private var _binding: FragmentItemChannelsBinding? = null
+    private val binding: FragmentItemChannelsBinding
+        get() = _binding ?: throw RuntimeException("FragmentItemChannelsBinding == null")
 
 
     private val viewModel: ChannelsFragmentViewModel by viewModels {
@@ -41,7 +41,7 @@ class MainChannelsFragment : Fragment(), ChannelsViewModel {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentMainChannelsBinding.inflate(inflater, container, false)
+        _binding = FragmentItemChannelsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -92,8 +92,8 @@ class MainChannelsFragment : Fragment(), ChannelsViewModel {
 
     companion object {
 
-        fun newInstance(): MainChannelsFragment {
-            return MainChannelsFragment()
+        fun newInstance(): ItemChannelsFragment {
+            return ItemChannelsFragment()
         }
     }
 }

@@ -4,22 +4,30 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?attr/background_700_color"
-    tools:context=".presentation.fragment.menu.ChannelsPageFragment">
+    android:background="?attr/background_700_color">
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_gravity="center"
         android:layout_height="?attr/actionBarSize"
+        android:layout_gravity="center"
         android:background="?attr/background_500_color"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:title="@string/profile"
         app:titleCentered="true"
         app:titleTextAppearance="@style/ToolbarTitleStyle"
         app:titleTextColor="?attr/text_200_color"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        tools:visibility="visible" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.25" />
 
     <ImageView
         android:id="@+id/imageViewAvatar"
@@ -27,11 +35,9 @@
         android:layout_height="185dp"
         android:adjustViewBounds="true"
         android:contentDescription="@string/avatar"
-        app:layout_constraintBottom_toTopOf="@id/textViewName"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintTop_toTopOf="@id/guideline"
         tools:src="@drawable/ic_default_avatar" />
 
     <TextView
@@ -42,7 +48,6 @@
         android:textAlignment="center"
         android:textColor="?attr/text_200_color"
         android:textSize="32sp"
-        app:layout_constraintBottom_toTopOf="@id/flow"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageViewAvatar"
@@ -55,7 +60,6 @@
         app:constraint_referenced_ids="textViewStatus,textViewStatusOnline,textViewStatusOffline"
         app:flow_horizontalStyle="packed"
         app:flow_wrapMode="chain"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textViewName" />
@@ -88,5 +92,22 @@
         android:textColor="?attr/text_700_color"
         android:textSize="16sp"
         android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/textViewLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="65dp"
+        android:background="@drawable/shape_logout"
+        android:paddingHorizontal="56dp"
+        android:paddingVertical="14dp"
+        android:text="@string/log_out"
+        android:textColor="?attr/text_200_color"
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

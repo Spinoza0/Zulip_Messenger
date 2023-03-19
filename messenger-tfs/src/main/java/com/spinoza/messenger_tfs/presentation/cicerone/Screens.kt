@@ -4,21 +4,24 @@ import com.github.terrakok.cicerone.androidx.FragmentScreen
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.presentation.fragment.MainFragment
 import com.spinoza.messenger_tfs.presentation.fragment.MessagesFragment
-import com.spinoza.messenger_tfs.presentation.fragment.menu.MainChannelsFragment
-import com.spinoza.messenger_tfs.presentation.fragment.menu.MainPeopleFragment
-import com.spinoza.messenger_tfs.presentation.fragment.menu.MainProfileFragment
+import com.spinoza.messenger_tfs.presentation.fragment.ProfileFragment
+import com.spinoza.messenger_tfs.presentation.fragment.menu.ItemChannelsFragment
+import com.spinoza.messenger_tfs.presentation.fragment.menu.ItemPeopleFragment
+import com.spinoza.messenger_tfs.presentation.fragment.menu.ItemProfileFragment
 
 object Screens {
 
-    fun Main() = FragmentScreen { MainFragment.newInstance() }
+    fun MainMenu() = FragmentScreen { MainFragment.newInstance() }
 
     fun Messages(channel: Channel, topicName: String) = FragmentScreen {
         MessagesFragment.newInstance(channel, topicName)
     }
 
-    fun Channels() = FragmentScreen { MainChannelsFragment.newInstance() }
+    fun UserProfile(userId: Long) = FragmentScreen { ProfileFragment.newInstance(userId) }
 
-    fun People() = FragmentScreen { MainPeopleFragment.newInstance() }
+    fun ItemChannels() = FragmentScreen { ItemChannelsFragment.newInstance() }
 
-    fun Profile() = FragmentScreen { MainProfileFragment.newInstance() }
+    fun ItemPeople() = FragmentScreen { ItemPeopleFragment.newInstance() }
+
+    fun ItemProfile() = FragmentScreen { ItemProfileFragment.newInstance() }
 }
