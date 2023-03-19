@@ -21,7 +21,10 @@ class MessageView @JvmOverloads constructor(
     private val defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var messageId: Long = 0L
+    var messageId: Long = UNDEFINED_ID
+        private set
+
+    var userId: Long = UNDEFINED_ID
         private set
 
     var name: String
@@ -224,6 +227,7 @@ class MessageView @JvmOverloads constructor(
 
     fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
         messageId = message.id
+        userId = message.user.userId
         name = message.user.full_name
         content = message.content
         this.reactionsGravity = reactionsGravity
@@ -235,6 +239,7 @@ class MessageView @JvmOverloads constructor(
     }
 
     private companion object {
+        const val UNDEFINED_ID = -1L
         const val REACTION_PADDING_HORIZONTAL = 10f
         const val REACTION_PADDING_VERTICAL = 7f
     }

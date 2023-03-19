@@ -7,7 +7,7 @@ import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 interface MessageDelegateItem : DelegateItem {
 
-    fun onAvatarLongClickListener(): ((MessageView) -> Unit)?
+    fun onAvatarClickListener(): ((MessageView) -> Unit)?
 
     fun onReactionAddClickListener(): ((MessageView) -> Unit)?
 

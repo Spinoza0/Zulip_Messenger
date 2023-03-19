@@ -28,6 +28,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
+import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
@@ -171,6 +172,10 @@ class MessagesFragment : Fragment() {
         }
     }
 
+    private fun onAvatarClickListener(messageView: MessageView) {
+        MessengerApp.router.navigateTo(Screens.UserProfile(messageView.userId))
+    }
+
     private fun onReactionAddClickListener(messageView: MessageView) {
         val dialog = ChooseReactionDialogFragment.newInstance(
             messageView.messageId,
@@ -189,6 +194,7 @@ class MessagesFragment : Fragment() {
         mainAdapter.submitList(
             messages.groupByDate(
                 user = viewModel.user,
+                onAvatarClickListener = ::onAvatarClickListener,
                 onReactionAddClickListener = ::onReactionAddClickListener,
                 onReactionClickListener = viewModel::updateReaction
             )

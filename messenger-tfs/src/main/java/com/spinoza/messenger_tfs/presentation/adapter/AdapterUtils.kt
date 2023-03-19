@@ -18,7 +18,7 @@ import java.util.*
 
 fun List<Message>.groupByDate(
     user: User,
-    onAvatarLongClickListener: ((MessageView) -> Unit)? = null,
+    onAvatarClickListener: ((MessageView) -> Unit)? = null,
     onReactionAddClickListener: ((MessageView) -> Unit)? = null,
     onReactionClickListener: ((MessageView, ReactionView) -> Unit)? = null,
 ): List<DelegateItem> {
@@ -40,7 +40,7 @@ fun List<Message>.groupByDate(
                 delegateItemList.add(
                     UserMessageDelegateItem(
                         message,
-                        onAvatarLongClickListener,
+                        onAvatarClickListener,
                         onReactionAddClickListener,
                         onReactionClickListener
                     )
@@ -49,7 +49,7 @@ fun List<Message>.groupByDate(
                 delegateItemList.add(
                     CompanionMessageDelegateItem(
                         message,
-                        onAvatarLongClickListener,
+                        onAvatarClickListener,
                         onReactionAddClickListener,
                         onReactionClickListener
                     )
@@ -69,7 +69,7 @@ fun MessageView.bind(item: MessageDelegateItem) {
         .circleCrop()
         .error(R.drawable.ic_default_avatar)
         .into(avatarImage)
-    setOnAvatarClickListener(item.onAvatarLongClickListener())
+    setOnAvatarClickListener(item.onAvatarClickListener())
     setOnMessageLongClickListener(item.onReactionAddClickListener())
     setOnReactionClickListener(item.onReactionClickListener())
 }

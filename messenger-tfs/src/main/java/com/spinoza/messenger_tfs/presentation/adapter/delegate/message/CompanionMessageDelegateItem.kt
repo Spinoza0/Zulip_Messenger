@@ -8,7 +8,7 @@ import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 class CompanionMessageDelegateItem(
     private val value: Message,
-    private val onAvatarLongClickListener: ((MessageView) -> Unit)? = null,
+    private val onAvatarClickListener: ((MessageView) -> Unit)? = null,
     private val onReactionAddClickListener: ((MessageView) -> Unit)? = null,
     private val onReactionClickListener: ((MessageView, ReactionView) -> Unit)? = null,
 ) : MessageDelegateItem {
@@ -25,8 +25,8 @@ class CompanionMessageDelegateItem(
         return (other as CompanionMessageDelegateItem).value == content()
     }
 
-    override fun onAvatarLongClickListener(): ((MessageView) -> Unit)? {
-        return onAvatarLongClickListener
+    override fun onAvatarClickListener(): ((MessageView) -> Unit)? {
+        return onAvatarClickListener
     }
 
     override fun onReactionAddClickListener(): ((MessageView) -> Unit)? {
