@@ -9,6 +9,7 @@ import androidx.fragment.app.viewModels
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
+import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.setup
 import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ProfileFragmentViewModelFactory
@@ -42,6 +43,7 @@ class ItemProfileFragment : Fragment() {
 
     private fun setupScreen() {
         binding.textViewLogout.visibility = View.VISIBLE
+        binding.progressBar.off()
         binding.setup(viewModel.user)
     }
 

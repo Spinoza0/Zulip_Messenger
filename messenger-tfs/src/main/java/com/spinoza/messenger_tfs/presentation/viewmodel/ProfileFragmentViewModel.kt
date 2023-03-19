@@ -21,7 +21,7 @@ class ProfileFragmentViewModel(
         get() = _state.asStateFlow()
 
     private val _state =
-        MutableStateFlow<RepositoryState>(RepositoryState.Idle)
+        MutableStateFlow<RepositoryState>(RepositoryState.Loading)
 
     fun getUserInfo(userId: Long) {
         viewModelScope.launch {

@@ -30,9 +30,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
-import com.spinoza.messenger_tfs.presentation.ui.MessageView
-import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
-import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToChangedMessage
+import com.spinoza.messenger_tfs.presentation.ui.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
 import kotlinx.coroutines.launch
@@ -117,11 +115,15 @@ class MessagesFragment : Fragment() {
     }
 
     private fun handleMessagesFragmentState(state: MessagesFragmentState) {
+        if (state !is MessagesFragmentState.Loading) {
+            binding.progressBar.off()
+        }
         when (state) {
             is MessagesFragmentState.Repository -> handleRepositoryState(state.state)
             is MessagesFragmentState.SendIconImage -> {
                 binding.imageViewAction.setImageResource(state.resId)
             }
+            is MessagesFragmentState.Loading -> binding.progressBar.on()
         }
     }
 

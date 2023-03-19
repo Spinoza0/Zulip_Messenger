@@ -19,6 +19,8 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
+import com.spinoza.messenger_tfs.presentation.ui.off
+import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.ui.setup
 import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ProfileFragmentViewModelFactory
@@ -87,11 +89,15 @@ class ProfileFragment : Fragment() {
     }
 
     private fun handleRepositoryState(state: RepositoryState) {
+        if (state !is RepositoryState.Loading) {
+            binding.progressBar.off()
+        }
         when (state) {
             is RepositoryState.Users -> {
                 val user = state.value[FIRST_VALUE]
                 binding.setup(user)
             }
+            is RepositoryState.Loading -> binding.progressBar.on()
             is RepositoryState.Error -> {
                 when (state.type) {
                     RepositoryState.ErrorType.USER_WITH_ID_NOT_FOUND -> {

@@ -17,6 +17,8 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.user.UserAdapter
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
+import com.spinoza.messenger_tfs.presentation.ui.off
+import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.MainPeopleFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MainPeopleFragmentViewModelFactory
 import kotlinx.coroutines.launch
@@ -64,11 +66,15 @@ class ItemPeopleFragment : Fragment() {
     }
 
     private fun handleFragmentState(state: RepositoryState) {
+        if (state !is RepositoryState.Loading) {
+            binding.progressBar.off()
+        }
         when (state) {
             is RepositoryState.Users -> adapter.submitList(state.value)
             is RepositoryState.Error -> {
                 Toast.makeText(context, state.text, Toast.LENGTH_LONG).show()
             }
+            is RepositoryState.Loading -> binding.progressBar.on()
             else -> {}
         }
     }

@@ -42,6 +42,7 @@ class MessagesFragmentViewModel(
 
     fun getMessages() {
         viewModelScope.launch {
+            _state.value = MessagesFragmentState.Loading
             _state.value = MessagesFragmentState.Repository(getMessagesUseCase(channelFilter))
         }
     }

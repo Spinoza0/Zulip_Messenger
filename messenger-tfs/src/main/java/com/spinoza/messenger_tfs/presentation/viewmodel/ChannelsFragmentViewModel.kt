@@ -28,9 +28,9 @@ class ChannelsFragmentViewModel(
     private val allChannelsCache = mutableListOf<Channel>()
     private val subscribedChannelsCache = mutableListOf<Channel>()
     private val _stateAllChannels =
-        MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Idle)
+        MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Loading)
     private val _stateSubscribedChannels =
-        MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Idle)
+        MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Loading)
 
     fun getChannels(allChannels: Boolean) {
         viewModelScope.launch {
@@ -80,7 +80,7 @@ class ChannelsFragmentViewModel(
                     val newType = getNewChannelType(oldChannel.type)
                     val newChannel = channel.copy(type = newType)
                     var success = true
-                    var result: ChannelsFragmentState = ChannelsFragmentState.Idle
+                    var result: ChannelsFragmentState = ChannelsFragmentState.Loading
                     if (newType == Channel.Type.FOLDED) {
                         result = ChannelsFragmentState.Topics(listOf(), newChannel, itemBinding)
                     } else {

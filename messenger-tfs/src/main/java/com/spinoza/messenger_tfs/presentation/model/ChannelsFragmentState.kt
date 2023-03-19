@@ -6,7 +6,7 @@ import com.spinoza.messenger_tfs.domain.model.Topic
 
 sealed class ChannelsFragmentState {
 
-    object Idle : ChannelsFragmentState()
+    object Loading : ChannelsFragmentState()
 
     class Error(val text: String) : ChannelsFragmentState()
 

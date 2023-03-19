@@ -20,6 +20,8 @@ import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
+import com.spinoza.messenger_tfs.presentation.ui.off
+import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsViewModel
 import kotlinx.coroutines.launch
 
@@ -86,10 +88,13 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun handleChannelsFragmentState(state: ChannelsFragmentState) {
+        if (state !is ChannelsFragmentState.Loading) {
+            binding.progressBar.off()
+        }
         when (state) {
             is ChannelsFragmentState.Channels -> adapter.submitList(state.channels)
             is ChannelsFragmentState.Topics -> handleTopicsState(state)
-            is ChannelsFragmentState.Idle -> {}
+            is ChannelsFragmentState.Loading -> binding.progressBar.on()
 
             // TODO: show errors
             is ChannelsFragmentState.Error -> {}

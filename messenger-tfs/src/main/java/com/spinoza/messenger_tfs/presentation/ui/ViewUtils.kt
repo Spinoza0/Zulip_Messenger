@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.presentation.ui
 import android.content.Context
 import android.util.TypedValue
 import android.view.View
+import android.widget.ProgressBar
 import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
@@ -114,4 +115,12 @@ fun FragmentProfileBinding.setup(user: User) {
         .transform(RoundedCorners(20))
         .error(com.spinoza.messenger_tfs.R.drawable.ic_default_avatar)
         .into(imageViewAvatar)
+}
+
+fun ProgressBar.on() {
+    this.visibility = View.VISIBLE
+}
+
+fun ProgressBar.off() {
+    this.visibility = View.GONE
 }

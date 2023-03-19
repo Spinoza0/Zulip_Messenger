@@ -15,7 +15,8 @@ class MainPeopleFragmentViewModel(private val getAllUsersUseCase: GetAllUsersUse
     val state: StateFlow<RepositoryState>
         get() = _state.asStateFlow()
 
-    private val _state = MutableStateFlow<RepositoryState>(RepositoryState.Idle)
+    private val _state =
+        MutableStateFlow<RepositoryState>(RepositoryState.Loading)
 
     fun getAllUsers() {
         viewModelScope.launch {

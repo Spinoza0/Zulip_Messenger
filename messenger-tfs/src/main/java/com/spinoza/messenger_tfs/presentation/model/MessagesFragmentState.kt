@@ -4,6 +4,8 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 
 sealed class MessagesFragmentState {
 
+    object Loading : MessagesFragmentState()
+
     class SendIconImage(val resId: Int) : MessagesFragmentState()
 
     class Repository(val state: RepositoryState) : MessagesFragmentState()
