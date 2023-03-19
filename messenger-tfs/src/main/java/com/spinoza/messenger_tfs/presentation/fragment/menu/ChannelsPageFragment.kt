@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.fragment.menu
 
-import android.content.Context
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -12,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
@@ -29,17 +29,12 @@ class ChannelsPageFragment : Fragment() {
 
     lateinit var adapter: ChannelsAdapter
 
-    private lateinit var channelsViewModel: ChannelsViewModel
+    private var channelsViewModel: ChannelsViewModel? = null
     private var allChannels = false
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        channelsViewModel = parentFragment as ChannelsViewModel
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,12 +44,13 @@ class ChannelsPageFragment : Fragment() {
         setupRecyclerView()
         parseParams()
         setupObservers()
+        channelsViewModel = parentFragment as ChannelsViewModel
         return binding.root
     }
 
     override fun onResume() {
         super.onResume()
-        channelsViewModel.getChannels(allChannels)
+        channelsViewModel?.getChannels(allChannels)
     }
 
     private fun setupRecyclerView() {
@@ -66,8 +62,16 @@ class ChannelsPageFragment : Fragment() {
             ::onTopicClickListener
         )
         adapter =
-            ChannelsAdapter(allChannels, topicConfig, channelsViewModel::onChannelClickListener)
+            ChannelsAdapter(allChannels, topicConfig, ::onChannelClickListener)
         binding.recyclerViewChannels.adapter = adapter
+    }
+
+    private fun onChannelClickListener(
+        allChannels: Boolean,
+        channel: Channel,
+        itemBinding: ChannelItemBinding,
+    ) {
+        channelsViewModel?.onChannelClickListener(allChannels, channel, itemBinding)
     }
 
     private fun onTopicClickListener(channel: Channel, topicName: String) {
@@ -77,7 +81,7 @@ class ChannelsPageFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                channelsViewModel.getState(allChannels).collect(::handleChannelsFragmentState)
+                channelsViewModel?.getState(allChannels)?.collect(::handleChannelsFragmentState)
             }
         }
     }
@@ -111,6 +115,11 @@ class ChannelsPageFragment : Fragment() {
 
     private fun parseParams() {
         allChannels = arguments?.getBoolean(EXTRA_ALL_CHANNELS, false) ?: false
+    }
+
+    override fun onStop() {
+        super.onStop()
+        channelsViewModel = null
     }
 
     override fun onDestroyView() {
