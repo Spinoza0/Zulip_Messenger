@@ -44,13 +44,8 @@ class ItemChannelsFragment : Fragment(), ChannelsViewModel {
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentItemChannelsBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
         setupViewPager()
+        return binding.root
     }
 
     private fun setupViewPager() {

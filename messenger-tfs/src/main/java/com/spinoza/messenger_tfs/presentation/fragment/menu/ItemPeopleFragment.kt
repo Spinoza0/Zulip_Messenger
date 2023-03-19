@@ -42,14 +42,13 @@ class ItemPeopleFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentItemPeopleBinding.inflate(inflater, container, false)
+        setupRecyclerView()
+        setupObservers()
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        setupRecyclerView()
-        setupObservers()
+    override fun onResume() {
+        super.onResume()
         viewModel.getAllUsers()
     }
 

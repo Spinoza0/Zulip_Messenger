@@ -44,15 +44,10 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentMainBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
         setupNavigation()
         setupOnBackPressedCallback()
         setupStatusBar()
+        return binding.root
     }
 
     private fun setupOnBackPressedCallback() {

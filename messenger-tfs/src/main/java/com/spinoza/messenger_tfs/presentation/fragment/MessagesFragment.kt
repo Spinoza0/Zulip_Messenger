@@ -61,19 +61,16 @@ class MessagesFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentMessagesBinding.inflate(inflater, container, false)
+        setupRecyclerView()
+        parseParams()
+        setupScreen()
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        parseParams()
-        setupScreen()
-        if (savedInstanceState == null) {
-            setupRecyclerView()
-            viewModel.doOnTextChanged(binding.editTextMessage.text)
-            viewModel.getMessages()
-        }
+    override fun onResume() {
+        super.onResume()
+        viewModel.doOnTextChanged(binding.editTextMessage.text)
+        viewModel.getMessages()
     }
 
     private fun setupScreen() {

@@ -27,20 +27,16 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentDialogChooseReactionBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        parseParams()
 
         (dialog as? BottomSheetDialog)?.behavior?.apply {
             state = BottomSheetBehavior.STATE_HALF_EXPANDED
         }
 
+        parseParams()
         setupListeners()
         setupScreen()
+
+        return binding.root
     }
 
     override fun onDestroyView() {
