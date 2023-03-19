@@ -5,4 +5,9 @@
         <item name="android:textSize">22sp</item>
     </style>
 
+    <style name="ToolbarTitleStyle">
+        <item name="android:textSize">22sp</item>
+        <item name="android:gravity">center_horizontal</item>
+    </style>
+
 </resources>

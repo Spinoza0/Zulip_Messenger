@@ -13,6 +13,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/channel_toolbar_background_color"
         android:navigationIcon="@drawable/ic_arrow_back"
+        android:titleTextAppearance="@style/ToolbarTitleStyle"
         android:titleTextColor="?attr/text_200_color"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
