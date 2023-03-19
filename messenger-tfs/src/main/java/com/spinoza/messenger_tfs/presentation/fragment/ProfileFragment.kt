@@ -131,9 +131,6 @@ class ProfileFragment : Fragment() {
             requireActivity(),
             onBackPressedCallback
         )
-
-//        viewModel.doOnTextChanged(binding.editTextMessage.text)
-//        viewModel.getMessages()
     }
 
     override fun onDestroyView() {

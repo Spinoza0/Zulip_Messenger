@@ -84,6 +84,7 @@
         android:textColor="?attr/online_color"
         android:textSize="16sp"
         android:visibility="gone"
+        app:layout_constraintBaseline_toBaselineOf="@id/textViewStatus"
         tools:visibility="visible" />
 
     <TextView
@@ -93,7 +94,8 @@
         android:text="@string/offline"
         android:textColor="?attr/text_700_color"
         android:textSize="16sp"
-        android:visibility="gone" />
+        android:visibility="gone"
+        app:layout_constraintBaseline_toBaselineOf="@id/textViewStatus" />
 
     <TextView
         android:id="@+id/textViewLogout"
