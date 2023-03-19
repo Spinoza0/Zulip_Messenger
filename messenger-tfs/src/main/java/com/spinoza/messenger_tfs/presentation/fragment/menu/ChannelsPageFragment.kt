@@ -76,7 +76,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun onTopicClickListener(channel: Channel, topicName: String) {
-        MessengerApp.router.replaceScreen(Screens.Messages(channel, topicName))
+        MessengerApp.router.navigateTo(Screens.Messages(channel, topicName))
     }
 
     private fun setupObservers() {
@@ -95,7 +95,6 @@ class ChannelsPageFragment : Fragment() {
             is ChannelsFragmentState.Channels -> adapter.submitList(state.channels)
             is ChannelsFragmentState.Topics -> handleTopicsState(state)
             is ChannelsFragmentState.Loading -> binding.progressBar.on()
-
             // TODO: show errors
             is ChannelsFragmentState.Error -> {}
         }

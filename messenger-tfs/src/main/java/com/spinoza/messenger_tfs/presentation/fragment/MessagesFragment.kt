@@ -28,7 +28,6 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
-import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
@@ -66,7 +65,7 @@ class MessagesFragment : Fragment() {
     private val onBackPressedCallback by lazy {
         object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                openMainFragment()
+                goBack()
             }
         }
     }
@@ -160,7 +159,7 @@ class MessagesFragment : Fragment() {
 
     private fun setupListeners() {
         binding.toolbar.setNavigationOnClickListener {
-            openMainFragment()
+            goBack()
         }
 
         binding.imageViewAction.setOnClickListener {
@@ -220,8 +219,8 @@ class MessagesFragment : Fragment() {
         _binding = null
     }
 
-    private fun openMainFragment() {
-        MessengerApp.router.replaceScreen(Screens.MainMenu())
+    private fun goBack() {
+        MessengerApp.router.exit()
     }
 
     @Suppress("deprecation")
@@ -236,7 +235,7 @@ class MessagesFragment : Fragment() {
         if (newChannel == null || newChannel.channelId == Channel.UNDEFINED_ID ||
             topicName.isEmpty()
         ) {
-            openMainFragment()
+            goBack()
         } else {
             channel = newChannel
         }

@@ -52,6 +52,10 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         val cicerone = Cicerone.create()
         navigatorHolder = cicerone.getNavigatorHolder()
         localRouter = cicerone.router
+
+        if (savedInstanceState == null) {
+            localRouter.newRootScreen(Screens.ItemChannels())
+        }
     }
 
     override fun onCreateView(
@@ -67,9 +71,6 @@ class MainFragment : Fragment(), OnItemSelectedListener {
 
         setupStatusBar()
         binding.bottomNavigationView.setOnItemSelectedListener(this)
-        if (savedInstanceState == null) {
-            localRouter.newRootScreen(Screens.ItemChannels())
-        }
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
