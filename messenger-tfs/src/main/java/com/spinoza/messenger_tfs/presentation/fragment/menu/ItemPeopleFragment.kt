@@ -85,6 +85,7 @@ class ItemPeopleFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.recyclerViewUsers.adapter = null
         _binding = null
     }
 

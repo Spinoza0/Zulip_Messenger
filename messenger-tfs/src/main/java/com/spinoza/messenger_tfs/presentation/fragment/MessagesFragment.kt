@@ -222,6 +222,7 @@ class MessagesFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.recyclerViewMessages.adapter = null
         _binding = null
     }
 

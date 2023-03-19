@@ -27,7 +27,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
     lateinit var navigatorHolder: NavigatorHolder
     lateinit var localRouter: Router
     private val localNavigator by lazy {
-        AppNavigator(requireActivity(), R.id.fragmentContainer, this.childFragmentManager)
+        AppNavigator(requireActivity(), R.id.fragmentContainer, childFragmentManager)
     }
 
     private val onBackPressedCallback by lazy {

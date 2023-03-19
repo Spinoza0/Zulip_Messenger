@@ -120,6 +120,7 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.recyclerViewChannels.adapter = null
         _binding = null
     }
 
