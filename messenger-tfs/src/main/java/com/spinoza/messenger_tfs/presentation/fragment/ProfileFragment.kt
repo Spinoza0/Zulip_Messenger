@@ -127,7 +127,6 @@ class ProfileFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        binding.toolbar.setOnClickListener(null)
         onBackPressedCallback.remove()
     }
 
