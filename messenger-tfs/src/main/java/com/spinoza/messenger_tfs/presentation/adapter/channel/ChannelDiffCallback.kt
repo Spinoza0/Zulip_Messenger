@@ -1,15 +1,15 @@
 package com.spinoza.messenger_tfs.presentation.adapter.channel
 
 import androidx.recyclerview.widget.DiffUtil
-import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 
-class ChannelDiffCallback : DiffUtil.ItemCallback<Channel>() {
+class ChannelDiffCallback : DiffUtil.ItemCallback<ChannelItem>() {
 
-    override fun areItemsTheSame(oldItem: Channel, newItem: Channel): Boolean {
-        return oldItem.channelId == newItem.channelId
+    override fun areItemsTheSame(oldItem: ChannelItem, newItem: ChannelItem): Boolean {
+        return oldItem.channel.channelId == newItem.channel.channelId
     }
 
-    override fun areContentsTheSame(oldItem: Channel, newItem: Channel): Boolean {
+    override fun areContentsTheSame(oldItem: ChannelItem, newItem: ChannelItem): Boolean {
         return oldItem == newItem
     }
 }

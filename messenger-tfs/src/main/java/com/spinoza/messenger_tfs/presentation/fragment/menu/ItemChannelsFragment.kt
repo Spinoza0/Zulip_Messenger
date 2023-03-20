@@ -11,11 +11,11 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
 import com.spinoza.messenger_tfs.databinding.FragmentItemChannelsBinding
-import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.ViewPagerAdapter
+import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsViewModel
@@ -79,10 +79,10 @@ class ItemChannelsFragment : Fragment(), ChannelsViewModel {
 
     override fun onChannelClickListener(
         allChannels: Boolean,
-        channel: Channel,
+        channelItem: ChannelItem,
         itemBinding: ChannelItemBinding,
     ) {
-        viewModel.onChannelClickListener(allChannels, channel, itemBinding)
+        viewModel.onChannelClickListener(allChannels, channelItem, itemBinding)
     }
 
     override fun onStop() {

@@ -2,21 +2,21 @@ package com.spinoza.messenger_tfs.presentation.adapter.channel
 
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
-import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
+import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 
 class ChannelViewHolder(private val binding: ChannelItemBinding) :
     RecyclerView.ViewHolder(binding.root) {
 
     fun bind(
         allChannels: Boolean,
-        channel: Channel,
-        onClickListener: (Boolean, Channel, ChannelItemBinding) -> Unit,
+        channelItem: ChannelItem,
+        onClickListener: (Boolean, ChannelItem, ChannelItemBinding) -> Unit,
     ) {
-        binding.textViewChannel.text = String.format("#%s", channel.name)
+        binding.textViewChannel.text = String.format("#%s", channelItem.channel.name)
         binding.root.setOnClickListener {
-            onClickListener.invoke(allChannels, channel, binding)
+            onClickListener.invoke(allChannels, channelItem, binding)
         }
-        (binding.recyclerViewTopics.adapter as TopicAdapter).channel = channel
+        (binding.recyclerViewTopics.adapter as TopicAdapter).channel = channelItem.channel
     }
 }

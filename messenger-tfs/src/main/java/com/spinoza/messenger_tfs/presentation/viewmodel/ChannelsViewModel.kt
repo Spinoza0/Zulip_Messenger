@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
-import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import kotlinx.coroutines.flow.StateFlow
 
@@ -11,7 +11,7 @@ interface ChannelsViewModel {
 
     fun onChannelClickListener(
         allChannels: Boolean,
-        channel: Channel,
+        channelItem: ChannelItem,
         itemBinding: ChannelItemBinding,
     )
 

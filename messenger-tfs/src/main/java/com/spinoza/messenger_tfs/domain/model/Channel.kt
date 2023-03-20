@@ -7,11 +7,7 @@ import kotlinx.parcelize.Parcelize
 data class Channel(
     val channelId: Long,
     val name: String,
-    val type: Type = Type.FOLDED,
 ) : Parcelable {
-
-    enum class Type { FOLDED, UNFOLDED }
-
     companion object {
         const val UNDEFINED_ID = -1L
     }

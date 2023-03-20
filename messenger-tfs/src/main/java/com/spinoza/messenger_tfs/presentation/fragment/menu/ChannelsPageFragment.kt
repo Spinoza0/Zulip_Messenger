@@ -18,6 +18,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
+import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
@@ -68,10 +69,10 @@ class ChannelsPageFragment : Fragment() {
 
     private fun onChannelClickListener(
         allChannels: Boolean,
-        channel: Channel,
+        channelItem: ChannelItem,
         itemBinding: ChannelItemBinding,
     ) {
-        channelsViewModel?.onChannelClickListener(allChannels, channel, itemBinding)
+        channelsViewModel?.onChannelClickListener(allChannels, channelItem, itemBinding)
     }
 
     private fun onTopicClickListener(channel: Channel, topicName: String) {
@@ -101,11 +102,11 @@ class ChannelsPageFragment : Fragment() {
 
     private fun handleTopicsState(state: ChannelsFragmentState.Topics) {
         when (state.channel.type) {
-            Channel.Type.FOLDED -> {
+            ChannelItem.Type.FOLDED -> {
                 state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_down)
                 state.binding.textViewChannel.setTypeface(null, Typeface.NORMAL)
             }
-            Channel.Type.UNFOLDED -> {
+            ChannelItem.Type.UNFOLDED -> {
                 state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_up)
                 state.binding.textViewChannel.setTypeface(null, Typeface.BOLD)
             }

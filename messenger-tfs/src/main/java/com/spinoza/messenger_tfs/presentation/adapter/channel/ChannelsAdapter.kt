@@ -4,15 +4,15 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
-import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
+import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 
 class ChannelsAdapter(
     private val allChannels: Boolean,
     private val topicConfig: TopicAdapterConfig,
-    private val onChannelClickListener: (Boolean, Channel, ChannelItemBinding) -> Unit,
-) : ListAdapter<Channel, ChannelViewHolder>(ChannelDiffCallback()) {
+    private val onChannelClickListener: (Boolean, ChannelItem, ChannelItemBinding) -> Unit,
+) : ListAdapter<ChannelItem, ChannelViewHolder>(ChannelDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChannelViewHolder {
         val binding = ChannelItemBinding.inflate(
