@@ -18,7 +18,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.usecase.*
-import com.spinoza.messenger_tfs.presentation.adapter.message.MessagesAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
@@ -55,7 +55,7 @@ class MessagesFragment : Fragment() {
     }
 
     private val messagesAdapter by lazy {
-        MessagesAdapter().apply {
+        MainDelegateAdapter().apply {
             addDelegate(CompanionMessageDelegate())
             addDelegate(UserMessageDelegate())
             addDelegate(DateDelegate())

@@ -1,10 +1,10 @@
-package com.spinoza.messenger_tfs.presentation.adapter.message
+package com.spinoza.messenger_tfs.presentation.adapter.delegate
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 
-class MessagesAdapter :
+class MainDelegateAdapter :
     ListAdapter<DelegateAdapterItem, RecyclerView.ViewHolder>(DelegateAdapterItemCallback()) {
 
     private val delegates: MutableList<AdapterDelegate> = mutableListOf()

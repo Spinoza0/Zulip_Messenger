@@ -7,8 +7,8 @@ import com.bumptech.glide.Glide
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.adapter.message.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 
 class UserMessageDelegate : AdapterDelegate {
 

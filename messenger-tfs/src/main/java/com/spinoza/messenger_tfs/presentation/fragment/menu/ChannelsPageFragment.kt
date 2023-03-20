@@ -27,13 +27,22 @@ import kotlinx.coroutines.launch
 
 class ChannelsPageFragment : Fragment() {
 
-    private lateinit var adapter: ChannelsAdapter
     private lateinit var channelsPageParent: ChannelsPageParent
     private var isAllChannels = false
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
+
+    private val adapter by lazy {
+        val topicConfig = TopicAdapterConfig(
+            requireContext().getString(R.string.channels_topic_template),
+            requireContext().getThemeColor(R.attr.even_topic_color),
+            requireContext().getThemeColor(R.attr.odd_topic_color),
+            ::onTopicClickListener
+        )
+        ChannelsAdapter(isAllChannels, topicConfig, channelsPageParent::onChannelClickListener)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,18 +59,13 @@ class ChannelsPageFragment : Fragment() {
         setupRecyclerView()
         parseParams()
         setupObservers()
-        channelsPageParent.loadChannels(isAllChannels)
+
+        if (savedInstanceState == null) {
+            channelsPageParent.loadChannels(isAllChannels)
+        }
     }
 
     private fun setupRecyclerView() {
-        val topicConfig = TopicAdapterConfig(
-            requireContext().getString(R.string.channels_topic_template),
-            requireContext().getThemeColor(R.attr.even_topic_color),
-            requireContext().getThemeColor(R.attr.odd_topic_color),
-            ::onTopicClickListener
-        )
-        adapter =
-            ChannelsAdapter(isAllChannels, topicConfig, channelsPageParent::onChannelClickListener)
         binding.recyclerViewChannels.adapter = adapter
     }
 
@@ -71,7 +75,7 @@ class ChannelsPageFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
                 channelsPageParent.getState(isAllChannels).collect(::handleChannelsFragmentState)
             }
         }
@@ -105,7 +109,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun parseParams() {
-        isAllChannels = arguments?.getBoolean(EXTRA_IS_ALL_CHANNELS, false) ?: false
+        isAllChannels = arguments?.getBoolean(PARAM_IS_ALL_CHANNELS, false) ?: false
     }
 
     override fun onDestroyView() {
@@ -115,12 +119,12 @@ class ChannelsPageFragment : Fragment() {
 
     companion object {
 
-        private const val EXTRA_IS_ALL_CHANNELS = "isAllChannels"
+        private const val PARAM_IS_ALL_CHANNELS = "isAllChannels"
 
         fun newInstance(isAllChannels: Boolean): ChannelsPageFragment {
             return ChannelsPageFragment().apply {
                 arguments = Bundle().apply {
-                    putBoolean(EXTRA_IS_ALL_CHANNELS, isAllChannels)
+                    putBoolean(PARAM_IS_ALL_CHANNELS, isAllChannels)
                 }
             }
         }
