@@ -9,8 +9,14 @@ import com.spinoza.messenger_tfs.databinding.CompanionMessageItemBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
-class CompanionMessageDelegate : AdapterDelegate {
+class CompanionMessageDelegate(
+    private val onReactionAddClickListener: (MessageView) -> Unit,
+    private val onReactionClickListener: (MessageView, ReactionView) -> Unit,
+    private val onAvatarClickListener: (MessageView) -> Unit,
+) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -27,7 +33,12 @@ class CompanionMessageDelegate : AdapterDelegate {
         item: DelegateAdapterItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item as CompanionMessageDelegateItem)
+        (holder as ViewHolder).bind(
+            item as CompanionMessageDelegateItem,
+            onReactionAddClickListener,
+            onReactionClickListener,
+            onAvatarClickListener
+        )
     }
 
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
@@ -36,7 +47,12 @@ class CompanionMessageDelegate : AdapterDelegate {
 
     class ViewHolder(val binding: CompanionMessageItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: MessageDelegateItem) {
+        fun bind(
+            item: CompanionMessageDelegateItem,
+            onReactionAddClickListener: (MessageView) -> Unit,
+            onReactionClickListener: (MessageView, ReactionView) -> Unit,
+            onAvatarClickListener: ((MessageView) -> Unit)? = null,
+        ) {
             with(binding.messageView) {
                 val message = item.content() as Message
                 setMessage(message, item.getGravity())
@@ -45,9 +61,9 @@ class CompanionMessageDelegate : AdapterDelegate {
                     .circleCrop()
                     .error(R.drawable.ic_default_avatar)
                     .into(avatarImage)
-                setOnAvatarClickListener(item.getAvatarClickListener())
-                setOnMessageLongClickListener(item.getReactionAddClickListener())
-                setOnReactionClickListener(item.getReactionClickListener())
+                setOnAvatarClickListener(onAvatarClickListener)
+                setOnMessageLongClickListener(onReactionAddClickListener)
+                setOnReactionClickListener(onReactionClickListener)
             }
         }
     }

@@ -9,8 +9,13 @@ import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
-class UserMessageDelegate : AdapterDelegate {
+class UserMessageDelegate(
+    private val onReactionAddClickListener: (MessageView) -> Unit,
+    private val onReactionClickListener: (MessageView, ReactionView) -> Unit,
+) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -27,7 +32,11 @@ class UserMessageDelegate : AdapterDelegate {
         item: DelegateAdapterItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item as UserMessageDelegateItem)
+        (holder as ViewHolder).bind(
+            item as UserMessageDelegateItem,
+            onReactionAddClickListener,
+            onReactionClickListener,
+        )
     }
 
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
@@ -35,7 +44,11 @@ class UserMessageDelegate : AdapterDelegate {
     }
 
     class ViewHolder(val binding: UserMessageItemBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: MessageDelegateItem) {
+        fun bind(
+            item: UserMessageDelegateItem,
+            onReactionAddClickListener: (MessageView) -> Unit,
+            onReactionClickListener: (MessageView, ReactionView) -> Unit,
+        ) {
             with(binding.messageView) {
                 val message = item.content() as Message
                 setMessage(message, item.getGravity())
@@ -44,9 +57,8 @@ class UserMessageDelegate : AdapterDelegate {
                     .circleCrop()
                     .error(R.drawable.ic_default_avatar)
                     .into(avatarImage)
-                setOnAvatarClickListener(item.getAvatarClickListener())
-                setOnMessageLongClickListener(item.getReactionAddClickListener())
-                setOnReactionClickListener(item.getReactionClickListener())
+                setOnMessageLongClickListener(onReactionAddClickListener)
+                setOnReactionClickListener(onReactionClickListener)
             }
         }
     }

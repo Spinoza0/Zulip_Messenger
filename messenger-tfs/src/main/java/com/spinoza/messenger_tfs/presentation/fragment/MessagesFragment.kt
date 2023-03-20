@@ -48,16 +48,25 @@ class MessagesFragment : Fragment() {
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            channelFilter,
-            ::onAvatarClickListener,
-            ::onReactionAddClickListener
+            channelFilter
         )
     }
 
     private val messagesAdapter by lazy {
         MainDelegateAdapter().apply {
-            addDelegate(CompanionMessageDelegate())
-            addDelegate(UserMessageDelegate())
+            addDelegate(
+                CompanionMessageDelegate(
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener,
+                    ::onAvatarClickListener
+                )
+            )
+            addDelegate(
+                UserMessageDelegate(
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener
+                )
+            )
             addDelegate(DateDelegate())
         }
     }
@@ -173,6 +182,10 @@ class MessagesFragment : Fragment() {
         )
         dialog.listener = viewModel::updateReaction
         dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
+    }
+
+    private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
+        viewModel.updateReaction(messageView.messageId, reactionView.emoji)
     }
 
     private fun sendMessage() {

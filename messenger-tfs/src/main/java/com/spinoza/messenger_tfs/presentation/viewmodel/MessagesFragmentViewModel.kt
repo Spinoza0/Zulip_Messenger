@@ -19,8 +19,6 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
-import com.spinoza.messenger_tfs.presentation.ui.MessageView
-import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -33,8 +31,6 @@ class MessagesFragmentViewModel(
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
     private val channelFilter: ChannelFilter,
-    private val onAvatarClickListener: ((MessageView) -> Unit),
-    private val onReactionAddClickListener: ((MessageView) -> Unit),
 ) : ViewModel() {
 
     private lateinit var currentUser: User
@@ -96,10 +92,6 @@ class MessagesFragmentViewModel(
         }
     }
 
-    private fun updateReaction(messageView: MessageView, reactionView: ReactionView) {
-        updateReaction(messageView.messageId, reactionView.emoji)
-    }
-
     fun doOnTextChanged(text: CharSequence?) {
         val resId = if (text != null && text.toString().trim().isNotEmpty())
             R.drawable.ic_send
@@ -139,23 +131,9 @@ class MessagesFragmentViewModel(
 
             allDayMessages.forEach { message ->
                 if (message.user.userId == currentUser.userId) {
-                    messageAdapterItemList.add(
-                        UserMessageDelegateItem(
-                            message,
-                            onAvatarClickListener,
-                            onReactionAddClickListener,
-                            ::updateReaction
-                        )
-                    )
+                    messageAdapterItemList.add(UserMessageDelegateItem(message))
                 } else {
-                    messageAdapterItemList.add(
-                        CompanionMessageDelegateItem(
-                            message,
-                            onAvatarClickListener,
-                            onReactionAddClickListener,
-                            ::updateReaction
-                        )
-                    )
+                    messageAdapterItemList.add(CompanionMessageDelegateItem(message))
                 }
             }
         }
