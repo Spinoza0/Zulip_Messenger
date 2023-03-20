@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.cicerone
+package com.spinoza.messenger_tfs.presentation.navigation
 
 import com.github.terrakok.cicerone.androidx.FragmentScreen
 import com.spinoza.messenger_tfs.domain.model.Channel

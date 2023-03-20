@@ -32,7 +32,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
-import com.spinoza.messenger_tfs.presentation.cicerone.Screens
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel

@@ -17,7 +17,7 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
-import com.spinoza.messenger_tfs.presentation.cicerone.Screens
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor

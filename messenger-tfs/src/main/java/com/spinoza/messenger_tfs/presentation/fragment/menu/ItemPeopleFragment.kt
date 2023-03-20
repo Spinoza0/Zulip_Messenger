@@ -15,7 +15,7 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.user.UserAdapter
-import com.spinoza.messenger_tfs.presentation.cicerone.Screens
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.model.ItemPeopleFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on

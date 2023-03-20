@@ -14,7 +14,7 @@ import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.google.android.material.navigation.NavigationBarView.OnItemSelectedListener
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMainBinding
-import com.spinoza.messenger_tfs.presentation.cicerone.Screens
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 
 
