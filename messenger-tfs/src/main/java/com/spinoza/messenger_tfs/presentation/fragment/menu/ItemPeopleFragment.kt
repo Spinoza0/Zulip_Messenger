@@ -60,12 +60,12 @@ class ItemPeopleFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleFragmentState)
+                viewModel.state.collect(::handleState)
             }
         }
     }
 
-    private fun handleFragmentState(state: ItemPeopleFragmentState) {
+    private fun handleState(state: ItemPeopleFragmentState) {
         if (state !is ItemPeopleFragmentState.Loading) {
             binding.progressBar.off()
         }

@@ -54,12 +54,12 @@ class ItemProfileFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleFragmentState)
+                viewModel.state.collect(::handleState)
             }
         }
     }
 
-    private fun handleFragmentState(state: ProfileFragmentState) {
+    private fun handleState(state: ProfileFragmentState) {
         if (state !is ProfileFragmentState.Loading) {
             binding.progressBar.off()
         }
