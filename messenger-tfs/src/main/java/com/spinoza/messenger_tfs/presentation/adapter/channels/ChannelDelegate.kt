@@ -10,7 +10,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 
-class ChannelDelegate : AdapterDelegate {
+class ChannelDelegate(private val onChannelClickListener: (ChannelItem) -> Unit) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -27,7 +27,7 @@ class ChannelDelegate : AdapterDelegate {
         item: DelegateAdapterItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item as ChannelDelegateItem)
+        (holder as ViewHolder).bind(item as ChannelDelegateItem, onChannelClickListener)
     }
 
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
@@ -37,12 +37,12 @@ class ChannelDelegate : AdapterDelegate {
     class ViewHolder(private val binding: ChannelItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ChannelDelegateItem) {
+        fun bind(item: ChannelDelegateItem, onChannelClickListener: (ChannelItem) -> Unit) {
             val channelItem = (item.content() as ChannelItem)
             with(binding) {
                 textViewChannel.text = channelItem.channel.name
                 root.setOnClickListener {
-                    item.getOnClickListener().invoke(channelItem)
+                    onChannelClickListener.invoke(channelItem)
                 }
 
                 if (channelItem.isFolded) {

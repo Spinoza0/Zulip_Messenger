@@ -10,7 +10,6 @@ import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateConfig
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
@@ -24,8 +23,6 @@ class ChannelsFragmentViewModel(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getSubscribedChannelsUseCase: GetSubscribedChannelsUseCase,
     private val getAllChannelsUseCase: GetAllChannelsUseCase,
-    private val onChannelClickListener: (ChannelItem) -> Unit,
-    private val topicDelegateConfig: TopicDelegateConfig,
 ) : ViewModel() {
 
     val stateAllItems: StateFlow<ChannelsScreenState>
@@ -88,8 +85,7 @@ class ChannelsFragmentViewModel(
                 val index = cache.indexOf(oldChannelDelegateItem)
                 val oldChannelItem = oldChannelDelegateItem.content() as ChannelItem
                 val newChannelDelegateItem = ChannelDelegateItem(
-                    oldChannelItem.copy(isFolded = !oldChannelItem.isFolded),
-                    onChannelClickListener
+                    oldChannelItem.copy(isFolded = !oldChannelItem.isFolded)
                 )
                 cache[index] = newChannelDelegateItem
 
@@ -124,10 +120,7 @@ class ChannelsFragmentViewModel(
     }
 
     private fun Channel.toDelegateItem(isAllChannels: Boolean): ChannelDelegateItem {
-        return ChannelDelegateItem(
-            ChannelItem(this, isAllChannels, true),
-            onChannelClickListener
-        )
+        return ChannelDelegateItem(ChannelItem(this, isAllChannels, true))
     }
 
     private fun List<Channel>.toDelegateItem(isAllChannels: Boolean): List<ChannelDelegateItem> {
@@ -135,7 +128,7 @@ class ChannelsFragmentViewModel(
     }
 
     private fun Topic.toDelegateItem(channel: Channel): TopicDelegateItem {
-        return TopicDelegateItem(ChannelFilter(channel, name), topicDelegateConfig)
+        return TopicDelegateItem(ChannelFilter(channel, name))
     }
 
     private fun List<Topic>.toDelegateItem(channel: Channel): List<TopicDelegateItem> {

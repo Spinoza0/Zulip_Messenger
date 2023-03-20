@@ -5,31 +5,60 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.spinoza.messenger_tfs.App
+import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
+import com.spinoza.messenger_tfs.domain.model.ChannelFilter
+import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateConfig
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.model.ChannelItem
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
+import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ChannelsPageFragment : Fragment() {
 
-    private lateinit var channelsPageParent: ChannelsPageParent
     private var isAllChannels = false
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
 
+    private val viewModel: ChannelsFragmentViewModel by viewModels {
+        ChannelsFragmentViewModelFactory(
+            GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
+            GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance()),
+            GetAllChannelsUseCase(MessagesRepositoryImpl.getInstance())
+        )
+    }
+
+
     private val delegatesAdapter by lazy {
         MainDelegateAdapter().apply {
-            addDelegate(ChannelDelegate())
-            addDelegate(TopicDelegate())
+            val topicConfig = TopicDelegateConfig(
+                requireContext().getString(R.string.channels_topic_template),
+                requireContext().getThemeColor(R.attr.even_topic_color),
+                requireContext().getThemeColor(R.attr.odd_topic_color),
+                ::onTopicClickListener
+            )
+            addDelegate(ChannelDelegate(::onChannelClickListener))
+            addDelegate(TopicDelegate(topicConfig))
         }
     }
 
@@ -44,13 +73,12 @@ class ChannelsPageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        channelsPageParent = parentFragment as ChannelsPageParent
         setupRecyclerView()
         parseParams()
         setupObservers()
 
         if (savedInstanceState == null) {
-            channelsPageParent.loadItems(isAllChannels)
+            viewModel.loadItems(isAllChannels)
         }
     }
 
@@ -61,7 +89,7 @@ class ChannelsPageFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                channelsPageParent.getState(isAllChannels).collect(::handleState)
+                getState(isAllChannels).collect(::handleState)
             }
         }
     }
@@ -76,6 +104,18 @@ class ChannelsPageFragment : Fragment() {
             // TODO: show errors
             is ChannelsScreenState.Error -> {}
         }
+    }
+
+    private fun getState(isAllChannels: Boolean): StateFlow<ChannelsScreenState> {
+        return if (isAllChannels) viewModel.stateAllItems else viewModel.stateSubscribedItems
+    }
+
+    private fun onChannelClickListener(channelItem: ChannelItem) {
+        viewModel.onChannelClickListener(channelItem)
+    }
+
+    private fun onTopicClickListener(channelFilter: ChannelFilter) {
+        App.router.navigateTo(Screens.Messages(channelFilter))
     }
 
     private fun parseParams() {
