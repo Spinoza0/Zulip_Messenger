@@ -8,11 +8,3 @@ data class ChannelItem(
 ) {
     enum class Type { FOLDED, UNFOLDED }
 }
-
-fun Channel.toChannelItem(): ChannelItem {
-    return ChannelItem(this, ChannelItem.Type.FOLDED)
-}
-
-fun List<Channel>.toChannelItem(): List<ChannelItem> {
-    return map { it.toChannelItem() }
-}

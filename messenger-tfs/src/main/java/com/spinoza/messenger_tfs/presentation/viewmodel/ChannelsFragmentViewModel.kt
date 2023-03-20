@@ -10,7 +10,6 @@ import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
-import com.spinoza.messenger_tfs.presentation.model.toChannelItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -110,6 +109,14 @@ class ChannelsFragmentViewModel(
         } else {
             ChannelItem.Type.FOLDED
         }
+    }
+
+    private fun Channel.toChannelItem(): ChannelItem {
+        return ChannelItem(this, ChannelItem.Type.FOLDED)
+    }
+
+    private fun List<Channel>.toChannelItem(): List<ChannelItem> {
+        return map { it.toChannelItem() }
     }
 
     override fun onCleared() {
