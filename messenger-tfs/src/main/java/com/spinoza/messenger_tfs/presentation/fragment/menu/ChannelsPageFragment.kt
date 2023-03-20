@@ -97,7 +97,7 @@ class ChannelsPageFragment : Fragment() {
                 state.binding.textViewChannel.setTypeface(null, Typeface.BOLD)
             }
         }
-        (state.binding.recyclerViewTopics.adapter as TopicAdapter).submitList(state.topics)
+        (state.binding.recyclerViewTopics.adapter as? TopicAdapter)?.submitList(state.topics)
     }
 
     private fun parseParams() {
