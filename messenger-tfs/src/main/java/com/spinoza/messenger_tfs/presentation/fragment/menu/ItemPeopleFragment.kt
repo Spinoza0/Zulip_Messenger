@@ -13,10 +13,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
-import com.spinoza.messenger_tfs.domain.repository.RepositoryState
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.user.UserAdapter
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
+import com.spinoza.messenger_tfs.presentation.model.ItemPeopleFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.MainPeopleFragmentViewModel
@@ -65,17 +65,16 @@ class ItemPeopleFragment : Fragment() {
         }
     }
 
-    private fun handleFragmentState(state: RepositoryState) {
-        if (state !is RepositoryState.Loading) {
+    private fun handleFragmentState(state: ItemPeopleFragmentState) {
+        if (state !is ItemPeopleFragmentState.Loading) {
             binding.progressBar.off()
         }
         when (state) {
-            is RepositoryState.Users -> adapter.submitList(state.value)
-            is RepositoryState.Error -> {
-                Toast.makeText(context, state.text, Toast.LENGTH_LONG).show()
+            is ItemPeopleFragmentState.Users -> adapter.submitList(state.value)
+            is ItemPeopleFragmentState.Error -> {
+                Toast.makeText(context, state.value.text, Toast.LENGTH_LONG).show()
             }
-            is RepositoryState.Loading -> binding.progressBar.on()
-            else -> {}
+            is ItemPeopleFragmentState.Loading -> binding.progressBar.on()
         }
     }
 

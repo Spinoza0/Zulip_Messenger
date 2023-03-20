@@ -1,30 +1,31 @@
 package com.spinoza.messenger_tfs.domain.repository
 
-import com.spinoza.messenger_tfs.domain.model.ChannelFilter
-import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.model.*
 
 interface MessagesRepository {
 
-    fun getCurrentUser(): User
+    fun getCurrentUser(): Pair<RepositoryResult, User?>
 
-    suspend fun getUser(userId: Long): RepositoryState
+    suspend fun getUser(userId: Long): Pair<RepositoryResult, User?>
 
-    suspend fun getAllUsers(): RepositoryState
+    suspend fun getAllUsers(): Pair<RepositoryResult, List<User>>
 
-    suspend fun getMessages(channelFilter: ChannelFilter): RepositoryState
+    suspend fun getMessages(channelFilter: ChannelFilter): Pair<RepositoryResult, MessagesResult?>
 
-    suspend fun getAllChannels(): RepositoryState
+    suspend fun getAllChannels(): Pair<RepositoryResult, List<Channel>>
 
-    suspend fun getSubscribedChannels(): RepositoryState
+    suspend fun getSubscribedChannels(): Pair<RepositoryResult, List<Channel>>
 
-    suspend fun getTopics(channelId: Long): RepositoryState
+    suspend fun getTopics(channelId: Long): Pair<RepositoryResult, List<Topic>>
 
-    suspend fun sendMessage(message: Message, channelFilter: ChannelFilter): RepositoryState
+    suspend fun sendMessage(
+        message: Message,
+        channelFilter: ChannelFilter,
+    ): Pair<RepositoryResult, MessagesResult?>
 
     suspend fun updateReaction(
         messageId: Long,
         reaction: String,
         channelFilter: ChannelFilter,
-    ): RepositoryState
+    ): Pair<RepositoryResult, MessagesResult?>
 }

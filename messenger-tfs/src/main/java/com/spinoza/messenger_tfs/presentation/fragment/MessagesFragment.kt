@@ -19,8 +19,10 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.repository.RepositoryState
+import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.repository.MessagePosition
+import com.spinoza.messenger_tfs.domain.repository.MessagesResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
@@ -45,6 +47,7 @@ class MessagesFragment : Fragment() {
     private lateinit var topicName: String
     private lateinit var mainAdapter: MainAdapter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
+    private var currentUser: User? = null
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
@@ -65,12 +68,6 @@ class MessagesFragment : Fragment() {
         parseParams()
         setupScreen()
         return binding.root
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.doOnTextChanged(binding.editTextMessage.text)
-        viewModel.getMessages()
     }
 
     private fun setupScreen() {
@@ -119,50 +116,6 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    private fun handleMessagesFragmentState(state: MessagesFragmentState) {
-        if (state !is MessagesFragmentState.Loading) {
-            binding.progressBar.off()
-        }
-        when (state) {
-            is MessagesFragmentState.Repository -> handleRepositoryState(state.state)
-            is MessagesFragmentState.SendIconImage -> {
-                binding.imageViewAction.setImageResource(state.resId)
-            }
-            is MessagesFragmentState.Loading -> binding.progressBar.on()
-        }
-    }
-
-    private fun handleRepositoryState(state: RepositoryState) {
-        when (state) {
-            is RepositoryState.Messages -> submitMessages(state.messages) {
-                when (state.position.type) {
-                    MessagePosition.Type.LAST_POSITION -> {
-                        val lastItemPosition = mainAdapter.itemCount - 1
-                        binding.recyclerViewMessages.smoothScrollToPosition(lastItemPosition)
-                    }
-                    MessagePosition.Type.EXACTLY -> {
-                        binding.recyclerViewMessages.smoothScrollToChangedMessage(
-                            state.position.messageId
-                        )
-                    }
-                    else -> {}
-                }
-            }
-            is RepositoryState.Error -> {
-                when (state.type) {
-                    RepositoryState.ErrorType.USER_WITH_ID_NOT_FOUND -> {
-                        val text = String.format(
-                            getString(R.string.error_user_not_found),
-                            state.text
-                        )
-                        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-            else -> {}
-        }
-    }
-
     private fun setupListeners() {
         binding.toolbar.setNavigationOnClickListener {
             goBack()
@@ -174,6 +127,48 @@ class MessagesFragment : Fragment() {
 
         binding.editTextMessage.doOnTextChanged { text, _, _, _ ->
             viewModel.doOnTextChanged(text)
+        }
+    }
+
+    private fun handleMessagesFragmentState(state: MessagesFragmentState) {
+        if (state !is MessagesFragmentState.Loading) {
+            binding.progressBar.off()
+        }
+        when (state) {
+            is MessagesFragmentState.Messages -> handleMessagesResult(state.value)
+            is MessagesFragmentState.UpdateIconImage -> {
+                binding.imageViewAction.setImageResource(state.resId)
+            }
+            is MessagesFragmentState.Loading -> binding.progressBar.on()
+            is MessagesFragmentState.Error -> showError(state.value)
+            is MessagesFragmentState.CurrentUser -> currentUser = state.value
+        }
+    }
+
+    private fun handleMessagesResult(result: MessagesResult) {
+        submitMessages(result.messages) {
+            when (result.position.type) {
+                MessagePosition.Type.LAST_POSITION -> {
+                    val lastItemPosition = mainAdapter.itemCount - 1
+                    binding.recyclerViewMessages.smoothScrollToPosition(lastItemPosition)
+                }
+                MessagePosition.Type.EXACTLY -> {
+                    binding.recyclerViewMessages.smoothScrollToChangedMessage(
+                        result.position.messageId
+                    )
+                }
+                else -> {}
+            }
+        }
+    }
+
+    private fun showError(result: RepositoryResult) {
+        if (result.type == RepositoryResult.Type.ERROR_MESSAGE_WITH_ID_NOT_FOUND) {
+            val text = String.format(
+                getString(R.string.error_message_not_found),
+                result.text
+            )
+            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -190,32 +185,26 @@ class MessagesFragment : Fragment() {
     }
 
     private fun sendMessage() {
-        if (viewModel.sendMessage(binding.editTextMessage.text.toString())) {
-            binding.editTextMessage.text?.clear()
+        currentUser?.let { user ->
+            if (viewModel.sendMessage(user, binding.editTextMessage.text.toString())) {
+                binding.editTextMessage.text?.clear()
+            }
         }
     }
 
     private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
-        mainAdapter.submitList(
-            messages.groupByDate(
-                user = viewModel.user,
-                onAvatarClickListener = ::onAvatarClickListener,
-                onReactionAddClickListener = ::onReactionAddClickListener,
-                onReactionClickListener = viewModel::updateReaction
-            )
-        ) {
-            callbackAfterSubmit()
+        currentUser?.let { user ->
+            mainAdapter.submitList(
+                messages.groupByDate(
+                    user = user,
+                    onAvatarClickListener = ::onAvatarClickListener,
+                    onReactionAddClickListener = ::onReactionAddClickListener,
+                    onReactionClickListener = viewModel::updateReaction
+                )
+            ) {
+                callbackAfterSubmit()
+            }
         }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        onBackPressedCallback.remove()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     private fun goBack() {
@@ -238,6 +227,23 @@ class MessagesFragment : Fragment() {
         } else {
             channel = newChannel
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.getCurrentUser()
+        viewModel.doOnTextChanged(binding.editTextMessage.text)
+        viewModel.getMessages()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        onBackPressedCallback.remove()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

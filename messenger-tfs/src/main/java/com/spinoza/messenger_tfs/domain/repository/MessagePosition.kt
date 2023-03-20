@@ -1,4 +1,6 @@
-package com.spinoza.messenger_tfs.domain.model
+package com.spinoza.messenger_tfs.domain.repository
+
+import com.spinoza.messenger_tfs.domain.model.Message
 
 class MessagePosition(
     val type: Type = Type.UNDEFINED,

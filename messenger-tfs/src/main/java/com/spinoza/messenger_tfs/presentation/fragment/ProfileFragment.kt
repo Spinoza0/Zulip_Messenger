@@ -15,9 +15,10 @@ import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
-import com.spinoza.messenger_tfs.domain.repository.RepositoryState
+import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
+import com.spinoza.messenger_tfs.presentation.model.ProfileFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
@@ -65,7 +66,7 @@ class ProfileFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleRepositoryState)
+                viewModel.state.collect(::handleFragmentState)
             }
         }
     }
@@ -74,31 +75,27 @@ class ProfileFragment : Fragment() {
         binding.toolbar.visibility = View.VISIBLE
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.background_700_color)
-        viewModel.getUserInfo(userId)
+        viewModel.getUser(userId)
     }
 
-    private fun handleRepositoryState(state: RepositoryState) {
-        if (state !is RepositoryState.Loading) {
+    private fun handleFragmentState(state: ProfileFragmentState) {
+        if (state !is ProfileFragmentState.Loading) {
             binding.progressBar.off()
         }
         when (state) {
-            is RepositoryState.Users -> {
-                val user = state.value[FIRST_VALUE]
-                binding.setup(user)
-            }
-            is RepositoryState.Loading -> binding.progressBar.on()
-            is RepositoryState.Error -> {
-                when (state.type) {
-                    RepositoryState.ErrorType.USER_WITH_ID_NOT_FOUND -> {
-                        val text = String.format(
-                            getString(R.string.error_user_not_found),
-                            state.text
-                        )
-                        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-            else -> {}
+            is ProfileFragmentState.UserData -> binding.setup(state.value)
+            is ProfileFragmentState.Loading -> binding.progressBar.on()
+            is ProfileFragmentState.Error -> showError(state.value)
+        }
+    }
+
+    private fun showError(result: RepositoryResult) {
+        if (result.type == RepositoryResult.Type.ERROR_USER_WITH_ID_NOT_FOUND) {
+            val text = String.format(
+                getString(R.string.error_user_not_found),
+                result.text
+            )
+            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
         }
     }
 
@@ -139,7 +136,6 @@ class ProfileFragment : Fragment() {
 
         private const val EXTRA_USER_ID = "userId"
         private const val UNDEFINED_USER_ID = -1L
-        private const val FIRST_VALUE = 0
 
         fun newInstance(userId: Long): ProfileFragment {
             return ProfileFragment().apply {

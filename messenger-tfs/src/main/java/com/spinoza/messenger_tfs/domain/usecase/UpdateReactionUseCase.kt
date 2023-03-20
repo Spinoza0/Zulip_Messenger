@@ -2,7 +2,8 @@ package com.spinoza.messenger_tfs.domain.usecase
 
 import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
-import com.spinoza.messenger_tfs.domain.repository.RepositoryState
+import com.spinoza.messenger_tfs.domain.repository.MessagesResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
 class UpdateReactionUseCase(private val repository: MessagesRepository) {
 
@@ -10,7 +11,7 @@ class UpdateReactionUseCase(private val repository: MessagesRepository) {
         messageId: Long,
         reactionValue: String,
         channelFilter: ChannelFilter,
-    ): RepositoryState {
+    ): Pair<RepositoryResult, MessagesResult?> {
         return repository.updateReaction(messageId, reactionValue, channelFilter)
     }
 }

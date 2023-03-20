@@ -3,12 +3,12 @@ package com.spinoza.messenger_tfs.data.repository
 import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
-import com.spinoza.messenger_tfs.domain.model.ChannelFilter
-import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
-import com.spinoza.messenger_tfs.domain.repository.RepositoryState
+import com.spinoza.messenger_tfs.domain.repository.MessagesResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryResult.Type
 import java.util.*
 
 
@@ -27,53 +27,55 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesLocalCache.addAll(prepareTestData())
     }
 
-    override fun getCurrentUser(): User {
-        return currentUser.toDomain()
+    override fun getCurrentUser(): Pair<RepositoryResult, User> {
+        return Pair(RepositoryResult(Type.SUCCESS), currentUser.toDomain())
     }
 
-    override suspend fun getUser(userId: Long): RepositoryState {
+    override suspend fun getUser(userId: Long): Pair<RepositoryResult, User?> {
         val user = usersDto.find { it.userId == userId }
-        return if (user != null) {
-            RepositoryState.Users(listOf(user.toDomain()))
-        } else {
-            RepositoryState.Error(RepositoryState.ErrorType.USER_WITH_ID_NOT_FOUND, "$userId")
-        }
+        return if (user != null)
+            Pair(RepositoryResult(Type.SUCCESS), user.toDomain())
+        else
+            Pair(RepositoryResult(Type.ERROR_USER_WITH_ID_NOT_FOUND, "$userId"), null)
     }
 
-    override suspend fun getAllUsers(): RepositoryState {
-        return RepositoryState.Users(usersDto.listToDomain())
+    override suspend fun getAllUsers(): Pair<RepositoryResult, List<User>> {
+        return Pair(RepositoryResult(Type.SUCCESS), usersDto.listToDomain())
     }
 
-    override suspend fun getMessages(channelFilter: ChannelFilter): RepositoryState {
-        return RepositoryState.Messages(
-            messagesLocalCache.toDomain(
-                currentUser.userId,
-                channelFilter
+    override suspend fun getMessages(
+        channelFilter: ChannelFilter,
+    ): Pair<RepositoryResult, MessagesResult?> {
+        return Pair(
+            RepositoryResult(Type.SUCCESS),
+            MessagesResult(
+                messagesLocalCache.toDomain(currentUser.userId, channelFilter),
+                MessagePosition()
             )
         )
     }
 
-    override suspend fun getAllChannels(): RepositoryState {
-        return RepositoryState.Channels(channelsDto.toDomain())
+    override suspend fun getAllChannels(): Pair<RepositoryResult, List<Channel>> {
+        return Pair(RepositoryResult(Type.SUCCESS), channelsDto.toDomain())
     }
 
     // TODO: "Not yet implemented"
-    override suspend fun getSubscribedChannels(): RepositoryState {
+    override suspend fun getSubscribedChannels(): Pair<RepositoryResult, List<Channel>> {
         return getAllChannels()
     }
 
-    override suspend fun getTopics(channelId: Long): RepositoryState {
+    override suspend fun getTopics(channelId: Long): Pair<RepositoryResult, List<Topic>> {
         val topics = channelsDto
             .find { it.id == channelId }
             ?.topics
             ?.toDomain(messagesLocalCache, channelId) ?: listOf()
-        return RepositoryState.Topics(topics)
+        return Pair(RepositoryResult(Type.SUCCESS), topics)
     }
 
     override suspend fun sendMessage(
         message: Message,
         channelFilter: ChannelFilter,
-    ): RepositoryState {
+    ): Pair<RepositoryResult, MessagesResult?> {
         val newMessageId = if (message.id == Message.UNDEFINED_ID) {
             messagesLocalCache.size.toLong()
         } else {
@@ -87,9 +89,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 topicName = channelFilter.topicName
             )
         )
-        return RepositoryState.Messages(
-            messagesLocalCache.toDomain(message.user.userId, channelFilter),
-            MessagePosition(type = MessagePosition.Type.LAST_POSITION)
+        return Pair(
+            RepositoryResult(Type.SUCCESS),
+            MessagesResult(
+                messagesLocalCache.toDomain(message.user.userId, channelFilter),
+                MessagePosition(type = MessagePosition.Type.LAST_POSITION)
+            )
         )
     }
 
@@ -97,12 +102,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messageId: Long,
         reaction: String,
         channelFilter: ChannelFilter,
-    ): RepositoryState {
+    ): Pair<RepositoryResult, MessagesResult?> {
         val messageDto = messagesLocalCache
             .find { it.id == messageId }
-            ?: return RepositoryState.Error(
-                RepositoryState.ErrorType.USER_WITH_ID_NOT_FOUND,
-                "${currentUser.userId}"
+            ?: return Pair(
+                RepositoryResult(Type.ERROR_MESSAGE_WITH_ID_NOT_FOUND, "$messageId"),
+                null
             )
 
         val reactionDto = messageDto.reactions[reaction]
@@ -121,9 +126,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         messagesLocalCache.removeIf { it.id == messageId }
         messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
-        return RepositoryState.Messages(
-            messagesLocalCache.toDomain(currentUser.userId, channelFilter),
-            MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
+        return Pair(
+            RepositoryResult(Type.SUCCESS),
+            MessagesResult(
+                messagesLocalCache.toDomain(currentUser.userId, channelFilter),
+                MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
+            )
         )
     }
 
