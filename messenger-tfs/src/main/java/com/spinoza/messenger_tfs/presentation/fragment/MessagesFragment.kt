@@ -18,15 +18,19 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
@@ -34,6 +38,7 @@ import com.spinoza.messenger_tfs.presentation.ui.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
 import kotlinx.coroutines.launch
+import java.util.*
 
 class MessagesFragment : Fragment() {
 
@@ -232,6 +237,51 @@ class MessagesFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun List<Message>.groupByDate(
+        user: User,
+        onAvatarClickListener: ((MessageView) -> Unit)? = null,
+        onReactionAddClickListener: ((MessageView) -> Unit)? = null,
+        onReactionClickListener: ((MessageView, ReactionView) -> Unit)? = null,
+    ): List<DelegateItem> {
+
+        val delegateItemList = mutableListOf<DelegateItem>()
+        val dates = TreeSet<MessageDate>()
+        this.forEach {
+            dates.add(it.date)
+        }
+
+        dates.forEach { messageDate ->
+            delegateItemList.add(DateDelegateItem(messageDate))
+            val allDayMessages = this.filter { message ->
+                message.date.date == messageDate.date
+            }
+
+            allDayMessages.forEach { message ->
+                if (message.user.userId == user.userId) {
+                    delegateItemList.add(
+                        UserMessageDelegateItem(
+                            message,
+                            onAvatarClickListener,
+                            onReactionAddClickListener,
+                            onReactionClickListener
+                        )
+                    )
+                } else {
+                    delegateItemList.add(
+                        CompanionMessageDelegateItem(
+                            message,
+                            onAvatarClickListener,
+                            onReactionAddClickListener,
+                            onReactionClickListener
+                        )
+                    )
+                }
+            }
+        }
+
+        return delegateItemList
     }
 
     companion object {

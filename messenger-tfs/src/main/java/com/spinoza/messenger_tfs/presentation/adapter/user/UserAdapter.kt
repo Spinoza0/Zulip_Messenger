@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import com.spinoza.messenger_tfs.databinding.UserItemBinding
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.presentation.adapter.bind
 
 class UserAdapter(
     private val onClickListener: (Long) -> Unit,
@@ -21,6 +20,6 @@ class UserAdapter(
     }
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-        holder.binding.bind(getItem(position), onClickListener)
+        holder.bind(getItem(position), onClickListener)
     }
 }

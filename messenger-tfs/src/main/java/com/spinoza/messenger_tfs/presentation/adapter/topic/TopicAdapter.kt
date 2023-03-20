@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.ListAdapter
 import com.spinoza.messenger_tfs.databinding.TopicItemBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Topic
-import com.spinoza.messenger_tfs.presentation.adapter.bind
 
 class TopicAdapter(private val config: TopicAdapterConfig) :
     ListAdapter<Topic, TopicViewHolder>(TopicDiffCallback()) {
@@ -23,6 +22,6 @@ class TopicAdapter(private val config: TopicAdapterConfig) :
     }
 
     override fun onBindViewHolder(holder: TopicViewHolder, position: Int) {
-        holder.binding.bind(channel, getItem(position), position, config)
+        holder.bind(channel, getItem(position), position, config)
     }
 }
