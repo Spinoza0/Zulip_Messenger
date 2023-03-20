@@ -23,14 +23,13 @@ import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
-import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsViewModel
 import kotlinx.coroutines.launch
 
 class ChannelsPageFragment : Fragment() {
 
     lateinit var adapter: ChannelsAdapter
 
-    private var channelsViewModel: ChannelsViewModel? = null
+    private var channelsPageParent: ChannelsPageParent? = null
     private var allChannels = false
 
     private var _binding: FragmentChannelsPageBinding? = null
@@ -45,13 +44,13 @@ class ChannelsPageFragment : Fragment() {
         setupRecyclerView()
         parseParams()
         setupObservers()
-        channelsViewModel = parentFragment as ChannelsViewModel
+        channelsPageParent = parentFragment as ChannelsPageParent
         return binding.root
     }
 
     override fun onResume() {
         super.onResume()
-        channelsViewModel?.getChannels(allChannels)
+        channelsPageParent?.getChannels(allChannels)
     }
 
     private fun setupRecyclerView() {
@@ -72,7 +71,7 @@ class ChannelsPageFragment : Fragment() {
         channelItem: ChannelItem,
         itemBinding: ChannelItemBinding,
     ) {
-        channelsViewModel?.onChannelClickListener(allChannels, channelItem, itemBinding)
+        channelsPageParent?.onChannelClickListener(allChannels, channelItem, itemBinding)
     }
 
     private fun onTopicClickListener(channel: Channel, topicName: String) {
@@ -82,7 +81,7 @@ class ChannelsPageFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                channelsViewModel?.getState(allChannels)?.collect(::handleChannelsFragmentState)
+                channelsPageParent?.getState(allChannels)?.collect(::handleChannelsFragmentState)
             }
         }
     }
@@ -120,7 +119,7 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        channelsViewModel = null
+        channelsPageParent = null
     }
 
     override fun onDestroyView() {

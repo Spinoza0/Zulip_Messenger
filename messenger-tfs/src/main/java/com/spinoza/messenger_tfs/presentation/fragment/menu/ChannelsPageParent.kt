@@ -1,11 +1,11 @@
-package com.spinoza.messenger_tfs.presentation.viewmodel
+package com.spinoza.messenger_tfs.presentation.fragment.menu
 
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import kotlinx.coroutines.flow.StateFlow
 
-interface ChannelsViewModel {
+interface ChannelsPageParent {
 
     fun getChannels(allChannels: Boolean)
 
