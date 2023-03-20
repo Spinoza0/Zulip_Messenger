@@ -14,8 +14,8 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 
 private const val MAX_DISTANCE = 10
 

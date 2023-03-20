@@ -1,12 +1,12 @@
-package com.spinoza.messenger_tfs.presentation.adapter.delegate.message
+package com.spinoza.messenger_tfs.presentation.adapter.message.messages
 
 import com.spinoza.messenger_tfs.domain.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateItem
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
-class CompanionMessageDelegateItem(
+class UserMessageDelegateItem(
     private val value: Message,
     private val onAvatarClickListener: ((MessageView) -> Unit)? = null,
     private val onReactionAddClickListener: ((MessageView) -> Unit)? = null,
@@ -22,7 +22,7 @@ class CompanionMessageDelegateItem(
     }
 
     override fun compareToOther(other: DelegateItem): Boolean {
-        return (other as CompanionMessageDelegateItem).value == content()
+        return (other as UserMessageDelegateItem).value == content()
     }
 
     override fun getAvatarClickListener(): ((MessageView) -> Unit)? {
@@ -38,6 +38,6 @@ class CompanionMessageDelegateItem(
     }
 
     override fun getGravity(): FlexBoxGravity {
-        return FlexBoxGravity.START
+        return FlexBoxGravity.END
     }
 }

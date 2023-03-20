@@ -14,7 +14,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentItemChannelsBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
-import com.spinoza.messenger_tfs.presentation.adapter.ViewPagerAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsPagerAdapter
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
@@ -53,8 +53,8 @@ class ItemChannelsFragment : Fragment(), ChannelsPageParent {
             ChannelsPageFragment.newInstance(true)
         )
 
-        val viewPagerAdapter = ViewPagerAdapter(childFragmentManager, lifecycle, childFragments)
-        binding.viewPager.adapter = viewPagerAdapter
+        val channelsPagerAdapter = ChannelsPagerAdapter(childFragmentManager, lifecycle, childFragments)
+        binding.viewPager.adapter = channelsPagerAdapter
 
         tabLayoutMediator =
             TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->

@@ -1,11 +1,11 @@
-package com.spinoza.messenger_tfs.presentation.adapter
+package com.spinoza.messenger_tfs.presentation.adapter.channel
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
-class ViewPagerAdapter(
+class ChannelsPagerAdapter(
     fragmentManager: FragmentManager,
     lifecycle: Lifecycle,
     private val fragments: List<Fragment>,

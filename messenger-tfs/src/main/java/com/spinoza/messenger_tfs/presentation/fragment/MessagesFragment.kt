@@ -23,15 +23,15 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.usecase.*
-import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
+import com.spinoza.messenger_tfs.presentation.adapter.message.MessagesAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.cicerone.Screens
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.*
@@ -48,7 +48,7 @@ class MessagesFragment : Fragment() {
 
     private lateinit var channel: Channel
     private lateinit var topicName: String
-    private lateinit var mainAdapter: MainAdapter
+    private lateinit var messagesAdapter: MessagesAdapter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
     private var currentUser: User? = null
 
@@ -102,12 +102,12 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        mainAdapter = MainAdapter().apply {
+        messagesAdapter = MessagesAdapter().apply {
             addDelegate(CompanionMessageDelegate())
             addDelegate(UserMessageDelegate())
             addDelegate(DateDelegate())
         }
-        binding.recyclerViewMessages.adapter = mainAdapter
+        binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
     }
 
@@ -152,7 +152,7 @@ class MessagesFragment : Fragment() {
         submitMessages(result.messages) {
             when (result.position.type) {
                 MessagePosition.Type.LAST_POSITION -> {
-                    val lastItemPosition = mainAdapter.itemCount - 1
+                    val lastItemPosition = messagesAdapter.itemCount - 1
                     binding.recyclerViewMessages.smoothScrollToPosition(lastItemPosition)
                 }
                 MessagePosition.Type.EXACTLY -> {
@@ -187,7 +187,7 @@ class MessagesFragment : Fragment() {
 
     private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
         currentUser?.let { user ->
-            mainAdapter.submitList(
+            messagesAdapter.submitList(
                 messages.groupByDate(
                     user = user,
                     onAvatarClickListener = ::onAvatarClickListener,

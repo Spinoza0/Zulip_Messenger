@@ -1,11 +1,11 @@
-package com.spinoza.messenger_tfs.presentation.adapter.delegate.message
+package com.spinoza.messenger_tfs.presentation.adapter.message.messages
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.CompanionMessageItemBinding
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateItem
 
 class CompanionMessageDelegate : AdapterDelegate {
 

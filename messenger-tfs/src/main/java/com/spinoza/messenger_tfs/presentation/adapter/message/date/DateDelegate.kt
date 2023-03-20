@@ -1,12 +1,12 @@
-package com.spinoza.messenger_tfs.presentation.adapter.delegate.date
+package com.spinoza.messenger_tfs.presentation.adapter.message.date
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.DateItemBinding
 import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateItem
 
 class DateDelegate : AdapterDelegate {
 
