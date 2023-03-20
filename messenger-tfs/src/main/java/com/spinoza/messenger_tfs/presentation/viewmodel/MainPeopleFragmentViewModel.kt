@@ -19,7 +19,7 @@ class MainPeopleFragmentViewModel(private val getAllUsersUseCase: GetAllUsersUse
     private val _state =
         MutableStateFlow<ItemPeopleFragmentState>(ItemPeopleFragmentState.Loading)
 
-    fun getAllUsers() {
+    fun loadAllUsers() {
         viewModelScope.launch {
             val result = getAllUsersUseCase()
             if (result.first.type == Type.SUCCESS) {

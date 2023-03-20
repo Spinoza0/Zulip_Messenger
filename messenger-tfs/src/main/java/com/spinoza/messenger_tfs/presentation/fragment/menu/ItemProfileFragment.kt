@@ -48,7 +48,7 @@ class ItemProfileFragment : Fragment() {
 
     private fun setupScreen() {
         binding.textViewLogout.visibility = View.VISIBLE
-        viewModel.getCurrentUser()
+        viewModel.loadCurrentUser()
     }
 
     private fun setupObservers() {

@@ -49,7 +49,7 @@ class ItemPeopleFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.getAllUsers()
+        viewModel.loadAllUsers()
     }
 
     private fun setupRecyclerView() {

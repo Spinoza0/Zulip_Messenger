@@ -23,17 +23,17 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.usecase.*
-import com.spinoza.messenger_tfs.presentation.adapter.message.MessagesAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.MessagesAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
-import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.ui.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
@@ -224,9 +224,9 @@ class MessagesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.getCurrentUser()
+        viewModel.loadCurrentUser()
+        viewModel.loadMessages()
         viewModel.doOnTextChanged(binding.editTextMessage.text)
-        viewModel.getMessages()
     }
 
     override fun onStop() {

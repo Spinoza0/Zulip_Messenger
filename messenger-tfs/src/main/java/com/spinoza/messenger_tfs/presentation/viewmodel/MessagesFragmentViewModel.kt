@@ -39,7 +39,7 @@ class MessagesFragmentViewModel(
 
     private val channelFilter = ChannelFilter(channel.channelId, topicName)
 
-    fun getCurrentUser() {
+    fun loadCurrentUser() {
         viewModelScope.launch {
             val result = getCurrentUserUseCase.invoke()
             if (result.first.type == RepositoryResult.Type.SUCCESS) {
@@ -50,7 +50,7 @@ class MessagesFragmentViewModel(
         }
     }
 
-    fun getMessages() {
+    fun loadMessages() {
         viewModelScope.launch {
             _state.value = MessagesFragmentState.Loading
             val result = getMessagesUseCase(channelFilter)

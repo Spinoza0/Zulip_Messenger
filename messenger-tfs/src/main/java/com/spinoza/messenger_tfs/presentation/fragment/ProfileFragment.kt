@@ -74,7 +74,7 @@ class ProfileFragment : Fragment() {
         binding.toolbar.visibility = View.VISIBLE
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.background_700_color)
-        viewModel.getUser(userId)
+        viewModel.loadUser(userId)
     }
 
     private fun handleFragmentState(state: ProfileFragmentState) {

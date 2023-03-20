@@ -23,13 +23,13 @@ class ProfileFragmentViewModel(
     private val _state =
         MutableStateFlow<ProfileFragmentState>(ProfileFragmentState.Loading)
 
-    fun getCurrentUser() {
+    fun loadCurrentUser() {
         viewModelScope.launch {
             updateState(getCurrentUserUseCase())
         }
     }
 
-    fun getUser(userId: Long) {
+    fun loadUser(userId: Long) {
         viewModelScope.launch {
             val result = getUserUseCase?.invoke(userId)
             if (result != null) updateState(result)
