@@ -13,6 +13,11 @@ import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
@@ -20,6 +25,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.util.*
 
 class MessagesFragmentViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
@@ -27,22 +33,27 @@ class MessagesFragmentViewModel(
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
     private val channelFilter: ChannelFilter,
+    private val onAvatarClickListener: ((MessageView) -> Unit),
+    private val onReactionAddClickListener: ((MessageView) -> Unit),
 ) : ViewModel() {
 
-    val user = getCurrentUserUseCase()
+    private lateinit var currentUser: User
 
     val state: StateFlow<MessagesScreenState>
         get() = _state.asStateFlow()
 
-    private val _state = MutableStateFlow<MessagesScreenState>(
-        MessagesScreenState.UpdateIconImage(R.drawable.ic_add_circle_outline)
-    )
+    private val _state =
+        MutableStateFlow<MessagesScreenState>(MessagesScreenState.Loading)
 
-    fun loadCurrentUser() {
+    init {
+        loadCurrentUser()
+    }
+
+    private fun loadCurrentUser() {
         viewModelScope.launch {
             val result = getCurrentUserUseCase.invoke()
             if (result.first.type == RepositoryResult.Type.SUCCESS) {
-                result.second?.let { _state.value = MessagesScreenState.CurrentUser(it) }
+                result.second?.let { currentUser = it }
             } else {
                 _state.value = MessagesScreenState.Error(result.first)
             }
@@ -57,14 +68,14 @@ class MessagesFragmentViewModel(
         }
     }
 
-    fun sendMessage(user: User, messageText: String): Boolean {
+    fun sendMessage(messageText: String): Boolean {
         if (messageText.isNotEmpty()) {
             viewModelScope.launch {
                 _state.value = MessagesScreenState.Loading
                 val message = Message(
                     // test data
                     MessageDate("2 марта 2023"),
-                    user,
+                    currentUser,
                     messageText,
                     emptyMap(),
                     false
@@ -85,7 +96,7 @@ class MessagesFragmentViewModel(
         }
     }
 
-    fun updateReaction(messageView: MessageView, reactionView: ReactionView) {
+    private fun updateReaction(messageView: MessageView, reactionView: ReactionView) {
         updateReaction(messageView.messageId, reactionView.emoji)
     }
 
@@ -99,9 +110,56 @@ class MessagesFragmentViewModel(
 
     private fun updateMessages(result: Pair<RepositoryResult, MessagesResult?>) {
         if (result.first.type == RepositoryResult.Type.SUCCESS) {
-            result.second?.let { _state.value = MessagesScreenState.Messages(it) }
+            result.second?.let { messagesResult ->
+                _state.value = MessagesScreenState.Messages(
+                    MessagesResultDelegate(
+                        messagesResult.messages.groupByDate(),
+                        messagesResult.position
+                    )
+                )
+            }
         } else {
             _state.value = MessagesScreenState.Error(result.first)
         }
+    }
+
+    private fun List<Message>.groupByDate(): List<DelegateAdapterItem> {
+
+        val messageAdapterItemList = mutableListOf<DelegateAdapterItem>()
+        val dates = TreeSet<MessageDate>()
+        this.forEach {
+            dates.add(it.date)
+        }
+
+        dates.forEach { messageDate ->
+            messageAdapterItemList.add(DateDelegateItem(messageDate))
+            val allDayMessages = this.filter { message ->
+                message.date.date == messageDate.date
+            }
+
+            allDayMessages.forEach { message ->
+                if (message.user.userId == currentUser.userId) {
+                    messageAdapterItemList.add(
+                        UserMessageDelegateItem(
+                            message,
+                            onAvatarClickListener,
+                            onReactionAddClickListener,
+                            ::updateReaction
+                        )
+                    )
+                } else {
+                    messageAdapterItemList.add(
+                        CompanionMessageDelegateItem(
+                            message,
+                            onAvatarClickListener,
+                            onReactionAddClickListener,
+                            ::updateReaction
+                        )
+                    )
+                }
+            }
+        }
+
+        return messageAdapterItemList
     }
 }

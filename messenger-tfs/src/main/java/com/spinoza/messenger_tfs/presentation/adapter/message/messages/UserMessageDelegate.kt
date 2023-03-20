@@ -8,7 +8,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.message.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateAdapterItem
 
 class UserMessageDelegate : AdapterDelegate {
 
@@ -24,13 +24,13 @@ class UserMessageDelegate : AdapterDelegate {
 
     override fun onBindViewHolder(
         holder: RecyclerView.ViewHolder,
-        item: DelegateItem,
+        item: DelegateAdapterItem,
         position: Int,
     ) {
         (holder as ViewHolder).bind(item as UserMessageDelegateItem)
     }
 
-    override fun isOfViewType(item: DelegateItem): Boolean {
+    override fun isOfViewType(item: DelegateAdapterItem): Boolean {
         return item is UserMessageDelegateItem
     }
 

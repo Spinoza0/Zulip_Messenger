@@ -1,6 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.fragment
 
 import android.content.Context
+import android.os.Build
+import android.os.Bundle
 import android.widget.Toast
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
@@ -16,4 +18,13 @@ fun Context.showError(result: RepositoryResult) {
         else -> result.text
     }
     Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+}
+
+@Suppress("deprecation")
+inline fun <reified T> Bundle.getParam(paramName: String): T? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        getParcelable(paramName, T::class.java)
+    } else {
+        getParcelable(paramName)
+    }
 }

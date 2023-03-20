@@ -13,12 +13,13 @@ import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.domain.model.ChannelFilter
 import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
-import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
@@ -65,7 +66,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun onTopicClickListener(channel: Channel, topicName: String) {
-        App.router.navigateTo(Screens.Messages(channel, topicName))
+        App.router.navigateTo(Screens.Messages(ChannelFilter(channel, topicName)))
     }
 
     private fun setupObservers() {

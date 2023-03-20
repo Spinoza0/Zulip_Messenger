@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.adapter.message.messages
 
 import com.spinoza.messenger_tfs.domain.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
@@ -21,7 +21,7 @@ class UserMessageDelegateItem(
         return value.id
     }
 
-    override fun compareToOther(other: DelegateItem): Boolean {
+    override fun compareToOther(other: DelegateAdapterItem): Boolean {
         return (other as UserMessageDelegateItem).value == content()
     }
 
