@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -15,7 +14,6 @@ import com.spinoza.messenger_tfs.MessengerApp
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.model.ProfileFragmentState
@@ -85,17 +83,7 @@ class ProfileFragment : Fragment() {
         when (state) {
             is ProfileFragmentState.UserData -> binding.setup(state.value)
             is ProfileFragmentState.Loading -> binding.progressBar.on()
-            is ProfileFragmentState.Error -> showError(state.value)
-        }
-    }
-
-    private fun showError(result: RepositoryResult) {
-        if (result.type == RepositoryResult.Type.ERROR_USER_WITH_ID_NOT_FOUND) {
-            val text = String.format(
-                getString(R.string.error_user_not_found),
-                result.text
-            )
-            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+            is ProfileFragmentState.Error -> requireContext().showError(state.value)
         }
     }
 

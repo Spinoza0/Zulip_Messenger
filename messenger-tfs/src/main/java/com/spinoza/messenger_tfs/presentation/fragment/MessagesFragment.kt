@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -22,7 +21,6 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
@@ -140,7 +138,7 @@ class MessagesFragment : Fragment() {
                 binding.imageViewAction.setImageResource(state.resId)
             }
             is MessagesFragmentState.Loading -> binding.progressBar.on()
-            is MessagesFragmentState.Error -> showError(state.value)
+            is MessagesFragmentState.Error -> requireContext().showError(state.value)
             is MessagesFragmentState.CurrentUser -> currentUser = state.value
         }
     }
@@ -159,16 +157,6 @@ class MessagesFragment : Fragment() {
                 }
                 else -> {}
             }
-        }
-    }
-
-    private fun showError(result: RepositoryResult) {
-        if (result.type == RepositoryResult.Type.ERROR_MESSAGE_WITH_ID_NOT_FOUND) {
-            val text = String.format(
-                getString(R.string.error_message_not_found),
-                result.text
-            )
-            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
         }
     }
 
