@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.spinoza.messenger_tfs.MessengerApp
+import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
@@ -88,7 +88,7 @@ class ProfileFragment : Fragment() {
     }
 
     private fun goBack() {
-        MessengerApp.router.exit()
+        App.router.exit()
     }
 
     private fun parseParams() {

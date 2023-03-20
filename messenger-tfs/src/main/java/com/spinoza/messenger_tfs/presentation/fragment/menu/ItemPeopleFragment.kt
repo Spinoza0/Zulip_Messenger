@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.spinoza.messenger_tfs.MessengerApp
+import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
@@ -79,7 +79,7 @@ class ItemPeopleFragment : Fragment() {
     }
 
     private fun onUserClickListener(userId: Long) {
-        MessengerApp.router.navigateTo(Screens.UserProfile(userId))
+        App.router.navigateTo(Screens.UserProfile(userId))
     }
 
     override fun onDestroyView() {

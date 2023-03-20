@@ -9,7 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.spinoza.messenger_tfs.MessengerApp
+import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
@@ -75,7 +75,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun onTopicClickListener(channel: Channel, topicName: String) {
-        MessengerApp.router.navigateTo(Screens.Messages(channel, topicName))
+        App.router.navigateTo(Screens.Messages(channel, topicName))
     }
 
     private fun setupObservers() {

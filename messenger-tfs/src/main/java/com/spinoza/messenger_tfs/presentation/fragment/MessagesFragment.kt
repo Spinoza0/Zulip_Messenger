@@ -12,7 +12,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.spinoza.messenger_tfs.MessengerApp
+import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
@@ -161,7 +161,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
-        MessengerApp.router.navigateTo(Screens.UserProfile(messageView.userId))
+        App.router.navigateTo(Screens.UserProfile(messageView.userId))
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
@@ -196,7 +196,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun goBack() {
-        MessengerApp.router.exit()
+        App.router.exit()
     }
 
     @Suppress("deprecation")

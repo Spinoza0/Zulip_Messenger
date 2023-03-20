@@ -5,7 +5,7 @@ import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 
-class MessengerApp : Application() {
+class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
