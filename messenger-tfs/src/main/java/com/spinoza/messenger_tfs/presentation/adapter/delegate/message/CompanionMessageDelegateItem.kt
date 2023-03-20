@@ -25,15 +25,15 @@ class CompanionMessageDelegateItem(
         return (other as CompanionMessageDelegateItem).value == content()
     }
 
-    override fun onAvatarClickListener(): ((MessageView) -> Unit)? {
+    override fun getAvatarClickListener(): ((MessageView) -> Unit)? {
         return onAvatarClickListener
     }
 
-    override fun onReactionAddClickListener(): ((MessageView) -> Unit)? {
+    override fun getReactionAddClickListener(): ((MessageView) -> Unit)? {
         return onReactionAddClickListener
     }
 
-    override fun onReactionClickListener(): ((MessageView, ReactionView) -> Unit)? {
+    override fun getReactionClickListener(): ((MessageView, ReactionView) -> Unit)? {
         return onReactionClickListener
     }
 

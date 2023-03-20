@@ -10,11 +10,11 @@ import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 interface MessageDelegateItem : DelegateItem {
 
-    fun onAvatarClickListener(): ((MessageView) -> Unit)?
+    fun getAvatarClickListener(): ((MessageView) -> Unit)?
 
-    fun onReactionAddClickListener(): ((MessageView) -> Unit)?
+    fun getReactionAddClickListener(): ((MessageView) -> Unit)?
 
-    fun onReactionClickListener(): ((MessageView, ReactionView) -> Unit)?
+    fun getReactionClickListener(): ((MessageView, ReactionView) -> Unit)?
 
     fun getGravity(): FlexBoxGravity
 }
@@ -27,7 +27,7 @@ internal fun MessageView.bind(item: MessageDelegateItem) {
         .circleCrop()
         .error(R.drawable.ic_default_avatar)
         .into(avatarImage)
-    setOnAvatarClickListener(item.onAvatarClickListener())
-    setOnMessageLongClickListener(item.onReactionAddClickListener())
-    setOnReactionClickListener(item.onReactionClickListener())
+    setOnAvatarClickListener(item.getAvatarClickListener())
+    setOnMessageLongClickListener(item.getReactionAddClickListener())
+    setOnReactionClickListener(item.getReactionClickListener())
 }
