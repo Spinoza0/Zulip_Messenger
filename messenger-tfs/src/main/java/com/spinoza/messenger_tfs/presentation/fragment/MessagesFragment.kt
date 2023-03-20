@@ -74,10 +74,6 @@ class MessagesFragment : Fragment() {
 
         parseParams()
 
-        if (savedInstanceState == null) {
-            viewModel.loadMessages()
-        }
-
         setupRecyclerView()
         setupOnBackPressedCallback()
         setupStatusBar()
@@ -202,6 +198,14 @@ class MessagesFragment : Fragment() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        if (binding.recyclerViewMessages.adapter?.itemCount == NO_MESSAGES) {
+            viewModel.loadMessages()
+        }
+    }
+
     override fun onStop() {
         super.onStop()
         onBackPressedCallback.remove()
@@ -215,6 +219,7 @@ class MessagesFragment : Fragment() {
     companion object {
 
         private const val PARAM_CHANNEL_FILTER = "channelFilter"
+        private const val NO_MESSAGES = 0
 
         fun newInstance(channelFilter: ChannelFilter): MessagesFragment {
             return MessagesFragment().apply {
