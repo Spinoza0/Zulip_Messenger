@@ -13,7 +13,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
-import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
+import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,28 +31,27 @@ class MessagesFragmentViewModel(
 
     val user = getCurrentUserUseCase()
 
-    val state: StateFlow<MessagesFragmentState>
+    val state: StateFlow<MessagesScreenState>
         get() = _state.asStateFlow()
 
-    private val _state =
-        MutableStateFlow<MessagesFragmentState>(
-            MessagesFragmentState.UpdateIconImage(R.drawable.ic_add_circle_outline)
-        )
+    private val _state = MutableStateFlow<MessagesScreenState>(
+        MessagesScreenState.UpdateIconImage(R.drawable.ic_add_circle_outline)
+    )
 
     fun loadCurrentUser() {
         viewModelScope.launch {
             val result = getCurrentUserUseCase.invoke()
             if (result.first.type == RepositoryResult.Type.SUCCESS) {
-                result.second?.let { _state.value = MessagesFragmentState.CurrentUser(it) }
+                result.second?.let { _state.value = MessagesScreenState.CurrentUser(it) }
             } else {
-                _state.value = MessagesFragmentState.Error(result.first)
+                _state.value = MessagesScreenState.Error(result.first)
             }
         }
     }
 
     fun loadMessages() {
         viewModelScope.launch {
-            _state.value = MessagesFragmentState.Loading
+            _state.value = MessagesScreenState.Loading
             val result = getMessagesUseCase(channelFilter)
             updateMessages(result)
         }
@@ -61,7 +60,7 @@ class MessagesFragmentViewModel(
     fun sendMessage(user: User, messageText: String): Boolean {
         if (messageText.isNotEmpty()) {
             viewModelScope.launch {
-                _state.value = MessagesFragmentState.Loading
+                _state.value = MessagesScreenState.Loading
                 val message = Message(
                     // test data
                     MessageDate("2 марта 2023"),
@@ -80,7 +79,7 @@ class MessagesFragmentViewModel(
 
     fun updateReaction(messageId: Long, reaction: String) {
         viewModelScope.launch {
-            _state.value = MessagesFragmentState.Loading
+            _state.value = MessagesScreenState.Loading
             val result = updateReactionUseCase(messageId, reaction, channelFilter)
             updateMessages(result)
         }
@@ -95,14 +94,14 @@ class MessagesFragmentViewModel(
             R.drawable.ic_send
         else
             R.drawable.ic_add_circle_outline
-        _state.value = MessagesFragmentState.UpdateIconImage(resId)
+        _state.value = MessagesScreenState.UpdateIconImage(resId)
     }
 
     private fun updateMessages(result: Pair<RepositoryResult, MessagesResult?>) {
         if (result.first.type == RepositoryResult.Type.SUCCESS) {
-            result.second?.let { _state.value = MessagesFragmentState.Messages(it) }
+            result.second?.let { _state.value = MessagesScreenState.Messages(it) }
         } else {
-            _state.value = MessagesFragmentState.Error(result.first)
+            _state.value = MessagesScreenState.Error(result.first)
         }
     }
 }

@@ -16,7 +16,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsPagerAdapter
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
-import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
+import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
 import kotlinx.coroutines.flow.StateFlow
@@ -78,7 +78,7 @@ class ItemChannelsFragment : Fragment(), ChannelsPageParent {
         viewModel.loadChannels(isAllChannels)
     }
 
-    override fun getState(isAllChannels: Boolean): StateFlow<ChannelsFragmentState> {
+    override fun getState(isAllChannels: Boolean): StateFlow<ChannelsScreenState> {
         return if (isAllChannels) viewModel.stateAllChannels else viewModel.stateSubscribedChannels
     }
 

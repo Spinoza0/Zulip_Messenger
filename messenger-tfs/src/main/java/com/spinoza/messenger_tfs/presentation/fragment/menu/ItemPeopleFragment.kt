@@ -15,7 +15,7 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.user.UserAdapter
-import com.spinoza.messenger_tfs.presentation.model.ItemPeopleFragmentState
+import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
@@ -66,16 +66,16 @@ class ItemPeopleFragment : Fragment() {
         }
     }
 
-    private fun handleState(state: ItemPeopleFragmentState) {
-        if (state !is ItemPeopleFragmentState.Loading) {
+    private fun handleState(state: PeopleScreenState) {
+        if (state !is PeopleScreenState.Loading) {
             binding.progressBar.off()
         }
         when (state) {
-            is ItemPeopleFragmentState.Users -> adapter.submitList(state.value)
-            is ItemPeopleFragmentState.Error -> {
+            is PeopleScreenState.Users -> adapter.submitList(state.value)
+            is PeopleScreenState.Error -> {
                 Toast.makeText(context, state.value.text, Toast.LENGTH_LONG).show()
             }
-            is ItemPeopleFragmentState.Loading -> binding.progressBar.on()
+            is PeopleScreenState.Loading -> binding.progressBar.on()
         }
     }
 

@@ -9,7 +9,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
-import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
+import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.model.toChannelItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,22 +22,22 @@ class ChannelsFragmentViewModel(
     private val getAllChannelsUseCase: GetAllChannelsUseCase,
 ) : ViewModel() {
 
-    val stateAllChannels: StateFlow<ChannelsFragmentState>
+    val stateAllChannels: StateFlow<ChannelsScreenState>
         get() = _stateAllChannels.asStateFlow()
-    val stateSubscribedChannels: StateFlow<ChannelsFragmentState>
+    val stateSubscribedChannels: StateFlow<ChannelsScreenState>
         get() = _stateSubscribedChannels.asStateFlow()
 
     private val allChannelsCache = mutableListOf<ChannelItem>()
     private val subscribedChannelsCache = mutableListOf<ChannelItem>()
     private val _stateAllChannels =
-        MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Loading)
+        MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Loading)
     private val _stateSubscribedChannels =
-        MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Loading)
+        MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Loading)
 
     fun loadChannels(isAllChannels: Boolean) {
         viewModelScope.launch {
             val cache: MutableList<ChannelItem>
-            val state: MutableStateFlow<ChannelsFragmentState>
+            val state: MutableStateFlow<ChannelsScreenState>
             val repositoryResult: Pair<RepositoryResult, List<Channel>>
             if (isAllChannels) {
                 cache = allChannelsCache
@@ -52,9 +52,9 @@ class ChannelsFragmentViewModel(
             if (repositoryResult.first.type == RepositoryResult.Type.SUCCESS) {
                 cache.clear()
                 cache.addAll(repositoryResult.second.toChannelItem())
-                state.value = ChannelsFragmentState.Channels(cache)
+                state.value = ChannelsScreenState.Channels(cache)
             } else {
-                state.value = ChannelsFragmentState.Error(repositoryResult.first)
+                state.value = ChannelsScreenState.Error(repositoryResult.first)
             }
         }
     }
@@ -65,7 +65,7 @@ class ChannelsFragmentViewModel(
         itemBinding: ChannelItemBinding,
     ) {
         viewModelScope.launch {
-            val state: MutableStateFlow<ChannelsFragmentState>
+            val state: MutableStateFlow<ChannelsScreenState>
             val cache: MutableList<ChannelItem>
             if (isAllChannels) {
                 cache = allChannelsCache
@@ -82,22 +82,22 @@ class ChannelsFragmentViewModel(
                 val index = cache.indexOf(oldChannel)
                 val newType = getNewChannelType(oldChannel.type)
                 val newChannel = channelItem.copy(type = newType)
-                state.value = ChannelsFragmentState.Loading
+                state.value = ChannelsScreenState.Loading
                 if (newType == ChannelItem.Type.FOLDED) {
                     cache[index] = newChannel
-                    state.value = ChannelsFragmentState.Topics(listOf(), newChannel, itemBinding)
+                    state.value = ChannelsScreenState.Topics(listOf(), newChannel, itemBinding)
                 } else {
                     val repositoryState =
                         getTopicsUseCase(channelItem.channel.channelId)
                     if (repositoryState.first.type == RepositoryResult.Type.SUCCESS) {
                         cache[index] = newChannel
-                        state.value = ChannelsFragmentState.Topics(
+                        state.value = ChannelsScreenState.Topics(
                             repositoryState.second,
                             newChannel,
                             itemBinding
                         )
                     } else {
-                        state.value = ChannelsFragmentState.Error(repositoryState.first)
+                        state.value = ChannelsScreenState.Error(repositoryState.first)
                     }
                 }
             }

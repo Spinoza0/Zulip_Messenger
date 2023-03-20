@@ -17,7 +17,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
-import com.spinoza.messenger_tfs.presentation.model.ChannelsFragmentState
+import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
@@ -76,20 +76,20 @@ class ChannelsPageFragment : Fragment() {
         }
     }
 
-    private fun handleChannelsFragmentState(state: ChannelsFragmentState) {
-        if (state !is ChannelsFragmentState.Loading) {
+    private fun handleChannelsFragmentState(state: ChannelsScreenState) {
+        if (state !is ChannelsScreenState.Loading) {
             binding.progressBar.off()
         }
         when (state) {
-            is ChannelsFragmentState.Channels -> adapter.submitList(state.channels)
-            is ChannelsFragmentState.Topics -> handleTopicsState(state)
-            is ChannelsFragmentState.Loading -> binding.progressBar.on()
+            is ChannelsScreenState.Channels -> adapter.submitList(state.channels)
+            is ChannelsScreenState.Topics -> handleTopicsState(state)
+            is ChannelsScreenState.Loading -> binding.progressBar.on()
             // TODO: show errors
-            is ChannelsFragmentState.Error -> {}
+            is ChannelsScreenState.Error -> {}
         }
     }
 
-    private fun handleTopicsState(state: ChannelsFragmentState.Topics) {
+    private fun handleTopicsState(state: ChannelsScreenState.Topics) {
         when (state.channel.type) {
             ChannelItem.Type.FOLDED -> {
                 state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_down)

@@ -16,7 +16,7 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
-import com.spinoza.messenger_tfs.presentation.model.ProfileFragmentState
+import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
@@ -64,16 +64,16 @@ class ItemProfileFragment : Fragment() {
         }
     }
 
-    private fun handleState(state: ProfileFragmentState) {
-        if (state !is ProfileFragmentState.Loading) {
+    private fun handleState(state: ProfileScreenState) {
+        if (state !is ProfileScreenState.Loading) {
             binding.progressBar.off()
         }
         when (state) {
-            is ProfileFragmentState.UserData -> showProfileInfo(state.value)
-            is ProfileFragmentState.Error -> {
+            is ProfileScreenState.UserData -> showProfileInfo(state.value)
+            is ProfileScreenState.Error -> {
                 Toast.makeText(context, state.value.text, Toast.LENGTH_LONG).show()
             }
-            is ProfileFragmentState.Loading -> binding.progressBar.on()
+            is ProfileScreenState.Loading -> binding.progressBar.on()
         }
     }
 

@@ -18,7 +18,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
-import com.spinoza.messenger_tfs.presentation.model.ProfileFragmentState
+import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
@@ -82,14 +82,14 @@ class ProfileFragment : Fragment() {
         viewModel.loadUser(userId)
     }
 
-    private fun handleState(state: ProfileFragmentState) {
-        if (state !is ProfileFragmentState.Loading) {
+    private fun handleState(state: ProfileScreenState) {
+        if (state !is ProfileScreenState.Loading) {
             binding.progressBar.off()
         }
         when (state) {
-            is ProfileFragmentState.UserData -> showProfileInfo(state.value)
-            is ProfileFragmentState.Loading -> binding.progressBar.on()
-            is ProfileFragmentState.Error -> requireContext().showError(state.value)
+            is ProfileScreenState.UserData -> showProfileInfo(state.value)
+            is ProfileScreenState.Loading -> binding.progressBar.on()
+            is ProfileScreenState.Error -> requireContext().showError(state.value)
         }
     }
 

@@ -6,7 +6,7 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
-import com.spinoza.messenger_tfs.presentation.model.ProfileFragmentState
+import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,11 +17,10 @@ class ProfileFragmentViewModel(
     private val getUserUseCase: GetUserUseCase?,
 ) : ViewModel() {
 
-    val state: StateFlow<ProfileFragmentState>
+    val state: StateFlow<ProfileScreenState>
         get() = _state.asStateFlow()
 
-    private val _state =
-        MutableStateFlow<ProfileFragmentState>(ProfileFragmentState.Loading)
+    private val _state = MutableStateFlow<ProfileScreenState>(ProfileScreenState.Loading)
 
     fun loadCurrentUser() {
         viewModelScope.launch {
@@ -38,9 +37,9 @@ class ProfileFragmentViewModel(
 
     private fun updateState(result: Pair<RepositoryResult, User?>) {
         if (result.first.type == RepositoryResult.Type.SUCCESS) {
-            result.second?.let { _state.value = ProfileFragmentState.UserData(it) }
+            result.second?.let { _state.value = ProfileScreenState.UserData(it) }
         } else {
-            _state.value = ProfileFragmentState.Error(result.first)
+            _state.value = ProfileScreenState.Error(result.first)
         }
     }
 }

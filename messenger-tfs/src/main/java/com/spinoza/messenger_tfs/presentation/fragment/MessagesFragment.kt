@@ -29,7 +29,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.model.MessagesFragmentState
+import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.ui.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
@@ -118,7 +118,7 @@ class MessagesFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleMessagesFragmentState)
+                viewModel.state.collect(::handleState)
             }
         }
     }
@@ -137,22 +137,22 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    private fun handleMessagesFragmentState(state: MessagesFragmentState) {
-        if (state !is MessagesFragmentState.Loading) {
+    private fun handleState(state: MessagesScreenState) {
+        if (state !is MessagesScreenState.Loading) {
             binding.progressBar.off()
         }
         when (state) {
-            is MessagesFragmentState.Messages -> handleMessagesResult(state.value)
-            is MessagesFragmentState.UpdateIconImage -> {
+            is MessagesScreenState.Messages -> submitMessages(state.value)
+            is MessagesScreenState.UpdateIconImage -> {
                 binding.imageViewAction.setImageResource(state.resId)
             }
-            is MessagesFragmentState.Loading -> binding.progressBar.on()
-            is MessagesFragmentState.Error -> requireContext().showError(state.value)
-            is MessagesFragmentState.CurrentUser -> currentUser = state.value
+            is MessagesScreenState.Loading -> binding.progressBar.on()
+            is MessagesScreenState.Error -> requireContext().showError(state.value)
+            is MessagesScreenState.CurrentUser -> currentUser = state.value
         }
     }
 
-    private fun handleMessagesResult(result: MessagesResult) {
+    private fun submitMessages(result: MessagesResult) {
         submitMessages(result.messages) {
             when (result.position.type) {
                 MessagePosition.Type.LAST_POSITION -> {
@@ -164,7 +164,7 @@ class MessagesFragment : Fragment() {
                         result.position.messageId
                     )
                 }
-                else -> {}
+                MessagePosition.Type.UNDEFINED -> {}
             }
         }
     }
