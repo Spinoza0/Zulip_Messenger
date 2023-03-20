@@ -15,8 +15,8 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.user.UserAdapter
-import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.MainPeopleFragmentViewModel
@@ -35,7 +35,7 @@ class ItemPeopleFragment : Fragment() {
         )
     }
 
-    private lateinit var adapter: UserAdapter
+    private val adapter by lazy { UserAdapter(::onUserClickListener) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,17 +50,18 @@ class ItemPeopleFragment : Fragment() {
 
         setupRecyclerView()
         setupObservers()
-        viewModel.loadAllUsers()
+        if (savedInstanceState == null) {
+            viewModel.loadAllUsers()
+        }
     }
 
     private fun setupRecyclerView() {
-        adapter = UserAdapter(::onUserClickListener)
         binding.recyclerViewUsers.adapter = adapter
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.state.collect(::handleState)
             }
         }
