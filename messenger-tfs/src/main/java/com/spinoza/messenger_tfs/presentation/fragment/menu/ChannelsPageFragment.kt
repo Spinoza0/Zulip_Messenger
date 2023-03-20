@@ -39,14 +39,17 @@ class ChannelsPageFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentChannelsPageBinding.inflate(inflater, container, false)
-        channelsPageParent = parentFragment as ChannelsPageParent
+        return binding.root
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        channelsPageParent = parentFragment as ChannelsPageParent
         setupRecyclerView()
         parseParams()
         setupObservers()
         channelsPageParent.loadChannels(isAllChannels)
-
-        return binding.root
     }
 
     private fun setupRecyclerView() {
