@@ -7,13 +7,13 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface ChannelsPageParent {
 
-    fun getChannels(allChannels: Boolean)
+    fun getChannels(isAllChannels: Boolean)
 
     fun onChannelClickListener(
-        allChannels: Boolean,
+        isAllChannels: Boolean,
         channelItem: ChannelItem,
         itemBinding: ChannelItemBinding,
     )
 
-    fun getState(allChannels: Boolean): StateFlow<ChannelsFragmentState>
+    fun getState(isAllChannels: Boolean): StateFlow<ChannelsFragmentState>
 }

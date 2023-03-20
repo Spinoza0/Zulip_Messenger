@@ -9,13 +9,13 @@ class ChannelViewHolder(private val binding: ChannelItemBinding) :
     RecyclerView.ViewHolder(binding.root) {
 
     fun bind(
-        allChannels: Boolean,
+        isAllChannels: Boolean,
         channelItem: ChannelItem,
         onClickListener: (Boolean, ChannelItem, ChannelItemBinding) -> Unit,
     ) {
         binding.textViewChannel.text = String.format("#%s", channelItem.channel.name)
         binding.root.setOnClickListener {
-            onClickListener.invoke(allChannels, channelItem, binding)
+            onClickListener.invoke(isAllChannels, channelItem, binding)
         }
         (binding.recyclerViewTopics.adapter as TopicAdapter).channel = channelItem.channel
     }

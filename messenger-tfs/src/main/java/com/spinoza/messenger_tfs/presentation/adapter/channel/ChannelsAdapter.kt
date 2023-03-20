@@ -9,7 +9,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 
 class ChannelsAdapter(
-    private val allChannels: Boolean,
+    private val isAllChannels: Boolean,
     private val topicConfig: TopicAdapterConfig,
     private val onChannelClickListener: (Boolean, ChannelItem, ChannelItemBinding) -> Unit,
 ) : ListAdapter<ChannelItem, ChannelViewHolder>(ChannelDiffCallback()) {
@@ -25,6 +25,6 @@ class ChannelsAdapter(
     }
 
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
-        holder.bind(allChannels, getItem(position), onChannelClickListener)
+        holder.bind(isAllChannels, getItem(position), onChannelClickListener)
     }
 }

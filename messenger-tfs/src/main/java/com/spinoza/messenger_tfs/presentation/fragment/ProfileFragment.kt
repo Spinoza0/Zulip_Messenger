@@ -10,10 +10,12 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
+import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.model.ProfileFragmentState
@@ -80,9 +82,33 @@ class ProfileFragment : Fragment() {
             binding.progressBar.off()
         }
         when (state) {
-            is ProfileFragmentState.UserData -> binding.setup(state.value)
+            is ProfileFragmentState.UserData -> showProfileInfo(state.value)
             is ProfileFragmentState.Loading -> binding.progressBar.on()
             is ProfileFragmentState.Error -> requireContext().showError(state.value)
+        }
+    }
+
+    private fun showProfileInfo(user: User) {
+        with(binding) {
+            textViewName.text = user.full_name
+            textViewStatus.text = user.status
+            if (user.status.isEmpty()) {
+                textViewStatus.visibility = View.GONE
+            } else {
+                textViewStatus.text = user.status
+            }
+            if (user.isActive) {
+                textViewStatusOnline.visibility = View.VISIBLE
+                textViewStatusOffline.visibility = View.GONE
+            } else {
+                textViewStatusOnline.visibility = View.GONE
+                textViewStatusOffline.visibility = View.VISIBLE
+            }
+            com.bumptech.glide.Glide.with(imageViewAvatar)
+                .load(user.avatar_url)
+                .transform(RoundedCorners(20))
+                .error(R.drawable.ic_default_avatar)
+                .into(imageViewAvatar)
         }
     }
 

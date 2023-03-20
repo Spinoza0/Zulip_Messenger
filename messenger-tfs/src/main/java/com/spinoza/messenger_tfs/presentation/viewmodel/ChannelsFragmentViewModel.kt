@@ -34,12 +34,12 @@ class ChannelsFragmentViewModel(
     private val _stateSubscribedChannels =
         MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Loading)
 
-    fun getChannels(allChannels: Boolean) {
+    fun getChannels(isAllChannels: Boolean) {
         viewModelScope.launch {
             val cache: MutableList<ChannelItem>
             val state: MutableStateFlow<ChannelsFragmentState>
             val repositoryResult: Pair<RepositoryResult, List<Channel>>
-            if (allChannels) {
+            if (isAllChannels) {
                 cache = allChannelsCache
                 state = _stateAllChannels
                 repositoryResult = getAllChannelsUseCase()
@@ -60,14 +60,14 @@ class ChannelsFragmentViewModel(
     }
 
     fun onChannelClickListener(
-        allChannels: Boolean,
+        isAllChannels: Boolean,
         channelItem: ChannelItem,
         itemBinding: ChannelItemBinding,
     ) {
         viewModelScope.launch {
             val state: MutableStateFlow<ChannelsFragmentState>
             val cache: MutableList<ChannelItem>
-            if (allChannels) {
+            if (isAllChannels) {
                 cache = allChannelsCache
                 state = _stateAllChannels
             } else {

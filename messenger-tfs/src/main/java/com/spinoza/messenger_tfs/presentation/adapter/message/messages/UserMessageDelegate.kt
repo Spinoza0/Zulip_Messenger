@@ -3,7 +3,10 @@ package com.spinoza.messenger_tfs.presentation.adapter.message.messages
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.message.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.DelegateItem
 
@@ -24,12 +27,27 @@ class UserMessageDelegate : AdapterDelegate {
         item: DelegateItem,
         position: Int,
     ) {
-        (holder as ViewHolder).binding.messageView.bind(item as UserMessageDelegateItem)
+        (holder as ViewHolder).bind(item as UserMessageDelegateItem)
     }
 
     override fun isOfViewType(item: DelegateItem): Boolean {
         return item is UserMessageDelegateItem
     }
 
-    class ViewHolder(val binding: UserMessageItemBinding) : RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(val binding: UserMessageItemBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(item: MessageDelegateItem) {
+            with(binding.messageView) {
+                val message = item.content() as Message
+                setMessage(message, item.getGravity())
+                Glide.with(avatarImage)
+                    .load(message.user.avatar_url)
+                    .circleCrop()
+                    .error(R.drawable.ic_default_avatar)
+                    .into(avatarImage)
+                setOnAvatarClickListener(item.getAvatarClickListener())
+                setOnMessageLongClickListener(item.getReactionAddClickListener())
+                setOnReactionClickListener(item.getReactionClickListener())
+            }
+        }
+    }
 }

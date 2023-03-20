@@ -53,7 +53,8 @@ class ItemChannelsFragment : Fragment(), ChannelsPageParent {
             ChannelsPageFragment.newInstance(true)
         )
 
-        val channelsPagerAdapter = ChannelsPagerAdapter(childFragmentManager, lifecycle, childFragments)
+        val channelsPagerAdapter =
+            ChannelsPagerAdapter(childFragmentManager, lifecycle, childFragments)
         binding.viewPager.adapter = channelsPagerAdapter
 
         tabLayoutMediator =
@@ -68,20 +69,20 @@ class ItemChannelsFragment : Fragment(), ChannelsPageParent {
         tabLayoutMediator.attach()
     }
 
-    override fun getChannels(allChannels: Boolean) {
-        viewModel.getChannels(allChannels)
+    override fun getChannels(isAllChannels: Boolean) {
+        viewModel.getChannels(isAllChannels)
     }
 
-    override fun getState(allChannels: Boolean): StateFlow<ChannelsFragmentState> {
-        return if (allChannels) viewModel.stateAllChannels else viewModel.stateSubscribedChannels
+    override fun getState(isAllChannels: Boolean): StateFlow<ChannelsFragmentState> {
+        return if (isAllChannels) viewModel.stateAllChannels else viewModel.stateSubscribedChannels
     }
 
     override fun onChannelClickListener(
-        allChannels: Boolean,
+        isAllChannels: Boolean,
         channelItem: ChannelItem,
         itemBinding: ChannelItemBinding,
     ) {
-        viewModel.onChannelClickListener(allChannels, channelItem, itemBinding)
+        viewModel.onChannelClickListener(isAllChannels, channelItem, itemBinding)
     }
 
     override fun onStop() {
