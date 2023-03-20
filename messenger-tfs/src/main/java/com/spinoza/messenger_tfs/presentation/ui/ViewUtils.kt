@@ -10,10 +10,7 @@ import androidx.core.view.marginRight
 import androidx.core.view.marginTop
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 
@@ -93,28 +90,6 @@ fun Context.getThemeColor(attr: Int): Int {
     val typedValue = TypedValue()
     this.theme.resolveAttribute(attr, typedValue, true)
     return typedValue.data
-}
-
-fun FragmentProfileBinding.setup(user: User) {
-    textViewName.text = user.full_name
-    textViewStatus.text = user.status
-    if (user.status.isEmpty()) {
-        textViewStatus.visibility = View.GONE
-    } else {
-        textViewStatus.text = user.status
-    }
-    if (user.isActive) {
-        textViewStatusOnline.visibility = View.VISIBLE
-        textViewStatusOffline.visibility = View.GONE
-    } else {
-        textViewStatusOnline.visibility = View.GONE
-        textViewStatusOffline.visibility = View.VISIBLE
-    }
-    com.bumptech.glide.Glide.with(imageViewAvatar)
-        .load(user.avatar_url)
-        .transform(RoundedCorners(20))
-        .error(com.spinoza.messenger_tfs.R.drawable.ic_default_avatar)
-        .into(imageViewAvatar)
 }
 
 fun ProgressBar.on() {

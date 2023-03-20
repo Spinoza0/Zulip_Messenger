@@ -13,10 +13,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
+import com.spinoza.messenger_tfs.presentation.fragment.setup
 import com.spinoza.messenger_tfs.presentation.model.ProfileFragmentState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
-import com.spinoza.messenger_tfs.presentation.ui.setup
 import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ProfileFragmentViewModelFactory
 import kotlinx.coroutines.launch
