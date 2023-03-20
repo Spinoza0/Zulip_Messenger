@@ -40,7 +40,7 @@ fun MessageDto.toDomain(userId: Long): Message {
 
 fun TreeSet<MessageDto>.toDomain(userId: Long, channelFilter: ChannelFilter): List<Message> {
     return this.filter {
-        it.channelId == channelFilter.channel.channelId && it.topicName == channelFilter.topicName
+        it.channelId == channelFilter.channel.channelId && it.topicName == channelFilter.topic.name
     }.map { it.toDomain(userId) }
 }
 
@@ -52,7 +52,7 @@ fun Message.toDto(userId: Long, messageId: Long, channelFilter: ChannelFilter): 
         reactions = this.reactions.toDto(userId),
         id = messageId,
         channelId = channelFilter.channel.channelId,
-        topicName = channelFilter.topicName
+        topicName = channelFilter.topic.name
     )
 }
 

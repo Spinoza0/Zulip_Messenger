@@ -6,5 +6,5 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 class ChannelFilter(
     val channel: Channel,
-    val topicName: String,
+    val topic: Topic,
 ) : Parcelable

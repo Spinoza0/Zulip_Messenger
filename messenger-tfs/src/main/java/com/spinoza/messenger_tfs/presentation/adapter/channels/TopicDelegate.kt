@@ -40,7 +40,11 @@ class TopicDelegate(private val config: TopicDelegateConfig) : AdapterDelegate {
             val channelFilter = (item.content() as ChannelFilter)
             with(binding) {
                 textViewTopic.setBackgroundColor(color)
-                textViewTopic.text = channelFilter.topicName
+                textViewTopic.text = String.format(
+                    config.template,
+                    channelFilter.topic.name,
+                    channelFilter.topic.messageCount
+                )
                 root.setOnClickListener {
                     config.onClickListener(channelFilter)
                 }

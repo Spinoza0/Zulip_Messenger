@@ -88,7 +88,7 @@ class MessagesFragment : Fragment() {
 
     private fun setupScreen() {
         binding.textViewTopic.text =
-            String.format(getString(R.string.messages_topic_template), channelFilter.topicName)
+            String.format(getString(R.string.messages_topic_template), channelFilter.topic.name)
     }
 
     private fun setupOnBackPressedCallback() {
@@ -194,7 +194,7 @@ class MessagesFragment : Fragment() {
         val newChannelFilter = arguments?.getParam<ChannelFilter>(PARAM_CHANNEL_FILTER)
         if (newChannelFilter == null ||
             newChannelFilter.channel.channelId == Channel.UNDEFINED_ID ||
-            newChannelFilter.topicName.isEmpty()
+            newChannelFilter.topic.name.isEmpty()
         ) {
             goBack()
         } else {

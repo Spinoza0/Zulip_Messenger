@@ -128,7 +128,7 @@ class ChannelsFragmentViewModel(
     }
 
     private fun Topic.toDelegateItem(channel: Channel): TopicDelegateItem {
-        return TopicDelegateItem(ChannelFilter(channel, name))
+        return TopicDelegateItem(ChannelFilter(channel, this))
     }
 
     private fun List<Topic>.toDelegateItem(channel: Channel): List<TopicDelegateItem> {
