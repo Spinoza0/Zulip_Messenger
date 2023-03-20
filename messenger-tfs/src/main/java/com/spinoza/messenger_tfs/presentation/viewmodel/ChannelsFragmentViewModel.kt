@@ -111,4 +111,11 @@ class ChannelsFragmentViewModel(
             ChannelItem.Type.FOLDED
         }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+
+        allChannelsCache.clear()
+        subscribedChannelsCache.clear()
+    }
 }

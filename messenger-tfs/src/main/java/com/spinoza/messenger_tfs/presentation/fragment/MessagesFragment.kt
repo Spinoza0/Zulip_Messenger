@@ -16,10 +16,7 @@ import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
-import com.spinoza.messenger_tfs.domain.model.Channel
-import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.usecase.*
@@ -46,11 +43,11 @@ class MessagesFragment : Fragment() {
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
-    private lateinit var channel: Channel
-    private lateinit var topicName: String
-    private lateinit var messagesAdapter: MessagesAdapter
-    private lateinit var onBackPressedCallback: OnBackPressedCallback
+
     private var currentUser: User? = null
+
+    private lateinit var onBackPressedCallback: OnBackPressedCallback
+    private lateinit var channelFilter: ChannelFilter
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
@@ -58,9 +55,16 @@ class MessagesFragment : Fragment() {
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            channel,
-            topicName
+            channelFilter
         )
+    }
+
+    private val messagesAdapter by lazy {
+        MessagesAdapter().apply {
+            addDelegate(CompanionMessageDelegate())
+            addDelegate(UserMessageDelegate())
+            addDelegate(DateDelegate())
+        }
     }
 
     override fun onCreateView(
@@ -85,7 +89,7 @@ class MessagesFragment : Fragment() {
         setupListeners()
 
         binding.textViewTopic.text =
-            String.format(getString(R.string.messages_topic_template), topicName)
+            String.format(getString(R.string.messages_topic_template), channelFilter.topicName)
     }
 
     private fun setupOnBackPressedCallback() {
@@ -101,17 +105,12 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupStatusBar() {
-        binding.toolbar.title = "#${channel.name}"
+        binding.toolbar.title = "#${channelFilter.channel.name}"
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.channel_toolbar_background_color)
     }
 
     private fun setupRecyclerView() {
-        messagesAdapter = MessagesAdapter().apply {
-            addDelegate(CompanionMessageDelegate())
-            addDelegate(UserMessageDelegate())
-            addDelegate(DateDelegate())
-        }
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
     }
@@ -211,7 +210,7 @@ class MessagesFragment : Fragment() {
 
     @Suppress("deprecation")
     private fun parseParams() {
-        topicName = arguments?.getString(EXTRA_TOPIC_NAME) ?: EMPTY_STRING
+        val topicName = arguments?.getString(EXTRA_TOPIC_NAME) ?: EMPTY_STRING
         val newChannel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arguments?.getParcelable(EXTRA_CHANNEL, Channel::class.java)
         } else {
@@ -223,7 +222,7 @@ class MessagesFragment : Fragment() {
         ) {
             goBack()
         } else {
-            channel = newChannel
+            channelFilter = ChannelFilter(newChannel, topicName)
         }
     }
 

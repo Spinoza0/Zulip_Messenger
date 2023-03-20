@@ -85,8 +85,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             message.toDto(
                 userId = message.user.userId,
                 messageId = newMessageId,
-                channelId = channelFilter.channelId,
-                topicName = channelFilter.topicName
+                channelFilter = channelFilter
             )
         )
         return Pair(

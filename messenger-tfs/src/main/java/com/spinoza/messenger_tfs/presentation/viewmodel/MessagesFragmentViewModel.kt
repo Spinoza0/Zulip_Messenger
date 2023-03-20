@@ -3,7 +3,10 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.model.ChannelFilter
+import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
@@ -23,8 +26,7 @@ class MessagesFragmentViewModel(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
-    channel: Channel,
-    topicName: String,
+    private val channelFilter: ChannelFilter,
 ) : ViewModel() {
 
     val user = getCurrentUserUseCase()
@@ -36,8 +38,6 @@ class MessagesFragmentViewModel(
         MutableStateFlow<MessagesFragmentState>(
             MessagesFragmentState.UpdateIconImage(R.drawable.ic_add_circle_outline)
         )
-
-    private val channelFilter = ChannelFilter(channel.channelId, topicName)
 
     fun loadCurrentUser() {
         viewModelScope.launch {
