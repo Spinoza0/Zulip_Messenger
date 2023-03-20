@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface ChannelsPageParent {
 
-    fun getChannels(isAllChannels: Boolean)
+    fun loadChannels(isAllChannels: Boolean)
 
     fun onChannelClickListener(
         isAllChannels: Boolean,

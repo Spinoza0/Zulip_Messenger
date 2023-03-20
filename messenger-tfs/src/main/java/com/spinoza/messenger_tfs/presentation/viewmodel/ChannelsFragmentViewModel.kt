@@ -34,7 +34,7 @@ class ChannelsFragmentViewModel(
     private val _stateSubscribedChannels =
         MutableStateFlow<ChannelsFragmentState>(ChannelsFragmentState.Loading)
 
-    fun getChannels(isAllChannels: Boolean) {
+    fun loadChannels(isAllChannels: Boolean) {
         viewModelScope.launch {
             val cache: MutableList<ChannelItem>
             val state: MutableStateFlow<ChannelsFragmentState>

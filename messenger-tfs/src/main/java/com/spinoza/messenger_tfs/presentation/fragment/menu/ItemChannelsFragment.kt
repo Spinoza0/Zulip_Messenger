@@ -69,8 +69,8 @@ class ItemChannelsFragment : Fragment(), ChannelsPageParent {
         tabLayoutMediator.attach()
     }
 
-    override fun getChannels(isAllChannels: Boolean) {
-        viewModel.getChannels(isAllChannels)
+    override fun loadChannels(isAllChannels: Boolean) {
+        viewModel.loadChannels(isAllChannels)
     }
 
     override fun getState(isAllChannels: Boolean): StateFlow<ChannelsFragmentState> {

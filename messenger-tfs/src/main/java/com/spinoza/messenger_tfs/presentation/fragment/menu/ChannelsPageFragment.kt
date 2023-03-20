@@ -44,7 +44,7 @@ class ChannelsPageFragment : Fragment() {
         setupRecyclerView()
         parseParams()
         setupObservers()
-        channelsPageParent.getChannels(isAllChannels)
+        channelsPageParent.loadChannels(isAllChannels)
 
         return binding.root
     }
