@@ -1,19 +1,11 @@
 package com.spinoza.messenger_tfs.presentation.fragment.menu
 
-import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
-import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import kotlinx.coroutines.flow.StateFlow
 
 interface ChannelsPageParent {
 
-    fun loadChannels(isAllChannels: Boolean)
-
-    fun onChannelClickListener(
-        isAllChannels: Boolean,
-        channelItem: ChannelItem,
-        itemBinding: ChannelItemBinding,
-    )
+    fun loadItems(isAllChannels: Boolean)
 
     fun getState(isAllChannels: Boolean): StateFlow<ChannelsScreenState>
 }

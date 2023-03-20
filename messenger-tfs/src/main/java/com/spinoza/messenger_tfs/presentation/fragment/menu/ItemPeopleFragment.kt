@@ -61,7 +61,7 @@ class ItemPeopleFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::handleState)
             }
         }

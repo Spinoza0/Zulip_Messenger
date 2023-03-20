@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.fragment.menu
 
-import android.graphics.Typeface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,18 +8,11 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.spinoza.messenger_tfs.App
-import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
-import com.spinoza.messenger_tfs.domain.model.Channel
-import com.spinoza.messenger_tfs.domain.model.ChannelFilter
-import com.spinoza.messenger_tfs.presentation.adapter.channel.ChannelsAdapter
-import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapter
-import com.spinoza.messenger_tfs.presentation.adapter.topic.TopicAdapterConfig
-import com.spinoza.messenger_tfs.presentation.model.ChannelItem
-import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
-import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import kotlinx.coroutines.launch
@@ -34,14 +26,11 @@ class ChannelsPageFragment : Fragment() {
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
 
-    private val adapter by lazy {
-        val topicConfig = TopicAdapterConfig(
-            requireContext().getString(R.string.channels_topic_template),
-            requireContext().getThemeColor(R.attr.even_topic_color),
-            requireContext().getThemeColor(R.attr.odd_topic_color),
-            ::onTopicClickListener
-        )
-        ChannelsAdapter(isAllChannels, topicConfig, channelsPageParent::onChannelClickListener)
+    private val delegatesAdapter by lazy {
+        MainDelegateAdapter().apply {
+            addDelegate(ChannelDelegate())
+            addDelegate(TopicDelegate())
+        }
     }
 
     override fun onCreateView(
@@ -61,51 +50,32 @@ class ChannelsPageFragment : Fragment() {
         setupObservers()
 
         if (savedInstanceState == null) {
-            channelsPageParent.loadChannels(isAllChannels)
+            channelsPageParent.loadItems(isAllChannels)
         }
     }
 
     private fun setupRecyclerView() {
-        binding.recyclerViewChannels.adapter = adapter
-    }
-
-    private fun onTopicClickListener(channel: Channel, topicName: String) {
-        App.router.navigateTo(Screens.Messages(ChannelFilter(channel, topicName)))
+        binding.recyclerViewChannels.adapter = delegatesAdapter
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                channelsPageParent.getState(isAllChannels).collect(::handleChannelsFragmentState)
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                channelsPageParent.getState(isAllChannels).collect(::handleState)
             }
         }
     }
 
-    private fun handleChannelsFragmentState(state: ChannelsScreenState) {
+    private fun handleState(state: ChannelsScreenState) {
         if (state !is ChannelsScreenState.Loading) {
             binding.progressBar.off()
         }
         when (state) {
-            is ChannelsScreenState.Channels -> adapter.submitList(state.channels)
-            is ChannelsScreenState.Topics -> handleTopicsState(state)
+            is ChannelsScreenState.Items -> delegatesAdapter.submitList(state.value)
             is ChannelsScreenState.Loading -> binding.progressBar.on()
             // TODO: show errors
             is ChannelsScreenState.Error -> {}
         }
-    }
-
-    private fun handleTopicsState(state: ChannelsScreenState.Topics) {
-        when (state.channel.type) {
-            ChannelItem.Type.FOLDED -> {
-                state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_down)
-                state.binding.textViewChannel.setTypeface(null, Typeface.NORMAL)
-            }
-            ChannelItem.Type.UNFOLDED -> {
-                state.binding.imageViewArrow.setImageResource(R.drawable.ic_arrow_up)
-                state.binding.textViewChannel.setTypeface(null, Typeface.BOLD)
-            }
-        }
-        (state.binding.recyclerViewTopics.adapter as? TopicAdapter)?.submitList(state.topics)
     }
 
     private fun parseParams() {

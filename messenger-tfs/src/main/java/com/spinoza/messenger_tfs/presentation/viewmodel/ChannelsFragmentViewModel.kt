@@ -2,12 +2,17 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
 import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.domain.model.ChannelFilter
+import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
+import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateConfig
+import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,110 +24,128 @@ class ChannelsFragmentViewModel(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getSubscribedChannelsUseCase: GetSubscribedChannelsUseCase,
     private val getAllChannelsUseCase: GetAllChannelsUseCase,
+    private val onChannelClickListener: (ChannelItem) -> Unit,
+    private val topicDelegateConfig: TopicDelegateConfig,
 ) : ViewModel() {
 
-    val stateAllChannels: StateFlow<ChannelsScreenState>
-        get() = _stateAllChannels.asStateFlow()
-    val stateSubscribedChannels: StateFlow<ChannelsScreenState>
-        get() = _stateSubscribedChannels.asStateFlow()
+    val stateAllItems: StateFlow<ChannelsScreenState>
+        get() = _stateAllItems.asStateFlow()
+    val stateSubscribedItems: StateFlow<ChannelsScreenState>
+        get() = _stateSubscribedItems.asStateFlow()
 
-    private val allChannelsCache = mutableListOf<ChannelItem>()
-    private val subscribedChannelsCache = mutableListOf<ChannelItem>()
-    private val _stateAllChannels =
+    private val allItemsCache = mutableListOf<DelegateAdapterItem>()
+    private val subscribedItemsCache = mutableListOf<DelegateAdapterItem>()
+    private val _stateAllItems =
         MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Loading)
-    private val _stateSubscribedChannels =
+    private val _stateSubscribedItems =
         MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Loading)
 
-    fun loadChannels(isAllChannels: Boolean) {
+    fun loadItems(isAllChannels: Boolean) {
         viewModelScope.launch {
-            val cache: MutableList<ChannelItem>
+            val cache: MutableList<DelegateAdapterItem>
             val state: MutableStateFlow<ChannelsScreenState>
-            val repositoryResult: Pair<RepositoryResult, List<Channel>>
+            val channelsResult: Pair<RepositoryResult, List<Channel>>
             if (isAllChannels) {
-                cache = allChannelsCache
-                state = _stateAllChannels
-                repositoryResult = getAllChannelsUseCase()
+                cache = allItemsCache
+                state = _stateAllItems
+                channelsResult = getAllChannelsUseCase()
             } else {
-                cache = subscribedChannelsCache
-                state = _stateSubscribedChannels
-                repositoryResult = getSubscribedChannelsUseCase()
+                cache = subscribedItemsCache
+                state = _stateSubscribedItems
+                channelsResult = getSubscribedChannelsUseCase()
             }
 
-            if (repositoryResult.first.type == RepositoryResult.Type.SUCCESS) {
+            if (channelsResult.first.type == RepositoryResult.Type.SUCCESS) {
                 cache.clear()
-                cache.addAll(repositoryResult.second.toChannelItem())
-                state.value = ChannelsScreenState.Channels(cache)
+                cache.addAll(channelsResult.second.toDelegateItem(isAllChannels))
+                state.value = ChannelsScreenState.Items(cache.toList())
             } else {
-                state.value = ChannelsScreenState.Error(repositoryResult.first)
+                state.value = ChannelsScreenState.Error(channelsResult.first)
             }
         }
     }
 
-    fun onChannelClickListener(
-        isAllChannels: Boolean,
-        channelItem: ChannelItem,
-        itemBinding: ChannelItemBinding,
-    ) {
+    fun onChannelClickListener(channelItem: ChannelItem) {
         viewModelScope.launch {
             val state: MutableStateFlow<ChannelsScreenState>
-            val cache: MutableList<ChannelItem>
-            if (isAllChannels) {
-                cache = allChannelsCache
-                state = _stateAllChannels
+            val cache: MutableList<DelegateAdapterItem>
+            if (channelItem.isAllChannelsItem) {
+                cache = allItemsCache
+                state = _stateAllItems
             } else {
-                cache = subscribedChannelsCache
-                state = _stateSubscribedChannels
+                cache = subscribedItemsCache
+                state = _stateSubscribedItems
             }
 
-            val oldChannel = cache.find {
-                it.channel.channelId == channelItem.channel.channelId
+            val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
+                if (delegateAdapterItem is ChannelDelegateItem) {
+                    val item = delegateAdapterItem.content() as ChannelItem
+                    item.channel.channelId == channelItem.channel.channelId
+                } else false
             }
-            if (oldChannel != null) {
-                val index = cache.indexOf(oldChannel)
-                val newType = getNewChannelType(oldChannel.type)
-                val newChannel = channelItem.copy(type = newType)
-                state.value = ChannelsScreenState.Loading
-                if (newType == ChannelItem.Type.FOLDED) {
-                    cache[index] = newChannel
-                    state.value = ChannelsScreenState.Topics(listOf(), newChannel, itemBinding)
-                } else {
-                    val repositoryState =
+
+            if (oldChannelDelegateItem != null) {
+                val index = cache.indexOf(oldChannelDelegateItem)
+                val oldChannelItem = oldChannelDelegateItem.content() as ChannelItem
+                val newChannelDelegateItem = ChannelDelegateItem(
+                    oldChannelItem.copy(isFolded = !oldChannelItem.isFolded),
+                    onChannelClickListener
+                )
+                cache[index] = newChannelDelegateItem
+
+                if (oldChannelItem.isFolded) {
+                    val topicsResult =
                         getTopicsUseCase(channelItem.channel.channelId)
-                    if (repositoryState.first.type == RepositoryResult.Type.SUCCESS) {
-                        cache[index] = newChannel
-                        state.value = ChannelsScreenState.Topics(
-                            repositoryState.second,
-                            newChannel,
-                            itemBinding
+                    if (topicsResult.first.type == RepositoryResult.Type.SUCCESS) {
+                        cache.addAll(
+                            index + 1,
+                            topicsResult.second.toDelegateItem(channelItem.channel)
                         )
+                    }
+                } else {
+                    var nextIndex = index + 1
+                    var isNextElementExist = false
+                    while (nextIndex < cache.size && !isNextElementExist) {
+                        if (cache[nextIndex] is ChannelDelegateItem) {
+                            isNextElementExist = true
+                        } else {
+                            nextIndex++
+                        }
+                    }
+                    if (isNextElementExist) {
+                        cache.subList(index + 1, nextIndex).clear()
                     } else {
-                        state.value = ChannelsScreenState.Error(repositoryState.first)
+                        cache.subList(index + 1, cache.size).clear()
                     }
                 }
+                state.value = ChannelsScreenState.Items(cache.toList())
             }
         }
     }
 
-    private fun getNewChannelType(type: ChannelItem.Type): ChannelItem.Type {
-        return if (type == ChannelItem.Type.FOLDED) {
-            ChannelItem.Type.UNFOLDED
-        } else {
-            ChannelItem.Type.FOLDED
-        }
+    private fun Channel.toDelegateItem(isAllChannels: Boolean): ChannelDelegateItem {
+        return ChannelDelegateItem(
+            ChannelItem(this, isAllChannels, true),
+            onChannelClickListener
+        )
     }
 
-    private fun Channel.toChannelItem(): ChannelItem {
-        return ChannelItem(this, ChannelItem.Type.FOLDED)
+    private fun List<Channel>.toDelegateItem(isAllChannels: Boolean): List<ChannelDelegateItem> {
+        return map { it.toDelegateItem(isAllChannels) }
     }
 
-    private fun List<Channel>.toChannelItem(): List<ChannelItem> {
-        return map { it.toChannelItem() }
+    private fun Topic.toDelegateItem(channel: Channel): TopicDelegateItem {
+        return TopicDelegateItem(ChannelFilter(channel, name), topicDelegateConfig)
+    }
+
+    private fun List<Topic>.toDelegateItem(channel: Channel): List<TopicDelegateItem> {
+        return map { it.toDelegateItem(channel) }
     }
 
     override fun onCleared() {
         super.onCleared()
 
-        allChannelsCache.clear()
-        subscribedChannelsCache.clear()
+        allItemsCache.clear()
+        subscribedItemsCache.clear()
     }
 }

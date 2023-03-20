@@ -4,7 +4,6 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 
 data class ChannelItem(
     val channel: Channel,
-    val type: Type,
-) {
-    enum class Type { FOLDED, UNFOLDED }
-}
+    val isAllChannelsItem: Boolean,
+    val isFolded: Boolean,
+)

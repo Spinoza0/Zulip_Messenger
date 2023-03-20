@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.adapter.channel
+package com.spinoza.messenger_tfs.presentation.adapter.channels
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager

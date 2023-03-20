@@ -18,10 +18,16 @@ val topics2 = listOf(
     TopicDto("development", Message.UNDEFINED_ID),
 )
 
+val topics3 = listOf(
+    TopicDto("figma", Message.UNDEFINED_ID),
+    TopicDto("hard", Message.UNDEFINED_ID),
+    TopicDto("soft", Message.UNDEFINED_ID),
+)
+
 val channelsDto = listOf(
     ChannelDto(0L, "general", topics1),
     ChannelDto(1L, "Development", topics2),
-    ChannelDto(2L, "Design", topics2),
+    ChannelDto(2L, "Design", topics3),
     ChannelDto(3L, "PR", topics1),
 )
 
