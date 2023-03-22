@@ -61,9 +61,15 @@ class CompanionMessageDelegate(
                     .circleCrop()
                     .error(R.drawable.ic_default_avatar)
                     .into(avatarImage)
-                setOnAvatarClickListener(onAvatarClickListener)
-                setOnMessageLongClickListener(onReactionAddClickListener)
-                setOnReactionClickListener(onReactionClickListener)
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    setOnAvatarClickListener(onAvatarClickListener)
+                    setOnMessageLongClickListener(onReactionAddClickListener)
+                    setOnReactionClickListener(onReactionClickListener)
+                } else {
+                    setOnAvatarClickListener(null)
+                    setOnMessageLongClickListener(null)
+                    setOnReactionClickListener(null)
+                }
             }
         }
     }

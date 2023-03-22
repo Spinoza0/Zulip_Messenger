@@ -22,7 +22,7 @@ class UserViewHolder(private val binding: UserItemBinding) : RecyclerView.ViewHo
             imageViewCircleBorder.visibility = visibility
             imageViewCircle.visibility = visibility
             root.setOnClickListener {
-                onClickListener(user.userId)
+                if (adapterPosition != RecyclerView.NO_POSITION) onClickListener(user.userId)
             }
         }
     }
