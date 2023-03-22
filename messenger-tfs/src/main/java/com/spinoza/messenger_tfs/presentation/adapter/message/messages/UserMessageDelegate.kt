@@ -57,13 +57,8 @@ class UserMessageDelegate(
                     .circleCrop()
                     .error(R.drawable.ic_default_avatar)
                     .into(avatarImage)
-                if (adapterPosition != RecyclerView.NO_POSITION) {
-                    setOnMessageLongClickListener(onReactionAddClickListener)
-                    setOnReactionClickListener(onReactionClickListener)
-                } else {
-                    setOnMessageLongClickListener(null)
-                    setOnReactionClickListener(null)
-                }
+                setOnMessageLongClickListener(onReactionAddClickListener)
+                setOnReactionClickListener(onReactionClickListener)
             }
         }
     }
