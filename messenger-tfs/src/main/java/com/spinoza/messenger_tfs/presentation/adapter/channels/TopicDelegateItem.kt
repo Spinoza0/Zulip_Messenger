@@ -1,9 +1,9 @@
 package com.spinoza.messenger_tfs.presentation.adapter.channels
 
-import com.spinoza.messenger_tfs.domain.model.ChannelFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 
-class TopicDelegateItem(private val value: ChannelFilter) : DelegateAdapterItem {
+class TopicDelegateItem(private val value: MessagesFilter) : DelegateAdapterItem {
 
     override fun content(): Any {
         return value

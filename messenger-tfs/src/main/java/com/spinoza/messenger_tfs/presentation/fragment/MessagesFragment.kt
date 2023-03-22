@@ -39,7 +39,7 @@ class MessagesFragment : Fragment() {
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
 
-    private lateinit var channelFilter: ChannelFilter
+    private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
@@ -48,7 +48,7 @@ class MessagesFragment : Fragment() {
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            channelFilter
+            messagesFilter
         )
     }
 
@@ -93,7 +93,7 @@ class MessagesFragment : Fragment() {
 
     private fun setupScreen() {
         binding.textViewTopic.text =
-            String.format(getString(R.string.messages_topic_template), channelFilter.topic.name)
+            String.format(getString(R.string.messages_topic_template), messagesFilter.topic.name)
     }
 
     private fun setupOnBackPressedCallback() {
@@ -109,7 +109,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupStatusBar() {
-        binding.toolbar.title = "#${channelFilter.channel.name}"
+        binding.toolbar.title = "#${messagesFilter.channel.name}"
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.channel_toolbar_background_color)
     }
@@ -200,14 +200,14 @@ class MessagesFragment : Fragment() {
 
     @Suppress("deprecation")
     private fun parseParams() {
-        val newChannelFilter = arguments?.getParam<ChannelFilter>(PARAM_CHANNEL_FILTER)
-        if (newChannelFilter == null ||
-            newChannelFilter.channel.channelId == Channel.UNDEFINED_ID ||
-            newChannelFilter.topic.name.isEmpty()
+        val newMessagesFilter = arguments?.getParam<MessagesFilter>(PARAM_CHANNEL_FILTER)
+        if (newMessagesFilter == null ||
+            newMessagesFilter.channel.channelId == Channel.UNDEFINED_ID ||
+            newMessagesFilter.topic.name.isEmpty()
         ) {
             goBack()
         } else {
-            channelFilter = newChannelFilter
+            messagesFilter = newMessagesFilter
         }
     }
 
@@ -231,13 +231,13 @@ class MessagesFragment : Fragment() {
 
     companion object {
 
-        private const val PARAM_CHANNEL_FILTER = "channelFilter"
+        private const val PARAM_CHANNEL_FILTER = "messagesFilter"
         private const val NO_MESSAGES = 0
 
-        fun newInstance(channelFilter: ChannelFilter): MessagesFragment {
+        fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {
                 arguments = Bundle().apply {
-                    putParcelable(PARAM_CHANNEL_FILTER, channelFilter)
+                    putParcelable(PARAM_CHANNEL_FILTER, messagesFilter)
                 }
             }
         }

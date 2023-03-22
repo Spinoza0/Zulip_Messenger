@@ -3,7 +3,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.ChannelFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.User
@@ -30,7 +30,7 @@ class MessagesFragmentViewModel(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
-    private val channelFilter: ChannelFilter,
+    private val messagesFilter: MessagesFilter,
 ) : ViewModel() {
 
     private lateinit var currentUser: User
@@ -59,7 +59,7 @@ class MessagesFragmentViewModel(
     fun loadMessages() {
         viewModelScope.launch {
             _state.value = MessagesScreenState.Loading
-            val result = getMessagesUseCase(channelFilter)
+            val result = getMessagesUseCase(messagesFilter)
             updateMessages(result)
         }
     }
@@ -76,7 +76,7 @@ class MessagesFragmentViewModel(
                     emptyMap(),
                     false
                 )
-                val result = sendMessageUseCase(message, channelFilter)
+                val result = sendMessageUseCase(message, messagesFilter)
                 updateMessages(result)
             }
             return true
@@ -87,7 +87,7 @@ class MessagesFragmentViewModel(
     fun updateReaction(messageId: Long, reaction: String) {
         viewModelScope.launch {
             _state.value = MessagesScreenState.Loading
-            val result = updateReactionUseCase(messageId, reaction, channelFilter)
+            val result = updateReactionUseCase(messageId, reaction, messagesFilter)
             updateMessages(result)
         }
     }

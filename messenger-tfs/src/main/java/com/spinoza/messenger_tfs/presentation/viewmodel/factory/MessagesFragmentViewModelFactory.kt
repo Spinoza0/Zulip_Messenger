@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel.factory
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.spinoza.messenger_tfs.domain.model.ChannelFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 
@@ -12,7 +12,7 @@ class MessagesFragmentViewModelFactory(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
-    private val channelFilter: ChannelFilter,
+    private val messagesFilter: MessagesFilter,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -21,7 +21,7 @@ class MessagesFragmentViewModelFactory(
             getMessagesUseCase,
             sendMessageUseCase,
             updateReactionUseCase,
-            channelFilter,
+            messagesFilter,
         ) as T
     }
 }

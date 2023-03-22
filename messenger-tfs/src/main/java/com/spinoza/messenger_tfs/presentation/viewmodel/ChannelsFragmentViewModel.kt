@@ -3,7 +3,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.domain.model.Channel
-import com.spinoza.messenger_tfs.domain.model.ChannelFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
@@ -128,7 +128,7 @@ class ChannelsFragmentViewModel(
     }
 
     private fun Topic.toDelegateItem(channel: Channel): TopicDelegateItem {
-        return TopicDelegateItem(ChannelFilter(channel, this))
+        return TopicDelegateItem(MessagesFilter(channel, this))
     }
 
     private fun List<Topic>.toDelegateItem(channel: Channel): List<TopicDelegateItem> {

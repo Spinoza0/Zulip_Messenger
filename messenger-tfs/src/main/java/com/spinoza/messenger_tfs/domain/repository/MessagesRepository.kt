@@ -10,7 +10,7 @@ interface MessagesRepository {
 
     suspend fun getAllUsers(): Pair<RepositoryResult, List<User>>
 
-    suspend fun getMessages(channelFilter: ChannelFilter): Pair<RepositoryResult, MessagesResult?>
+    suspend fun getMessages(messagesFilter: MessagesFilter): Pair<RepositoryResult, MessagesResult?>
 
     suspend fun getAllChannels(): Pair<RepositoryResult, List<Channel>>
 
@@ -20,12 +20,12 @@ interface MessagesRepository {
 
     suspend fun sendMessage(
         message: Message,
-        channelFilter: ChannelFilter,
+        messagesFilter: MessagesFilter,
     ): Pair<RepositoryResult, MessagesResult?>
 
     suspend fun updateReaction(
         messageId: Long,
         reaction: String,
-        channelFilter: ChannelFilter,
+        messagesFilter: MessagesFilter,
     ): Pair<RepositoryResult, MessagesResult?>
 }

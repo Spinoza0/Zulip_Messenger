@@ -13,7 +13,7 @@ import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
-import com.spinoza.messenger_tfs.domain.model.ChannelFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
@@ -110,8 +110,8 @@ class ChannelsPageFragment : Fragment() {
         viewModel.onChannelClickListener(channelItem)
     }
 
-    private fun onTopicClickListener(channelFilter: ChannelFilter) {
-        App.router.navigateTo(Screens.Messages(channelFilter))
+    private fun onTopicClickListener(messagesFilter: MessagesFilter) {
+        App.router.navigateTo(Screens.Messages(messagesFilter))
     }
 
     private fun parseParams() {

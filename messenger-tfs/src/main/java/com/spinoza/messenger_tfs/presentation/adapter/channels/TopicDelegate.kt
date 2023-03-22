@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.TopicItemBinding
-import com.spinoza.messenger_tfs.domain.model.ChannelFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 
@@ -37,16 +37,16 @@ class TopicDelegate(private val config: TopicDelegateConfig) : AdapterDelegate {
 
         fun bind(item: TopicDelegateItem, position: Int, config: TopicDelegateConfig) {
             val color = if (position % 2 == 0) config.evenColor else config.oddColor
-            val channelFilter = (item.content() as ChannelFilter)
+            val messagesFilter = (item.content() as MessagesFilter)
             with(binding) {
                 textViewTopic.setBackgroundColor(color)
                 textViewTopic.text = String.format(
                     config.template,
-                    channelFilter.topic.name,
-                    channelFilter.topic.messageCount
+                    messagesFilter.topic.name,
+                    messagesFilter.topic.messageCount
                 )
                 root.setOnClickListener {
-                    config.onClickListener(channelFilter)
+                    config.onClickListener(messagesFilter)
                 }
             }
         }

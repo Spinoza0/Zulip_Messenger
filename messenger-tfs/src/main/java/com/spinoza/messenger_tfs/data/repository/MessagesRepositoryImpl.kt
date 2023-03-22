@@ -44,12 +44,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun getMessages(
-        channelFilter: ChannelFilter,
+        messagesFilter: MessagesFilter,
     ): Pair<RepositoryResult, MessagesResult?> {
         return Pair(
             RepositoryResult(Type.SUCCESS),
             MessagesResult(
-                messagesLocalCache.toDomain(currentUser.userId, channelFilter),
+                messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
                 MessagePosition()
             )
         )
@@ -74,7 +74,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun sendMessage(
         message: Message,
-        channelFilter: ChannelFilter,
+        messagesFilter: MessagesFilter,
     ): Pair<RepositoryResult, MessagesResult?> {
         val newMessageId = if (message.id == Message.UNDEFINED_ID) {
             messagesLocalCache.size.toLong()
@@ -85,13 +85,13 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             message.toDto(
                 userId = message.user.userId,
                 messageId = newMessageId,
-                channelFilter = channelFilter
+                messagesFilter = messagesFilter
             )
         )
         return Pair(
             RepositoryResult(Type.SUCCESS),
             MessagesResult(
-                messagesLocalCache.toDomain(message.user.userId, channelFilter),
+                messagesLocalCache.toDomain(message.user.userId, messagesFilter),
                 MessagePosition(type = MessagePosition.Type.LAST_POSITION)
             )
         )
@@ -100,7 +100,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun updateReaction(
         messageId: Long,
         reaction: String,
-        channelFilter: ChannelFilter,
+        messagesFilter: MessagesFilter,
     ): Pair<RepositoryResult, MessagesResult?> {
         val messageDto = messagesLocalCache
             .find { it.id == messageId }
@@ -128,7 +128,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return Pair(
             RepositoryResult(Type.SUCCESS),
             MessagesResult(
-                messagesLocalCache.toDomain(currentUser.userId, channelFilter),
+                messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
                 MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
             )
         )
