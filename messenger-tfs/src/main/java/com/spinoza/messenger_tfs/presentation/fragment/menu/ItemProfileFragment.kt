@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -16,6 +15,7 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
+import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
@@ -70,9 +70,7 @@ class ItemProfileFragment : Fragment() {
         }
         when (state) {
             is ProfileScreenState.UserData -> showProfileInfo(state.value)
-            is ProfileScreenState.Error -> {
-                Toast.makeText(context, state.value.text, Toast.LENGTH_LONG).show()
-            }
+            is ProfileScreenState.Error -> requireContext().showError(state.value)
             is ProfileScreenState.Loading -> binding.progressBar.on()
         }
     }

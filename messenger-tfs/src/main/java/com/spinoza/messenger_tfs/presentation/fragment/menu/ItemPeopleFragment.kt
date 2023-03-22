@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -15,6 +14,7 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.user.UserAdapter
+import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
@@ -73,9 +73,7 @@ class ItemPeopleFragment : Fragment() {
         }
         when (state) {
             is PeopleScreenState.Users -> adapter.submitList(state.value)
-            is PeopleScreenState.Error -> {
-                Toast.makeText(context, state.value.text, Toast.LENGTH_LONG).show()
-            }
+            is PeopleScreenState.Error -> requireContext().showError(state.value)
             is PeopleScreenState.Loading -> binding.progressBar.on()
         }
     }
