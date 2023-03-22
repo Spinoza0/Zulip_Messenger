@@ -151,7 +151,7 @@ class MessagesFragment : Fragment() {
                 binding.imageViewAction.setImageResource(state.resId)
             }
             is MessagesScreenState.Loading -> binding.progressBar.on()
-            is MessagesScreenState.Error -> requireContext().showError(state.value)
+            is MessagesScreenState.Error -> showError(state.value)
         }
     }
 

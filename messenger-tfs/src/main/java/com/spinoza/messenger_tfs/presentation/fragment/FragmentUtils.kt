@@ -1,13 +1,15 @@
 package com.spinoza.messenger_tfs.presentation.fragment
 
-import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.fragment.app.Fragment
+import com.google.android.material.snackbar.Snackbar
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
-fun Context.showError(result: RepositoryResult) {
+fun Fragment.showError(result: RepositoryResult) {
     val text = when (result.type) {
         RepositoryResult.Type.ERROR_MESSAGE_WITH_ID_NOT_FOUND -> {
             String.format(getString(R.string.error_message_not_found), result.text)
@@ -17,7 +19,15 @@ fun Context.showError(result: RepositoryResult) {
         }
         else -> result.text
     }
-    Toast.makeText(this, text, Toast.LENGTH_LONG).show()
+    val viewSnackBar = requireActivity().findViewById<View>(android.R.id.content)
+    if (viewSnackBar != null) {
+        Snackbar.make(viewSnackBar, text, Snackbar.LENGTH_INDEFINITE).apply {
+            setAction(android.R.string.ok) { }
+            show()
+        }
+    } else {
+        Toast.makeText(requireContext(), text, Toast.LENGTH_LONG).show()
+    }
 }
 
 @Suppress("deprecation")

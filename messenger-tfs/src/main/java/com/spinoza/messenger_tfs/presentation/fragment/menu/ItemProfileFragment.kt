@@ -70,7 +70,7 @@ class ItemProfileFragment : Fragment() {
         }
         when (state) {
             is ProfileScreenState.UserData -> showProfileInfo(state.value)
-            is ProfileScreenState.Error -> requireContext().showError(state.value)
+            is ProfileScreenState.Error -> showError(state.value)
             is ProfileScreenState.Loading -> binding.progressBar.on()
         }
     }

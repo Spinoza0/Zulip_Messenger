@@ -73,7 +73,7 @@ class ItemPeopleFragment : Fragment() {
         }
         when (state) {
             is PeopleScreenState.Users -> adapter.submitList(state.value)
-            is PeopleScreenState.Error -> requireContext().showError(state.value)
+            is PeopleScreenState.Error -> showError(state.value)
             is PeopleScreenState.Loading -> binding.progressBar.on()
         }
     }
