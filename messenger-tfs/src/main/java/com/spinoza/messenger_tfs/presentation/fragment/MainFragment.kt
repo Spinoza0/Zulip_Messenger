@@ -64,7 +64,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
                         requireActivity().finish()
                     }
                     R.id.menu_people, R.id.menu_profile -> {
-                        localRouter.replaceScreen(Screens.ItemChannels())
+                        localRouter.backTo(Screens.ItemChannels())
                         binding.bottomNavigationView.selectedItemId = R.id.menu_channels
                     }
                 }
@@ -86,9 +86,9 @@ class MainFragment : Fragment(), OnItemSelectedListener {
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_channels -> localRouter.replaceScreen(Screens.ItemChannels())
-            R.id.menu_people -> localRouter.replaceScreen(Screens.ItemPeople())
-            R.id.menu_profile -> localRouter.replaceScreen(Screens.ItemProfile())
+            R.id.menu_channels -> localRouter.navigateTo(Screens.ItemChannels())
+            R.id.menu_people -> localRouter.navigateTo(Screens.ItemPeople())
+            R.id.menu_profile -> localRouter.navigateTo(Screens.ItemProfile())
         }
         return true
     }
