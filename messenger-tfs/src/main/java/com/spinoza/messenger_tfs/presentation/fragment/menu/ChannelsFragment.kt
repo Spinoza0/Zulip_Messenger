@@ -54,6 +54,7 @@ class ChannelsFragment : Fragment() {
         super.onDestroyView()
         tabLayoutMediator.detach()
         (binding.viewPager.adapter as ChannelsPagerAdapter).clear()
+        binding.viewPager.adapter = null
         _binding = null
     }
 
