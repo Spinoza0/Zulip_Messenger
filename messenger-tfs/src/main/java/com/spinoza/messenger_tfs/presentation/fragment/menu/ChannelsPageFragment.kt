@@ -13,6 +13,7 @@ import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
+import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
@@ -63,6 +64,10 @@ class ChannelsPageFragment : Fragment() {
         setupObservers()
     }
 
+    fun setChannelsFilter(filter: String) {
+        viewModel.loadItems(ChannelsFilter(filter))
+    }
+
     private fun setupRecyclerView() {
         val delegateAdapter = MainDelegateAdapter()
         delegateAdapter.addDelegate(ChannelDelegate(viewModel::onChannelClickListener))
@@ -109,7 +114,7 @@ class ChannelsPageFragment : Fragment() {
         super.onResume()
 
         if (binding.recyclerViewChannels.adapter?.itemCount == NO_ITEMS) {
-            viewModel.loadItems()
+            viewModel.loadItems(ChannelsFilter())
         }
     }
 

@@ -53,13 +53,17 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         )
     }
 
-    override suspend fun getAllChannels(): RepositoryResult<List<Channel>> {
-        return RepositoryResult.Success(channelsDto.toDomain())
+    override suspend fun getAllChannels(
+        channelsFilter: ChannelsFilter,
+    ): RepositoryResult<List<Channel>> {
+        return RepositoryResult.Success(channelsDto.toDomain(channelsFilter))
     }
 
     // TODO: "Not yet implemented"
-    override suspend fun getSubscribedChannels(): RepositoryResult<List<Channel>> {
-        return getAllChannels()
+    override suspend fun getSubscribedChannels(
+        channelsFilter: ChannelsFilter,
+    ): RepositoryResult<List<Channel>> {
+        return getAllChannels(channelsFilter)
     }
 
     override suspend fun getTopics(channelId: Long): RepositoryResult<List<Topic>> {

@@ -12,9 +12,11 @@ interface MessagesRepository {
 
     suspend fun getMessages(messagesFilter: MessagesFilter): RepositoryResult<MessagesResult>
 
-    suspend fun getAllChannels(): RepositoryResult<List<Channel>>
+    suspend fun getAllChannels(channelsFilter: ChannelsFilter): RepositoryResult<List<Channel>>
 
-    suspend fun getSubscribedChannels(): RepositoryResult<List<Channel>>
+    suspend fun getSubscribedChannels(
+        channelsFilter: ChannelsFilter,
+    ): RepositoryResult<List<Channel>>
 
     suspend fun getTopics(channelId: Long): RepositoryResult<List<Topic>>
 

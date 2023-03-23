@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
@@ -33,16 +34,15 @@ class ChannelsFragmentViewModel(
 
     private val cache = mutableListOf<DelegateAdapterItem>()
 
-    fun loadItems() {
+    fun loadItems(channelsFilter: ChannelsFilter) {
         viewModelScope.launch {
             when (val result = if (isAllChannels)
-                getAllChannelsUseCase()
+                getAllChannelsUseCase(channelsFilter)
             else
-                getSubscribedChannelsUseCase()
+                getSubscribedChannelsUseCase(channelsFilter)
             ) {
                 is RepositoryResult.Success -> {
-                    cache.clear()
-                    cache.addAll(result.value.toDelegateItem(isAllChannels))
+                    updateCache(result.value.toDelegateItem(isAllChannels))
                     _state.value = ChannelsScreenState.Items(cache.toList())
                 }
                 // TODO: process other errors
@@ -97,6 +97,11 @@ class ChannelsFragmentViewModel(
                 _state.value = ChannelsScreenState.Items(cache.toList())
             }
         }
+    }
+
+    private fun updateCache(newChannels: List<DelegateAdapterItem>) {
+        cache.clear()
+        cache.addAll(newChannels)
     }
 
     private fun Channel.toDelegateItem(isAllChannels: Boolean): ChannelDelegateItem {

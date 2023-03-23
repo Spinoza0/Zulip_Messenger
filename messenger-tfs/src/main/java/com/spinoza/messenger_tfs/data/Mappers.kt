@@ -23,8 +23,14 @@ fun List<TopicDto>.toDomain(messages: TreeSet<MessageDto>, channelId: Long): Lis
     return this.map { it.toDomain(messages, channelId) }
 }
 
-fun List<ChannelDto>.toDomain(): List<Channel> {
-    return this.map { it.toDomain() }
+fun List<ChannelDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
+    return this
+        .filter { channelsDto ->
+            channelsFilter.narrow.split(" ").all { filter ->
+                channelsDto.name.contains(filter, true)
+            }
+        }
+        .map { it.toDomain() }
 }
 
 fun MessageDto.toDomain(userId: Long): Message {
