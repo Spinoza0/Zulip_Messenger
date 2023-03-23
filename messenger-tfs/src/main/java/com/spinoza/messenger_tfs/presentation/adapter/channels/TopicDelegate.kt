@@ -38,16 +38,14 @@ class TopicDelegate(private val config: TopicDelegateConfig) : AdapterDelegate {
         fun bind(item: TopicDelegateItem, position: Int, config: TopicDelegateConfig) {
             val color = if (position % 2 == 0) config.evenColor else config.oddColor
             val messagesFilter = (item.content() as MessagesFilter)
-            with(binding) {
-                textViewTopic.setBackgroundColor(color)
-                textViewTopic.text = String.format(
-                    config.template,
-                    messagesFilter.topic.name,
-                    messagesFilter.topic.messageCount
-                )
-                root.setOnClickListener {
-                    config.onClickListener(messagesFilter)
-                }
+            binding.textViewTopic.setBackgroundColor(color)
+            binding.textViewTopic.text = String.format(
+                config.template,
+                messagesFilter.topic.name,
+                messagesFilter.topic.messageCount
+            )
+            binding.root.setOnClickListener {
+                config.onClickListener(messagesFilter)
             }
         }
     }

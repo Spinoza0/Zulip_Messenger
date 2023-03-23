@@ -21,7 +21,6 @@ import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateConfig
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
-import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
@@ -49,20 +48,6 @@ class ChannelsPageFragment : Fragment() {
         )
     }
 
-
-    private val delegateAdapter by lazy {
-        MainDelegateAdapter().apply {
-            val topicConfig = TopicDelegateConfig(
-                requireContext().getString(R.string.channels_topic_template),
-                requireContext().getThemeColor(R.attr.even_topic_color),
-                requireContext().getThemeColor(R.attr.odd_topic_color),
-                ::onTopicClickListener
-            )
-            addDelegate(ChannelDelegate(::onChannelClickListener))
-            addDelegate(TopicDelegate(topicConfig))
-        }
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -84,6 +69,15 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
+        val topicConfig = TopicDelegateConfig(
+            requireContext().getString(R.string.channels_topic_template),
+            requireContext().getThemeColor(R.attr.even_topic_color),
+            requireContext().getThemeColor(R.attr.odd_topic_color),
+            ::onTopicClickListener
+        )
+        val delegateAdapter = MainDelegateAdapter()
+        delegateAdapter.addDelegate(ChannelDelegate(viewModel::onChannelClickListener))
+        delegateAdapter.addDelegate(TopicDelegate(topicConfig))
         binding.recyclerViewChannels.adapter = delegateAdapter
     }
 
@@ -100,13 +94,11 @@ class ChannelsPageFragment : Fragment() {
             binding.progressBar.off()
         }
         when (state) {
-            is ChannelsScreenState.Items -> delegateAdapter.submitList(state.value)
+            is ChannelsScreenState.Items -> {
+                (binding.recyclerViewChannels.adapter as MainDelegateAdapter).submitList(state.value)
+            }
             is ChannelsScreenState.Loading -> binding.progressBar.on()
         }
-    }
-
-    private fun onChannelClickListener(channelItem: ChannelItem) {
-        viewModel.onChannelClickListener(channelItem)
     }
 
     private fun onTopicClickListener(messagesFilter: MessagesFilter) {
@@ -119,6 +111,8 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        (binding.recyclerViewChannels.adapter as MainDelegateAdapter).clear()
+        binding.recyclerViewChannels.adapter = null
         _binding = null
     }
 
