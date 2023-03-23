@@ -13,6 +13,10 @@ class MainDelegateAdapter :
         delegates.add(delegate)
     }
 
+    fun clear() {
+        delegates.clear()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return delegates[viewType].onCreateViewHolder(parent)
     }

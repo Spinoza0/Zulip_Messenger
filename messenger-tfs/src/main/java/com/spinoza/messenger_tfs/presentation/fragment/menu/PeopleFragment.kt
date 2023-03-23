@@ -36,8 +36,6 @@ class PeopleFragment : Fragment() {
         )
     }
 
-    private val peopleAdapter by lazy { PeopleAdapter(::onUserClickListener) }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -57,12 +55,12 @@ class PeopleFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.recyclerViewUsers.adapter = peopleAdapter
+        binding.recyclerViewUsers.adapter = PeopleAdapter(::onUserClickListener)
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.state.collect(::handleState)
             }
         }
@@ -73,7 +71,9 @@ class PeopleFragment : Fragment() {
             binding.progressBar.off()
         }
         when (state) {
-            is PeopleScreenState.Users -> peopleAdapter.submitList(state.value)
+            is PeopleScreenState.Users -> {
+                (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(state.value)
+            }
             is PeopleScreenState.Loading -> binding.progressBar.on()
         }
     }
