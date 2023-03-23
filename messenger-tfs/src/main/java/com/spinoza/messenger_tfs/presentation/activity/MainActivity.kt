@@ -6,8 +6,12 @@ import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.ActivityMainBinding
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 
 class MainActivity : AppCompatActivity() {
+
+    private val globalNavigatorHolder = App.navigatorHolder
+    private val globalRouter = App.router
 
     private val globalNavigator = AppNavigator(this, R.id.mainFragmentContainer)
 
@@ -15,15 +19,19 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        if (savedInstanceState == null) {
+            globalRouter.navigateTo(Screens.MainMenu())
+        }
     }
 
     override fun onResumeFragments() {
         super.onResumeFragments()
-        App.navigatorHolder.setNavigator(globalNavigator)
+        globalNavigatorHolder.setNavigator(globalNavigator)
     }
 
     override fun onPause() {
         super.onPause()
-        App.navigatorHolder.removeNavigator()
+        globalNavigatorHolder.removeNavigator()
     }
 }
