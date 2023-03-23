@@ -35,6 +35,7 @@ class UserProfileFragment : Fragment() {
             ?: throw RuntimeException("FragmentProfileBinding == null")
 
     private var userId = UNDEFINED_USER_ID
+    private val globalRouter = App.router
 
     private val viewModel: ProfileFragmentViewModel by viewModels {
         ProfileFragmentViewModelFactory(
@@ -123,7 +124,7 @@ class UserProfileFragment : Fragment() {
     }
 
     private fun goBack() {
-        App.router.exit()
+        globalRouter.exit()
     }
 
     private fun parseParams() {

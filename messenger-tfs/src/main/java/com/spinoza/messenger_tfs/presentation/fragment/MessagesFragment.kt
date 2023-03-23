@@ -34,6 +34,8 @@ import java.util.*
 
 class MessagesFragment : Fragment() {
 
+    private val globalRouter = App.router
+
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
@@ -184,7 +186,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
-        App.router.navigateTo(Screens.UserProfile(messageView.userId))
+        globalRouter.navigateTo(Screens.UserProfile(messageView.userId))
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
@@ -206,7 +208,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun goBack() {
-        App.router.exit()
+        globalRouter.exit()
     }
 
     @Suppress("deprecation")
