@@ -24,6 +24,8 @@ import kotlinx.coroutines.launch
 
 class PeopleFragment : Fragment() {
 
+    private val globalRouter = App.router
+
     private var _binding: FragmentItemPeopleBinding? = null
     private val binding: FragmentItemPeopleBinding
         get() = _binding ?: throw RuntimeException("FragmentItemPeopleBinding == null")
@@ -77,7 +79,7 @@ class PeopleFragment : Fragment() {
     }
 
     private fun onUserClickListener(userId: Long) {
-        App.router.navigateTo(Screens.UserProfile(userId))
+        globalRouter.navigateTo(Screens.UserProfile(userId))
     }
 
     override fun onDestroyView() {

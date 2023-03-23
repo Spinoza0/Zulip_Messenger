@@ -34,6 +34,7 @@ import kotlinx.coroutines.launch
 class ChannelsPageFragment : Fragment() {
 
     private var isAllChannels = false
+    private val globalRouter = App.router
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
@@ -105,7 +106,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        App.router.navigateTo(Screens.Messages(messagesFilter))
+        globalRouter.navigateTo(Screens.Messages(messagesFilter))
     }
 
     private fun parseParams() {
