@@ -62,10 +62,6 @@ class ChannelsPageFragment : Fragment() {
         parseParams()
         setupRecyclerView()
         setupObservers()
-
-        if (savedInstanceState == null) {
-            viewModel.loadItems()
-        }
     }
 
     private fun setupRecyclerView() {
@@ -83,7 +79,7 @@ class ChannelsPageFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
                 viewModel.state.collect(::handleState)
             }
         }
@@ -109,6 +105,14 @@ class ChannelsPageFragment : Fragment() {
         isAllChannels = arguments?.getBoolean(PARAM_IS_ALL_CHANNELS, false) ?: false
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        if (binding.recyclerViewChannels.adapter?.itemCount == NO_ITEMS) {
+            viewModel.loadItems()
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         (binding.recyclerViewChannels.adapter as MainDelegateAdapter).clear()
@@ -119,6 +123,7 @@ class ChannelsPageFragment : Fragment() {
     companion object {
 
         private const val PARAM_IS_ALL_CHANNELS = "isAllChannels"
+        private const val NO_ITEMS = 0
 
         fun newInstance(isAllChannels: Boolean): ChannelsPageFragment {
             return ChannelsPageFragment().apply {
