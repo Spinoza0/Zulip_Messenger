@@ -8,7 +8,12 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 
-class TopicDelegate(private val config: TopicDelegateConfig) : AdapterDelegate {
+class TopicDelegate(
+    private val template: String,
+    private val evenColor: Int,
+    private val oddColor: Int,
+    private val onClickListener: (MessagesFilter) -> Unit,
+) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -25,7 +30,14 @@ class TopicDelegate(private val config: TopicDelegateConfig) : AdapterDelegate {
         item: DelegateAdapterItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item as TopicDelegateItem, position, config)
+        (holder as ViewHolder).bind(
+            item as TopicDelegateItem,
+            position,
+            template,
+            evenColor,
+            oddColor,
+            onClickListener
+        )
     }
 
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
@@ -35,17 +47,24 @@ class TopicDelegate(private val config: TopicDelegateConfig) : AdapterDelegate {
     class ViewHolder(private val binding: TopicItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: TopicDelegateItem, position: Int, config: TopicDelegateConfig) {
-            val color = if (position % 2 == 0) config.evenColor else config.oddColor
+        fun bind(
+            item: TopicDelegateItem,
+            position: Int,
+            template: String,
+            evenColor: Int,
+            oddColor: Int,
+            onClickListener: (MessagesFilter) -> Unit,
+        ) {
+            val color = if (position % 2 == 0) evenColor else oddColor
             val messagesFilter = (item.content() as MessagesFilter)
             binding.textViewTopic.setBackgroundColor(color)
             binding.textViewTopic.text = String.format(
-                config.template,
+                template,
                 messagesFilter.topic.name,
                 messagesFilter.topic.messageCount
             )
             binding.root.setOnClickListener {
-                config.onClickListener(messagesFilter)
+                onClickListener(messagesFilter)
             }
         }
     }

@@ -19,7 +19,6 @@ import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateConfig
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
@@ -65,15 +64,16 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        val topicConfig = TopicDelegateConfig(
-            requireContext().getString(R.string.channels_topic_template),
-            requireContext().getThemeColor(R.attr.even_topic_color),
-            requireContext().getThemeColor(R.attr.odd_topic_color),
-            ::onTopicClickListener
-        )
         val delegateAdapter = MainDelegateAdapter()
         delegateAdapter.addDelegate(ChannelDelegate(viewModel::onChannelClickListener))
-        delegateAdapter.addDelegate(TopicDelegate(topicConfig))
+        delegateAdapter.addDelegate(
+            TopicDelegate(
+                requireContext().getString(R.string.channels_topic_template),
+                requireContext().getThemeColor(R.attr.even_topic_color),
+                requireContext().getThemeColor(R.attr.odd_topic_color),
+                ::onTopicClickListener
+            )
+        )
         binding.recyclerViewChannels.adapter = delegateAdapter
     }
 
