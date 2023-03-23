@@ -2,15 +2,13 @@ package com.spinoza.messenger_tfs.domain.model
 
 data class Message(
     val date: MessageDate,
-    val userId: Int,
-    val name: String,
-    val text: String,
-    val avatarResId: Int,
+    val user: User,
+    val content: String,
     val reactions: Map<String, ReactionParam>,
     val isIconAddVisible: Boolean,
-    val id: Int = UNDEFINED_ID,
+    val id: Long = UNDEFINED_ID,
 ) {
     companion object {
-        const val UNDEFINED_ID = -1
+        const val UNDEFINED_ID = -1L
     }
 }

@@ -1,12 +1,9 @@
 package com.spinoza.messenger_tfs.presentation.ui
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Path
-import android.graphics.Rect
 import android.util.TypedValue
 import android.view.View
+import android.widget.ProgressBar
 import androidx.core.view.marginBottom
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
@@ -14,8 +11,8 @@ import androidx.core.view.marginTop
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 
 private const val MAX_DISTANCE = 10
 
@@ -57,7 +54,7 @@ fun RecyclerView.smoothScrollToTargetPosition(targetPosition: Int) {
     this.smoothScrollToPosition(targetPosition)
 }
 
-fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Int) {
+fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Long) {
     if (changedMessageId == Message.UNDEFINED_ID) return
 
     var position = RecyclerView.NO_POSITION
@@ -95,16 +92,10 @@ fun Context.getThemeColor(attr: Int): Int {
     return typedValue.data
 }
 
-fun Bitmap.getRounded(size: Float): Bitmap {
-    val result = Bitmap.createBitmap(size.toInt(), size.toInt(), Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(result)
-    val path = Path()
-    path.addCircle((size - 1) / 2, (size - 1) / 2, size / 2, Path.Direction.CCW)
-    canvas.clipPath(path)
-    canvas.drawBitmap(
-        this,
-        Rect(0, 0, this.width, this.height),
-        Rect(0, 0, size.toInt(), size.toInt()), null
-    )
-    return result
+fun ProgressBar.on() {
+    this.visibility = View.VISIBLE
+}
+
+fun ProgressBar.off() {
+    this.visibility = View.GONE
 }

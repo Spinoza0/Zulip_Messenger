@@ -4,55 +4,73 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.spinoza.messenger_tfs.MessengerApp
+import androidx.lifecycle.repeatOnLifecycle
+import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
-import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.model.RepositoryState
-import com.spinoza.messenger_tfs.domain.usecase.GetRepositoryStateUseCase
-import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
-import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
-import com.spinoza.messenger_tfs.presentation.adapter.MainAdapter
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.date.DateDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.CompanionMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.message.UserMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.groupByDate
-import com.spinoza.messenger_tfs.presentation.adapter.itemdecorator.StickyDateInHeaderItemDecoration
-import com.spinoza.messenger_tfs.presentation.ui.MessageView
-import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
-import com.spinoza.messenger_tfs.presentation.ui.smoothScrollToChangedMessage
-import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessageViewModelFactory
+import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.repository.MessagePosition
+import com.spinoza.messenger_tfs.domain.usecase.*
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
+import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.ui.*
+import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
 import kotlinx.coroutines.launch
+import java.util.*
 
 class MessagesFragment : Fragment() {
+
+    private val globalRouter = App.router
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
-    private val mainAdapter: MainAdapter by lazy {
-        MainAdapter().apply {
-            addDelegate(CompanionMessageDelegate())
-            addDelegate(UserMessageDelegate())
-            addDelegate(DateDelegate())
-        }
-    }
 
-    private val viewModel: MessagesViewModel by viewModels {
-        MessageViewModelFactory(
-            GetRepositoryStateUseCase(MessagesRepositoryImpl.getInstance()),
+    private lateinit var messagesFilter: MessagesFilter
+    private lateinit var onBackPressedCallback: OnBackPressedCallback
+
+    private val viewModel: MessagesFragmentViewModel by viewModels {
+        MessagesFragmentViewModelFactory(
+            GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
+            GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
+            messagesFilter
         )
+    }
+
+    private val messagesAdapter by lazy {
+        MainDelegateAdapter().apply {
+            addDelegate(
+                CompanionMessageDelegate(
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener,
+                    ::onAvatarClickListener
+                )
+            )
+            addDelegate(
+                UserMessageDelegate(
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener
+                )
+            )
+            addDelegate(DateDelegate())
+        }
     }
 
     override fun onCreateView(
@@ -65,58 +83,55 @@ class MessagesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        parseParams()
+
+        setupRecyclerView()
+        setupOnBackPressedCallback()
+        setupStatusBar()
+        setupObservers()
+        setupListeners()
         setupScreen()
     }
 
     private fun setupScreen() {
-        setupStatusBar()
-        setupRecyclerView()
-        setupObservers()
-        setupListeners()
+        binding.textViewTopic.text =
+            String.format(getString(R.string.messages_topic_template), messagesFilter.topic.name)
+    }
+
+    private fun setupOnBackPressedCallback() {
+        onBackPressedCallback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                goBack()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(
+            requireActivity(),
+            onBackPressedCallback
+        )
     }
 
     private fun setupStatusBar() {
+        binding.toolbar.title = "#${messagesFilter.channel.name}"
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.channel_toolbar_background_color)
     }
 
     private fun setupRecyclerView() {
-        binding.recyclerViewMessages.adapter = mainAdapter
+        binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            viewModel.state
-                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect(::handleState)
-        }
-    }
-
-    private fun handleState(state: RepositoryState) {
-        when (state) {
-            is RepositoryState.Messages -> submitMessages(state.messages) {
-                when (state.position.type) {
-                    MessagePosition.Type.LAST_POSITION -> {
-                        val lastItemPosition = mainAdapter.itemCount - 1
-                        binding.recyclerViewMessages.smoothScrollToPosition(lastItemPosition)
-                    }
-                    MessagePosition.Type.EXACTLY -> {
-                        binding.recyclerViewMessages.smoothScrollToChangedMessage(
-                            state.position.messageId
-                        )
-                    }
-                    else -> {}
-                }
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.state.collect(::handleState)
             }
-            // TODO: show error
-            is RepositoryState.Error -> {}
         }
     }
 
     private fun setupListeners() {
         binding.toolbar.setNavigationOnClickListener {
-            MessengerApp.router.exit()
+            goBack()
         }
 
         binding.imageViewAction.setOnClickListener {
@@ -124,26 +139,66 @@ class MessagesFragment : Fragment() {
         }
 
         binding.editTextMessage.doOnTextChanged { text, _, _, _ ->
-            changeButtonSendIcon(text != null && text.toString().trim().isNotEmpty())
+            viewModel.doOnTextChanged(text)
         }
+    }
+
+    private fun handleState(state: MessagesScreenState) {
+        if (state !is MessagesScreenState.Loading) {
+            binding.progressBar.off()
+        }
+        when (state) {
+            is MessagesScreenState.Messages -> submitMessages(state.value)
+            is MessagesScreenState.UpdateIconImage -> {
+                binding.imageViewAction.setImageResource(state.resId)
+            }
+            is MessagesScreenState.Loading -> binding.progressBar.on()
+            is MessagesScreenState.Failure.MessageNotFound -> showError(
+                String.format(
+                    getString(R.string.error_message_not_found),
+                    state.messageId
+                )
+            )
+            is MessagesScreenState.Failure.UserNotFound -> showError(
+                String.format(
+                    getString(R.string.error_user_not_found),
+                    state.userId
+                )
+            )
+        }
+    }
+
+    private fun submitMessages(result: MessagesResultDelegate) {
+        messagesAdapter.submitList(result.messages) {
+            when (result.position.type) {
+                MessagePosition.Type.LAST_POSITION -> {
+                    val lastItemPosition = messagesAdapter.itemCount - 1
+                    binding.recyclerViewMessages.smoothScrollToPosition(lastItemPosition)
+                }
+                MessagePosition.Type.EXACTLY -> {
+                    binding.recyclerViewMessages.smoothScrollToChangedMessage(
+                        result.position.messageId
+                    )
+                }
+                MessagePosition.Type.UNDEFINED -> {}
+            }
+        }
+    }
+
+    private fun onAvatarClickListener(messageView: MessageView) {
+        globalRouter.navigateTo(Screens.UserProfile(messageView.userId))
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
         val dialog = ChooseReactionDialogFragment.newInstance(
             messageView.messageId,
-            viewModel.getUserId()
         )
         dialog.listener = viewModel::updateReaction
         dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
     }
 
-    // TODO: логику перенести во viewModel
-    private fun changeButtonSendIcon(readyToSend: Boolean) {
-        val resId = if (readyToSend)
-            R.drawable.ic_send
-        else
-            R.drawable.ic_add_circle_outline
-        binding.imageViewAction.setImageResource(resId)
+    private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
+        viewModel.updateReaction(messageView.messageId, reactionView.emoji)
     }
 
     private fun sendMessage() {
@@ -152,20 +207,52 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    private fun submitMessages(messages: List<Message>, callbackAfterSubmit: () -> Unit) {
-        mainAdapter.submitList(
-            messages.groupByDate(
-                userId = viewModel.getUserId(),
-                onReactionAddClickListener = ::onReactionAddClickListener,
-                onReactionClickListener = viewModel::updateReaction
-            )
+    private fun goBack() {
+        globalRouter.exit()
+    }
+
+    @Suppress("deprecation")
+    private fun parseParams() {
+        val newMessagesFilter = arguments?.getParam<MessagesFilter>(PARAM_CHANNEL_FILTER)
+        if (newMessagesFilter == null ||
+            newMessagesFilter.channel.channelId == Channel.UNDEFINED_ID ||
+            newMessagesFilter.topic.name.isEmpty()
         ) {
-            callbackAfterSubmit()
+            goBack()
+        } else {
+            messagesFilter = newMessagesFilter
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (binding.recyclerViewMessages.adapter?.itemCount == NO_MESSAGES) {
+            viewModel.loadMessages()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        onBackPressedCallback.remove()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    companion object {
+
+        private const val PARAM_CHANNEL_FILTER = "messagesFilter"
+        private const val NO_MESSAGES = 0
+
+        fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
+            return MessagesFragment().apply {
+                arguments = Bundle().apply {
+                    putParcelable(PARAM_CHANNEL_FILTER, messagesFilter)
+                }
+            }
+        }
     }
 }

@@ -13,14 +13,13 @@ import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
 
-    var listener: ((Int, Int, String) -> Unit)? = null
+    var listener: ((Long, String) -> Unit)? = null
 
     private var _binding: FragmentDialogChooseReactionBinding? = null
     private val binding: FragmentDialogChooseReactionBinding
         get() = _binding ?: throw RuntimeException("FragmentDialogChooseReactionBinding == null")
 
     private var messageId = UNDEFINED_ID
-    private var userId = UNDEFINED_ID
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,12 +33,11 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        parseParams()
-
         (dialog as? BottomSheetDialog)?.behavior?.apply {
             state = BottomSheetBehavior.STATE_HALF_EXPANDED
         }
 
+        parseParams()
         setupListeners()
         setupScreen()
     }
@@ -74,30 +72,27 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun dismissWithResult(reaction: String) {
-        listener?.invoke(messageId, userId, reaction)
+        listener?.invoke(messageId, reaction)
         dismiss()
     }
 
     private fun parseParams() {
-        messageId = arguments?.getInt(MESSAGE_ID) ?: UNDEFINED_ID
-        userId = arguments?.getInt(USER_ID) ?: UNDEFINED_ID
-        if (messageId == UNDEFINED_ID || userId == UNDEFINED_ID)
+        messageId = arguments?.getLong(MESSAGE_ID) ?: UNDEFINED_ID
+        if (messageId == UNDEFINED_ID)
             dismiss()
     }
 
     companion object {
         const val TAG = "ChooseReactionDialog"
         private const val REACTION_PADDING = 4f
-        private const val UNDEFINED_ID = -1
+        private const val UNDEFINED_ID = -1L
 
         private const val MESSAGE_ID = "messageId"
-        private const val USER_ID = "userId"
 
-        fun newInstance(messageId: Int, userId: Int): ChooseReactionDialogFragment {
+        fun newInstance(messageId: Long): ChooseReactionDialogFragment {
             return ChooseReactionDialogFragment().apply {
                 arguments = Bundle().apply {
-                    putInt(MESSAGE_ID, messageId)
-                    putInt(USER_ID, userId)
+                    putLong(MESSAGE_ID, messageId)
                 }
             }
         }

@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -47,6 +48,13 @@ dependencies {
     implementation navigation.ui
 
     implementation navigation.cicerone
+
+    implementation room.runtime
+    kapt(room.compiler)
+    implementation room.ktx
+
+    implementation glide.glide
+    kapt(glide.compiler)
 
     debugImplementation leakcanary
 }

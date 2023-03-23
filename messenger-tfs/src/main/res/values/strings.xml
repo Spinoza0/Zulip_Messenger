@@ -5,9 +5,33 @@
     <string name="avatar">Avatar</string>
 
     <!-- Fragment Messages -->
-    <string name="messages_screen_title">Messages screen</string>
-    <string name="channel_toolbar_text">#general</string>
-    <string name="action">Action</string>
+    <string name="arrow_back">Arrow back</string>
     <string name="write_message">Написать...</string>
+    <string name="messages_topic_template">Topic: #%s</string>
+
+    <!-- Bottom navigation -->
+    <string name="channels">Channels</string>
+    <string name="people">People</string>
+    <string name="profile">Profile</string>
+
+    <!-- Errors -->
+    <string name="error_user_not_found">User not found: %s</string>
+    <string name="error_message_not_found">Message not found: %s</string>
+
+    <!-- Fragment Channels -->
+    <string name="search">Search... (TODO)</string>
+    <string name="all_streams">All Streams</string>
+    <string name="subscribed_streams">Subscribed</string>
+    <string name="arrow">Arrow</string>
+    <string name="channels_topic_template">"%s     %s mes"</string>
+
+    <!-- Fragment People -->
+    <string name="users">Users... (TODO)</string>
+    <string name="online_status">Online status</string>
+
+    <!-- Fragment Profile -->
+    <string name="online">online</string>
+    <string name="offline">offline</string>
+    <string name="log_out">Log out</string>
 
 </resources>

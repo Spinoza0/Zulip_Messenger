@@ -1,12 +1,11 @@
 package com.spinoza.messenger_tfs.presentation.ui
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
@@ -22,7 +21,10 @@ class MessageView @JvmOverloads constructor(
     private val defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var messageId: Int = 0
+    var messageId: Long = UNDEFINED_ID
+        private set
+
+    var userId: Long = UNDEFINED_ID
         private set
 
     var name: String
@@ -31,10 +33,13 @@ class MessageView @JvmOverloads constructor(
             binding.nameTextView.text = value
         }
 
-    private var text: String
-        get() = binding.messageTextView.text.toString()
+    val avatarImage: ImageView
+        get() = binding.avatarImageView
+
+    private var content: String
+        get() = binding.contentTextView.text.toString()
         set(value) {
-            binding.messageTextView.text = value
+            binding.contentTextView.text = value
         }
 
     private val binding by lazy {
@@ -61,14 +66,14 @@ class MessageView @JvmOverloads constructor(
                     R.styleable.message_view_message_background_color,
                     R.drawable.shape_message_companion_bottom
                 )
-                binding.messageTextView.setBackgroundResource(messageBackground)
+                binding.contentTextView.setBackgroundResource(messageBackground)
                 binding.avatarImageView.visibility = View.GONE
                 binding.nameTextView.visibility = View.GONE
-                binding.messageTextView.setPadding(
-                    binding.messageTextView.paddingLeft,
+                binding.contentTextView.setPadding(
+                    binding.contentTextView.paddingLeft,
                     binding.nameTextView.paddingTop,
-                    binding.messageTextView.paddingRight,
-                    binding.messageTextView.paddingBottom
+                    binding.contentTextView.paddingRight,
+                    binding.contentTextView.paddingBottom
                 )
             }
         }
@@ -102,14 +107,14 @@ class MessageView @JvmOverloads constructor(
         }
 
         measureChildWithMargins(
-            binding.messageTextView,
+            binding.contentTextView,
             widthMeasureSpec,
             offsetX,
             heightMeasureSpec,
             offsetY
         )
-        maxChildWidth = maxOf(maxChildWidth, binding.messageTextView.getWidthWithMargins())
-        offsetY += binding.messageTextView.getHeightWithMargins()
+        maxChildWidth = maxOf(maxChildWidth, binding.contentTextView.getWidthWithMargins())
+        offsetY += binding.contentTextView.getHeightWithMargins()
 
         measureChildWithMargins(
             binding.reactionsFlexBoxLayout,
@@ -131,7 +136,7 @@ class MessageView @JvmOverloads constructor(
         var offsetY = paddingTop
         val textWidth = maxOf(
             binding.nameTextView.getWidthWithMargins(),
-            binding.messageTextView.getWidthWithMargins()
+            binding.contentTextView.getWidthWithMargins()
         )
 
         if (binding.avatarImageView.isVisible) {
@@ -145,8 +150,8 @@ class MessageView @JvmOverloads constructor(
             offsetY += binding.nameTextView.getHeightWithMargins()
         }
 
-        binding.messageTextView.layoutWithMargins(offsetX, offsetY, textWidth)
-        offsetY += binding.messageTextView.getHeightWithMargins()
+        binding.contentTextView.layoutWithMargins(offsetX, offsetY, textWidth)
+        offsetY += binding.contentTextView.getHeightWithMargins()
 
         if (reactionsGravity == FlexBoxGravity.END) {
             val reactionsWidth = binding.reactionsFlexBoxLayout.getWidthWithMargins()
@@ -173,16 +178,6 @@ class MessageView @JvmOverloads constructor(
         return p is MarginLayoutParams
     }
 
-    private fun setRoundAvatar(resId: Int) {
-        val bitmap = BitmapFactory.decodeResource(resources, resId)
-        setRoundAvatar(bitmap)
-    }
-
-    private fun setRoundAvatar(bitmap: Bitmap) {
-        val size = binding.avatarImageView.layoutParams.width.toFloat().dpToPx(this)
-        binding.avatarImageView.setImageBitmap(bitmap.getRounded(size))
-    }
-
     fun setOnAvatarClickListener(listener: ((MessageView) -> Unit)?) {
         binding.avatarImageView.setOnClickListener {
             listener?.invoke(this@MessageView)
@@ -194,7 +189,7 @@ class MessageView @JvmOverloads constructor(
             listener?.invoke(this@MessageView)
             true
         }
-        binding.messageTextView.setOnLongClickListener {
+        binding.contentTextView.setOnLongClickListener {
             listener?.invoke(this@MessageView)
             true
         }
@@ -232,10 +227,10 @@ class MessageView @JvmOverloads constructor(
 
     fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
         messageId = message.id
-        name = message.name
-        text = message.text
+        userId = message.user.userId
+        name = message.user.full_name
+        content = message.content
         this.reactionsGravity = reactionsGravity
-        setRoundAvatar(message.avatarResId)
         setIconAddVisibility(message.isIconAddVisible)
         binding.reactionsFlexBoxLayout.removeAllViews()
         message.reactions.forEach {
@@ -244,6 +239,7 @@ class MessageView @JvmOverloads constructor(
     }
 
     private companion object {
+        const val UNDEFINED_ID = -1L
         const val REACTION_PADDING_HORIZONTAL = 10f
         const val REACTION_PADDING_VERTICAL = 7f
     }
