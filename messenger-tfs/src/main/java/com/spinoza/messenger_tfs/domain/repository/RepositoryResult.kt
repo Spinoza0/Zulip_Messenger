@@ -1,13 +1,13 @@
 package com.spinoza.messenger_tfs.domain.repository
 
-sealed class RepositoryResult<T> {
+sealed class RepositoryResult<out T> {
 
     class Success<T>(val value: T) : RepositoryResult<T>()
 
-    sealed class Failure<T> : RepositoryResult<T>() {
+    sealed class Failure : RepositoryResult<Nothing>() {
 
-        class UserNotFound<T>(val userId: Long) : Failure<T>()
+        class UserNotFound(val userId: Long) : Failure()
 
-        class MessageNotFound<T>(val messageId: Long) : Failure<T>()
+        class MessageNotFound(val messageId: Long) : Failure()
     }
 }
