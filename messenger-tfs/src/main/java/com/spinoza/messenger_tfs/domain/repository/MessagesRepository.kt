@@ -4,7 +4,7 @@ import com.spinoza.messenger_tfs.domain.model.*
 
 interface MessagesRepository {
 
-    fun getCurrentUser(): RepositoryResult<User>
+    suspend fun getCurrentUser(): RepositoryResult<User>
 
     suspend fun getUser(userId: Long): RepositoryResult<User>
 

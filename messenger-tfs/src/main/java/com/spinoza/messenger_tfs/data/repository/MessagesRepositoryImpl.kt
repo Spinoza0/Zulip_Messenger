@@ -26,7 +26,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesLocalCache.addAll(prepareTestData())
     }
 
-    override fun getCurrentUser(): RepositoryResult<User> {
+    override suspend fun getCurrentUser(): RepositoryResult<User> {
         return RepositoryResult.Success(currentUser.toDomain())
     }
 
