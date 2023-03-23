@@ -71,10 +71,6 @@ class MessagesFragment : Fragment() {
         setupObservers()
         setupListeners()
         setupScreen()
-
-        if (savedInstanceState == null) {
-            viewModel.loadMessages()
-        }
     }
 
     private fun setupScreen() {
@@ -211,7 +207,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun goBack() {
-        globalRouter.backTo(Screens.MainMenu())
+        globalRouter.exit()
     }
 
     @Suppress("deprecation")
@@ -224,6 +220,14 @@ class MessagesFragment : Fragment() {
             goBack()
         } else {
             messagesFilter = newMessagesFilter
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (binding.recyclerViewMessages.adapter?.itemCount == NO_MESSAGES) {
+            viewModel.loadMessages()
         }
     }
 
@@ -241,6 +245,7 @@ class MessagesFragment : Fragment() {
     companion object {
 
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
+        private const val NO_MESSAGES = 0
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {
