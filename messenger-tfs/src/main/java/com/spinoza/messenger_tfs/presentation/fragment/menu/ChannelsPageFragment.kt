@@ -29,7 +29,6 @@ import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ChannelsPageFragment : Fragment() {
@@ -42,6 +41,7 @@ class ChannelsPageFragment : Fragment() {
 
     private val viewModel: ChannelsFragmentViewModel by viewModels {
         ChannelsFragmentViewModelFactory(
+            isAllChannels,
             GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
             GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance()),
             GetAllChannelsUseCase(MessagesRepositoryImpl.getInstance())
@@ -73,8 +73,8 @@ class ChannelsPageFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupRecyclerView()
         parseParams()
+        setupRecyclerView()
         setupObservers()
     }
 
@@ -85,7 +85,7 @@ class ChannelsPageFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                getState(isAllChannels).collect(::handleState)
+                viewModel.state.collect(::handleState)
             }
         }
     }
@@ -100,10 +100,6 @@ class ChannelsPageFragment : Fragment() {
             // TODO: show errors
             is ChannelsScreenState.Error -> {}
         }
-    }
-
-    private fun getState(isAllChannels: Boolean): StateFlow<ChannelsScreenState> {
-        return if (isAllChannels) viewModel.stateAllItems else viewModel.stateSubscribedItems
     }
 
     private fun onChannelClickListener(channelItem: ChannelItem) {
@@ -122,7 +118,7 @@ class ChannelsPageFragment : Fragment() {
         super.onResume()
 
         if (binding.recyclerViewChannels.adapter?.itemCount == NO_ITEMS) {
-            viewModel.loadItems(isAllChannels)
+            viewModel.loadItems()
         }
     }
 

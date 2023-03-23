@@ -20,60 +20,39 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ChannelsFragmentViewModel(
+    private val isAllChannels: Boolean,
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getSubscribedChannelsUseCase: GetSubscribedChannelsUseCase,
     private val getAllChannelsUseCase: GetAllChannelsUseCase,
 ) : ViewModel() {
 
-    val stateAllItems: StateFlow<ChannelsScreenState>
-        get() = _stateAllItems.asStateFlow()
-    val stateSubscribedItems: StateFlow<ChannelsScreenState>
-        get() = _stateSubscribedItems.asStateFlow()
-
-    private val allItemsCache = mutableListOf<DelegateAdapterItem>()
-    private val subscribedItemsCache = mutableListOf<DelegateAdapterItem>()
-    private val _stateAllItems =
-        MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Loading)
-    private val _stateSubscribedItems =
+    val state: StateFlow<ChannelsScreenState>
+        get() = _state.asStateFlow()
+    private val _state =
         MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Loading)
 
-    fun loadItems(isAllChannels: Boolean) {
+    private val cache = mutableListOf<DelegateAdapterItem>()
+
+    fun loadItems() {
         viewModelScope.launch {
-            val cache: MutableList<DelegateAdapterItem>
-            val state: MutableStateFlow<ChannelsScreenState>
-            val channelsResult: Pair<RepositoryResult, List<Channel>>
-            if (isAllChannels) {
-                cache = allItemsCache
-                state = _stateAllItems
-                channelsResult = getAllChannelsUseCase()
+            val channelsResult = if (isAllChannels) {
+                getAllChannelsUseCase()
             } else {
-                cache = subscribedItemsCache
-                state = _stateSubscribedItems
-                channelsResult = getSubscribedChannelsUseCase()
+                getSubscribedChannelsUseCase()
             }
 
             if (channelsResult.first.type == RepositoryResult.Type.SUCCESS) {
                 cache.clear()
                 cache.addAll(channelsResult.second.toDelegateItem(isAllChannels))
-                state.value = ChannelsScreenState.Items(cache.toList())
+                _state.value = ChannelsScreenState.Items(cache.toList())
             } else {
-                state.value = ChannelsScreenState.Error(channelsResult.first)
+                _state.value = ChannelsScreenState.Error(channelsResult.first)
             }
         }
     }
 
     fun onChannelClickListener(channelItem: ChannelItem) {
         viewModelScope.launch {
-            val state: MutableStateFlow<ChannelsScreenState>
-            val cache: MutableList<DelegateAdapterItem>
-            if (channelItem.isAllChannelsItem) {
-                cache = allItemsCache
-                state = _stateAllItems
-            } else {
-                cache = subscribedItemsCache
-                state = _stateSubscribedItems
-            }
-
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -114,7 +93,7 @@ class ChannelsFragmentViewModel(
                         cache.subList(index + 1, cache.size).clear()
                     }
                 }
-                state.value = ChannelsScreenState.Items(cache.toList())
+                _state.value = ChannelsScreenState.Items(cache.toList())
             }
         }
     }
@@ -138,7 +117,6 @@ class ChannelsFragmentViewModel(
     override fun onCleared() {
         super.onCleared()
 
-        allItemsCache.clear()
-        subscribedItemsCache.clear()
+        cache.clear()
     }
 }
