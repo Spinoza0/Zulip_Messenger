@@ -7,9 +7,7 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
 class GetMessagesUseCase(private val repository: MessagesRepository) {
 
-    suspend operator fun invoke(
-        messagesFilter: MessagesFilter,
-    ): Pair<RepositoryResult, MessagesResult?> {
+    suspend operator fun invoke(messagesFilter: MessagesFilter): RepositoryResult<MessagesResult> {
         return repository.getMessages(messagesFilter)
     }
 }

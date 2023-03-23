@@ -6,7 +6,7 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
 class GetTopicsUseCase(private val repository: MessagesRepository) {
 
-    suspend operator fun invoke(channelId: Long): Pair<RepositoryResult, List<Topic>> {
+    suspend operator fun invoke(channelId: Long): RepositoryResult<List<Topic>> {
         return repository.getTopics(channelId)
     }
 }

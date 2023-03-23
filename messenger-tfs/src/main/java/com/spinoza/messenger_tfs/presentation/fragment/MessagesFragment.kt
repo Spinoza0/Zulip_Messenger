@@ -151,7 +151,18 @@ class MessagesFragment : Fragment() {
                 binding.imageViewAction.setImageResource(state.resId)
             }
             is MessagesScreenState.Loading -> binding.progressBar.on()
-            is MessagesScreenState.Error -> showError(state.value)
+            is MessagesScreenState.Failure.MessageNotFound -> showError(
+                String.format(
+                    getString(R.string.error_message_not_found),
+                    state.messageId
+                )
+            )
+            is MessagesScreenState.Failure.UserNotFound -> showError(
+                String.format(
+                    getString(R.string.error_user_not_found),
+                    state.userId
+                )
+            )
         }
     }
 

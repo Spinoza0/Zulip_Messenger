@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.state
 
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 
 sealed class MessagesScreenState {
@@ -11,5 +10,10 @@ sealed class MessagesScreenState {
 
     class Messages(val value: MessagesResultDelegate) : MessagesScreenState()
 
-    class Error(val value: RepositoryResult) : MessagesScreenState()
+    sealed class Failure : MessagesScreenState() {
+
+        class UserNotFound(val userId: Long) : Failure()
+
+        class MessageNotFound(val messageId: Long) : Failure()
+    }
 }

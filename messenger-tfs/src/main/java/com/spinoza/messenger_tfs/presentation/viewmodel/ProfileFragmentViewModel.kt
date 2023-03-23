@@ -34,11 +34,13 @@ class ProfileFragmentViewModel(
         }
     }
 
-    private fun updateState(result: Pair<RepositoryResult, User?>) {
-        if (result.first.type == RepositoryResult.Type.SUCCESS) {
-            result.second?.let { _state.value = ProfileScreenState.UserData(it) }
-        } else {
-            _state.value = ProfileScreenState.Error(result.first)
+    private fun updateState(result: RepositoryResult<User>) {
+        when (result) {
+            is RepositoryResult.Success -> _state.value = ProfileScreenState.UserData(result.value)
+            is RepositoryResult.Failure.UserNotFound -> _state.value =
+                ProfileScreenState.Failure.UserNotFound(result.userId)
+            // TODO: process other errors
+            else -> {}
         }
     }
 }

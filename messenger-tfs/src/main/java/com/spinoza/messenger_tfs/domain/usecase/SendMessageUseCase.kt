@@ -11,7 +11,7 @@ class SendMessageUseCase(private val repository: MessagesRepository) {
     suspend operator fun invoke(
         message: Message,
         messagesFilter: MessagesFilter,
-    ): Pair<RepositoryResult, MessagesResult?> {
+    ): RepositoryResult<MessagesResult> {
         return repository.sendMessage(message, messagesFilter)
     }
 }

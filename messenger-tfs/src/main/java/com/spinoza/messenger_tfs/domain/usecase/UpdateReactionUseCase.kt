@@ -11,7 +11,7 @@ class UpdateReactionUseCase(private val repository: MessagesRepository) {
         messageId: Long,
         reactionValue: String,
         messagesFilter: MessagesFilter,
-    ): Pair<RepositoryResult, MessagesResult?> {
+    ): RepositoryResult<MessagesResult> {
         return repository.updateReaction(messageId, reactionValue, messagesFilter)
     }
 }

@@ -14,13 +14,12 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
-import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
-import com.spinoza.messenger_tfs.presentation.viewmodel.MainPeopleFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MainPeopleFragmentViewModelFactory
+import com.spinoza.messenger_tfs.presentation.viewmodel.PeopleFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.PeopleFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
 class PeopleFragment : Fragment() {
@@ -29,8 +28,8 @@ class PeopleFragment : Fragment() {
     private val binding: FragmentItemPeopleBinding
         get() = _binding ?: throw RuntimeException("FragmentItemPeopleBinding == null")
 
-    private val viewModel: MainPeopleFragmentViewModel by viewModels {
-        MainPeopleFragmentViewModelFactory(
+    private val viewModel: PeopleFragmentViewModel by viewModels {
+        PeopleFragmentViewModelFactory(
             GetAllUsersUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
@@ -73,7 +72,6 @@ class PeopleFragment : Fragment() {
         }
         when (state) {
             is PeopleScreenState.Users -> peopleAdapter.submitList(state.value)
-            is PeopleScreenState.Error -> showError(state.value)
             is PeopleScreenState.Loading -> binding.progressBar.on()
         }
     }

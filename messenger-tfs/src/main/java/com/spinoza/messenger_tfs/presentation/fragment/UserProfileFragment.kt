@@ -89,7 +89,12 @@ class UserProfileFragment : Fragment() {
         when (state) {
             is ProfileScreenState.UserData -> showProfileInfo(state.value)
             is ProfileScreenState.Loading -> binding.progressBar.on()
-            is ProfileScreenState.Error -> showError(state.value)
+            is ProfileScreenState.Failure.UserNotFound -> showError(
+                String.format(
+                    getString(R.string.error_user_not_found),
+                    state.userId
+                )
+            )
         }
     }
 

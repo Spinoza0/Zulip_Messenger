@@ -1,12 +1,13 @@
 package com.spinoza.messenger_tfs.domain.repository
 
-class RepositoryResult(
-    val type: Type,
-    val text: String = "",
-) {
-    enum class Type {
-        SUCCESS,
-        ERROR_USER_WITH_ID_NOT_FOUND,
-        ERROR_MESSAGE_WITH_ID_NOT_FOUND
+sealed class RepositoryResult<T> {
+
+    class Success<T>(val value: T) : RepositoryResult<T>()
+
+    sealed class Failure<T> : RepositoryResult<T>() {
+
+        class UserNotFound<T>(val userId: Long) : Failure<T>()
+
+        class MessageNotFound<T>(val messageId: Long) : Failure<T>()
     }
 }

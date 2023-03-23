@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.state
 
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
 sealed class ProfileScreenState {
 
@@ -9,5 +8,8 @@ sealed class ProfileScreenState {
 
     class UserData(val value: User) : ProfileScreenState()
 
-    class Error(val value: RepositoryResult) : ProfileScreenState()
+    sealed class Failure : ProfileScreenState() {
+
+        class UserNotFound(val userId: Long) : Failure()
+    }
 }

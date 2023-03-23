@@ -6,7 +6,7 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
 class GetSubscribedChannelsUseCase(private val repository: MessagesRepository) {
 
-    suspend operator fun invoke(): Pair<RepositoryResult, List<Channel>> {
+    suspend operator fun invoke(): RepositoryResult<List<Channel>> {
         return repository.getSubscribedChannels()
     }
 }

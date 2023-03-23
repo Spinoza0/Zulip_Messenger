@@ -8,7 +8,6 @@ import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult.Type
 import java.util.*
 
 
@@ -27,27 +26,26 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesLocalCache.addAll(prepareTestData())
     }
 
-    override fun getCurrentUser(): Pair<RepositoryResult, User> {
-        return Pair(RepositoryResult(Type.SUCCESS), currentUser.toDomain())
+    override fun getCurrentUser(): RepositoryResult<User> {
+        return RepositoryResult.Success(currentUser.toDomain())
     }
 
-    override suspend fun getUser(userId: Long): Pair<RepositoryResult, User?> {
+    override suspend fun getUser(userId: Long): RepositoryResult<User> {
         val user = usersDto.find { it.userId == userId }
         return if (user != null)
-            Pair(RepositoryResult(Type.SUCCESS), user.toDomain())
+            RepositoryResult.Success(user.toDomain())
         else
-            Pair(RepositoryResult(Type.ERROR_USER_WITH_ID_NOT_FOUND, "$userId"), null)
+            RepositoryResult.Failure.UserNotFound(userId)
     }
 
-    override suspend fun getAllUsers(): Pair<RepositoryResult, List<User>> {
-        return Pair(RepositoryResult(Type.SUCCESS), usersDto.listToDomain())
+    override suspend fun getAllUsers(): RepositoryResult<List<User>> {
+        return RepositoryResult.Success(usersDto.listToDomain())
     }
 
     override suspend fun getMessages(
         messagesFilter: MessagesFilter,
-    ): Pair<RepositoryResult, MessagesResult?> {
-        return Pair(
-            RepositoryResult(Type.SUCCESS),
+    ): RepositoryResult<MessagesResult> {
+        return RepositoryResult.Success(
             MessagesResult(
                 messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
                 MessagePosition()
@@ -55,27 +53,27 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         )
     }
 
-    override suspend fun getAllChannels(): Pair<RepositoryResult, List<Channel>> {
-        return Pair(RepositoryResult(Type.SUCCESS), channelsDto.toDomain())
+    override suspend fun getAllChannels(): RepositoryResult<List<Channel>> {
+        return RepositoryResult.Success(channelsDto.toDomain())
     }
 
     // TODO: "Not yet implemented"
-    override suspend fun getSubscribedChannels(): Pair<RepositoryResult, List<Channel>> {
+    override suspend fun getSubscribedChannels(): RepositoryResult<List<Channel>> {
         return getAllChannels()
     }
 
-    override suspend fun getTopics(channelId: Long): Pair<RepositoryResult, List<Topic>> {
+    override suspend fun getTopics(channelId: Long): RepositoryResult<List<Topic>> {
         val topics = channelsDto
             .find { it.id == channelId }
             ?.topics
             ?.toDomain(messagesLocalCache, channelId) ?: listOf()
-        return Pair(RepositoryResult(Type.SUCCESS), topics)
+        return RepositoryResult.Success(topics)
     }
 
     override suspend fun sendMessage(
         message: Message,
         messagesFilter: MessagesFilter,
-    ): Pair<RepositoryResult, MessagesResult?> {
+    ): RepositoryResult<MessagesResult> {
         val newMessageId = if (message.id == Message.UNDEFINED_ID) {
             messagesLocalCache.size.toLong()
         } else {
@@ -88,8 +86,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 messagesFilter = messagesFilter
             )
         )
-        return Pair(
-            RepositoryResult(Type.SUCCESS),
+        return RepositoryResult.Success(
             MessagesResult(
                 messagesLocalCache.toDomain(message.user.userId, messagesFilter),
                 MessagePosition(type = MessagePosition.Type.LAST_POSITION)
@@ -101,13 +98,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messageId: Long,
         reaction: String,
         messagesFilter: MessagesFilter,
-    ): Pair<RepositoryResult, MessagesResult?> {
+    ): RepositoryResult<MessagesResult> {
         val messageDto = messagesLocalCache
             .find { it.id == messageId }
-            ?: return Pair(
-                RepositoryResult(Type.ERROR_MESSAGE_WITH_ID_NOT_FOUND, "$messageId"),
-                null
-            )
+            ?: return RepositoryResult.Failure.MessageNotFound(messageId)
 
         val reactionDto = messageDto.reactions[reaction]
         val newReactionsDto = messageDto.reactions.toMutableMap()
@@ -125,8 +119,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         messagesLocalCache.removeIf { it.id == messageId }
         messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
-        return Pair(
-            RepositoryResult(Type.SUCCESS),
+        return RepositoryResult.Success(
             MessagesResult(
                 messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
                 MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)

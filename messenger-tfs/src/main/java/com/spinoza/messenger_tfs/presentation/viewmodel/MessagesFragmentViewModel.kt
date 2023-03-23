@@ -47,11 +47,13 @@ class MessagesFragmentViewModel(
 
     private fun loadCurrentUser() {
         viewModelScope.launch {
-            val result = getCurrentUserUseCase.invoke()
-            if (result.first.type == RepositoryResult.Type.SUCCESS) {
-                result.second?.let { currentUser = it }
-            } else {
-                _state.value = MessagesScreenState.Error(result.first)
+            when (val result = getCurrentUserUseCase()) {
+                is RepositoryResult.Success -> currentUser = result.value
+                is RepositoryResult.Failure.UserNotFound -> {
+                    _state.value = MessagesScreenState.Failure.UserNotFound(result.userId)
+                }
+                // TODO: process other errors
+                else -> {}
             }
         }
     }
@@ -100,18 +102,16 @@ class MessagesFragmentViewModel(
         _state.value = MessagesScreenState.UpdateIconImage(resId)
     }
 
-    private fun updateMessages(result: Pair<RepositoryResult, MessagesResult?>) {
-        if (result.first.type == RepositoryResult.Type.SUCCESS) {
-            result.second?.let { messagesResult ->
-                _state.value = MessagesScreenState.Messages(
-                    MessagesResultDelegate(
-                        messagesResult.messages.groupByDate(),
-                        messagesResult.position
-                    )
-                )
-            }
-        } else {
-            _state.value = MessagesScreenState.Error(result.first)
+    private fun updateMessages(result: RepositoryResult<MessagesResult>) {
+        when (result) {
+            is RepositoryResult.Success -> _state.value = MessagesScreenState.Messages(
+                MessagesResultDelegate(result.value.messages.groupByDate(), result.value.position)
+            )
+            is RepositoryResult.Failure.MessageNotFound -> MessagesScreenState.Failure.MessageNotFound(
+                result.messageId
+            )
+            // TODO: process other errors
+            else -> {}
         }
     }
 

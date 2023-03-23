@@ -97,8 +97,6 @@ class ChannelsPageFragment : Fragment() {
         when (state) {
             is ChannelsScreenState.Items -> delegateAdapter.submitList(state.value)
             is ChannelsScreenState.Loading -> binding.progressBar.on()
-            // TODO: show errors
-            is ChannelsScreenState.Error -> {}
         }
     }
 

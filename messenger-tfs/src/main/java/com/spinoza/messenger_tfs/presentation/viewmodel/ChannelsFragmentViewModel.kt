@@ -35,18 +35,18 @@ class ChannelsFragmentViewModel(
 
     fun loadItems() {
         viewModelScope.launch {
-            val channelsResult = if (isAllChannels) {
+            when (val result = if (isAllChannels)
                 getAllChannelsUseCase()
-            } else {
+            else
                 getSubscribedChannelsUseCase()
-            }
-
-            if (channelsResult.first.type == RepositoryResult.Type.SUCCESS) {
-                cache.clear()
-                cache.addAll(channelsResult.second.toDelegateItem(isAllChannels))
-                _state.value = ChannelsScreenState.Items(cache.toList())
-            } else {
-                _state.value = ChannelsScreenState.Error(channelsResult.first)
+            ) {
+                is RepositoryResult.Success -> {
+                    cache.clear()
+                    cache.addAll(result.value.toDelegateItem(isAllChannels))
+                    _state.value = ChannelsScreenState.Items(cache.toList())
+                }
+                // TODO: process other errors
+                is RepositoryResult.Failure -> {}
             }
         }
     }
@@ -71,12 +71,13 @@ class ChannelsFragmentViewModel(
                 if (oldChannelItem.isFolded) {
                     val topicsResult =
                         getTopicsUseCase(channelItem.channel.channelId)
-                    if (topicsResult.first.type == RepositoryResult.Type.SUCCESS) {
+                    if (topicsResult is RepositoryResult.Success) {
                         cache.addAll(
                             index + 1,
-                            topicsResult.second.toDelegateItem(channelItem.channel)
+                            topicsResult.value.toDelegateItem(channelItem.channel)
                         )
                     }
+                    // TODO: process other errors
                 } else {
                     var nextIndex = index + 1
                     var isNextElementExist = false
