@@ -40,7 +40,6 @@ class MessagesFragment : Fragment() {
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
-
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
 
@@ -52,25 +51,6 @@ class MessagesFragment : Fragment() {
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
             messagesFilter
         )
-    }
-
-    private val messagesAdapter by lazy {
-        MainDelegateAdapter().apply {
-            addDelegate(
-                CompanionMessageDelegate(
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener,
-                    ::onAvatarClickListener
-                )
-            )
-            addDelegate(
-                UserMessageDelegate(
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener
-                )
-            )
-            addDelegate(DateDelegate())
-        }
     }
 
     override fun onCreateView(
@@ -91,6 +71,10 @@ class MessagesFragment : Fragment() {
         setupObservers()
         setupListeners()
         setupScreen()
+
+        if (savedInstanceState == null) {
+            viewModel.loadMessages()
+        }
     }
 
     private fun setupScreen() {
@@ -117,6 +101,23 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
+        val messagesAdapter = MainDelegateAdapter().apply {
+            addDelegate(
+                CompanionMessageDelegate(
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener,
+                    ::onAvatarClickListener
+                )
+            )
+            addDelegate(
+                UserMessageDelegate(
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener
+                )
+            )
+            addDelegate(DateDelegate())
+        }
+
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
     }
@@ -169,6 +170,8 @@ class MessagesFragment : Fragment() {
     }
 
     private fun submitMessages(result: MessagesResultDelegate) {
+        val messagesAdapter =
+            binding.recyclerViewMessages.adapter as MainDelegateAdapter
         messagesAdapter.submitList(result.messages) {
             when (result.position.type) {
                 MessagePosition.Type.LAST_POSITION -> {
@@ -208,7 +211,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun goBack() {
-        globalRouter.exit()
+        globalRouter.backTo(Screens.MainMenu())
     }
 
     @Suppress("deprecation")
@@ -224,14 +227,6 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        if (binding.recyclerViewMessages.adapter?.itemCount == NO_MESSAGES) {
-            viewModel.loadMessages()
-        }
-    }
-
     override fun onStop() {
         super.onStop()
         onBackPressedCallback.remove()
@@ -239,13 +234,13 @@ class MessagesFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        (binding.recyclerViewMessages.adapter as MainDelegateAdapter).clear()
         _binding = null
     }
 
     companion object {
 
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
-        private const val NO_MESSAGES = 0
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {
