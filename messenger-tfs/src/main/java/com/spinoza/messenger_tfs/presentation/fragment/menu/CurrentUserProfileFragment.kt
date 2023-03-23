@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -15,6 +17,7 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
@@ -23,7 +26,7 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ProfileFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
-class ItemProfileFragment : Fragment() {
+class CurrentUserProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding: FragmentProfileBinding
@@ -32,7 +35,8 @@ class ItemProfileFragment : Fragment() {
 
     private val viewModel: ProfileFragmentViewModel by viewModels {
         ProfileFragmentViewModelFactory(
-            GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance())
+            GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
+            GetUserUseCase(MessagesRepositoryImpl.getInstance())
         )
     }
 
@@ -84,13 +88,8 @@ class ItemProfileFragment : Fragment() {
             } else {
                 textViewStatus.text = user.status
             }
-            if (user.isActive) {
-                textViewStatusOnline.visibility = View.VISIBLE
-                textViewStatusOffline.visibility = View.GONE
-            } else {
-                textViewStatusOnline.visibility = View.GONE
-                textViewStatusOffline.visibility = View.VISIBLE
-            }
+            textViewStatusOnline.isVisible = user.isActive
+            textViewStatusOffline.isGone = user.isActive
             com.bumptech.glide.Glide.with(imageViewAvatar)
                 .load(user.avatar_url)
                 .transform(RoundedCorners(20))
@@ -106,8 +105,8 @@ class ItemProfileFragment : Fragment() {
 
     companion object {
 
-        fun newInstance(): ItemProfileFragment {
-            return ItemProfileFragment()
+        fun newInstance(): CurrentUserProfileFragment {
+            return CurrentUserProfileFragment()
         }
     }
 }

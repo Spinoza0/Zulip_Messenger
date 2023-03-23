@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 class ProfileFragmentViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
-    private val getUserUseCase: GetUserUseCase?,
+    private val getUserUseCase: GetUserUseCase,
 ) : ViewModel() {
 
     val state: StateFlow<ProfileScreenState>
@@ -30,8 +30,7 @@ class ProfileFragmentViewModel(
 
     fun loadUser(userId: Long) {
         viewModelScope.launch {
-            val result = getUserUseCase?.invoke(userId)
-            if (result != null) updateState(result)
+            updateState(getUserUseCase(userId))
         }
     }
 

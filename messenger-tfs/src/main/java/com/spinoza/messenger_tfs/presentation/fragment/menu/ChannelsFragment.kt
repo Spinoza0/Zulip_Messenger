@@ -10,7 +10,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentItemChannelsBinding
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelsPagerAdapter
 
-class ItemChannelsFragment : Fragment() {
+class ChannelsFragment : Fragment() {
 
     private var _binding: FragmentItemChannelsBinding? = null
     private val binding: FragmentItemChannelsBinding
@@ -46,8 +46,8 @@ class ItemChannelsFragment : Fragment() {
         tabLayoutMediator =
             TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
                 when (position) {
-                    0 -> tab.setText(R.string.subscribed_streams)
-                    1 -> tab.setText(R.string.all_streams)
+                    TAB_SUBSCRIBED -> tab.setText(R.string.subscribed_streams)
+                    TAB_ALL -> tab.setText(R.string.all_streams)
                     else -> throw RuntimeException("Unknown tab position: $position")
                 }
             }
@@ -67,8 +67,11 @@ class ItemChannelsFragment : Fragment() {
 
     companion object {
 
-        fun newInstance(): ItemChannelsFragment {
-            return ItemChannelsFragment()
+        private const val TAB_SUBSCRIBED = 0
+        private const val TAB_ALL = 1
+
+        fun newInstance(): ChannelsFragment {
+            return ChannelsFragment()
         }
     }
 }

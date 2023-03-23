@@ -26,7 +26,7 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ProfileFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
-class ProfileFragment : Fragment() {
+class UserProfileFragment : Fragment() {
 
     private lateinit var onBackPressedCallback: OnBackPressedCallback
     private var _binding: FragmentProfileBinding? = null
@@ -155,8 +155,8 @@ class ProfileFragment : Fragment() {
         private const val EXTRA_USER_ID = "userId"
         private const val UNDEFINED_USER_ID = -1L
 
-        fun newInstance(userId: Long): ProfileFragment {
-            return ProfileFragment().apply {
+        fun newInstance(userId: Long): UserProfileFragment {
+            return UserProfileFragment().apply {
                 arguments = Bundle().apply {
                     putLong(EXTRA_USER_ID, userId)
                 }

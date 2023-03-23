@@ -49,7 +49,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
 
-    private val delegatesAdapter by lazy {
+    private val delegateAdapter by lazy {
         MainDelegateAdapter().apply {
             val topicConfig = TopicDelegateConfig(
                 requireContext().getString(R.string.channels_topic_template),
@@ -79,7 +79,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.recyclerViewChannels.adapter = delegatesAdapter
+        binding.recyclerViewChannels.adapter = delegateAdapter
     }
 
     private fun setupObservers() {
@@ -95,7 +95,7 @@ class ChannelsPageFragment : Fragment() {
             binding.progressBar.off()
         }
         when (state) {
-            is ChannelsScreenState.Items -> delegatesAdapter.submitList(state.value)
+            is ChannelsScreenState.Items -> delegateAdapter.submitList(state.value)
             is ChannelsScreenState.Loading -> binding.progressBar.on()
             // TODO: show errors
             is ChannelsScreenState.Error -> {}

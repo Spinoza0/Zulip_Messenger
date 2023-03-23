@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.adapter.user
+package com.spinoza.messenger_tfs.presentation.adapter.people
 
 import androidx.recyclerview.widget.DiffUtil
 import com.spinoza.messenger_tfs.domain.model.User

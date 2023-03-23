@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.adapter.user
+package com.spinoza.messenger_tfs.presentation.adapter.people
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,7 +6,7 @@ import androidx.recyclerview.widget.ListAdapter
 import com.spinoza.messenger_tfs.databinding.UserItemBinding
 import com.spinoza.messenger_tfs.domain.model.User
 
-class UserAdapter(
+class PeopleAdapter(
     private val onClickListener: (Long) -> Unit,
 ) : ListAdapter<User, UserViewHolder>(UserDiffCallback()) {
 

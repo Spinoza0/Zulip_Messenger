@@ -3,9 +3,9 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
@@ -93,7 +93,7 @@ class MessagesFragmentViewModel(
     }
 
     fun doOnTextChanged(text: CharSequence?) {
-        val resId = if (text != null && text.toString().trim().isNotEmpty())
+        val resId = if (text?.toString()?.isNotBlank() == true)
             R.drawable.ic_send
         else
             R.drawable.ic_add_circle_outline

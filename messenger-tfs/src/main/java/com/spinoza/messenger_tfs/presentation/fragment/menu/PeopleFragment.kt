@@ -13,7 +13,7 @@ import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
-import com.spinoza.messenger_tfs.presentation.adapter.user.UserAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
@@ -23,7 +23,7 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.MainPeopleFragmentViewMo
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MainPeopleFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
-class ItemPeopleFragment : Fragment() {
+class PeopleFragment : Fragment() {
 
     private var _binding: FragmentItemPeopleBinding? = null
     private val binding: FragmentItemPeopleBinding
@@ -35,7 +35,7 @@ class ItemPeopleFragment : Fragment() {
         )
     }
 
-    private val adapter by lazy { UserAdapter(::onUserClickListener) }
+    private val peopleAdapter by lazy { PeopleAdapter(::onUserClickListener) }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,7 +56,7 @@ class ItemPeopleFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        binding.recyclerViewUsers.adapter = adapter
+        binding.recyclerViewUsers.adapter = peopleAdapter
     }
 
     private fun setupObservers() {
@@ -72,7 +72,7 @@ class ItemPeopleFragment : Fragment() {
             binding.progressBar.off()
         }
         when (state) {
-            is PeopleScreenState.Users -> adapter.submitList(state.value)
+            is PeopleScreenState.Users -> peopleAdapter.submitList(state.value)
             is PeopleScreenState.Error -> showError(state.value)
             is PeopleScreenState.Loading -> binding.progressBar.on()
         }
@@ -88,8 +88,8 @@ class ItemPeopleFragment : Fragment() {
     }
 
     companion object {
-        fun newInstance(): ItemPeopleFragment {
-            return ItemPeopleFragment()
+        fun newInstance(): PeopleFragment {
+            return PeopleFragment()
         }
     }
 }
