@@ -18,14 +18,6 @@ class ChannelsFragment : Fragment() {
 
     private lateinit var tabLayoutMediator: TabLayoutMediator
 
-    private val channelsPagerAdapter by lazy {
-        val childFragments = listOf(
-            ChannelsPageFragment.newInstance(false),
-            ChannelsPageFragment.newInstance(true)
-        )
-        ChannelsPagerAdapter(childFragmentManager, lifecycle, childFragments)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -41,6 +33,10 @@ class ChannelsFragment : Fragment() {
     }
 
     private fun setupViewPager() {
+        val channelsPagerAdapter = ChannelsPagerAdapter(childFragmentManager, lifecycle)
+        channelsPagerAdapter.addFragment(ChannelsPageFragment.newInstance(false))
+        channelsPagerAdapter.addFragment(ChannelsPageFragment.newInstance(true))
+
         binding.viewPager.adapter = channelsPagerAdapter
 
         tabLayoutMediator =
@@ -54,14 +50,10 @@ class ChannelsFragment : Fragment() {
         tabLayoutMediator.attach()
     }
 
-    override fun onStop() {
-        super.onStop()
-        tabLayoutMediator.detach()
-        binding.viewPager.adapter = null
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
+        tabLayoutMediator.detach()
+        (binding.viewPager.adapter as ChannelsPagerAdapter).clear()
         _binding = null
     }
 

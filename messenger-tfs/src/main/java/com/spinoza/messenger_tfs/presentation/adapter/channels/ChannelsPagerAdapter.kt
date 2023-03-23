@@ -8,8 +8,17 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 class ChannelsPagerAdapter(
     fragmentManager: FragmentManager,
     lifecycle: Lifecycle,
-    private val fragments: List<Fragment>,
 ) : FragmentStateAdapter(fragmentManager, lifecycle) {
+
+    private val fragments = mutableListOf<Fragment>()
+
+    fun addFragment(fragment: Fragment) {
+        fragments.add(fragment)
+    }
+
+    fun clear() {
+        fragments.clear()
+    }
 
     override fun getItemCount() = fragments.size
 
