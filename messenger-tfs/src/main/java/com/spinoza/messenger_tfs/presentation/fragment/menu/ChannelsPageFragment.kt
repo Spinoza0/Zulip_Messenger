@@ -20,7 +20,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
-import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
+import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
@@ -31,6 +31,8 @@ import kotlinx.coroutines.launch
 class ChannelsPageFragment : Fragment() {
 
     private var isAllChannels = false
+
+    private var channelsFilter = ChannelsFilter()
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
@@ -63,7 +65,12 @@ class ChannelsPageFragment : Fragment() {
     }
 
     fun setChannelsFilter(filter: String) {
-        viewModel.loadItems(ChannelsFilter(filter))
+        viewModel.setChannelsFilter(ChannelsFilter(filter))
+        viewModel.loadItems()
+    }
+
+    fun getChannelsFilter(): ChannelsFilter {
+        return channelsFilter
     }
 
     private fun setupRecyclerView() {
@@ -81,22 +88,22 @@ class ChannelsPageFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::handleState)
             }
         }
     }
 
-    private fun handleState(state: ChannelsScreenState) {
-        if (state !is ChannelsScreenState.Loading) {
+    private fun handleState(state: ChannelsPageScreenState) {
+        if (state !is ChannelsPageScreenState.Loading) {
             binding.progressBar.off()
         }
         when (state) {
-            is ChannelsScreenState.Items -> {
+            is ChannelsPageScreenState.Items -> {
                 (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
                     .submitList(state.value)
             }
-            is ChannelsScreenState.TopicMessagesCountUpdate -> {
+            is ChannelsPageScreenState.TopicMessagesCountUpdate -> {
                 val itemAnimator = binding.recyclerViewChannels.itemAnimator
                 binding.recyclerViewChannels.itemAnimator = null
                 (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
@@ -104,7 +111,8 @@ class ChannelsPageFragment : Fragment() {
                         binding.recyclerViewChannels.itemAnimator = itemAnimator
                     }
             }
-            is ChannelsScreenState.Loading -> binding.progressBar.on()
+            is ChannelsPageScreenState.Loading -> binding.progressBar.on()
+            is ChannelsPageScreenState.Filter -> channelsFilter = state.value
         }
     }
 
@@ -116,7 +124,7 @@ class ChannelsPageFragment : Fragment() {
         super.onResume()
 
         if (binding.recyclerViewChannels.adapter?.itemCount == NO_ITEMS) {
-            viewModel.loadItems(ChannelsFilter())
+            viewModel.loadItems()
         } else {
             viewModel.updateMessagesCount()
         }

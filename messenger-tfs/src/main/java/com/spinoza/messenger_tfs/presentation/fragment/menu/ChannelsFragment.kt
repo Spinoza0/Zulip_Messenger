@@ -6,10 +6,17 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.tabs.TabLayoutMediator
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentItemChannelsBinding
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelsPagerAdapter
+import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
+import kotlinx.coroutines.launch
 
 class ChannelsFragment : Fragment() {
 
@@ -19,8 +26,12 @@ class ChannelsFragment : Fragment() {
 
     private lateinit var tabLayoutMediator: TabLayoutMediator
 
-    private val subscribedChannelsFragment = ChannelsPageFragment.newInstance(false)
-    private val allChannelsFragment = ChannelsPageFragment.newInstance(true)
+    private val fragments = listOf(
+        ChannelsPageFragment.newInstance(false),
+        ChannelsPageFragment.newInstance(true)
+    )
+
+    private val viewModel: ChannelsFragmentViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,15 +46,11 @@ class ChannelsFragment : Fragment() {
 
         setupViewPager()
         setupListeners()
+        setupObservers()
     }
 
     private fun setupViewPager() {
-        val channelsPagerAdapter = ChannelsPagerAdapter(
-            childFragmentManager,
-            lifecycle,
-            listOf(subscribedChannelsFragment, allChannelsFragment)
-        )
-
+        val channelsPagerAdapter = ChannelsPagerAdapter(childFragmentManager, lifecycle, fragments)
         binding.viewPager.adapter = channelsPagerAdapter
 
         tabLayoutMediator =
@@ -58,8 +65,24 @@ class ChannelsFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.editTextSearch.doOnTextChanged { text, start, before, count ->
-            // TODO
+        binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
+            viewModel.doOnTextChanged(text)
+        }
+    }
+
+    private fun setupObservers() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.state.collect(::handleState)
+            }
+        }
+    }
+
+    private fun handleState(state: ChannelsScreenState) {
+        when (state) {
+            is ChannelsScreenState.Search ->
+                fragments[binding.viewPager.currentItem].setChannelsFilter(state.value)
+            is ChannelsScreenState.Idle -> {}
         }
     }
 

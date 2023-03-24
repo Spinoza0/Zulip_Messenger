@@ -17,7 +17,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
-import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
+import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,17 +31,27 @@ class ChannelsPageFragmentViewModel(
     private val getTopicUseCase: GetTopicUseCase,
 ) : ViewModel() {
 
-    val state: StateFlow<ChannelsScreenState>
+    val state: StateFlow<ChannelsPageScreenState>
         get() = _state.asStateFlow()
+
+    private var channelsFilter = ChannelsFilter()
+
     private val _state =
-        MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Loading)
+        MutableStateFlow<ChannelsPageScreenState>(ChannelsPageScreenState.Filter(channelsFilter))
 
     private val cache = mutableListOf<DelegateAdapterItem>()
     private val globalRouter = App.router
     private var isReturnFromMessagesScreen = false
 
-    fun loadItems(channelsFilter: ChannelsFilter) {
+
+    fun setChannelsFilter(newFilter: ChannelsFilter) {
+        channelsFilter = newFilter
+        _state.value = ChannelsPageScreenState.Filter(channelsFilter)
+    }
+
+    fun loadItems() {
         viewModelScope.launch {
+            _state.value = ChannelsPageScreenState.Loading
             when (val result = if (isAllChannels)
                 getAllChannelsUseCase(channelsFilter)
             else
@@ -49,7 +59,7 @@ class ChannelsPageFragmentViewModel(
             ) {
                 is RepositoryResult.Success -> {
                     updateCache(result.value.toDelegateItem(isAllChannels))
-                    _state.value = ChannelsScreenState.Items(cache.toList())
+                    _state.value = ChannelsPageScreenState.Items(cache.toList())
                 }
                 // TODO: process other errors
                 is RepositoryResult.Failure -> {}
@@ -69,7 +79,7 @@ class ChannelsPageFragmentViewModel(
                         }
                     }
                 }
-                _state.value = ChannelsScreenState.TopicMessagesCountUpdate(cache.toList())
+                _state.value = ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList())
             }
             isReturnFromMessagesScreen = false
         }
@@ -109,7 +119,7 @@ class ChannelsPageFragmentViewModel(
                     }
                     cache.subList(index + 1, nextIndex).clear()
                 }
-                _state.value = ChannelsScreenState.Items(cache.toList())
+                _state.value = ChannelsPageScreenState.Items(cache.toList())
             }
         }
     }

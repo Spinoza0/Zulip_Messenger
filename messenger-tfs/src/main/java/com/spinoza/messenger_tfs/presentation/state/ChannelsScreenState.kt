@@ -1,12 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.state
 
-import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
-
 sealed class ChannelsScreenState {
 
-    object Loading : ChannelsScreenState()
+    object Idle: ChannelsScreenState()
 
-    class Items(val value: List<DelegateAdapterItem>) : ChannelsScreenState()
-
-    class TopicMessagesCountUpdate(val value: List<DelegateAdapterItem>) : ChannelsScreenState()
+    class Search(val value: String) : ChannelsScreenState()
 }
