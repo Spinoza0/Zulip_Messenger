@@ -99,9 +99,26 @@ class ChannelsFragmentViewModel(
         }
     }
 
-    private fun updateCache(newChannels: List<DelegateAdapterItem>) {
+    private fun updateCache(newItems: List<DelegateAdapterItem>) {
+        val newCache = mutableListOf<DelegateAdapterItem>()
+        newItems.forEach { newItem ->
+            val oldItem = cache.find { oldItem ->
+                if (newItem is ChannelDelegateItem && oldItem is ChannelDelegateItem) {
+                    val newChannelItem = newItem.content() as ChannelItem
+                    val oldChannelItem = oldItem.content() as ChannelItem
+                    newChannelItem.channel == oldChannelItem.channel
+                } else false
+            }
+
+            if (oldItem != null) {
+                newCache.add(oldItem)
+            } else if (newItem is ChannelDelegateItem) {
+                newCache.add(newItem)
+            }
+        }
+
         cache.clear()
-        cache.addAll(newChannels)
+        cache.addAll(newCache)
     }
 
     private fun Channel.toDelegateItem(isAllChannels: Boolean): ChannelDelegateItem {
