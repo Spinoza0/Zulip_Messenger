@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -9,11 +10,13 @@ import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetTopicUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +28,7 @@ class ChannelsFragmentViewModel(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getSubscribedChannelsUseCase: GetSubscribedChannelsUseCase,
     private val getAllChannelsUseCase: GetAllChannelsUseCase,
+    private val getTopicUseCase: GetTopicUseCase,
 ) : ViewModel() {
 
     val state: StateFlow<ChannelsScreenState>
@@ -33,6 +37,8 @@ class ChannelsFragmentViewModel(
         MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Loading)
 
     private val cache = mutableListOf<DelegateAdapterItem>()
+    private val globalRouter = App.router
+    private var isReturnFromMessagesScreen = false
 
     fun loadItems(channelsFilter: ChannelsFilter) {
         viewModelScope.launch {
@@ -48,6 +54,24 @@ class ChannelsFragmentViewModel(
                 // TODO: process other errors
                 is RepositoryResult.Failure -> {}
             }
+        }
+    }
+
+    fun updateMessagesCount() {
+        if (isReturnFromMessagesScreen) {
+            viewModelScope.launch {
+                for (i in 0 until cache.size) {
+                    if (cache[i] is TopicDelegateItem) {
+                        val messagesFilter = cache[i].content() as MessagesFilter
+                        val result = getTopicUseCase(messagesFilter)
+                        if (result is RepositoryResult.Success) {
+                            cache[i] = TopicDelegateItem(messagesFilter.copy(topic = result.value))
+                        }
+                    }
+                }
+                _state.value = ChannelsScreenState.Items(cache.toList())
+            }
+            isReturnFromMessagesScreen = false
         }
     }
 
@@ -69,34 +93,30 @@ class ChannelsFragmentViewModel(
                 cache[index] = newChannelDelegateItem
 
                 if (oldChannelItem.isFolded) {
-                    val topicsResult =
-                        getTopicsUseCase(channelItem.channel.channelId)
-                    if (topicsResult is RepositoryResult.Success) {
-                        cache.addAll(
-                            index + 1,
-                            topicsResult.value.toDelegateItem(channelItem.channel)
-                        )
-                    }
-                    // TODO: process other errors
+                    addTopicsToCache(channelItem, index + 1)
                 } else {
                     var nextIndex = index + 1
-                    var isNextElementExist = false
-                    while (nextIndex < cache.size && !isNextElementExist) {
+                    var isNextChannelItemExist = false
+                    while (nextIndex < cache.size && !isNextChannelItemExist) {
                         if (cache[nextIndex] is ChannelDelegateItem) {
-                            isNextElementExist = true
+                            isNextChannelItemExist = true
                         } else {
                             nextIndex++
                         }
                     }
-                    if (isNextElementExist) {
-                        cache.subList(index + 1, nextIndex).clear()
-                    } else {
-                        cache.subList(index + 1, cache.size).clear()
+                    if (!isNextChannelItemExist) {
+                        nextIndex = cache.size
                     }
+                    cache.subList(index + 1, nextIndex).clear()
                 }
                 _state.value = ChannelsScreenState.Items(cache.toList())
             }
         }
+    }
+
+    fun onTopicClickListener(messagesFilter: MessagesFilter) {
+        isReturnFromMessagesScreen = true
+        globalRouter.navigateTo(Screens.Messages(messagesFilter))
     }
 
     private fun updateCache(newItems: List<DelegateAdapterItem>) {
@@ -112,6 +132,23 @@ class ChannelsFragmentViewModel(
 
             if (oldItem != null) {
                 newCache.add(oldItem)
+                val channelItem = oldItem.content() as ChannelItem
+                if (!channelItem.isFolded) {
+                    val index = cache.indexOf(oldItem)
+                    var nextIndex = index + 1
+                    var isNextChannelItemExist = false
+                    while (nextIndex < cache.size && !isNextChannelItemExist) {
+                        if (cache[nextIndex] is ChannelDelegateItem) {
+                            isNextChannelItemExist = true
+                        } else {
+                            nextIndex++
+                        }
+                    }
+                    if (!isNextChannelItemExist) {
+                        nextIndex = cache.size
+                    }
+                    newCache.addAll(cache.subList(index + 1, nextIndex))
+                }
             } else if (newItem is ChannelDelegateItem) {
                 newCache.add(newItem)
             }
@@ -119,6 +156,18 @@ class ChannelsFragmentViewModel(
 
         cache.clear()
         cache.addAll(newCache)
+    }
+
+    private suspend fun addTopicsToCache(channelItem: ChannelItem, index: Int = UNDEFINED_INDEX) {
+        val topicsResult = getTopicsUseCase(channelItem.channel.channelId)
+        if (topicsResult is RepositoryResult.Success) {
+            val topics = topicsResult.value.toDelegateItem(channelItem.channel)
+            if (index != UNDEFINED_INDEX)
+                cache.addAll(index, topics)
+            else
+                cache.addAll(topics)
+        }
+        // TODO: process other errors}
     }
 
     private fun Channel.toDelegateItem(isAllChannels: Boolean): ChannelDelegateItem {
@@ -141,5 +190,9 @@ class ChannelsFragmentViewModel(
         super.onCleared()
 
         cache.clear()
+    }
+
+    private companion object {
+        const val UNDEFINED_INDEX = -1
     }
 }

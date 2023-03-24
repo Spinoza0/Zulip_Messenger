@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.data.repository
 import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
+import com.spinoza.messenger_tfs.data.model.TopicDto
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -72,6 +73,15 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             ?.topics
             ?.toDomain(messagesLocalCache, channelId) ?: listOf()
         return RepositoryResult.Success(topics)
+    }
+
+    override suspend fun getTopic(
+        messagesFilter: MessagesFilter,
+    ): RepositoryResult<Topic> {
+        return RepositoryResult.Success(
+            TopicDto(messagesFilter.topic.name, Message.UNDEFINED_ID)
+                .toDomain(messagesLocalCache, messagesFilter.channel.channelId)
+        )
     }
 
     override suspend fun sendMessage(

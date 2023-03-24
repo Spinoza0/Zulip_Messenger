@@ -11,6 +11,7 @@ class ChannelsFragmentViewModelFactory(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getSubscribedChannelsUseCase: GetSubscribedChannelsUseCase,
     private val getAllChannelsUseCase: GetAllChannelsUseCase,
+    private val getTopicUseCase: GetTopicUseCase,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -18,7 +19,8 @@ class ChannelsFragmentViewModelFactory(
             isAllChannels,
             getTopicsUseCase,
             getSubscribedChannelsUseCase,
-            getAllChannelsUseCase
+            getAllChannelsUseCase,
+            getTopicUseCase
         ) as T
     }
 }

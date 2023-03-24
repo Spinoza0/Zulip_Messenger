@@ -62,6 +62,24 @@ fun Message.toDto(userId: Long, messageId: Long, messagesFilter: MessagesFilter)
     )
 }
 
+fun UserDto.toDomain(): User {
+    return User(
+        userId = this.userId,
+        isActive = this.isActive,
+        email = this.email,
+        full_name = this.full_name,
+        avatar_url = this.avatar_url ?: "",
+        status = this.status ?: ""
+    )
+}
+
+fun TopicDto.toDomain(messages: TreeSet<MessageDto>, channelId: Long): Topic {
+    return Topic(
+        name = this.name,
+        messageCount = messages.count { it.channelId == channelId && it.topicName == this.name }
+    )
+}
+
 private fun Map<String, ReactionParamDto>.toDomain(userId: Long): Map<String, ReactionParam> {
     return this.map { it.key to it.value.toDomain(userId) }.toMap()
 }
@@ -74,27 +92,9 @@ private fun ReactionParamDto.toDomain(userId: Long): ReactionParam {
     return ReactionParam(this.usersIds.size, this.usersIds.contains(userId))
 }
 
-fun UserDto.toDomain(): User {
-    return User(
-        userId = this.userId,
-        isActive = this.isActive,
-        email = this.email,
-        full_name = this.full_name,
-        avatar_url = this.avatar_url ?: "",
-        status = this.status ?: ""
-    )
-}
-
 private fun ChannelDto.toDomain(): Channel {
     return Channel(
         channelId = this.id,
         name = this.name
-    )
-}
-
-private fun TopicDto.toDomain(messages: TreeSet<MessageDto>, channelId: Long): Topic {
-    return Topic(
-        name = this.name,
-        messageCount = messages.count { it.channelId == channelId && it.topicName == this.name }
     )
 }

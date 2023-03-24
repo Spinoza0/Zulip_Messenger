@@ -9,19 +9,17 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
-import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetTopicUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
-import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
@@ -33,7 +31,6 @@ import kotlinx.coroutines.launch
 class ChannelsPageFragment : Fragment() {
 
     private var isAllChannels = false
-    private val globalRouter = App.router
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
@@ -44,7 +41,8 @@ class ChannelsPageFragment : Fragment() {
             isAllChannels,
             GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
             GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetAllChannelsUseCase(MessagesRepositoryImpl.getInstance())
+            GetAllChannelsUseCase(MessagesRepositoryImpl.getInstance()),
+            GetTopicUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
 
@@ -76,7 +74,7 @@ class ChannelsPageFragment : Fragment() {
                 requireContext().getString(R.string.channels_topic_template),
                 requireContext().getThemeColor(R.attr.even_topic_color),
                 requireContext().getThemeColor(R.attr.odd_topic_color),
-                ::onTopicClickListener
+                viewModel::onTopicClickListener
             )
         )
         binding.recyclerViewChannels.adapter = delegateAdapter
@@ -102,10 +100,6 @@ class ChannelsPageFragment : Fragment() {
         }
     }
 
-    private fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        globalRouter.navigateTo(Screens.Messages(messagesFilter))
-    }
-
     private fun parseParams() {
         isAllChannels = arguments?.getBoolean(PARAM_IS_ALL_CHANNELS, false) ?: false
     }
@@ -115,6 +109,8 @@ class ChannelsPageFragment : Fragment() {
 
         if (binding.recyclerViewChannels.adapter?.itemCount == NO_ITEMS) {
             viewModel.loadItems(ChannelsFilter())
+        } else {
+            viewModel.updateMessagesCount()
         }
     }
 

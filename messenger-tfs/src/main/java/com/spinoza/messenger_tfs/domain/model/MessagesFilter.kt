@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-class MessagesFilter(
+data class MessagesFilter(
     val channel: Channel,
     val topic: Topic,
 ) : Parcelable
