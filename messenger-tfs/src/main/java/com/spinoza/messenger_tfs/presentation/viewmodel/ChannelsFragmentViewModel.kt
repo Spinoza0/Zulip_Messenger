@@ -69,7 +69,7 @@ class ChannelsFragmentViewModel(
                         }
                     }
                 }
-                _state.value = ChannelsScreenState.Items(cache.toList())
+                _state.value = ChannelsScreenState.TopicMessagesCountUpdate(cache.toList())
             }
             isReturnFromMessagesScreen = false
         }

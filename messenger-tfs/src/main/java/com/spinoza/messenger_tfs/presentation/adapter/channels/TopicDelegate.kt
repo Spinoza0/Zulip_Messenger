@@ -9,7 +9,6 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 
 class TopicDelegate(
-    private val template: String,
     private val evenColor: Int,
     private val oddColor: Int,
     private val onClickListener: (MessagesFilter) -> Unit,
@@ -33,7 +32,6 @@ class TopicDelegate(
         (holder as ViewHolder).bind(
             item as TopicDelegateItem,
             position,
-            template,
             evenColor,
             oddColor,
             onClickListener
@@ -50,19 +48,15 @@ class TopicDelegate(
         fun bind(
             item: TopicDelegateItem,
             position: Int,
-            template: String,
             evenColor: Int,
             oddColor: Int,
             onClickListener: (MessagesFilter) -> Unit,
         ) {
             val color = if (position % 2 == 0) evenColor else oddColor
             val messagesFilter = (item.content() as MessagesFilter)
-            binding.textViewTopic.setBackgroundColor(color)
-            binding.textViewTopic.text = String.format(
-                template,
-                messagesFilter.topic.name,
-                messagesFilter.topic.messageCount
-            )
+            binding.textViewTopicLayout.setBackgroundColor(color)
+            binding.textViewTopicName.text = messagesFilter.topic.name
+            binding.textViewTopicMessagesCount.text = messagesFilter.topic.messageCount.toString()
             binding.root.setOnClickListener {
                 onClickListener(messagesFilter)
             }

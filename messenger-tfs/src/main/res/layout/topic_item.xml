@@ -1,18 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/textViewTopic"
+    <LinearLayout
+        android:id="@+id/textViewTopicLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/even_topic_color"
-        android:paddingVertical="10dp"
-        android:paddingStart="40dp"
-        android:paddingEnd="16dp"
-        android:textColor="?attr/text_300_color"
-        android:textSize="18sp" />
+
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textViewTopicName"
+            style="@style/ChannelsTopicStyle"
+            android:paddingStart="40dp"
+            android:paddingEnd="25dp"
+            tools:text="topic" />
+
+        <TextView
+            android:id="@+id/textViewTopicMessagesCount"
+            style="@style/ChannelsTopicStyle"
+            tools:text="15" />
+
+        <TextView
+            style="@style/ChannelsTopicStyle"
+            android:paddingStart="8dp"
+            android:paddingEnd="16dp"
+            android:text="@string/mes" />
+
+    </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"

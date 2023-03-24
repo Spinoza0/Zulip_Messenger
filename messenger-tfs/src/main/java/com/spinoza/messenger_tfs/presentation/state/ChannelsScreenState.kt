@@ -7,4 +7,6 @@ sealed class ChannelsScreenState {
     object Loading : ChannelsScreenState()
 
     class Items(val value: List<DelegateAdapterItem>) : ChannelsScreenState()
+
+    class TopicMessagesCountUpdate(val value: List<DelegateAdapterItem>) : ChannelsScreenState()
 }

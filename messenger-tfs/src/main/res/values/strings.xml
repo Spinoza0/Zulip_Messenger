@@ -23,7 +23,7 @@
     <string name="all_streams">All Streams</string>
     <string name="subscribed_streams">Subscribed</string>
     <string name="arrow">Arrow</string>
-    <string name="channels_topic_template">"%s     %s mes"</string>
+    <string name="mes">mes</string>
 
     <!-- Fragment People -->
     <string name="users">Users... (TODO)</string>

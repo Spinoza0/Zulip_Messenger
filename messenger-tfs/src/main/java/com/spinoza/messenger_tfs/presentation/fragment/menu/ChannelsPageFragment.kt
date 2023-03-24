@@ -71,7 +71,6 @@ class ChannelsPageFragment : Fragment() {
         delegateAdapter.addDelegate(ChannelDelegate(viewModel::onChannelClickListener))
         delegateAdapter.addDelegate(
             TopicDelegate(
-                requireContext().getString(R.string.channels_topic_template),
                 requireContext().getThemeColor(R.attr.even_topic_color),
                 requireContext().getThemeColor(R.attr.odd_topic_color),
                 viewModel::onTopicClickListener
@@ -94,7 +93,16 @@ class ChannelsPageFragment : Fragment() {
         }
         when (state) {
             is ChannelsScreenState.Items -> {
-                (binding.recyclerViewChannels.adapter as MainDelegateAdapter).submitList(state.value)
+                (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
+                    .submitList(state.value)
+            }
+            is ChannelsScreenState.TopicMessagesCountUpdate -> {
+                val itemAnimator = binding.recyclerViewChannels.itemAnimator
+                binding.recyclerViewChannels.itemAnimator = null
+                (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
+                    .submitList(state.value) {
+                        binding.recyclerViewChannels.itemAnimator = itemAnimator
+                    }
             }
             is ChannelsScreenState.Loading -> binding.progressBar.on()
         }
