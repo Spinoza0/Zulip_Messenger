@@ -24,8 +24,8 @@ import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
-import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsPageFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsPageFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
 class ChannelsPageFragment : Fragment() {
@@ -36,8 +36,8 @@ class ChannelsPageFragment : Fragment() {
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
 
-    private val viewModel: ChannelsFragmentViewModel by viewModels {
-        ChannelsFragmentViewModelFactory(
+    private val viewModel: ChannelsPageFragmentViewModel by viewModels {
+        ChannelsPageFragmentViewModelFactory(
             isAllChannels,
             GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
             GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance()),

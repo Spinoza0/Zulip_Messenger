@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import com.google.android.material.tabs.TabLayoutMediator
 import com.spinoza.messenger_tfs.R
@@ -18,6 +19,9 @@ class ChannelsFragment : Fragment() {
 
     private lateinit var tabLayoutMediator: TabLayoutMediator
 
+    private val subscribedChannelsFragment = ChannelsPageFragment.newInstance(false)
+    private val allChannelsFragment = ChannelsPageFragment.newInstance(true)
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -30,12 +34,15 @@ class ChannelsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupViewPager()
+        setupListeners()
     }
 
     private fun setupViewPager() {
-        val channelsPagerAdapter = ChannelsPagerAdapter(childFragmentManager, lifecycle)
-        channelsPagerAdapter.addFragment(ChannelsPageFragment.newInstance(false))
-        channelsPagerAdapter.addFragment(ChannelsPageFragment.newInstance(true))
+        val channelsPagerAdapter = ChannelsPagerAdapter(
+            childFragmentManager,
+            lifecycle,
+            listOf(subscribedChannelsFragment, allChannelsFragment)
+        )
 
         binding.viewPager.adapter = channelsPagerAdapter
 
@@ -50,10 +57,15 @@ class ChannelsFragment : Fragment() {
         tabLayoutMediator.attach()
     }
 
+    private fun setupListeners() {
+        binding.editTextSearch.doOnTextChanged { text, start, before, count ->
+            // TODO
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         tabLayoutMediator.detach()
-        (binding.viewPager.adapter as ChannelsPagerAdapter).clear()
         binding.viewPager.adapter = null
         _binding = null
     }
