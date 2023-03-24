@@ -32,8 +32,6 @@ class ChannelsPageFragment : Fragment() {
 
     private var isAllChannels = false
 
-    private var channelsFilter = ChannelsFilter()
-
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
@@ -67,10 +65,6 @@ class ChannelsPageFragment : Fragment() {
     fun setChannelsFilter(filter: String) {
         viewModel.setChannelsFilter(ChannelsFilter(filter))
         viewModel.loadItems()
-    }
-
-    fun getChannelsFilter(): ChannelsFilter {
-        return channelsFilter
     }
 
     private fun setupRecyclerView() {
@@ -112,7 +106,6 @@ class ChannelsPageFragment : Fragment() {
                     }
             }
             is ChannelsPageScreenState.Loading -> binding.progressBar.on()
-            is ChannelsPageScreenState.Filter -> channelsFilter = state.value
         }
     }
 

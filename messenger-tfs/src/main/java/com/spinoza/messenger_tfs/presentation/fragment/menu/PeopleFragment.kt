@@ -11,7 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.databinding.FragmentItemPeopleBinding
+import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
@@ -26,9 +26,9 @@ class PeopleFragment : Fragment() {
 
     private val globalRouter = App.router
 
-    private var _binding: FragmentItemPeopleBinding? = null
-    private val binding: FragmentItemPeopleBinding
-        get() = _binding ?: throw RuntimeException("FragmentItemPeopleBinding == null")
+    private var _binding: FragmentPeopleBinding? = null
+    private val binding: FragmentPeopleBinding
+        get() = _binding ?: throw RuntimeException("FragmentPeopleBinding == null")
 
     private val viewModel: PeopleFragmentViewModel by viewModels {
         PeopleFragmentViewModelFactory(
@@ -40,7 +40,7 @@ class PeopleFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentItemPeopleBinding.inflate(inflater, container, false)
+        _binding = FragmentPeopleBinding.inflate(inflater, container, false)
         return binding.root
     }
 

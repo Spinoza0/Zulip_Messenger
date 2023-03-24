@@ -26,7 +26,7 @@ fun List<TopicDto>.toDomain(messages: TreeSet<MessageDto>, channelId: Long): Lis
 fun List<ChannelDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
     return this
         .filter { channelsDto ->
-            channelsFilter.narrow.split(" ").all { filter ->
+            channelsFilter.value.split(" ").all { filter ->
                 channelsDto.name.contains(filter, true)
             }
         }

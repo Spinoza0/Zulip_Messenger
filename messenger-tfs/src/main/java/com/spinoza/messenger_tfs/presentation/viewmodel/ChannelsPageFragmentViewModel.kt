@@ -37,7 +37,7 @@ class ChannelsPageFragmentViewModel(
     private var channelsFilter = ChannelsFilter()
 
     private val _state =
-        MutableStateFlow<ChannelsPageScreenState>(ChannelsPageScreenState.Filter(channelsFilter))
+        MutableStateFlow<ChannelsPageScreenState>(ChannelsPageScreenState.Loading)
 
     private val cache = mutableListOf<DelegateAdapterItem>()
     private val globalRouter = App.router
@@ -46,7 +46,6 @@ class ChannelsPageFragmentViewModel(
 
     fun setChannelsFilter(newFilter: ChannelsFilter) {
         channelsFilter = newFilter
-        _state.value = ChannelsPageScreenState.Filter(channelsFilter)
     }
 
     fun loadItems() {

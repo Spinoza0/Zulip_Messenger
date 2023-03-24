@@ -10,9 +10,10 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.databinding.FragmentItemChannelsBinding
+import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelsPagerAdapter
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
@@ -20,37 +21,49 @@ import kotlinx.coroutines.launch
 
 class ChannelsFragment : Fragment() {
 
-    private var _binding: FragmentItemChannelsBinding? = null
-    private val binding: FragmentItemChannelsBinding
-        get() = _binding ?: throw RuntimeException("FragmentItemChannelsBinding == null")
+    private var _binding: FragmentChannelsBinding? = null
+    private val binding: FragmentChannelsBinding
+        get() = _binding ?: throw RuntimeException("FragmentChannelsBinding == null")
 
-    private lateinit var tabLayoutMediator: TabLayoutMediator
-
+    private val viewModel: ChannelsFragmentViewModel by viewModels()
     private val fragments = listOf(
         ChannelsPageFragment.newInstance(false),
         ChannelsPageFragment.newInstance(true)
     )
+    private var isActiveSearchInputListener = true
+    private val searchFilters = mutableListOf("", "")
 
-    private val viewModel: ChannelsFragmentViewModel by viewModels()
+    private lateinit var tabLayoutMediator: TabLayoutMediator
+    private lateinit var onPageChangeCallback: ViewPager2.OnPageChangeCallback
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentItemChannelsBinding.inflate(inflater, container, false)
+        _binding = FragmentChannelsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupViewPager()
         setupListeners()
         setupObservers()
+        setupViewPager()
     }
 
     private fun setupViewPager() {
         val channelsPagerAdapter = ChannelsPagerAdapter(childFragmentManager, lifecycle, fragments)
+        onPageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
+
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                isActiveSearchInputListener = false
+                binding.editTextSearch.setText(searchFilters[position])
+                isActiveSearchInputListener = true
+            }
+        }
+        binding.viewPager.registerOnPageChangeCallback(onPageChangeCallback)
         binding.viewPager.adapter = channelsPagerAdapter
 
         tabLayoutMediator =
@@ -66,7 +79,8 @@ class ChannelsFragment : Fragment() {
 
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
-            viewModel.doOnTextChanged(text)
+            if (isActiveSearchInputListener)
+                viewModel.doOnTextChanged(text)
         }
     }
 
@@ -80,8 +94,10 @@ class ChannelsFragment : Fragment() {
 
     private fun handleState(state: ChannelsScreenState) {
         when (state) {
-            is ChannelsScreenState.Search ->
+            is ChannelsScreenState.Search -> {
+                searchFilters[binding.viewPager.currentItem] = state.value
                 fragments[binding.viewPager.currentItem].setChannelsFilter(state.value)
+            }
             is ChannelsScreenState.Idle -> {}
         }
     }
@@ -89,6 +105,7 @@ class ChannelsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         tabLayoutMediator.detach()
+        binding.viewPager.unregisterOnPageChangeCallback(onPageChangeCallback)
         binding.viewPager.adapter = null
         _binding = null
     }
