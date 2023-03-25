@@ -4,6 +4,8 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterIt
 
 sealed class ChannelsPageScreenState {
 
+    object Idle : ChannelsPageScreenState()
+
     object Loading : ChannelsPageScreenState()
 
     class Items(val value: List<DelegateAdapterItem>) : ChannelsPageScreenState()

@@ -18,13 +18,10 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import java.util.*
 
 class MessagesFragmentViewModel(
@@ -41,7 +38,7 @@ class MessagesFragmentViewModel(
         get() = _state.asStateFlow()
 
     private val _state =
-        MutableStateFlow<MessagesScreenState>(MessagesScreenState.Loading)
+        MutableStateFlow<MessagesScreenState>(MessagesScreenState.Idle)
 
     private val useCasesScope = CoroutineScope(Dispatchers.IO)
 
@@ -56,6 +53,7 @@ class MessagesFragmentViewModel(
 
     private fun loadCurrentUser() {
         useCasesScope.launch {
+            val setLoadingState = setLoadingStateWithDelay()
             when (val result = getCurrentUserUseCase()) {
                 is RepositoryResult.Success -> currentUser = result.value
                 is RepositoryResult.Failure.UserNotFound -> {
@@ -64,21 +62,23 @@ class MessagesFragmentViewModel(
                 // TODO: process other errors
                 else -> {}
             }
+            setLoadingState.cancel()
         }
     }
 
     fun loadMessages() {
         useCasesScope.launch {
-            _state.value = MessagesScreenState.Loading
+            val setLoadingState = setLoadingStateWithDelay()
             val result = getMessagesUseCase(messagesFilter)
             updateMessages(result)
+            setLoadingState.cancel()
         }
     }
 
     fun sendMessage(messageText: String): Boolean {
         if (messageText.isNotEmpty()) {
             useCasesScope.launch {
-                _state.value = MessagesScreenState.Loading
+                val setLoadingState = setLoadingStateWithDelay()
                 val message = Message(
                     // test data
                     MessageDate("2 марта 2023"),
@@ -89,6 +89,7 @@ class MessagesFragmentViewModel(
                 )
                 val result = sendMessageUseCase(message, messagesFilter)
                 updateMessages(result)
+                setLoadingState.cancel()
             }
             return true
         }
@@ -97,9 +98,10 @@ class MessagesFragmentViewModel(
 
     fun updateReaction(messageId: Long, reaction: String) {
         useCasesScope.launch {
-            _state.value = MessagesScreenState.Loading
+            val setLoadingState = setLoadingStateWithDelay()
             val result = updateReactionUseCase(messageId, reaction, messagesFilter)
             updateMessages(result)
+            setLoadingState.cancel()
         }
     }
 
@@ -121,6 +123,13 @@ class MessagesFragmentViewModel(
             )
             // TODO: process other errors
             else -> {}
+        }
+    }
+
+    private fun setLoadingStateWithDelay(): Job {
+        return useCasesScope.launch {
+            delay(DELAY_BEFORE_SET_STATE)
+            _state.value = MessagesScreenState.Loading
         }
     }
 
@@ -148,5 +157,10 @@ class MessagesFragmentViewModel(
         }
 
         return messageAdapterItemList
+    }
+
+    private companion object {
+
+        const val DELAY_BEFORE_SET_STATE = 200L
     }
 }

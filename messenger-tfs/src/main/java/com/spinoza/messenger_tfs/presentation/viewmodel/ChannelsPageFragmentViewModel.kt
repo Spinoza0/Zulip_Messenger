@@ -17,13 +17,10 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterIt
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 class ChannelsPageFragmentViewModel(
     private val isAllChannels: Boolean,
@@ -39,7 +36,7 @@ class ChannelsPageFragmentViewModel(
     private var channelsFilter = ChannelsFilter()
 
     private val _state =
-        MutableStateFlow<ChannelsPageScreenState>(ChannelsPageScreenState.Loading)
+        MutableStateFlow<ChannelsPageScreenState>(ChannelsPageScreenState.Idle)
 
     private val cache = mutableListOf<DelegateAdapterItem>()
     private val globalRouter = App.router
@@ -59,7 +56,7 @@ class ChannelsPageFragmentViewModel(
 
     fun loadItems() {
         useCasesScope.launch {
-            _state.value = ChannelsPageScreenState.Loading
+            val setLoadingState = setLoadingStateWithDelay()
             when (val result = if (isAllChannels)
                 getAllChannelsUseCase(channelsFilter)
             else
@@ -72,12 +69,14 @@ class ChannelsPageFragmentViewModel(
                 // TODO: process other errors
                 is RepositoryResult.Failure -> {}
             }
+            setLoadingState.cancel()
         }
     }
 
     fun updateMessagesCount() {
         if (isReturnFromMessagesScreen) {
             useCasesScope.launch {
+                val setLoadingState = setLoadingStateWithDelay()
                 for (i in 0 until cache.size) {
                     if (cache[i] is TopicDelegateItem) {
                         val messagesFilter = cache[i].content() as MessagesFilter
@@ -88,6 +87,7 @@ class ChannelsPageFragmentViewModel(
                     }
                 }
                 _state.value = ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList())
+                setLoadingState.cancel()
             }
             isReturnFromMessagesScreen = false
         }
@@ -95,6 +95,7 @@ class ChannelsPageFragmentViewModel(
 
     fun onChannelClickListener(channelItem: ChannelItem) {
         useCasesScope.launch {
+            val setLoadingState = setLoadingStateWithDelay()
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -129,6 +130,7 @@ class ChannelsPageFragmentViewModel(
                 }
                 _state.value = ChannelsPageScreenState.Items(cache.toList())
             }
+            setLoadingState.cancel()
         }
     }
 
@@ -188,6 +190,13 @@ class ChannelsPageFragmentViewModel(
         // TODO: process other errors}
     }
 
+    private fun setLoadingStateWithDelay(): Job {
+        return useCasesScope.launch {
+            delay(DELAY_BEFORE_SET_STATE)
+            _state.value = ChannelsPageScreenState.Loading
+        }
+    }
+
     private fun Channel.toDelegateItem(isAllChannels: Boolean): ChannelDelegateItem {
         return ChannelDelegateItem(ChannelItem(this, isAllChannels, true))
     }
@@ -205,6 +214,8 @@ class ChannelsPageFragmentViewModel(
     }
 
     private companion object {
+
         const val UNDEFINED_INDEX = -1
+        const val DELAY_BEFORE_SET_STATE = 200L
     }
 }

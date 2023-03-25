@@ -76,7 +76,7 @@ class PeopleFragment : Fragment() {
 
     private fun handleState(state: PeopleScreenState) {
         if (state !is PeopleScreenState.Loading) {
-            binding.progressBar.off()
+            binding.shimmer.off()
         }
         when (state) {
             is PeopleScreenState.Users -> {
@@ -86,12 +86,18 @@ class PeopleFragment : Fragment() {
                 viewModel.setUsersFilter(state.value)
                 viewModel.loadUsers()
             }
-            is PeopleScreenState.Loading -> binding.progressBar.on()
+            is PeopleScreenState.Loading -> binding.shimmer.on()
+            is PeopleScreenState.Idle -> {}
         }
     }
 
     private fun onUserClickListener(userId: Long) {
         globalRouter.navigateTo(Screens.UserProfile(userId))
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.shimmer.off()
     }
 
     override fun onDestroyView() {

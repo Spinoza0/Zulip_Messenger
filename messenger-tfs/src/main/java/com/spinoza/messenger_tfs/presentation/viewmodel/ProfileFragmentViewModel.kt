@@ -6,13 +6,10 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 class ProfileFragmentViewModel(
     private val getCurrentUserUseCase: GetCurrentUserUseCase,
@@ -22,8 +19,8 @@ class ProfileFragmentViewModel(
     val state: StateFlow<ProfileScreenState>
         get() = _state.asStateFlow()
 
-    private val _state = MutableStateFlow<ProfileScreenState>(ProfileScreenState.Loading)
-
+    private val _state =
+        MutableStateFlow<ProfileScreenState>(ProfileScreenState.Idle)
     private val useCasesScope = CoroutineScope(Dispatchers.IO)
 
     override fun onCleared() {
@@ -33,13 +30,17 @@ class ProfileFragmentViewModel(
 
     fun loadCurrentUser() {
         useCasesScope.launch {
+            val setLoadingState = setLoadingStateWithDelay()
             updateState(getCurrentUserUseCase())
+            setLoadingState.cancel()
         }
     }
 
     fun loadUser(userId: Long) {
         useCasesScope.launch {
+            val setLoadingState = setLoadingStateWithDelay()
             updateState(getUserUseCase(userId))
+            setLoadingState.cancel()
         }
     }
 
@@ -51,5 +52,17 @@ class ProfileFragmentViewModel(
             // TODO: process other errors
             else -> {}
         }
+    }
+
+    private fun setLoadingStateWithDelay(): Job {
+        return useCasesScope.launch {
+            delay(DELAY_BEFORE_SET_STATE)
+            _state.value = ProfileScreenState.Loading
+        }
+    }
+
+    private companion object {
+
+        const val DELAY_BEFORE_SET_STATE = 200L
     }
 }

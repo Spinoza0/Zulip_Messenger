@@ -70,17 +70,18 @@ class CurrentUserProfileFragment : Fragment() {
 
     private fun handleState(state: ProfileScreenState) {
         if (state !is ProfileScreenState.Loading) {
-            binding.progressBar.off()
+            binding.shimmer.off()
         }
         when (state) {
             is ProfileScreenState.UserData -> showProfileInfo(state.value)
-            is ProfileScreenState.Loading -> binding.progressBar.on()
+            is ProfileScreenState.Loading -> binding.shimmer.on()
             is ProfileScreenState.Failure.UserNotFound -> showError(
                 String.format(
                     getString(R.string.error_user_not_found),
                     state.userId
                 )
             )
+            is ProfileScreenState.Idle -> {}
         }
     }
 
@@ -101,6 +102,11 @@ class CurrentUserProfileFragment : Fragment() {
                 .error(R.drawable.ic_default_avatar)
                 .into(imageViewAvatar)
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.shimmer.off()
     }
 
     override fun onDestroyView() {

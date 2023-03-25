@@ -4,6 +4,8 @@ import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 
 sealed class MessagesScreenState {
 
+    object Idle : MessagesScreenState()
+
     object Loading : MessagesScreenState()
 
     class UpdateIconImage(val resId: Int) : MessagesScreenState()

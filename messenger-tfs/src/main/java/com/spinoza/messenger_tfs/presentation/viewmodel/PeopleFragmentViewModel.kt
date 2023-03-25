@@ -14,7 +14,7 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
         get() = _state.asStateFlow()
 
     private val _state =
-        MutableStateFlow<PeopleScreenState>(PeopleScreenState.Loading)
+        MutableStateFlow<PeopleScreenState>(PeopleScreenState.Idle)
     private val searchQueryState = MutableSharedFlow<String>()
     private val useCasesScope = CoroutineScope(Dispatchers.IO)
     private var usersFilter = ""
@@ -51,16 +51,27 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
 
     fun loadUsers() {
         useCasesScope.launch {
+            val setLoadingState = setLoadingStateWithDelay()
             when (val result = getUsersByFilterUseCase(usersFilter)) {
                 is RepositoryResult.Success -> _state.value = PeopleScreenState.Users(result.value)
 
                 // TODO: process errors
                 is RepositoryResult.Failure -> {}
             }
+            setLoadingState.cancel()
+        }
+    }
+
+    private fun setLoadingStateWithDelay(): Job {
+        return useCasesScope.launch {
+            delay(DELAY_BEFORE_SET_STATE)
+            _state.value = PeopleScreenState.Loading
         }
     }
 
     private companion object {
-        const val DURATION_MILLIS = 500L
+
+        const val DURATION_MILLIS = 300L
+        const val DELAY_BEFORE_SET_STATE = 200L
     }
 }

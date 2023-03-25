@@ -43,6 +43,6 @@ class ChannelsFragmentSharedViewModel : ViewModel() {
     }
 
     private companion object {
-        const val DURATION_MILLIS = 500L
+        const val DURATION_MILLIS = 300L
     }
 }

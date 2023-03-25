@@ -9,6 +9,7 @@ import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import kotlinx.coroutines.delay
 import java.util.*
 
 
@@ -46,6 +47,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getMessages(
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult> {
+        // TODO: for testing purpose
+        delay(1000)
         return RepositoryResult.Success(
             MessagesResult(
                 messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
@@ -57,6 +60,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getAllChannels(
         channelsFilter: ChannelsFilter,
     ): RepositoryResult<List<Channel>> {
+        // TODO: for testing purpose
+        delay(1000)
         return RepositoryResult.Success(channelsDto.toDomain(channelsFilter))
     }
 

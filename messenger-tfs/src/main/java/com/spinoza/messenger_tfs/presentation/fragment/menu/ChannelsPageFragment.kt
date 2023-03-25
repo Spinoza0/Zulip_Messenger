@@ -95,7 +95,7 @@ class ChannelsPageFragment : Fragment() {
 
     private fun handleState(state: ChannelsPageScreenState) {
         if (state !is ChannelsPageScreenState.Loading) {
-            binding.progressBar.off()
+            binding.shimmer.off()
         }
         when (state) {
             is ChannelsPageScreenState.Items -> {
@@ -110,7 +110,8 @@ class ChannelsPageFragment : Fragment() {
                         binding.recyclerViewChannels.itemAnimator = itemAnimator
                     }
             }
-            is ChannelsPageScreenState.Loading -> binding.progressBar.on()
+            is ChannelsPageScreenState.Loading -> binding.shimmer.on()
+            is ChannelsPageScreenState.Idle -> {}
         }
     }
 
@@ -133,12 +134,16 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-
         if (binding.recyclerViewChannels.adapter?.itemCount == NO_ITEMS) {
             viewModel.loadItems()
         } else {
             viewModel.updateMessagesCount()
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.shimmer.off()
     }
 
     override fun onDestroyView() {

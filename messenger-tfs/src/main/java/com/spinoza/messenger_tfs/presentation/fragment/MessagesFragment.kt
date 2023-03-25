@@ -142,14 +142,14 @@ class MessagesFragment : Fragment() {
 
     private fun handleState(state: MessagesScreenState) {
         if (state !is MessagesScreenState.Loading) {
-            binding.progressBar.off()
+            binding.shimmer.off()
         }
         when (state) {
             is MessagesScreenState.Messages -> submitMessages(state.value)
             is MessagesScreenState.UpdateIconImage -> {
                 binding.imageViewAction.setImageResource(state.resId)
             }
-            is MessagesScreenState.Loading -> binding.progressBar.on()
+            is MessagesScreenState.Loading -> binding.shimmer.on()
             is MessagesScreenState.Failure.MessageNotFound -> showError(
                 String.format(
                     getString(R.string.error_message_not_found),
@@ -162,6 +162,7 @@ class MessagesFragment : Fragment() {
                     state.userId
                 )
             )
+            is MessagesScreenState.Idle -> {}
         }
     }
 
@@ -229,6 +230,11 @@ class MessagesFragment : Fragment() {
         if (binding.recyclerViewMessages.adapter?.itemCount == NO_MESSAGES) {
             viewModel.loadMessages()
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.shimmer.off()
     }
 
     override fun onStop() {
