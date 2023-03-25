@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
@@ -19,6 +18,9 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.Companion
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,12 +43,19 @@ class MessagesFragmentViewModel(
     private val _state =
         MutableStateFlow<MessagesScreenState>(MessagesScreenState.Loading)
 
+    private val useCasesScope = CoroutineScope(Dispatchers.IO)
+
     init {
         loadCurrentUser()
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        useCasesScope.cancel()
+    }
+
     private fun loadCurrentUser() {
-        viewModelScope.launch {
+        useCasesScope.launch {
             when (val result = getCurrentUserUseCase()) {
                 is RepositoryResult.Success -> currentUser = result.value
                 is RepositoryResult.Failure.UserNotFound -> {
@@ -59,7 +68,7 @@ class MessagesFragmentViewModel(
     }
 
     fun loadMessages() {
-        viewModelScope.launch {
+        useCasesScope.launch {
             _state.value = MessagesScreenState.Loading
             val result = getMessagesUseCase(messagesFilter)
             updateMessages(result)
@@ -68,7 +77,7 @@ class MessagesFragmentViewModel(
 
     fun sendMessage(messageText: String): Boolean {
         if (messageText.isNotEmpty()) {
-            viewModelScope.launch {
+            useCasesScope.launch {
                 _state.value = MessagesScreenState.Loading
                 val message = Message(
                     // test data
@@ -87,7 +96,7 @@ class MessagesFragmentViewModel(
     }
 
     fun updateReaction(messageId: Long, reaction: String) {
-        viewModelScope.launch {
+        useCasesScope.launch {
             _state.value = MessagesScreenState.Loading
             val result = updateReactionUseCase(messageId, reaction, messagesFilter)
             updateMessages(result)

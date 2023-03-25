@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
@@ -18,6 +17,9 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterIt
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,13 +45,20 @@ class ChannelsPageFragmentViewModel(
     private val globalRouter = App.router
     private var isReturnFromMessagesScreen = false
 
+    private val useCasesScope = CoroutineScope(Dispatchers.IO)
+
+    override fun onCleared() {
+        super.onCleared()
+        useCasesScope.cancel()
+        cache.clear()
+    }
 
     fun setChannelsFilter(newFilter: ChannelsFilter) {
         channelsFilter = newFilter
     }
 
     fun loadItems() {
-        viewModelScope.launch {
+        useCasesScope.launch {
             _state.value = ChannelsPageScreenState.Loading
             when (val result = if (isAllChannels)
                 getAllChannelsUseCase(channelsFilter)
@@ -68,7 +77,7 @@ class ChannelsPageFragmentViewModel(
 
     fun updateMessagesCount() {
         if (isReturnFromMessagesScreen) {
-            viewModelScope.launch {
+            useCasesScope.launch {
                 for (i in 0 until cache.size) {
                     if (cache[i] is TopicDelegateItem) {
                         val messagesFilter = cache[i].content() as MessagesFilter
@@ -85,7 +94,7 @@ class ChannelsPageFragmentViewModel(
     }
 
     fun onChannelClickListener(channelItem: ChannelItem) {
-        viewModelScope.launch {
+        useCasesScope.launch {
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -193,12 +202,6 @@ class ChannelsPageFragmentViewModel(
 
     private fun List<Topic>.toDelegateItem(channel: Channel): List<TopicDelegateItem> {
         return map { it.toDelegateItem(channel) }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-
-        cache.clear()
     }
 
     private companion object {

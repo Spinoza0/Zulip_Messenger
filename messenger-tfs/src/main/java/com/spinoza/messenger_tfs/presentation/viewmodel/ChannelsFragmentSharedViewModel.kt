@@ -1,14 +1,10 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.presentation.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 
 class ChannelsFragmentSharedViewModel : ViewModel() {
 
@@ -17,16 +13,21 @@ class ChannelsFragmentSharedViewModel : ViewModel() {
 
     private val _state =
         MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Idle)
-
     private val searchQueryState = MutableSharedFlow<SearchQuery>()
+    private val useCasesScope = CoroutineScope(Dispatchers.Default)
 
     init {
         subscribeToSearchQueryChanges()
     }
 
-    fun doOnTextChanged(screenPosition: Int, text: CharSequence?) {
-        viewModelScope.launch {
-            searchQueryState.emit(SearchQuery(screenPosition, text.toString()))
+    override fun onCleared() {
+        super.onCleared()
+        useCasesScope.cancel()
+    }
+
+    fun doOnTextChanged(searchQuery: SearchQuery) {
+        useCasesScope.launch {
+            searchQueryState.emit(searchQuery)
         }
     }
 
@@ -38,7 +39,7 @@ class ChannelsFragmentSharedViewModel : ViewModel() {
             .flatMapLatest { flow { emit(it) } }
             .onEach { _state.value = ChannelsScreenState.Filter(it) }
             .flowOn(Dispatchers.Default)
-            .launchIn(viewModelScope)
+            .launchIn(useCasesScope)
     }
 
     private companion object {
