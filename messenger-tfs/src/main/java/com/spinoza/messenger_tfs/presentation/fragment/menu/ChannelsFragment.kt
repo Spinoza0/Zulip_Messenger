@@ -99,7 +99,7 @@ class ChannelsFragment : Fragment() {
     private fun handleState(state: ChannelsScreenState) {
         when (state) {
             is ChannelsScreenState.Filter -> searchFilters[binding.viewPager.currentItem] =
-                state.value
+                state.value.text
             is ChannelsScreenState.Idle -> {}
         }
     }

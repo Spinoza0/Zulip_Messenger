@@ -118,9 +118,9 @@ class ChannelsPageFragment : Fragment() {
         when (state) {
             is ChannelsScreenState.Idle -> {}
             is ChannelsScreenState.Filter -> {
-                val filterIsAllChannels = state.screenPosition % 2 != 0
+                val filterIsAllChannels = state.value.screenPosition % 2 != 0
                 if (filterIsAllChannels == isAllChannels) {
-                    viewModel.setChannelsFilter(ChannelsFilter(state.value))
+                    viewModel.setChannelsFilter(ChannelsFilter(state.value.text))
                     viewModel.loadItems()
                 }
             }
