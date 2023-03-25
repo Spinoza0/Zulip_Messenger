@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.*
 class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFilterUseCase) :
     ViewModel() {
 
-    val state: StateFlow<PeopleScreenState>
-        get() = _state.asStateFlow()
+    val state: SharedFlow<PeopleScreenState>
+        get() = _state.asSharedFlow()
 
     private val _state =
-        MutableStateFlow<PeopleScreenState>(PeopleScreenState.Idle)
+        MutableSharedFlow<PeopleScreenState>(replay = 1)
     private val searchQueryState = MutableSharedFlow<String>()
     private val useCasesScope = CoroutineScope(Dispatchers.IO)
     private var usersFilter = ""
@@ -40,7 +40,7 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
             .distinctUntilChanged()
             .debounce(DURATION_MILLIS)
             .flatMapLatest { flow { emit(it) } }
-            .onEach { _state.value = PeopleScreenState.Filter(it) }
+            .onEach { _state.emit(PeopleScreenState.Filter(it)) }
             .flowOn(Dispatchers.Default)
             .launchIn(useCasesScope)
     }
@@ -53,19 +53,26 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
         useCasesScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             when (val result = getUsersByFilterUseCase(usersFilter)) {
-                is RepositoryResult.Success -> _state.value = PeopleScreenState.Users(result.value)
-
-                // TODO: process errors
-                is RepositoryResult.Failure -> {}
+                is RepositoryResult.Success -> _state.emit(PeopleScreenState.Users(result.value))
+                is RepositoryResult.Failure -> handleErrors(result)
             }
             setLoadingState.cancel()
+        }
+    }
+
+    private suspend fun handleErrors(error: RepositoryResult.Failure) {
+        when (error) {
+            is RepositoryResult.Failure.LoadingUsers -> {
+                _state.emit(PeopleScreenState.Failure.LoadingUsers(error.value))
+            }
+            else -> {}
         }
     }
 
     private fun setLoadingStateWithDelay(): Job {
         return useCasesScope.launch {
             delay(DELAY_BEFORE_SET_STATE)
-            _state.value = PeopleScreenState.Loading
+            _state.emit(PeopleScreenState.Loading)
         }
     }
 

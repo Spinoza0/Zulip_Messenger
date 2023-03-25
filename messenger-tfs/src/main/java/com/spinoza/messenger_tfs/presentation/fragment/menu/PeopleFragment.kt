@@ -11,10 +11,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.App
+import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
+import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
@@ -87,7 +89,12 @@ class PeopleFragment : Fragment() {
                 viewModel.loadUsers()
             }
             is PeopleScreenState.Loading -> binding.shimmer.on()
-            is PeopleScreenState.Idle -> {}
+            is PeopleScreenState.Failure.LoadingUsers -> showError(
+                String.format(
+                    getString(R.string.error_loading_users),
+                    state.value
+                )
+            )
         }
     }
 
