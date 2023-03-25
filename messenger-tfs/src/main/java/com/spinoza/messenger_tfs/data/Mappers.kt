@@ -15,8 +15,14 @@ private fun User.toDto(): UserDto {
     )
 }
 
-fun List<UserDto>.listToDomain(): List<User> {
-    return this.map { it.toDomain() }
+fun List<UserDto>.listToDomain(usersFilter: String): List<User> {
+    return this.filter {
+        if (usersFilter.isBlank()) {
+            true
+        } else {
+            it.full_name.contains(usersFilter, true)
+        }
+    }.map { it.toDomain() }
 }
 
 fun List<TopicDto>.toDomain(messages: TreeSet<MessageDto>, channelId: Long): List<Topic> {

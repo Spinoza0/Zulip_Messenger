@@ -39,8 +39,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             RepositoryResult.Failure.UserNotFound(userId)
     }
 
-    override suspend fun getAllUsers(): RepositoryResult<List<User>> {
-        return RepositoryResult.Success(usersDto.listToDomain())
+    override suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>> {
+        return RepositoryResult.Success(usersDto.listToDomain(usersFilter))
     }
 
     override suspend fun getMessages(

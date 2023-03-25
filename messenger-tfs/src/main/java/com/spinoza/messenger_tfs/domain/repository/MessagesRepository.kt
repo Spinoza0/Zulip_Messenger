@@ -8,7 +8,7 @@ interface MessagesRepository {
 
     suspend fun getUser(userId: Long): RepositoryResult<User>
 
-    suspend fun getAllUsers(): RepositoryResult<List<User>>
+    suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>>
 
     suspend fun getMessages(messagesFilter: MessagesFilter): RepositoryResult<MessagesResult>
 

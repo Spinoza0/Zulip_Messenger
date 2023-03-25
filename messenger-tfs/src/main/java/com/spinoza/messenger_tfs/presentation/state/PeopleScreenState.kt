@@ -7,4 +7,6 @@ sealed class PeopleScreenState {
     object Loading : PeopleScreenState()
 
     class Users(val value: List<User>) : PeopleScreenState()
+
+    class Filter(val value: String) : PeopleScreenState()
 }

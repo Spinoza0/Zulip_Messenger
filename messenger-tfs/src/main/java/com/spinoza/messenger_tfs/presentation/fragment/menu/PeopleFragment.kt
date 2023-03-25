@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -12,7 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
-import com.spinoza.messenger_tfs.domain.usecase.GetAllUsersUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
@@ -32,7 +33,7 @@ class PeopleFragment : Fragment() {
 
     private val viewModel: PeopleFragmentViewModel by viewModels {
         PeopleFragmentViewModelFactory(
-            GetAllUsersUseCase(MessagesRepositoryImpl.getInstance()),
+            GetUsersByFilterUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
 
@@ -48,14 +49,21 @@ class PeopleFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
+        setupListeners()
         setupObservers()
         if (savedInstanceState == null) {
-            viewModel.loadAllUsers()
+            viewModel.loadUsers()
         }
     }
 
     private fun setupRecyclerView() {
         binding.recyclerViewUsers.adapter = PeopleAdapter(::onUserClickListener)
+    }
+
+    private fun setupListeners() {
+        binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
+            viewModel.doOnTextChanged(text)
+        }
     }
 
     private fun setupObservers() {
@@ -73,6 +81,10 @@ class PeopleFragment : Fragment() {
         when (state) {
             is PeopleScreenState.Users -> {
                 (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(state.value)
+            }
+            is PeopleScreenState.Filter -> {
+                viewModel.setUsersFilter(state.value)
+                viewModel.loadUsers()
             }
             is PeopleScreenState.Loading -> binding.progressBar.on()
         }

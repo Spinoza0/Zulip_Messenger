@@ -26,7 +26,7 @@
     <string name="mes">mes</string>
 
     <!-- Fragment People -->
-    <string name="users">Users... (TODO)</string>
+    <string name="users">Users...</string>
     <string name="online_status">Online status</string>
 
     <!-- Fragment Profile -->
