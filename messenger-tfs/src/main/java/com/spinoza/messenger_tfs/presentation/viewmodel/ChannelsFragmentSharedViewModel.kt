@@ -6,15 +6,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class ChannelsFragmentViewModel() : ViewModel() {
+class ChannelsFragmentSharedViewModel : ViewModel() {
 
     val state: StateFlow<ChannelsScreenState>
         get() = _state.asStateFlow()
+
     private val _state =
         MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Idle)
 
-    fun doOnTextChanged(text: CharSequence?) {
+    fun doOnTextChanged(screenPosition: Int, text: CharSequence?) {
         // TODO
-        _state.value = ChannelsScreenState.Search(text.toString())
+        _state.value = ChannelsScreenState.Filter(screenPosition, text.toString())
     }
 }

@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -16,7 +16,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelsPagerAdapter
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
-import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentSharedViewModel
 import kotlinx.coroutines.launch
 
 class ChannelsFragment : Fragment() {
@@ -25,11 +25,7 @@ class ChannelsFragment : Fragment() {
     private val binding: FragmentChannelsBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsBinding == null")
 
-    private val viewModel: ChannelsFragmentViewModel by viewModels()
-    private val fragments = listOf(
-        ChannelsPageFragment.newInstance(false),
-        ChannelsPageFragment.newInstance(true)
-    )
+    private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()
     private var isActiveSearchInputListener = true
     private val searchFilters = mutableListOf("", "")
 
@@ -53,7 +49,7 @@ class ChannelsFragment : Fragment() {
     }
 
     private fun setupViewPager() {
-        val channelsPagerAdapter = ChannelsPagerAdapter(childFragmentManager, lifecycle, fragments)
+        val channelsPagerAdapter = ChannelsPagerAdapter(this)
         onPageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
 
             override fun onPageSelected(position: Int) {
@@ -80,24 +76,22 @@ class ChannelsFragment : Fragment() {
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
             if (isActiveSearchInputListener)
-                viewModel.doOnTextChanged(text)
+                sharedViewModel.doOnTextChanged(binding.viewPager.currentItem, text)
         }
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.state.collect(::handleState)
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                sharedViewModel.state.collect(::handleState)
             }
         }
     }
 
     private fun handleState(state: ChannelsScreenState) {
         when (state) {
-            is ChannelsScreenState.Search -> {
-                searchFilters[binding.viewPager.currentItem] = state.value
-                fragments[binding.viewPager.currentItem].setChannelsFilter(state.value)
-            }
+            is ChannelsScreenState.Filter -> searchFilters[binding.viewPager.currentItem] =
+                state.value
             is ChannelsScreenState.Idle -> {}
         }
     }

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -21,9 +22,11 @@ import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
+import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentSharedViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsPageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsPageFragmentViewModelFactory
 import kotlinx.coroutines.launch
@@ -45,6 +48,7 @@ class ChannelsPageFragment : Fragment() {
             GetTopicUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
+    private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -60,11 +64,6 @@ class ChannelsPageFragment : Fragment() {
         parseParams()
         setupRecyclerView()
         setupObservers()
-    }
-
-    fun setChannelsFilter(filter: String) {
-        viewModel.setChannelsFilter(ChannelsFilter(filter))
-        viewModel.loadItems()
     }
 
     private fun setupRecyclerView() {
@@ -84,6 +83,12 @@ class ChannelsPageFragment : Fragment() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::handleState)
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                sharedViewModel.state.collect(::handleChannelsScreenState)
             }
         }
     }
@@ -106,6 +111,19 @@ class ChannelsPageFragment : Fragment() {
                     }
             }
             is ChannelsPageScreenState.Loading -> binding.progressBar.on()
+        }
+    }
+
+    private fun handleChannelsScreenState(state: ChannelsScreenState) {
+        when (state) {
+            is ChannelsScreenState.Idle -> {}
+            is ChannelsScreenState.Filter -> {
+                val filterIsAllChannels = state.screenPosition % 2 != 0
+                if (filterIsAllChannels == isAllChannels) {
+                    viewModel.setChannelsFilter(ChannelsFilter(state.value))
+                    viewModel.loadItems()
+                }
+            }
         }
     }
 
