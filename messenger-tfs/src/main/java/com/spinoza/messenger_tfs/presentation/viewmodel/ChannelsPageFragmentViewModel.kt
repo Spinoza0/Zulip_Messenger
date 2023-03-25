@@ -18,9 +18,9 @@ import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 class ChannelsPageFragmentViewModel(
     private val isAllChannels: Boolean,
@@ -30,13 +30,13 @@ class ChannelsPageFragmentViewModel(
     private val getTopicUseCase: GetTopicUseCase,
 ) : ViewModel() {
 
-    val state: StateFlow<ChannelsPageScreenState>
-        get() = _state.asStateFlow()
+    val state: SharedFlow<ChannelsPageScreenState>
+        get() = _state.asSharedFlow()
 
     private var channelsFilter = ChannelsFilter()
 
     private val _state =
-        MutableStateFlow<ChannelsPageScreenState>(ChannelsPageScreenState.Idle)
+        MutableSharedFlow<ChannelsPageScreenState>(replay = 1)
 
     private val cache = mutableListOf<DelegateAdapterItem>()
     private val globalRouter = App.router
@@ -64,10 +64,9 @@ class ChannelsPageFragmentViewModel(
             ) {
                 is RepositoryResult.Success -> {
                     updateCache(result.value.toDelegateItem(isAllChannels))
-                    _state.value = ChannelsPageScreenState.Items(cache.toList())
+                    _state.emit(ChannelsPageScreenState.Items(cache.toList()))
                 }
-                // TODO: process other errors
-                is RepositoryResult.Failure -> {}
+                is RepositoryResult.Failure -> handleErrors(result)
             }
             setLoadingState.cancel()
         }
@@ -84,9 +83,10 @@ class ChannelsPageFragmentViewModel(
                         if (result is RepositoryResult.Success) {
                             cache[i] = TopicDelegateItem(messagesFilter.copy(topic = result.value))
                         }
+                        // TODO: process errors
                     }
                 }
-                _state.value = ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList())
+                _state.emit(ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList()))
                 setLoadingState.cancel()
             }
             isReturnFromMessagesScreen = false
@@ -128,7 +128,7 @@ class ChannelsPageFragmentViewModel(
                     }
                     cache.subList(index + 1, nextIndex).clear()
                 }
-                _state.value = ChannelsPageScreenState.Items(cache.toList())
+                _state.emit(ChannelsPageScreenState.Items(cache.toList()))
             }
             setLoadingState.cancel()
         }
@@ -179,21 +179,35 @@ class ChannelsPageFragmentViewModel(
     }
 
     private suspend fun addTopicsToCache(channelItem: ChannelItem, index: Int = UNDEFINED_INDEX) {
-        val topicsResult = getTopicsUseCase(channelItem.channel.channelId)
-        if (topicsResult is RepositoryResult.Success) {
-            val topics = topicsResult.value.toDelegateItem(channelItem.channel)
-            if (index != UNDEFINED_INDEX)
-                cache.addAll(index, topics)
-            else
-                cache.addAll(topics)
+        when (val topicsResult = getTopicsUseCase(channelItem.channel)) {
+            is RepositoryResult.Success -> {
+                val topics = topicsResult.value.toDelegateItem(channelItem.channel)
+                if (index != UNDEFINED_INDEX)
+                    cache.addAll(index, topics)
+                else
+                    cache.addAll(topics)
+            }
+            is RepositoryResult.Failure -> handleErrors(topicsResult)
         }
-        // TODO: process other errors}
     }
 
     private fun setLoadingStateWithDelay(): Job {
         return useCasesScope.launch {
             delay(DELAY_BEFORE_SET_STATE)
-            _state.value = ChannelsPageScreenState.Loading
+            _state.emit(ChannelsPageScreenState.Loading)
+        }
+    }
+
+
+    private suspend fun handleErrors(error: RepositoryResult.Failure) {
+        when (error) {
+            is RepositoryResult.Failure.LoadingChannels -> {
+                _state.emit(ChannelsPageScreenState.Failure.LoadingChannels(error.channelsFilter))
+            }
+            is RepositoryResult.Failure.LoadingChannelTopics -> {
+                _state.emit(ChannelsPageScreenState.Failure.LoadingChannelTopics(error.channel))
+            }
+            else -> {}
         }
     }
 

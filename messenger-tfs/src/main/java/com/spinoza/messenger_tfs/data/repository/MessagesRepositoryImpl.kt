@@ -41,7 +41,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>> {
-        return RepositoryResult.Success(usersDto.listToDomain(usersFilter))
+        return if (!isErrorInRepository()) {
+            RepositoryResult.Success(usersDto.listToDomain(usersFilter))
+        } else {
+            RepositoryResult.Failure.LoadingUsers(errorText)
+        }
     }
 
     override suspend fun getMessages(
@@ -49,12 +53,16 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     ): RepositoryResult<MessagesResult> {
         // TODO: for testing purpose
         delay(1000)
-        return RepositoryResult.Success(
-            MessagesResult(
-                messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
-                MessagePosition()
+        return if (!isErrorInRepository()) {
+            RepositoryResult.Success(
+                MessagesResult(
+                    messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
+                    MessagePosition()
+                )
             )
-        )
+        } else {
+            RepositoryResult.Failure.LoadingMessages(messagesFilter)
+        }
     }
 
     override suspend fun getAllChannels(
@@ -62,7 +70,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     ): RepositoryResult<List<Channel>> {
         // TODO: for testing purpose
         delay(1000)
-        return RepositoryResult.Success(channelsDto.toDomain(channelsFilter))
+        return if (!isErrorInRepository()) {
+            RepositoryResult.Success(channelsDto.toDomain(channelsFilter))
+        } else {
+            RepositoryResult.Failure.LoadingChannels(channelsFilter)
+        }
     }
 
     // TODO: "Not yet implemented"
@@ -72,21 +84,29 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return getAllChannels(channelsFilter)
     }
 
-    override suspend fun getTopics(channelId: Long): RepositoryResult<List<Topic>> {
+    override suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>> {
         val topics = channelsDto
-            .find { it.id == channelId }
+            .find { it.id == channel.channelId }
             ?.topics
-            ?.toDomain(messagesLocalCache, channelId) ?: listOf()
-        return RepositoryResult.Success(topics)
+            ?.toDomain(messagesLocalCache, channel.channelId) ?: listOf()
+        return if (!isErrorInRepository()) {
+            RepositoryResult.Success(topics)
+        } else {
+            RepositoryResult.Failure.LoadingChannelTopics(channel)
+        }
     }
 
     override suspend fun getTopic(
         messagesFilter: MessagesFilter,
     ): RepositoryResult<Topic> {
-        return RepositoryResult.Success(
-            TopicDto(messagesFilter.topic.name, Message.UNDEFINED_ID)
-                .toDomain(messagesLocalCache, messagesFilter.channel.channelId)
-        )
+        return if (!isErrorInRepository()) {
+            RepositoryResult.Success(
+                TopicDto(messagesFilter.topic.name, Message.UNDEFINED_ID)
+                    .toDomain(messagesLocalCache, messagesFilter.channel.channelId)
+            )
+        } else {
+            RepositoryResult.Failure.LoadingTopicData(messagesFilter)
+        }
     }
 
     override suspend fun sendMessage(
@@ -105,12 +125,16 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 messagesFilter = messagesFilter
             )
         )
-        return RepositoryResult.Success(
-            MessagesResult(
-                messagesLocalCache.toDomain(message.user.userId, messagesFilter),
-                MessagePosition(type = MessagePosition.Type.LAST_POSITION)
+        return if (!isErrorInRepository()) {
+            RepositoryResult.Success(
+                MessagesResult(
+                    messagesLocalCache.toDomain(message.user.userId, messagesFilter),
+                    MessagePosition(type = MessagePosition.Type.LAST_POSITION)
+                )
             )
-        )
+        } else {
+            RepositoryResult.Failure.SendingMessage(errorText)
+        }
     }
 
     override suspend fun updateReaction(
@@ -138,12 +162,16 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         messagesLocalCache.removeIf { it.id == messageId }
         messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
-        return RepositoryResult.Success(
-            MessagesResult(
-                messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
-                MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
+        return if (!isErrorInRepository()) {
+            RepositoryResult.Success(
+                MessagesResult(
+                    messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
+                    MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
+                )
             )
-        )
+        } else {
+            RepositoryResult.Failure.UpdatingReaction(errorText)
+        }
     }
 
     private fun List<Long>.removeIfExistsOrAddToList(value: Long): List<Long> {

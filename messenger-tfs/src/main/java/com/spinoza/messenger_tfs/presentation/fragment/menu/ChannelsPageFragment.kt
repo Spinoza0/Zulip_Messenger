@@ -21,6 +21,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
@@ -111,7 +112,24 @@ class ChannelsPageFragment : Fragment() {
                     }
             }
             is ChannelsPageScreenState.Loading -> binding.shimmer.on()
-            is ChannelsPageScreenState.Idle -> {}
+            is ChannelsPageScreenState.Failure -> handleErrors(state)
+        }
+    }
+
+    private fun handleErrors(error: ChannelsPageScreenState.Failure) {
+        when (error) {
+            is ChannelsPageScreenState.Failure.LoadingChannels -> showError(
+                String.format(
+                    getString(R.string.error_loading_channels),
+                    error.channelsFilter.value
+                )
+            )
+            is ChannelsPageScreenState.Failure.LoadingChannelTopics -> showError(
+                String.format(
+                    getString(R.string.error_loading_topics),
+                    error.channel.name
+                )
+            )
         }
     }
 

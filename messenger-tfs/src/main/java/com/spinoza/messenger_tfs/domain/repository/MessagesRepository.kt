@@ -18,7 +18,7 @@ interface MessagesRepository {
         channelsFilter: ChannelsFilter,
     ): RepositoryResult<List<Channel>>
 
-    suspend fun getTopics(channelId: Long): RepositoryResult<List<Topic>>
+    suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>>
 
     suspend fun getTopic(messagesFilter: MessagesFilter): RepositoryResult<Topic>
 
