@@ -27,7 +27,7 @@ class ChannelsFragment : Fragment() {
 
     private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()
     private var isActiveSearchInputListener = true
-    private val searchFilters = mutableListOf("", "")
+    private val searchFilters = arrayListOf("", "")
 
     private lateinit var tabLayoutMediator: TabLayoutMediator
     private lateinit var onPageChangeCallback: ViewPager2.OnPageChangeCallback
@@ -42,6 +42,14 @@ class ChannelsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        if (savedInstanceState != null) {
+            val savedList = savedInstanceState.getStringArrayList(PARAM_SEARCH_FILTERS)
+            savedList?.let {
+                searchFilters[TAB_SUBSCRIBED] = savedList[TAB_SUBSCRIBED]
+                searchFilters[TAB_ALL] = savedList[TAB_ALL]
+            }
+        }
 
         setupListeners()
         setupObservers()
@@ -96,6 +104,12 @@ class ChannelsFragment : Fragment() {
         }
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+
+        outState.putStringArrayList(PARAM_SEARCH_FILTERS, searchFilters)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         tabLayoutMediator.detach()
@@ -106,6 +120,7 @@ class ChannelsFragment : Fragment() {
 
     companion object {
 
+        private const val PARAM_SEARCH_FILTERS = "filters"
         private const val TAB_SUBSCRIBED = 0
         private const val TAB_ALL = 1
 
