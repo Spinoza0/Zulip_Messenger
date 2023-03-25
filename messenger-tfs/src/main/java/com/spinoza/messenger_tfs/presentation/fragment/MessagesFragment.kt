@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -43,7 +43,7 @@ class MessagesFragment : Fragment() {
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
 
-    private val viewModel: MessagesFragmentViewModel by viewModels {
+    private val viewModel: MessagesFragmentViewModel by activityViewModels {
         MessagesFragmentViewModelFactory(
             GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
@@ -150,19 +150,46 @@ class MessagesFragment : Fragment() {
                 binding.imageViewAction.setImageResource(state.resId)
             }
             is MessagesScreenState.Loading -> binding.shimmer.on()
+            is MessagesScreenState.Failure -> handleErrors(state)
+            is MessagesScreenState.Idle -> {}
+        }
+    }
+
+    private fun handleErrors(error: MessagesScreenState.Failure) {
+        when (error) {
             is MessagesScreenState.Failure.MessageNotFound -> showError(
                 String.format(
                     getString(R.string.error_message_not_found),
-                    state.messageId
+                    error.messageId
                 )
             )
             is MessagesScreenState.Failure.UserNotFound -> showError(
                 String.format(
                     getString(R.string.error_user_not_found),
-                    state.userId
+                    error.userId
                 )
             )
-            is MessagesScreenState.Idle -> {}
+            is MessagesScreenState.Failure.SendingMessage -> showError(
+                String.format(
+                    getString(R.string.error_sending_message),
+                    error.value
+                )
+            )
+            is MessagesScreenState.Failure.UpdatingReaction -> showError(
+                String.format(
+                    getString(R.string.error_updating_reaction),
+                    error.value
+                )
+            )
+            is MessagesScreenState.Failure.CurrentUserNotFound -> {
+                showError(
+                    String.format(
+                        getString(R.string.error_loading_current_user),
+                        error.value
+                    )
+                )
+                goBack()
+            }
         }
     }
 

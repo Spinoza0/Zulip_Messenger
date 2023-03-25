@@ -95,11 +95,11 @@ fun prepareTestData(): List<MessageDto> {
     return messages
 }
 
-private var errorGenerator = 1
+private var errorGenerator = 0
 
 const val errorText = "Test Error Text"
 
 fun isErrorInRepository(): Boolean {
     errorGenerator++
-    return errorGenerator % 3 == 0
+    return errorGenerator % 10 == 0
 }

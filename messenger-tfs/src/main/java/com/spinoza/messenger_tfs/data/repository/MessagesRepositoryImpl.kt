@@ -24,7 +24,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     private val messagesLocalCache = TreeSet<MessageDto>()
 
     init {
-        // for testing purpose
+        // TODO: for testing purpose
         messagesLocalCache.addAll(prepareTestData())
     }
 
@@ -32,7 +32,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return if (!isErrorInRepository()) {
             RepositoryResult.Success(currentUser.toDomain())
         } else {
-            RepositoryResult.Failure.UserNotFound(currentUser.userId)
+            RepositoryResult.Failure.CurrentUserNotFound(errorText)
         }
     }
 

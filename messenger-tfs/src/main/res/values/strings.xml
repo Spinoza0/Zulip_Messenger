@@ -39,5 +39,8 @@
     <string name="error_loading_channels">Error loading channels with filter: \"%s\"</string>
     <string name="error_loading_topics">Error loading topics for channel: \"%s\"</string>
     <string name="error_loading_users">Error loading users list: %s</string>
+    <string name="error_sending_message">Sending message error: %s</string>
+    <string name="error_updating_reaction">Updating reaction error: %s</string>
+    <string name="error_loading_current_user">Error loading user: %s</string>
 
 </resources>
