@@ -47,9 +47,14 @@ class ProfileFragmentViewModel(
     private fun updateState(result: RepositoryResult<User>) {
         when (result) {
             is RepositoryResult.Success -> _state.value = ProfileScreenState.UserData(result.value)
+            is RepositoryResult.Failure -> handleErrors(result)
+        }
+    }
+
+    private fun handleErrors(error: RepositoryResult.Failure) {
+        when (error) {
             is RepositoryResult.Failure.UserNotFound -> _state.value =
-                ProfileScreenState.Failure.UserNotFound(result.userId)
-            // TODO: process other errors
+                ProfileScreenState.Failure.UserNotFound(error.userId)
             else -> {}
         }
     }

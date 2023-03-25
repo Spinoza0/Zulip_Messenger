@@ -29,7 +29,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun getCurrentUser(): RepositoryResult<User> {
-        return RepositoryResult.Success(currentUser.toDomain())
+        return if (!isErrorInRepository()) {
+            RepositoryResult.Success(currentUser.toDomain())
+        } else {
+            RepositoryResult.Failure.UserNotFound(currentUser.userId)
+        }
     }
 
     override suspend fun getUser(userId: Long): RepositoryResult<User> {

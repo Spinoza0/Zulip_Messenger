@@ -95,7 +95,7 @@ fun prepareTestData(): List<MessageDto> {
     return messages
 }
 
-private var errorGenerator = 0
+private var errorGenerator = 1
 
 const val errorText = "Test Error Text"
 
