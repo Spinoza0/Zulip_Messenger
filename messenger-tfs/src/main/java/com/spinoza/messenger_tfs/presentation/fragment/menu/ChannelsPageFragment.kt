@@ -140,7 +140,6 @@ class ChannelsPageFragment : Fragment() {
                 val filterIsAllChannels = state.value.screenPosition % 2 != 0
                 if (filterIsAllChannels == isAllChannels) {
                     viewModel.setChannelsFilter(ChannelsFilter(state.value.text))
-                    viewModel.loadItems()
                 }
             }
         }
@@ -152,11 +151,7 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (binding.recyclerViewChannels.adapter?.itemCount == NO_ITEMS) {
-            viewModel.loadItems()
-        } else {
-            viewModel.updateMessagesCount()
-        }
+        viewModel.updateMessagesCount()
     }
 
     override fun onPause() {
@@ -174,7 +169,6 @@ class ChannelsPageFragment : Fragment() {
     companion object {
 
         private const val PARAM_IS_ALL_CHANNELS = "isAllChannels"
-        private const val NO_ITEMS = 0
 
         fun newInstance(isAllChannels: Boolean): ChannelsPageFragment {
             return ChannelsPageFragment().apply {

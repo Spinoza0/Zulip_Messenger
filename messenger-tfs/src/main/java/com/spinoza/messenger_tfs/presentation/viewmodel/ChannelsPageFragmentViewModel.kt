@@ -41,6 +41,7 @@ class ChannelsPageFragmentViewModel(
     private val cache = mutableListOf<DelegateAdapterItem>()
     private val globalRouter = App.router
     private var isReturnFromMessagesScreen = false
+    private var isFirstLoading = true
 
     private val useCasesScope = CoroutineScope(Dispatchers.IO)
 
@@ -51,10 +52,16 @@ class ChannelsPageFragmentViewModel(
     }
 
     fun setChannelsFilter(newFilter: ChannelsFilter) {
-        channelsFilter = newFilter
+        if (newFilter != channelsFilter) {
+            channelsFilter = newFilter
+            loadItems()
+        } else if (isFirstLoading) {
+            isFirstLoading = false
+            loadItems()
+        }
     }
 
-    fun loadItems() {
+    private fun loadItems() {
         useCasesScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             when (val result = if (isAllChannels)
@@ -63,7 +70,7 @@ class ChannelsPageFragmentViewModel(
                 getSubscribedChannelsUseCase(channelsFilter)
             ) {
                 is RepositoryResult.Success -> {
-                    updateCache(result.value.toDelegateItem(isAllChannels))
+                    updateCacheWithShowedTopicsSaving(result.value.toDelegateItem(isAllChannels))
                     _state.emit(ChannelsPageScreenState.Items(cache.toList()))
                 }
                 is RepositoryResult.Failure -> handleErrors(result)
@@ -139,23 +146,30 @@ class ChannelsPageFragmentViewModel(
         globalRouter.navigateTo(Screens.Messages(messagesFilter))
     }
 
-    private fun updateCache(newItems: List<DelegateAdapterItem>) {
+    private fun updateCacheWithShowedTopicsSaving(newItems: List<DelegateAdapterItem>) {
         val newCache = mutableListOf<DelegateAdapterItem>()
         newItems.forEach { newItem ->
-            val oldItem = cache.find { oldItem ->
-                if (newItem is ChannelDelegateItem && oldItem is ChannelDelegateItem) {
-                    val newChannelItem = newItem.content() as ChannelItem
-                    val oldChannelItem = oldItem.content() as ChannelItem
-                    newChannelItem.channel == oldChannelItem.channel
-                } else false
+            var oldItem: DelegateAdapterItem? = null
+            var oldItemIndex = 0
+            if (newItem is ChannelDelegateItem) {
+                for (index in cache.indices) {
+                    if (cache[index] is ChannelDelegateItem) {
+                        val newChannelItem = newItem.content() as ChannelItem
+                        val oldChannelItem = cache[index].content() as ChannelItem
+                        if (newChannelItem.channel == oldChannelItem.channel) {
+                            oldItem = cache[index]
+                            oldItemIndex = index
+                            break
+                        }
+                    }
+                }
             }
 
             if (oldItem != null) {
                 newCache.add(oldItem)
-                val channelItem = oldItem.content() as ChannelItem
-                if (!channelItem.isFolded) {
-                    val index = cache.indexOf(oldItem)
-                    var nextIndex = index + 1
+                val oldChannelItem = oldItem.content() as ChannelItem
+                if (!oldChannelItem.isFolded) {
+                    var nextIndex = oldItemIndex + 1
                     var isNextChannelItemExist = false
                     while (nextIndex < cache.size && !isNextChannelItemExist) {
                         if (cache[nextIndex] is ChannelDelegateItem) {
@@ -167,7 +181,7 @@ class ChannelsPageFragmentViewModel(
                     if (!isNextChannelItemExist) {
                         nextIndex = cache.size
                     }
-                    newCache.addAll(cache.subList(index + 1, nextIndex))
+                    newCache.addAll(cache.subList(oldItemIndex + 1, nextIndex))
                 }
             } else if (newItem is ChannelDelegateItem) {
                 newCache.add(newItem)

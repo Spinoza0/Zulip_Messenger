@@ -101,5 +101,5 @@ const val errorText = "Test Error Text"
 
 fun isErrorInRepository(): Boolean {
     errorGenerator++
-    return errorGenerator % 10 == 0
+    return errorGenerator % 15 == 0
 }
