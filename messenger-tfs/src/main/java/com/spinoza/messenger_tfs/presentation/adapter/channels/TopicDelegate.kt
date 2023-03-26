@@ -38,6 +38,19 @@ class TopicDelegate(
         )
     }
 
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        item: DelegateAdapterItem,
+        position: Int,
+        payloads: List<Any>,
+    ) {
+        if (payloads.isEmpty() || (payloads[0] as? Int) == null) {
+            onBindViewHolder(holder, item, position)
+        } else {
+            (holder as ViewHolder).bind(payloads[0] as Int)
+        }
+    }
+
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
         return item is TopicDelegateItem
     }
@@ -60,6 +73,10 @@ class TopicDelegate(
             binding.root.setOnClickListener {
                 onClickListener(messagesFilter)
             }
+        }
+
+        fun bind(messageCount: Int) {
+            binding.textViewTopicMessagesCount.text = messageCount.toString()
         }
     }
 }

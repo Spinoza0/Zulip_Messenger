@@ -30,6 +30,15 @@ class ChannelDelegate(private val onChannelClickListener: (ChannelItem) -> Unit)
         (holder as ViewHolder).bind(item as ChannelDelegateItem, onChannelClickListener)
     }
 
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        item: DelegateAdapterItem,
+        position: Int,
+        payloads: List<Any>,
+    ) {
+        onBindViewHolder(holder, item, position)
+    }
+
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
         return item is ChannelDelegateItem
     }

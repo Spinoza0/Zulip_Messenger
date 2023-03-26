@@ -7,4 +7,6 @@ interface DelegateAdapterItem {
     fun id(): Long
 
     fun compareToOther(other: DelegateAdapterItem): Boolean
+
+    fun getChangePayload(newItem: DelegateAdapterItem): Any?
 }

@@ -99,18 +99,12 @@ class ChannelsPageFragment : Fragment() {
             binding.shimmer.off()
         }
         when (state) {
-            is ChannelsPageScreenState.Items -> {
+            is ChannelsPageScreenState.Items ->
                 (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
                     .submitList(state.value)
-            }
-            is ChannelsPageScreenState.TopicMessagesCountUpdate -> {
-                val itemAnimator = binding.recyclerViewChannels.itemAnimator
-                binding.recyclerViewChannels.itemAnimator = null
+            is ChannelsPageScreenState.TopicMessagesCountUpdate ->
                 (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
-                    .submitList(state.value) {
-                        binding.recyclerViewChannels.itemAnimator = itemAnimator
-                    }
-            }
+                    .submitList(state.value)
             is ChannelsPageScreenState.Loading -> binding.shimmer.on()
             is ChannelsPageScreenState.Failure -> handleErrors(state)
         }

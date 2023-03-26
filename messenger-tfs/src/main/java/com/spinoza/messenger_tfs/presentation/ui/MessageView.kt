@@ -204,6 +204,23 @@ class MessageView @JvmOverloads constructor(
         }
     }
 
+    fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
+        messageId = message.id
+        userId = message.user.userId
+        name = message.user.full_name
+        content = message.content
+        this.reactionsGravity = reactionsGravity
+        setIconAddVisibility(message.isIconAddVisible)
+        setReactions(message.reactions)
+    }
+
+    fun setReactions(reactions: Map<String, ReactionParam>) {
+        binding.reactionsFlexBoxLayout.removeAllViews()
+        reactions.forEach {
+            addReaction(it.key, it.value)
+        }
+    }
+
     private fun setIconAddVisibility(state: Boolean) {
         binding.reactionsFlexBoxLayout.setIconAddVisibility(state)
     }
@@ -223,19 +240,6 @@ class MessageView @JvmOverloads constructor(
                 )
             }
         binding.reactionsFlexBoxLayout.addView(reactionView)
-    }
-
-    fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
-        messageId = message.id
-        userId = message.user.userId
-        name = message.user.full_name
-        content = message.content
-        this.reactionsGravity = reactionsGravity
-        setIconAddVisibility(message.isIconAddVisible)
-        binding.reactionsFlexBoxLayout.removeAllViews()
-        message.reactions.forEach {
-            addReaction(it.key, it.value)
-        }
     }
 
     private companion object {

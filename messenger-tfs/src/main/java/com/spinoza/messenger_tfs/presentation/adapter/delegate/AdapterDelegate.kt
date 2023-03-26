@@ -9,5 +9,12 @@ interface AdapterDelegate {
 
     fun onBindViewHolder(holder: RecyclerView.ViewHolder, item: DelegateAdapterItem, position: Int)
 
+    fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        item: DelegateAdapterItem,
+        position: Int,
+        payloads: List<Any>,
+    )
+
     fun isOfViewType(item: DelegateAdapterItem): Boolean
 }

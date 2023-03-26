@@ -29,6 +29,19 @@ class MainDelegateAdapter :
         )
     }
 
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+        payloads: MutableList<Any>,
+    ) {
+        return delegates[getItemViewType(position)].onBindViewHolder(
+            holder,
+            getItem(position),
+            position,
+            payloads
+        )
+    }
+
     override fun getItemViewType(position: Int): Int {
         return delegates.indexOfFirst {
             it.isOfViewType(currentList[position])
