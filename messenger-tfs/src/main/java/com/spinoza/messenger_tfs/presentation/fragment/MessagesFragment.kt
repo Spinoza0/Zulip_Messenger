@@ -42,6 +42,7 @@ class MessagesFragment : Fragment() {
 
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
+    private var isGoingBack = false
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
@@ -235,7 +236,10 @@ class MessagesFragment : Fragment() {
     }
 
     private fun goBack() {
-        globalRouter.exit()
+        if (!isGoingBack) {
+            isGoingBack = true
+            globalRouter.exit()
+        }
     }
 
     @Suppress("deprecation")

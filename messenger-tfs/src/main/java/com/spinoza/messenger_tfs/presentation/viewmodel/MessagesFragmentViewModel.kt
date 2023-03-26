@@ -63,18 +63,24 @@ class MessagesFragmentViewModel(
     }
 
     fun loadMessages() {
-        if (currentUser != null) useCasesScope.launch {
-            val setLoadingState = setLoadingStateWithDelay()
-            val result = getMessagesUseCase(messagesFilter)
-            handleRepositoryResult(result)
-            setLoadingState.cancel()
+        useCasesScope.launch {
+            if (currentUser == null) {
+                _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
+            } else {
+                val setLoadingState = setLoadingStateWithDelay()
+                val result = getMessagesUseCase(messagesFilter)
+                handleRepositoryResult(result)
+                setLoadingState.cancel()
+            }
         }
     }
 
     fun sendMessage(messageText: String): Boolean {
-        currentUser?.let { user ->
-            if (messageText.isNotEmpty()) {
-                useCasesScope.launch {
+        if (messageText.isNotEmpty()) {
+            useCasesScope.launch {
+                if (currentUser == null) {
+                    _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
+                } else currentUser?.let { user ->
                     val setLoadingState = setLoadingStateWithDelay()
                     val message = Message(
                         // TODO: test data
@@ -88,8 +94,8 @@ class MessagesFragmentViewModel(
                     handleRepositoryResult(result)
                     setLoadingState.cancel()
                 }
-                return true
             }
+            return true
         }
         return false
     }
@@ -114,7 +120,9 @@ class MessagesFragmentViewModel(
     }
 
     private suspend fun handleRepositoryResult(result: RepositoryResult<MessagesResult>) {
-        currentUser?.let { user ->
+        if (currentUser == null) {
+            _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
+        } else currentUser?.let { user ->
             when (result) {
                 is RepositoryResult.Success -> _state.emit(
                     MessagesScreenState.Messages(
