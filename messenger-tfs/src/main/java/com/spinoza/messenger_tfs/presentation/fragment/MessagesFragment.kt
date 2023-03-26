@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -43,7 +43,7 @@ class MessagesFragment : Fragment() {
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
 
-    private val viewModel: MessagesFragmentViewModel by activityViewModels {
+    private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
             GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
