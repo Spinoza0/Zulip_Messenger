@@ -37,6 +37,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun getUser(userId: Long): RepositoryResult<User> {
+        // TODO: for testing purpose
+        delay(1000)
         val user = usersDto.find { it.userId == userId }
         return if (user != null)
             RepositoryResult.Success(user.toDomain())
@@ -45,6 +47,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>> {
+        // TODO: for testing purpose
+        delay(1000)
         return if (!isErrorInRepository()) {
             RepositoryResult.Success(usersDto.listToDomain(usersFilter))
         } else {

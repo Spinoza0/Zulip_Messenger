@@ -6,6 +6,7 @@ import android.view.View
 import androidx.core.view.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.facebook.shimmer.ShimmerFrameLayout
 import com.spinoza.messenger_tfs.databinding.ShimmerBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
@@ -90,11 +91,19 @@ fun Context.getThemeColor(attr: Int): Int {
 }
 
 fun ShimmerBinding.on() {
-    shimmer.isVisible = true
-    shimmer.startShimmer()
+    shimmer.on()
 }
 
 fun ShimmerBinding.off() {
-    shimmer.stopShimmer()
-    shimmer.isVisible = false
+    shimmer.off()
+}
+
+fun ShimmerFrameLayout.on() {
+    isVisible = true
+    startShimmer()
+}
+
+fun ShimmerFrameLayout.off() {
+    stopShimmer()
+    isVisible = false
 }

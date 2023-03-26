@@ -10,14 +10,15 @@ import kotlinx.coroutines.flow.*
 class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFilterUseCase) :
     ViewModel() {
 
-    val state: SharedFlow<PeopleScreenState>
-        get() = _state.asSharedFlow()
+    val state: StateFlow<PeopleScreenState>
+        get() = _state.asStateFlow()
 
+    private var usersFilter = ""
     private val _state =
-        MutableSharedFlow<PeopleScreenState>(replay = 1)
+        MutableStateFlow<PeopleScreenState>(PeopleScreenState.Filter(usersFilter))
     private val searchQueryState = MutableSharedFlow<String>()
     private val useCasesScope = CoroutineScope(Dispatchers.IO)
-    private var usersFilter = ""
+    private var isFirstLoading = true
 
     init {
         subscribeToSearchQueryChanges()
@@ -26,6 +27,27 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
     override fun onCleared() {
         super.onCleared()
         useCasesScope.cancel()
+    }
+
+    fun setUsersFilter(newFilter: String) {
+        if (usersFilter != newFilter) {
+            usersFilter = newFilter
+            loadUsers()
+        } else if (isFirstLoading) {
+            isFirstLoading = false
+            loadUsers()
+        }
+    }
+
+    fun loadUsers() {
+        useCasesScope.launch {
+            val setLoadingState = setLoadingStateWithDelay()
+            when (val result = getUsersByFilterUseCase(usersFilter)) {
+                is RepositoryResult.Success -> _state.emit(PeopleScreenState.Users(result.value))
+                is RepositoryResult.Failure -> handleErrors(result)
+            }
+            setLoadingState.cancel()
+        }
     }
 
     fun doOnTextChanged(searchQuery: CharSequence?) {
@@ -43,21 +65,6 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
             .onEach { _state.emit(PeopleScreenState.Filter(it)) }
             .flowOn(Dispatchers.Default)
             .launchIn(useCasesScope)
-    }
-
-    fun setUsersFilter(filter: String) {
-        usersFilter = filter
-    }
-
-    fun loadUsers() {
-        useCasesScope.launch {
-            val setLoadingState = setLoadingStateWithDelay()
-            when (val result = getUsersByFilterUseCase(usersFilter)) {
-                is RepositoryResult.Success -> _state.emit(PeopleScreenState.Users(result.value))
-                is RepositoryResult.Failure -> handleErrors(result)
-            }
-            setLoadingState.cancel()
-        }
     }
 
     private suspend fun handleErrors(error: RepositoryResult.Failure) {

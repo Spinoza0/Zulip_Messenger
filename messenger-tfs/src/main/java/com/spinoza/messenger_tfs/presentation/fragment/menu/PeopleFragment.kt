@@ -53,9 +53,6 @@ class PeopleFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
         setupObservers()
-        if (savedInstanceState == null) {
-            viewModel.loadUsers()
-        }
     }
 
     private fun setupRecyclerView() {
@@ -70,7 +67,7 @@ class PeopleFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::handleState)
             }
         }
@@ -81,13 +78,9 @@ class PeopleFragment : Fragment() {
             binding.shimmer.off()
         }
         when (state) {
-            is PeopleScreenState.Users -> {
+            is PeopleScreenState.Users ->
                 (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(state.value)
-            }
-            is PeopleScreenState.Filter -> {
-                viewModel.setUsersFilter(state.value)
-                viewModel.loadUsers()
-            }
+            is PeopleScreenState.Filter -> viewModel.setUsersFilter(state.value)
             is PeopleScreenState.Loading -> binding.shimmer.on()
             is PeopleScreenState.Failure.LoadingUsers -> showError(
                 String.format(
@@ -102,6 +95,14 @@ class PeopleFragment : Fragment() {
         globalRouter.navigateTo(Screens.UserProfile(userId))
     }
 
+    override fun onResume() {
+        super.onResume()
+
+        if (binding.recyclerViewUsers.adapter?.itemCount == 0) {
+            viewModel.loadUsers()
+        }
+    }
+
     override fun onPause() {
         super.onPause()
         binding.shimmer.off()
@@ -113,6 +114,7 @@ class PeopleFragment : Fragment() {
     }
 
     companion object {
+
         fun newInstance(): PeopleFragment {
             return PeopleFragment()
         }
