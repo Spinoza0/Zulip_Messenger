@@ -9,8 +9,7 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsPageFragmentView
 class ChannelsPageFragmentViewModelFactory(
     private val isAllChannels: Boolean,
     private val getTopicsUseCase: GetTopicsUseCase,
-    private val getSubscribedChannelsUseCase: GetSubscribedChannelsUseCase,
-    private val getAllChannelsUseCase: GetAllChannelsUseCase,
+    private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
 ) : ViewModelProvider.Factory {
 
@@ -18,8 +17,7 @@ class ChannelsPageFragmentViewModelFactory(
         return ChannelsPageFragmentViewModel(
             isAllChannels,
             getTopicsUseCase,
-            getSubscribedChannelsUseCase,
-            getAllChannelsUseCase,
+            getChannelsUseCase,
             getTopicUseCase
         ) as T
     }

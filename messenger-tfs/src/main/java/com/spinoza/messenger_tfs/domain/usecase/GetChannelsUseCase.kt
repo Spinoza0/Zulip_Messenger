@@ -5,9 +5,9 @@ import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
-class GetAllChannelsUseCase(private val repository: MessagesRepository) {
+class GetChannelsUseCase(private val repository: MessagesRepository) {
 
     suspend operator fun invoke(channelsFilter: ChannelsFilter): RepositoryResult<List<Channel>> {
-        return repository.getAllChannels(channelsFilter)
+        return repository.getChannels(channelsFilter)
     }
 }

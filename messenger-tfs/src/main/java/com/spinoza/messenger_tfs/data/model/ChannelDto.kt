@@ -8,4 +8,5 @@ data class ChannelDto(
     val id: Long,
     val name: String,
     val topics: List<TopicDto>,
+    val subscriptionStatus: Boolean
 )

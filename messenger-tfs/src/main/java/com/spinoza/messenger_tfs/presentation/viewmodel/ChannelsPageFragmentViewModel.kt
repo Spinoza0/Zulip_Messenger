@@ -7,8 +7,7 @@ import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
@@ -25,15 +24,14 @@ import kotlinx.coroutines.flow.asSharedFlow
 class ChannelsPageFragmentViewModel(
     private val isAllChannels: Boolean,
     private val getTopicsUseCase: GetTopicsUseCase,
-    private val getSubscribedChannelsUseCase: GetSubscribedChannelsUseCase,
-    private val getAllChannelsUseCase: GetAllChannelsUseCase,
+    private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
 ) : ViewModel() {
 
     val state: SharedFlow<ChannelsPageScreenState>
         get() = _state.asSharedFlow()
 
-    private var channelsFilter = ChannelsFilter()
+    private var channelsFilter = ChannelsFilter(ChannelsFilter.NO_FILTER, !isAllChannels)
 
     private val _state =
         MutableSharedFlow<ChannelsPageScreenState>(replay = 1)
@@ -63,11 +61,7 @@ class ChannelsPageFragmentViewModel(
     private fun loadItems() {
         useCasesScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
-            when (val result = if (isAllChannels)
-                getAllChannelsUseCase(channelsFilter)
-            else
-                getSubscribedChannelsUseCase(channelsFilter)
-            ) {
+            when (val result = getChannelsUseCase(channelsFilter)) {
                 is RepositoryResult.Success -> {
                     updateCacheWithShowedTopicsSaving(result.value.toDelegateItem(isAllChannels))
                     _state.emit(ChannelsPageScreenState.Items(cache.toList()))

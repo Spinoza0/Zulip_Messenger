@@ -14,8 +14,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
-import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
@@ -44,8 +43,7 @@ class ChannelsPageFragment : Fragment() {
         ChannelsPageFragmentViewModelFactory(
             isAllChannels,
             GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetAllChannelsUseCase(MessagesRepositoryImpl.getInstance()),
+            GetChannelsUseCase(MessagesRepositoryImpl.getInstance()),
             GetTopicUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
@@ -123,7 +121,7 @@ class ChannelsPageFragment : Fragment() {
             is ChannelsPageScreenState.Failure.LoadingChannels -> showError(
                 String.format(
                     getString(R.string.error_loading_channels),
-                    error.channelsFilter.value
+                    error.channelsFilter.name
                 )
             )
             is ChannelsPageScreenState.Failure.LoadingChannelTopics -> showError(
@@ -141,7 +139,7 @@ class ChannelsPageFragment : Fragment() {
             is ChannelsScreenState.Filter -> {
                 val filterIsAllChannels = state.value.screenPosition % 2 != 0
                 if (filterIsAllChannels == isAllChannels) {
-                    viewModel.setChannelsFilter(ChannelsFilter(state.value.text))
+                    viewModel.setChannelsFilter(ChannelsFilter(state.value.text, !isAllChannels))
                 }
             }
         }

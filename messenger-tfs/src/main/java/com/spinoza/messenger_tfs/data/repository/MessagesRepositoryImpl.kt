@@ -75,7 +75,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
-    override suspend fun getAllChannels(
+    override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
     ): RepositoryResult<List<Channel>> {
         // TODO: for testing purpose
@@ -85,13 +85,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         } else {
             RepositoryResult.Failure.LoadingChannels(channelsFilter)
         }
-    }
-
-    // TODO: "Not yet implemented"
-    override suspend fun getSubscribedChannels(
-        channelsFilter: ChannelsFilter,
-    ): RepositoryResult<List<Channel>> {
-        return getAllChannels(channelsFilter)
     }
 
     override suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>> {
@@ -125,6 +118,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         message: Message,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult> {
+        // TODO: for testing purpose
+        delay(1000)
         val newMessageId = if (message.id == Message.UNDEFINED_ID) {
             messagesLocalCache.size.toLong()
         } else {
@@ -154,6 +149,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         reaction: String,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult> {
+        // TODO: for testing purpose
+        delay(1000)
         val messageDto = messagesLocalCache
             .find { it.id == messageId }
             ?: return RepositoryResult.Failure.MessageNotFound(messageId)
