@@ -20,6 +20,7 @@
     <string name="subscribed_streams">Subscribed</string>
     <string name="arrow">Arrow</string>
     <string name="mes">mes</string>
+    <string name="channel_name_template">#%s</string>
 
     <!-- Fragment People -->
     <string name="users">Users...</string>

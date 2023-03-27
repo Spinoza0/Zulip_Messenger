@@ -92,7 +92,8 @@ class MessagesFragment : Fragment() {
     }
 
     private fun setupStatusBar() {
-        binding.toolbar.title = "#${messagesFilter.channel.name}"
+        binding.toolbar.title =
+            String.format(getString(R.string.channel_name_template, messagesFilter.channel.name))
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.channel_toolbar_background_color)
     }

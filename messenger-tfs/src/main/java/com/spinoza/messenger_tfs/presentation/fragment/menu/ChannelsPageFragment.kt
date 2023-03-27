@@ -67,7 +67,12 @@ class ChannelsPageFragment : Fragment() {
 
     private fun setupRecyclerView() {
         val delegateAdapter = MainDelegateAdapter()
-        delegateAdapter.addDelegate(ChannelDelegate(viewModel::onChannelClickListener))
+        delegateAdapter.addDelegate(
+            ChannelDelegate(
+                getString(R.string.channel_name_template),
+                viewModel::onChannelClickListener
+            )
+        )
         delegateAdapter.addDelegate(
             TopicDelegate(
                 requireContext().getThemeColor(R.attr.even_topic_color),
