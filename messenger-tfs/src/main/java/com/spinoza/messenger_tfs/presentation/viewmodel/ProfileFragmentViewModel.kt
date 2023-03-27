@@ -29,14 +29,14 @@ class ProfileFragmentViewModel(
     }
 
     fun loadCurrentUser() {
-        loadUser(UNDEFINED_USER_ID)
+        loadUser(CURRENT_USER)
     }
 
     fun loadUser(userId: Long) {
         useCasesScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             val result =
-                if (userId == UNDEFINED_USER_ID) getCurrentUserUseCase() else getUserUseCase(userId)
+                if (userId == CURRENT_USER) getCurrentUserUseCase() else getUserUseCase(userId)
             updateState(result)
             setLoadingState.cancel()
         }
@@ -67,6 +67,6 @@ class ProfileFragmentViewModel(
     private companion object {
 
         const val DELAY_BEFORE_SET_STATE = 200L
-        const val UNDEFINED_USER_ID = -1L
+        const val CURRENT_USER = -1L
     }
 }
