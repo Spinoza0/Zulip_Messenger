@@ -15,7 +15,7 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
 
     private var usersFilter = ""
     private val _state =
-        MutableStateFlow<PeopleScreenState>(PeopleScreenState.Filter(usersFilter))
+        MutableStateFlow<PeopleScreenState>(PeopleScreenState.Start)
     private val searchQueryState = MutableSharedFlow<String>()
     private val useCasesScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var isFirstLoading = true
@@ -62,7 +62,7 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
             .distinctUntilChanged()
             .debounce(DURATION_MILLIS)
             .flatMapLatest { flow { emit(it) } }
-            .onEach { _state.emit(PeopleScreenState.Filter(it)) }
+            .onEach { setUsersFilter(it) }
             .flowOn(Dispatchers.Default)
             .launchIn(useCasesScope)
     }

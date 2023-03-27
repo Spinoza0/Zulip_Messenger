@@ -81,7 +81,6 @@ class PeopleFragment : Fragment() {
         when (state) {
             is PeopleScreenState.Users ->
                 (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(state.value)
-            is PeopleScreenState.Filter -> viewModel.setUsersFilter(state.value)
             is PeopleScreenState.Loading -> {
                 if (peopleListIsEmpty()) binding.shimmerLarge.on()
                 else binding.shimmerSmall.on()
@@ -92,6 +91,7 @@ class PeopleFragment : Fragment() {
                     state.value
                 )
             )
+            is PeopleScreenState.Start -> viewModel.setUsersFilter(NO_FILTER)
         }
     }
 
@@ -124,6 +124,7 @@ class PeopleFragment : Fragment() {
     companion object {
 
         private const val NO_ITEMS = 0
+        private const val NO_FILTER = ""
 
         fun newInstance(): PeopleFragment {
             return PeopleFragment()
