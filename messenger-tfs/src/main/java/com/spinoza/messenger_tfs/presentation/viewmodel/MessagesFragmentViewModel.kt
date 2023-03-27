@@ -40,7 +40,7 @@ class MessagesFragmentViewModel(
     private val _state =
         MutableSharedFlow<MessagesScreenState>(replay = 1)
 
-    private val useCasesScope = CoroutineScope(Dispatchers.IO)
+    private val useCasesScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCleared() {
         super.onCleared()

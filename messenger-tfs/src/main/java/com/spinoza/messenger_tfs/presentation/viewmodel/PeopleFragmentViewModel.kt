@@ -17,7 +17,7 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
     private val _state =
         MutableStateFlow<PeopleScreenState>(PeopleScreenState.Filter(usersFilter))
     private val searchQueryState = MutableSharedFlow<String>()
-    private val useCasesScope = CoroutineScope(Dispatchers.IO)
+    private val useCasesScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var isFirstLoading = true
 
     init {

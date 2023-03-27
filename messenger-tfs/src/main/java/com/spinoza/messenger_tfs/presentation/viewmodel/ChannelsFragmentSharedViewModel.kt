@@ -14,7 +14,7 @@ class ChannelsFragmentSharedViewModel : ViewModel() {
     private val _state =
         MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Idle)
     private val searchQueryState = MutableSharedFlow<SearchQuery>()
-    private val useCasesScope = CoroutineScope(Dispatchers.Default)
+    private val useCasesScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     init {
         subscribeToSearchQueryChanges()

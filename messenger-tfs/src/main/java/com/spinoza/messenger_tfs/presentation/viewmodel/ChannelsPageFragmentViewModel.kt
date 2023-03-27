@@ -42,8 +42,7 @@ class ChannelsPageFragmentViewModel(
     private val globalRouter = App.router
     private var isReturnFromMessagesScreen = false
     private var isFirstLoading = true
-
-    private val useCasesScope = CoroutineScope(Dispatchers.IO)
+    private val useCasesScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCleared() {
         super.onCleared()
