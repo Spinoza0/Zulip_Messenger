@@ -42,36 +42,39 @@ class MessagesFragmentViewModel(
 
     private val useCasesScope = CoroutineScope(Dispatchers.IO)
 
-    init {
-        loadCurrentUser()
-    }
-
     override fun onCleared() {
         super.onCleared()
         useCasesScope.cancel()
     }
 
-    private fun loadCurrentUser() {
-        useCasesScope.launch {
-            val setLoadingState = setLoadingStateWithDelay()
-            when (val result = getCurrentUserUseCase()) {
-                is RepositoryResult.Success -> currentUser = result.value
-                is RepositoryResult.Failure -> handleErrors(result)
-            }
-            setLoadingState.cancel()
+    fun onResume(itemsCount: Int?) {
+        val count = itemsCount ?: NO_ITEMS
+        if (count == NO_ITEMS) useCasesScope.launch {
+            loadCurrentUser()
         }
     }
 
-    fun loadMessages() {
-        useCasesScope.launch {
-            if (currentUser == null) {
-                _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
-            } else {
-                val setLoadingState = setLoadingStateWithDelay()
-                val result = getMessagesUseCase(messagesFilter)
-                handleRepositoryResult(result)
-                setLoadingState.cancel()
+    private suspend fun loadCurrentUser() {
+        val setLoadingState = setLoadingStateWithDelay()
+        val result = getCurrentUserUseCase()
+        setLoadingState.cancel()
+        when (result) {
+            is RepositoryResult.Success -> {
+                currentUser = result.value
+                loadMessages()
             }
+            is RepositoryResult.Failure -> handleErrors(result)
+        }
+    }
+
+    private suspend fun loadMessages() {
+        if (currentUser == null) {
+            _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
+        } else {
+            val setLoadingState = setLoadingStateWithDelay()
+            val result = getMessagesUseCase(messagesFilter)
+            handleRepositoryResult(result)
+            setLoadingState.cancel()
         }
     }
 
@@ -190,5 +193,6 @@ class MessagesFragmentViewModel(
     private companion object {
 
         const val DELAY_BEFORE_SET_STATE = 200L
+        const val NO_ITEMS = 0
     }
 }

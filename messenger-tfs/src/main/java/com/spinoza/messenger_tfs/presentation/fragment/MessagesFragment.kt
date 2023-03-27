@@ -152,7 +152,6 @@ class MessagesFragment : Fragment() {
             }
             is MessagesScreenState.Loading -> binding.shimmer.on()
             is MessagesScreenState.Failure -> handleErrors(state)
-            is MessagesScreenState.Idle -> {}
         }
     }
 
@@ -257,10 +256,7 @@ class MessagesFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-
-        if (binding.recyclerViewMessages.adapter?.itemCount == NO_MESSAGES) {
-            viewModel.loadMessages()
-        }
+        viewModel.onResume(binding.recyclerViewMessages.adapter?.itemCount)
     }
 
     override fun onPause() {
@@ -282,7 +278,6 @@ class MessagesFragment : Fragment() {
     companion object {
 
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
-        private const val NO_MESSAGES = 0
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {
