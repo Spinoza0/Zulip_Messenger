@@ -47,9 +47,8 @@ class MessagesFragmentViewModel(
         useCasesScope.cancel()
     }
 
-    fun onResume(itemsCount: Int?) {
-        val count = itemsCount ?: NO_ITEMS
-        if (count == NO_ITEMS) useCasesScope.launch {
+    fun onResume(isMessagesListEmpty: Boolean) {
+        if (isMessagesListEmpty) useCasesScope.launch {
             loadCurrentUser()
         }
     }
@@ -193,6 +192,5 @@ class MessagesFragmentViewModel(
     private companion object {
 
         const val DELAY_BEFORE_SET_STATE = 200L
-        const val NO_ITEMS = 0
     }
 }

@@ -92,7 +92,7 @@
     </LinearLayout>
 
     <com.facebook.shimmer.ShimmerFrameLayout
-        android:id="@+id/shimmer"
+        android:id="@+id/shimmerLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -113,13 +113,13 @@
 
             <include layout="@layout/message_placeholder" />
 
-            <include layout="@layout/message_placeholder" />
-
-            <include layout="@layout/message_placeholder" />
-
-            <include layout="@layout/message_placeholder" />
-
         </LinearLayout>
     </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <include
+        android:id="@+id/shimmerSmall"
+        layout="@layout/shimmer"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

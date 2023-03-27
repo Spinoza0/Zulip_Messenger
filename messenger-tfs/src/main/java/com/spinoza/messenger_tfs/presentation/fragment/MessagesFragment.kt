@@ -143,14 +143,18 @@ class MessagesFragment : Fragment() {
 
     private fun handleState(state: MessagesScreenState) {
         if (state !is MessagesScreenState.Loading) {
-            binding.shimmer.off()
+            binding.shimmerLarge.off()
+            binding.shimmerSmall.off()
         }
         when (state) {
             is MessagesScreenState.Messages -> submitMessages(state.value)
             is MessagesScreenState.UpdateIconImage -> {
                 binding.imageViewAction.setImageResource(state.resId)
             }
-            is MessagesScreenState.Loading -> binding.shimmer.on()
+            is MessagesScreenState.Loading -> {
+                if (messagesListIsEmpty()) binding.shimmerLarge.on()
+                else binding.shimmerSmall.on()
+            }
             is MessagesScreenState.Failure -> handleErrors(state)
         }
     }
@@ -254,14 +258,19 @@ class MessagesFragment : Fragment() {
         }
     }
 
+    private fun messagesListIsEmpty(): Boolean {
+        return (binding.recyclerViewMessages.adapter as MainDelegateAdapter).itemCount == NO_ITEMS
+    }
+
     override fun onResume() {
         super.onResume()
-        viewModel.onResume(binding.recyclerViewMessages.adapter?.itemCount)
+        viewModel.onResume(messagesListIsEmpty())
     }
 
     override fun onPause() {
         super.onPause()
-        binding.shimmer.off()
+        binding.shimmerLarge.off()
+        binding.shimmerSmall.off()
     }
 
     override fun onStop() {
@@ -278,6 +287,7 @@ class MessagesFragment : Fragment() {
     companion object {
 
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
+        private const val NO_ITEMS = 0
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {

@@ -16,7 +16,7 @@
         tools:listitem="@layout/channel_item" />
 
     <com.facebook.shimmer.ShimmerFrameLayout
-        android:id="@+id/shimmer"
+        android:id="@+id/shimmerLarge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
@@ -36,8 +36,13 @@
 
             <include layout="@layout/channel_placeholder" />
 
-            <include layout="@layout/channel_placeholder" />
         </LinearLayout>
     </com.facebook.shimmer.ShimmerFrameLayout>
+
+    <include
+        android:id="@+id/shimmerSmall"
+        layout="@layout/shimmer"
+        android:visibility="gone"
+        tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

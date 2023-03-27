@@ -75,13 +75,17 @@ class PeopleFragment : Fragment() {
 
     private fun handleState(state: PeopleScreenState) {
         if (state !is PeopleScreenState.Loading) {
-            binding.shimmer.off()
+            binding.shimmerLarge.off()
+            binding.shimmerSmall.off()
         }
         when (state) {
             is PeopleScreenState.Users ->
                 (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(state.value)
             is PeopleScreenState.Filter -> viewModel.setUsersFilter(state.value)
-            is PeopleScreenState.Loading -> binding.shimmer.on()
+            is PeopleScreenState.Loading -> {
+                if (peopleListIsEmpty()) binding.shimmerLarge.on()
+                else binding.shimmerSmall.on()
+            }
             is PeopleScreenState.Failure.LoadingUsers -> showError(
                 String.format(
                     getString(R.string.error_loading_users),
@@ -91,21 +95,25 @@ class PeopleFragment : Fragment() {
         }
     }
 
+    private fun peopleListIsEmpty(): Boolean {
+        return (binding.recyclerViewUsers.adapter as PeopleAdapter).itemCount == NO_ITEMS
+    }
+
     private fun onUserClickListener(userId: Long) {
         globalRouter.navigateTo(Screens.UserProfile(userId))
     }
 
     override fun onResume() {
         super.onResume()
-
-        if (binding.recyclerViewUsers.adapter?.itemCount == 0) {
+        if (peopleListIsEmpty()) {
             viewModel.loadUsers()
         }
     }
 
     override fun onPause() {
         super.onPause()
-        binding.shimmer.off()
+        binding.shimmerLarge.off()
+        binding.shimmerSmall.off()
     }
 
     override fun onDestroyView() {
@@ -114,6 +122,8 @@ class PeopleFragment : Fragment() {
     }
 
     companion object {
+
+        private const val NO_ITEMS = 0
 
         fun newInstance(): PeopleFragment {
             return PeopleFragment()

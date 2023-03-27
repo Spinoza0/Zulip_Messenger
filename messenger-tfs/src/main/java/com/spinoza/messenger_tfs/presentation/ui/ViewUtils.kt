@@ -7,6 +7,7 @@ import androidx.core.view.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
+import com.spinoza.messenger_tfs.databinding.ShimmerBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
@@ -87,6 +88,14 @@ fun Context.getThemeColor(attr: Int): Int {
     val typedValue = TypedValue()
     this.theme.resolveAttribute(attr, typedValue, true)
     return typedValue.data
+}
+
+fun ShimmerBinding.on() {
+    shimmer.on()
+}
+
+fun ShimmerBinding.off() {
+    shimmer.off()
 }
 
 fun ShimmerFrameLayout.on() {
