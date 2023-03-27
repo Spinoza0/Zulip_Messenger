@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
@@ -21,19 +22,13 @@ class ProfileFragmentViewModel(
 
     private val _state =
         MutableStateFlow<ProfileScreenState>(ProfileScreenState.Idle)
-    private val useCasesScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    override fun onCleared() {
-        super.onCleared()
-        useCasesScope.cancel()
-    }
 
     fun loadCurrentUser() {
         loadUser(CURRENT_USER)
     }
 
     fun loadUser(userId: Long) {
-        useCasesScope.launch {
+        viewModelScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             val result =
                 if (userId == CURRENT_USER) getCurrentUserUseCase() else getUserUseCase(userId)
@@ -58,7 +53,7 @@ class ProfileFragmentViewModel(
     }
 
     private fun setLoadingStateWithDelay(): Job {
-        return useCasesScope.launch {
+        return viewModelScope.launch {
             delay(DELAY_BEFORE_SET_STATE)
             _state.value = ProfileScreenState.Loading
         }

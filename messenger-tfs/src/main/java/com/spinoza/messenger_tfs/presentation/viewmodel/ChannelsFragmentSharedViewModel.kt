@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.presentation.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import kotlinx.coroutines.*
@@ -14,19 +15,13 @@ class ChannelsFragmentSharedViewModel : ViewModel() {
     private val _state =
         MutableStateFlow<ChannelsScreenState>(ChannelsScreenState.Idle)
     private val searchQueryState = MutableSharedFlow<SearchQuery>()
-    private val useCasesScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     init {
         subscribeToSearchQueryChanges()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        useCasesScope.cancel()
-    }
-
     fun doOnTextChanged(searchQuery: SearchQuery) {
-        useCasesScope.launch {
+        viewModelScope.launch {
             searchQueryState.emit(searchQuery)
         }
     }
@@ -39,7 +34,7 @@ class ChannelsFragmentSharedViewModel : ViewModel() {
             .flatMapLatest { flow { emit(it) } }
             .onEach { _state.value = ChannelsScreenState.Filter(it) }
             .flowOn(Dispatchers.Default)
-            .launchIn(useCasesScope)
+            .launchIn(viewModelScope)
     }
 
     private companion object {

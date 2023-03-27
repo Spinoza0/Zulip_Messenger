@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
@@ -40,15 +41,8 @@ class MessagesFragmentViewModel(
     private val _state =
         MutableSharedFlow<MessagesScreenState>(replay = 1)
 
-    private val useCasesScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-    override fun onCleared() {
-        super.onCleared()
-        useCasesScope.cancel()
-    }
-
     fun onResume(isMessagesListEmpty: Boolean) {
-        if (isMessagesListEmpty) useCasesScope.launch {
+        if (isMessagesListEmpty) viewModelScope.launch {
             loadCurrentUser()
         }
     }
@@ -79,7 +73,7 @@ class MessagesFragmentViewModel(
 
     fun sendMessage(messageText: String): Boolean {
         if (messageText.isNotEmpty()) {
-            useCasesScope.launch {
+            viewModelScope.launch {
                 if (currentUser == null) {
                     _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
                 } else currentUser?.let { user ->
@@ -103,7 +97,7 @@ class MessagesFragmentViewModel(
     }
 
     fun updateReaction(messageId: Long, reaction: String) {
-        useCasesScope.launch {
+        viewModelScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             val result = updateReactionUseCase(messageId, reaction, messagesFilter)
             handleRepositoryResult(result)
@@ -112,7 +106,7 @@ class MessagesFragmentViewModel(
     }
 
     fun doOnTextChanged(text: CharSequence?) {
-        useCasesScope.launch {
+        viewModelScope.launch {
             val resId = if (text?.toString()?.isNotBlank() == true)
                 R.drawable.ic_send
             else
@@ -126,14 +120,16 @@ class MessagesFragmentViewModel(
             _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
         } else currentUser?.let { user ->
             when (result) {
-                is RepositoryResult.Success -> _state.emit(
-                    MessagesScreenState.Messages(
-                        MessagesResultDelegate(
-                            result.value.messages.groupByDate(user),
-                            result.value.position
+                is RepositoryResult.Success -> withContext(Dispatchers.Default) {
+                    _state.emit(
+                        MessagesScreenState.Messages(
+                            MessagesResultDelegate(
+                                result.value.messages.groupByDate(user),
+                                result.value.position
+                            )
                         )
                     )
-                )
+                }
                 is RepositoryResult.Failure -> handleErrors(result)
             }
         }
@@ -157,7 +153,7 @@ class MessagesFragmentViewModel(
     }
 
     private fun setLoadingStateWithDelay(): Job {
-        return useCasesScope.launch {
+        return viewModelScope.launch {
             delay(DELAY_BEFORE_SET_STATE)
             _state.emit(MessagesScreenState.Loading)
         }

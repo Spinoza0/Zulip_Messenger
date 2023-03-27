@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
@@ -17,16 +18,10 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
     private val _state =
         MutableStateFlow<PeopleScreenState>(PeopleScreenState.Start)
     private val searchQueryState = MutableSharedFlow<String>()
-    private val useCasesScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var isFirstLoading = true
 
     init {
         subscribeToSearchQueryChanges()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        useCasesScope.cancel()
     }
 
     fun setUsersFilter(newFilter: String) {
@@ -40,7 +35,7 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
     }
 
     fun loadUsers() {
-        useCasesScope.launch {
+        viewModelScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             when (val result = getUsersByFilterUseCase(usersFilter)) {
                 is RepositoryResult.Success -> _state.emit(PeopleScreenState.Users(result.value))
@@ -51,7 +46,7 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
     }
 
     fun doOnTextChanged(searchQuery: CharSequence?) {
-        useCasesScope.launch {
+        viewModelScope.launch {
             searchQueryState.emit(searchQuery.toString())
         }
     }
@@ -64,7 +59,7 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
             .flatMapLatest { flow { emit(it) } }
             .onEach { setUsersFilter(it) }
             .flowOn(Dispatchers.Default)
-            .launchIn(useCasesScope)
+            .launchIn(viewModelScope)
     }
 
     private suspend fun handleErrors(error: RepositoryResult.Failure) {
@@ -77,7 +72,7 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
     }
 
     private fun setLoadingStateWithDelay(): Job {
-        return useCasesScope.launch {
+        return viewModelScope.launch {
             delay(DELAY_BEFORE_SET_STATE)
             _state.emit(PeopleScreenState.Loading)
         }
