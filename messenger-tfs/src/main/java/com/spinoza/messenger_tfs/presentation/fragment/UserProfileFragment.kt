@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isGone
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -60,6 +62,10 @@ class UserProfileFragment : Fragment() {
         setupListeners()
         setupObservers()
         setupScreen()
+
+        if (savedInstanceState == null) {
+            viewModel.loadUser(userId)
+        }
     }
 
     private fun setupListeners() {
@@ -77,10 +83,9 @@ class UserProfileFragment : Fragment() {
     }
 
     private fun setupScreen() {
-        binding.toolbar.visibility = View.VISIBLE
+        binding.toolbar.isVisible = true
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.background_700_color)
-        viewModel.loadUser(userId)
     }
 
     private fun handleState(state: ProfileScreenState) {
@@ -109,13 +114,8 @@ class UserProfileFragment : Fragment() {
             } else {
                 textViewStatus.text = user.status
             }
-            if (user.isActive) {
-                textViewStatusOnline.visibility = View.VISIBLE
-                textViewStatusOffline.visibility = View.GONE
-            } else {
-                textViewStatusOnline.visibility = View.GONE
-                textViewStatusOffline.visibility = View.VISIBLE
-            }
+            textViewStatusOnline.isVisible = user.isActive
+            textViewStatusOffline.isGone = user.isActive
             com.bumptech.glide.Glide.with(imageViewAvatar)
                 .load(user.avatar_url)
                 .transform(RoundedCorners(20))

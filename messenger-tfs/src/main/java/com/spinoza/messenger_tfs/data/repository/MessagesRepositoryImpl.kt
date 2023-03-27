@@ -29,6 +29,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun getCurrentUser(): RepositoryResult<User> {
+        // TODO: for testing purpose
+        delay(1000)
         return if (!isErrorInRepository()) {
             RepositoryResult.Success(currentUser.toDomain())
         } else {

@@ -52,12 +52,10 @@ class CurrentUserProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupObservers()
-        setupScreen()
-    }
 
-    private fun setupScreen() {
-        binding.textViewLogout.visibility = View.VISIBLE
-        viewModel.loadCurrentUser()
+        if (savedInstanceState == null) {
+            viewModel.loadCurrentUser()
+        }
     }
 
     private fun setupObservers() {
@@ -101,6 +99,7 @@ class CurrentUserProfileFragment : Fragment() {
                 .transform(RoundedCorners(20))
                 .error(R.drawable.ic_default_avatar)
                 .into(imageViewAvatar)
+            binding.textViewLogout.isVisible = true
         }
     }
 
