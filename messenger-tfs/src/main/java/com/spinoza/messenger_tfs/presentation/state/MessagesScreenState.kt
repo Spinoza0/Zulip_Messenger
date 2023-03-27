@@ -6,6 +6,10 @@ sealed class MessagesScreenState {
 
     object Loading : MessagesScreenState()
 
+    object MessageSent : MessagesScreenState()
+
+    object ReactionSent : MessagesScreenState()
+
     class UpdateIconImage(val resId: Int) : MessagesScreenState()
 
     class Messages(val value: MessagesResultDelegate) : MessagesScreenState()

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -43,6 +44,8 @@ class MessagesFragment : Fragment() {
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
     private var isGoingBack = false
+    private val reactionSentText by lazy { getString(R.string.reaction_sent) }
+    private val messageSentText by lazy { getString(R.string.message_sent) }
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
@@ -134,7 +137,7 @@ class MessagesFragment : Fragment() {
         }
 
         binding.imageViewAction.setOnClickListener {
-            sendMessage()
+            viewModel.sendMessage(binding.editTextMessage.text.toString())
         }
 
         binding.editTextMessage.doOnTextChanged { text, _, _, _ ->
@@ -152,6 +155,12 @@ class MessagesFragment : Fragment() {
             is MessagesScreenState.UpdateIconImage -> {
                 binding.imageViewAction.setImageResource(state.resId)
             }
+            is MessagesScreenState.MessageSent -> {
+                binding.editTextMessage.text?.clear()
+                Toast.makeText(requireContext(), messageSentText, Toast.LENGTH_SHORT).show()
+            }
+            is MessagesScreenState.ReactionSent ->
+                Toast.makeText(requireContext(), reactionSentText, Toast.LENGTH_SHORT).show()
             is MessagesScreenState.Loading -> {
                 if (messagesListIsEmpty()) binding.shimmerLarge.on()
                 else binding.shimmerSmall.on()
@@ -231,12 +240,6 @@ class MessagesFragment : Fragment() {
 
     private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
         viewModel.updateReaction(messageView.messageId, reactionView.emoji)
-    }
-
-    private fun sendMessage() {
-        if (viewModel.sendMessage(binding.editTextMessage.text.toString())) {
-            binding.editTextMessage.text?.clear()
-        }
     }
 
     private fun goBack() {

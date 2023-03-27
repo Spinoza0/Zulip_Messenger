@@ -47,6 +47,44 @@ class MessagesFragmentViewModel(
         }
     }
 
+    fun sendMessage(messageText: String) {
+        if (messageText.isNotEmpty()) viewModelScope.launch {
+            if (currentUser == null) {
+                _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
+            } else currentUser?.let { user ->
+                _state.emit(MessagesScreenState.MessageSent)
+                val message = Message(
+                    // TODO: test data
+                    MessageDate("2 марта 2023"),
+                    user,
+                    messageText,
+                    emptyMap(),
+                    false
+                )
+                val result = sendMessageUseCase(message, messagesFilter)
+                handleRepositoryResult(result)
+            }
+        }
+    }
+
+    fun updateReaction(messageId: Long, reaction: String) {
+        viewModelScope.launch {
+            _state.emit(MessagesScreenState.ReactionSent)
+            val result = updateReactionUseCase(messageId, reaction, messagesFilter)
+            handleRepositoryResult(result)
+        }
+    }
+
+    fun doOnTextChanged(text: CharSequence?) {
+        viewModelScope.launch {
+            val resId = if (text?.toString()?.isNotBlank() == true)
+                R.drawable.ic_send
+            else
+                R.drawable.ic_add_circle_outline
+            _state.emit(MessagesScreenState.UpdateIconImage(resId))
+        }
+    }
+
     private suspend fun loadCurrentUser() {
         val setLoadingState = setLoadingStateWithDelay()
         val result = getCurrentUserUseCase()
@@ -68,50 +106,6 @@ class MessagesFragmentViewModel(
             val result = getMessagesUseCase(messagesFilter)
             handleRepositoryResult(result)
             setLoadingState.cancel()
-        }
-    }
-
-    fun sendMessage(messageText: String): Boolean {
-        if (messageText.isNotEmpty()) {
-            viewModelScope.launch {
-                if (currentUser == null) {
-                    _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
-                } else currentUser?.let { user ->
-                    val setLoadingState = setLoadingStateWithDelay()
-                    val message = Message(
-                        // TODO: test data
-                        MessageDate("2 марта 2023"),
-                        user,
-                        messageText,
-                        emptyMap(),
-                        false
-                    )
-                    val result = sendMessageUseCase(message, messagesFilter)
-                    handleRepositoryResult(result)
-                    setLoadingState.cancel()
-                }
-            }
-            return true
-        }
-        return false
-    }
-
-    fun updateReaction(messageId: Long, reaction: String) {
-        viewModelScope.launch {
-            val setLoadingState = setLoadingStateWithDelay()
-            val result = updateReactionUseCase(messageId, reaction, messagesFilter)
-            handleRepositoryResult(result)
-            setLoadingState.cancel()
-        }
-    }
-
-    fun doOnTextChanged(text: CharSequence?) {
-        viewModelScope.launch {
-            val resId = if (text?.toString()?.isNotBlank() == true)
-                R.drawable.ic_send
-            else
-                R.drawable.ic_add_circle_outline
-            _state.emit(MessagesScreenState.UpdateIconImage(resId))
         }
     }
 
