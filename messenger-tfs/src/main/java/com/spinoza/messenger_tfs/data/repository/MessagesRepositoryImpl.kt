@@ -95,6 +95,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>> {
+        // TODO: for testing purpose
+        delay(1000)
         val topics = channelsDto
             .find { it.id == channel.channelId }
             ?.topics
