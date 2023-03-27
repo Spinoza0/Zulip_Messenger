@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
@@ -44,8 +43,6 @@ class MessagesFragment : Fragment() {
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
     private var isGoingBack = false
-    private val reactionSentText by lazy { getString(R.string.reaction_sent) }
-    private val messageSentText by lazy { getString(R.string.message_sent) }
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
@@ -151,21 +148,27 @@ class MessagesFragment : Fragment() {
             binding.shimmerSmall.off()
         }
         when (state) {
-            is MessagesScreenState.Messages -> submitMessages(state.value)
+            is MessagesScreenState.Messages -> {
+                binding.shimmerSent.off()
+                submitMessages(state.value)
+            }
             is MessagesScreenState.UpdateIconImage -> {
                 binding.imageViewAction.setImageResource(state.resId)
             }
             is MessagesScreenState.MessageSent -> {
                 binding.editTextMessage.text?.clear()
-                Toast.makeText(requireContext(), messageSentText, Toast.LENGTH_SHORT).show()
+                binding.shimmerSent.on()
             }
-            is MessagesScreenState.ReactionSent ->
-                Toast.makeText(requireContext(), reactionSentText, Toast.LENGTH_SHORT).show()
+            is MessagesScreenState.ReactionSent -> binding.shimmerSent.on()
             is MessagesScreenState.Loading -> {
+                binding.shimmerSent.off()
                 if (messagesListIsEmpty()) binding.shimmerLarge.on()
                 else binding.shimmerSmall.on()
             }
-            is MessagesScreenState.Failure -> handleErrors(state)
+            is MessagesScreenState.Failure -> {
+                binding.shimmerSent.off()
+                handleErrors(state)
+            }
         }
     }
 
@@ -275,6 +278,7 @@ class MessagesFragment : Fragment() {
         super.onPause()
         binding.shimmerLarge.off()
         binding.shimmerSmall.off()
+        binding.shimmerSent.off()
     }
 
     override fun onStop() {
