@@ -1,0 +1,4 @@
+[api]
+email=spinoza0@gmail.com
+key=Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH
+site=https://tinkoff-android-spring-2023.zulipchat.com
