@@ -3,6 +3,7 @@
 
     <declare-styleable name="messenger_common">
         <attr name="background_200_color" format="color" />
+        <attr name="background_250_color" format="color" />
         <attr name="background_300_color" format="color" />
         <attr name="background_400_color" format="color" />
         <attr name="background_500_color" format="color" />

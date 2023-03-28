@@ -10,7 +10,10 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 
-class ChannelDelegate(private val onChannelClickListener: (ChannelItem) -> Unit) : AdapterDelegate {
+class ChannelDelegate(
+    private val channel_name_template: String,
+    private val onChannelClickListener: (ChannelItem) -> Unit,
+) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -27,7 +30,20 @@ class ChannelDelegate(private val onChannelClickListener: (ChannelItem) -> Unit)
         item: DelegateAdapterItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item as ChannelDelegateItem, onChannelClickListener)
+        (holder as ViewHolder).bind(
+            channel_name_template,
+            item as ChannelDelegateItem,
+            onChannelClickListener
+        )
+    }
+
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        item: DelegateAdapterItem,
+        position: Int,
+        payloads: List<Any>,
+    ) {
+        onBindViewHolder(holder, item, position)
     }
 
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
@@ -37,10 +53,15 @@ class ChannelDelegate(private val onChannelClickListener: (ChannelItem) -> Unit)
     class ViewHolder(private val binding: ChannelItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: ChannelDelegateItem, onChannelClickListener: (ChannelItem) -> Unit) {
+        fun bind(
+            channel_name_template: String,
+            item: ChannelDelegateItem,
+            onChannelClickListener: (ChannelItem) -> Unit,
+        ) {
             val channelItem = (item.content() as ChannelItem)
             with(binding) {
-                textViewChannel.text = channelItem.channel.name
+                textViewChannel.text =
+                    String.format(channel_name_template, channelItem.channel.name)
                 root.setOnClickListener {
                     onChannelClickListener.invoke(channelItem)
                 }

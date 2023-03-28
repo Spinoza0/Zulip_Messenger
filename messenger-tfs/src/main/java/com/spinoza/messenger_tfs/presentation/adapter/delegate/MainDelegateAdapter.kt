@@ -13,6 +13,10 @@ class MainDelegateAdapter :
         delegates.add(delegate)
     }
 
+    fun clear() {
+        delegates.clear()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return delegates[viewType].onCreateViewHolder(parent)
     }
@@ -22,6 +26,19 @@ class MainDelegateAdapter :
             holder,
             getItem(position),
             position
+        )
+    }
+
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+        payloads: MutableList<Any>,
+    ) {
+        return delegates[getItemViewType(position)].onBindViewHolder(
+            holder,
+            getItem(position),
+            position,
+            payloads
         )
     }
 

@@ -17,4 +17,11 @@ class DelegateAdapterItemCallback : DiffUtil.ItemCallback<DelegateAdapterItem>()
     ): Boolean {
         return oldItem.compareToOther(newItem)
     }
+
+    override fun getChangePayload(
+        oldItem: DelegateAdapterItem,
+        newItem: DelegateAdapterItem,
+    ): Any? {
+        return oldItem.getChangePayload(newItem)
+    }
 }

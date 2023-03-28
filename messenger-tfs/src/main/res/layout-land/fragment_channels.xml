@@ -8,29 +8,42 @@
     android:orientation="vertical"
     tools:context=".presentation.fragment.menu.ChannelsFragment">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/editTextSearch"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/background_500_color"
-        android:drawableEnd="@drawable/ic_search"
-        android:drawablePadding="8dp"
-        android:drawableTint="?attr/text_200_color"
-        android:hint="@string/search"
-        android:maxLines="1"
-        android:paddingVertical="20dp"
-        android:paddingStart="50dp"
-        android:paddingEnd="28dp"
-        android:textColor="?attr/text_200_color"
-        android:textColorHint="?attr/text_200_color"
-        android:textSize="22sp" />
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/background_500_color"
+            android:drawableEnd="@drawable/ic_search"
+            android:drawablePadding="8dp"
+            android:drawableTint="?attr/text_200_color"
+            android:hint="@string/search"
+            android:maxLines="1"
+            android:paddingVertical="4dp"
+            android:paddingStart="50dp"
+            android:paddingEnd="28dp"
+            android:textColor="?attr/text_200_color"
+            android:textColorHint="?attr/text_200_color"
+            android:textSize="22sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="90dp"
+            android:background="?attr/background_250_color" />
+
+    </FrameLayout>
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/background_500_color"
-        android:paddingTop="8dp"
         android:paddingBottom="8dp"
         app:tabIndicator="@drawable/shape_channels_tab_indicator"
         app:tabIndicatorColor="?attr/underline_color"

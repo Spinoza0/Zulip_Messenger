@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/background_700_color"
+    android:orientation="vertical"
+    tools:context=".presentation.fragment.menu.ChannelsFragment">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/editTextSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/background_500_color"
+            android:drawableEnd="@drawable/ic_search"
+            android:drawablePadding="8dp"
+            android:drawableTint="?attr/text_200_color"
+            android:hint="@string/search"
+            android:maxLines="1"
+            android:paddingVertical="16dp"
+            android:paddingStart="50dp"
+            android:paddingEnd="28dp"
+            android:textColor="?attr/text_200_color"
+            android:textColorHint="?attr/text_200_color"
+            android:textSize="22sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_gravity="bottom"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="90dp"
+            android:background="?attr/background_250_color" />
+
+    </FrameLayout>
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/background_500_color"
+        android:paddingTop="8dp"
+        android:paddingBottom="24dp"
+        app:tabIndicator="@drawable/shape_channels_tab_indicator"
+        app:tabIndicatorColor="?attr/underline_color"
+        app:tabIndicatorFullWidth="false"
+        app:tabIndicatorHeight="2dp"
+        app:tabMode="fixed"
+        app:tabSelectedTextColor="?attr/text_300_color"
+        app:tabTextAppearance="@style/ChannelsTabStyle"
+        app:tabTextColor="?attr/text_300_color">
+
+    </com.google.android.material.tabs.TabLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

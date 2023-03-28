@@ -3,13 +3,11 @@ package com.spinoza.messenger_tfs.presentation.ui
 import android.content.Context
 import android.util.TypedValue
 import android.view.View
-import android.widget.ProgressBar
-import androidx.core.view.marginBottom
-import androidx.core.view.marginLeft
-import androidx.core.view.marginRight
-import androidx.core.view.marginTop
+import androidx.core.view.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.facebook.shimmer.ShimmerFrameLayout
+import com.spinoza.messenger_tfs.databinding.ShimmerBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
@@ -92,10 +90,20 @@ fun Context.getThemeColor(attr: Int): Int {
     return typedValue.data
 }
 
-fun ProgressBar.on() {
-    this.visibility = View.VISIBLE
+fun ShimmerBinding.on() {
+    shimmer.on()
 }
 
-fun ProgressBar.off() {
-    this.visibility = View.GONE
+fun ShimmerBinding.off() {
+    shimmer.off()
+}
+
+fun ShimmerFrameLayout.on() {
+    isVisible = true
+    startShimmer()
+}
+
+fun ShimmerFrameLayout.off() {
+    stopShimmer()
+    isVisible = false
 }

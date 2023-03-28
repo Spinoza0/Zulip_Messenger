@@ -1,19 +1,25 @@
 package com.spinoza.messenger_tfs.presentation.adapter.channels
 
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
+import com.spinoza.messenger_tfs.presentation.fragment.menu.ChannelsPageFragment
 
 class ChannelsPagerAdapter(
-    fragmentManager: FragmentManager,
-    lifecycle: Lifecycle,
-    private val fragments: List<Fragment>,
-) : FragmentStateAdapter(fragmentManager, lifecycle) {
+    parentFragment: Fragment,
+) : FragmentStateAdapter(parentFragment) {
 
-    override fun getItemCount() = fragments.size
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
+    override fun getItemCount() = ITEM_COUNT
 
     override fun createFragment(position: Int): Fragment {
-        return fragments[position]
+        val isAllChannels = position % 2 != 0
+        return ChannelsPageFragment.newInstance(isAllChannels)
+    }
+
+    private companion object {
+        const val ITEM_COUNT = 2
     }
 }

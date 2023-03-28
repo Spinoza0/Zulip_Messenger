@@ -5,63 +5,49 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
-import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.domain.usecase.GetAllChannelsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetSubscribedChannelsUseCase
+import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
+import com.spinoza.messenger_tfs.domain.usecase.GetChannelsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetTopicUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateConfig
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
-import com.spinoza.messenger_tfs.presentation.model.ChannelItem
-import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.fragment.showError
+import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
-import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsFragmentViewModelFactory
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentSharedViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsPageFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ChannelsPageFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
 class ChannelsPageFragment : Fragment() {
 
     private var isAllChannels = false
-    private val globalRouter = App.router
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
 
-    private val viewModel: ChannelsFragmentViewModel by viewModels {
-        ChannelsFragmentViewModelFactory(
+    private val viewModel: ChannelsPageFragmentViewModel by viewModels {
+        ChannelsPageFragmentViewModelFactory(
             isAllChannels,
             GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetSubscribedChannelsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetAllChannelsUseCase(MessagesRepositoryImpl.getInstance())
+            GetChannelsUseCase(MessagesRepositoryImpl.getInstance()),
+            GetTopicUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
-
-
-    private val delegateAdapter by lazy {
-        MainDelegateAdapter().apply {
-            val topicConfig = TopicDelegateConfig(
-                requireContext().getString(R.string.channels_topic_template),
-                requireContext().getThemeColor(R.attr.even_topic_color),
-                requireContext().getThemeColor(R.attr.odd_topic_color),
-                ::onTopicClickListener
-            )
-            addDelegate(ChannelDelegate(::onChannelClickListener))
-            addDelegate(TopicDelegate(topicConfig))
-        }
-    }
+    private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,6 +66,20 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
+        val delegateAdapter = MainDelegateAdapter()
+        delegateAdapter.addDelegate(
+            ChannelDelegate(
+                getString(R.string.channel_name_template),
+                viewModel::onChannelClickListener
+            )
+        )
+        delegateAdapter.addDelegate(
+            TopicDelegate(
+                requireContext().getThemeColor(R.attr.even_topic_color),
+                requireContext().getThemeColor(R.attr.odd_topic_color),
+                viewModel::onTopicClickListener
+            )
+        )
         binding.recyclerViewChannels.adapter = delegateAdapter
     }
 
@@ -89,24 +89,65 @@ class ChannelsPageFragment : Fragment() {
                 viewModel.state.collect(::handleState)
             }
         }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                sharedViewModel.state.collect(::handleChannelsScreenState)
+            }
+        }
     }
 
-    private fun handleState(state: ChannelsScreenState) {
-        if (state !is ChannelsScreenState.Loading) {
-            binding.progressBar.off()
+    private fun channelsListIsEmpty(): Boolean {
+        return (binding.recyclerViewChannels.adapter as MainDelegateAdapter).itemCount == NO_ITEMS
+    }
+
+    private fun handleState(state: ChannelsPageScreenState) {
+        if (state !is ChannelsPageScreenState.Loading) {
+            binding.shimmerLarge.off()
+            binding.shimmerSmall.off()
         }
         when (state) {
-            is ChannelsScreenState.Items -> delegateAdapter.submitList(state.value)
-            is ChannelsScreenState.Loading -> binding.progressBar.on()
+            is ChannelsPageScreenState.Items ->
+                (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
+                    .submitList(state.value)
+            is ChannelsPageScreenState.TopicMessagesCountUpdate ->
+                (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
+                    .submitList(state.value)
+            is ChannelsPageScreenState.Loading -> {
+                if (channelsListIsEmpty()) binding.shimmerLarge.on()
+                else binding.shimmerSmall.on()
+            }
+            is ChannelsPageScreenState.Failure -> handleErrors(state)
         }
     }
 
-    private fun onChannelClickListener(channelItem: ChannelItem) {
-        viewModel.onChannelClickListener(channelItem)
+    private fun handleErrors(error: ChannelsPageScreenState.Failure) {
+        when (error) {
+            is ChannelsPageScreenState.Failure.LoadingChannels -> showError(
+                String.format(
+                    getString(R.string.error_loading_channels),
+                    error.channelsFilter.name
+                )
+            )
+            is ChannelsPageScreenState.Failure.LoadingChannelTopics -> showError(
+                String.format(
+                    getString(R.string.error_loading_topics),
+                    error.channel.name
+                )
+            )
+        }
     }
 
-    private fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        globalRouter.navigateTo(Screens.Messages(messagesFilter))
+    private fun handleChannelsScreenState(state: ChannelsScreenState) {
+        when (state) {
+            is ChannelsScreenState.Idle -> {}
+            is ChannelsScreenState.Filter -> {
+                val filterIsAllChannels = state.value.screenPosition % 2 != 0
+                if (filterIsAllChannels == isAllChannels) {
+                    viewModel.setChannelsFilter(ChannelsFilter(state.value.text, !isAllChannels))
+                }
+            }
+        }
     }
 
     private fun parseParams() {
@@ -115,14 +156,19 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        viewModel.updateMessagesCount()
+    }
 
-        if (binding.recyclerViewChannels.adapter?.itemCount == NO_ITEMS) {
-            viewModel.loadItems()
-        }
+    override fun onPause() {
+        super.onPause()
+        binding.shimmerLarge.off()
+        binding.shimmerSmall.off()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        (binding.recyclerViewChannels.adapter as MainDelegateAdapter).clear()
+        binding.recyclerViewChannels.adapter = null
         _binding = null
     }
 

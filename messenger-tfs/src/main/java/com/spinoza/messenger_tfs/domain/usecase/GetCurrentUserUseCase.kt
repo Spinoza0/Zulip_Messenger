@@ -6,7 +6,7 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
 class GetCurrentUserUseCase(private val repository: MessagesRepository) {
 
-    operator fun invoke(): RepositoryResult<User> {
+    suspend operator fun invoke(): RepositoryResult<User> {
         return repository.getCurrentUser()
     }
 }

@@ -8,7 +8,11 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 
-class TopicDelegate(private val config: TopicDelegateConfig) : AdapterDelegate {
+class TopicDelegate(
+    private val evenColor: Int,
+    private val oddColor: Int,
+    private val onClickListener: (MessagesFilter) -> Unit,
+) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -25,7 +29,26 @@ class TopicDelegate(private val config: TopicDelegateConfig) : AdapterDelegate {
         item: DelegateAdapterItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item as TopicDelegateItem, position, config)
+        (holder as ViewHolder).bind(
+            item as TopicDelegateItem,
+            position,
+            evenColor,
+            oddColor,
+            onClickListener
+        )
+    }
+
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        item: DelegateAdapterItem,
+        position: Int,
+        payloads: List<Any>,
+    ) {
+        if (payloads.isEmpty() || (payloads[0] as? Int) == null) {
+            onBindViewHolder(holder, item, position)
+        } else {
+            (holder as ViewHolder).bind(payloads[0] as Int)
+        }
     }
 
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
@@ -35,20 +58,25 @@ class TopicDelegate(private val config: TopicDelegateConfig) : AdapterDelegate {
     class ViewHolder(private val binding: TopicItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: TopicDelegateItem, position: Int, config: TopicDelegateConfig) {
-            val color = if (position % 2 == 0) config.evenColor else config.oddColor
+        fun bind(
+            item: TopicDelegateItem,
+            position: Int,
+            evenColor: Int,
+            oddColor: Int,
+            onClickListener: (MessagesFilter) -> Unit,
+        ) {
+            val color = if (position % 2 == 0) evenColor else oddColor
             val messagesFilter = (item.content() as MessagesFilter)
-            with(binding) {
-                textViewTopic.setBackgroundColor(color)
-                textViewTopic.text = String.format(
-                    config.template,
-                    messagesFilter.topic.name,
-                    messagesFilter.topic.messageCount
-                )
-                root.setOnClickListener {
-                    config.onClickListener(messagesFilter)
-                }
+            binding.textViewTopicLayout.setBackgroundColor(color)
+            binding.textViewTopicName.text = messagesFilter.topic.name
+            binding.textViewTopicMessagesCount.text = messagesFilter.topic.messageCount.toString()
+            binding.root.setOnClickListener {
+                onClickListener(messagesFilter)
             }
+        }
+
+        fun bind(messageCount: Int) {
+            binding.textViewTopicMessagesCount.text = messageCount.toString()
         }
     }
 }

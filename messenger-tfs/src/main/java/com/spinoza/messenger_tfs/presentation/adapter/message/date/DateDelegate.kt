@@ -24,6 +24,15 @@ class DateDelegate : AdapterDelegate {
         (holder as ViewHolder).bind(item.content() as MessageDate)
     }
 
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        item: DelegateAdapterItem,
+        position: Int,
+        payloads: List<Any>,
+    ) {
+        onBindViewHolder(holder, item, position)
+    }
+
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
         return item is DateDelegateItem
     }

@@ -4,19 +4,19 @@ import com.spinoza.messenger_tfs.domain.model.*
 
 interface MessagesRepository {
 
-    fun getCurrentUser(): RepositoryResult<User>
+    suspend fun getCurrentUser(): RepositoryResult<User>
 
     suspend fun getUser(userId: Long): RepositoryResult<User>
 
-    suspend fun getAllUsers(): RepositoryResult<List<User>>
+    suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>>
 
     suspend fun getMessages(messagesFilter: MessagesFilter): RepositoryResult<MessagesResult>
 
-    suspend fun getAllChannels(): RepositoryResult<List<Channel>>
+    suspend fun getChannels(channelsFilter: ChannelsFilter): RepositoryResult<List<Channel>>
 
-    suspend fun getSubscribedChannels(): RepositoryResult<List<Channel>>
+    suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>>
 
-    suspend fun getTopics(channelId: Long): RepositoryResult<List<Topic>>
+    suspend fun getTopic(messagesFilter: MessagesFilter): RepositoryResult<Topic>
 
     suspend fun sendMessage(
         message: Message,

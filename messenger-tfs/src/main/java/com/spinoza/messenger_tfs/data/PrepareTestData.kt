@@ -25,10 +25,11 @@ val topics3 = listOf(
 )
 
 val channelsDto = listOf(
-    ChannelDto(0L, "general", topics1),
-    ChannelDto(1L, "Development", topics2),
-    ChannelDto(2L, "Design", topics3),
-    ChannelDto(3L, "PR", topics1),
+    ChannelDto(0L, "general", topics1, true),
+    ChannelDto(1L, "Development", topics2, true),
+    ChannelDto(2L, "Design", topics3, true),
+    ChannelDto(3L, "PR", topics1, true),
+    ChannelDto(4L, "Events", topics2, false),
 )
 
 val testUserDto = UserDto(
@@ -93,4 +94,13 @@ fun prepareTestData(): List<MessageDto> {
         messages.add(message)
     }
     return messages
+}
+
+private var errorGenerator = 0
+
+const val errorText = "Test Error Text"
+
+fun isErrorInRepository(): Boolean {
+    errorGenerator++
+    return errorGenerator % 15 == 0
 }
