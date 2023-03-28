@@ -10,11 +10,11 @@ API key и email для авторизации пока что нужно зах
 Чтобы получить эту строку вы можете воспользоваться методом Credentials.basic("sample@mail.ru", "api_key").
 Полученную строку вам нужно подставлять в хэдер авторизации(Authorization) при каждом запросе.
 
-Текстовый статус "In a meeting" у пользователя уберите из дизайна.
-Вместо зеленого статуса online у вас будет active(зеленый)/idle(оранжевый)/offline(красный).
-Кнопку Log out уберите.
+- Текстовый статус "In a meeting" у пользователя уберите из дизайна.
+- Вместо зеленого статуса online у вас будет active(зеленый)/idle(оранжевый)/offline(красный).
+- Кнопку Log out уберите.
 
 Требования:
-Для запросов к апи использовать Retrofit + RxJava/Coroutines 
+Для запросов к API использовать Retrofit + RxJava/Coroutines 
 
 Вам понадобится ссылка на чат организации: https://tinkoff-android-spring-2023.zulipchat.com/join/xsaqygnkblnuuhkfh6wwttj5/
