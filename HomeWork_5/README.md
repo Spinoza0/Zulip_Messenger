@@ -22,6 +22,8 @@
 - При выполнении каких-либо длительных операций, необходимо показывать скелетон загрузки для пользователя (если конечно, что-то реально грузится).
   Можно использовать [Shimmer-Android](https://github.com/facebook/shimmer-android)
 
+Репозиторий семинара https://gitlab.com/android-tfs-mentors/tfs-android-spring-2023-async-seminar
+
 **На всякий случай напоминаю**:
 - Чистота оформления build.gradle-файла (не добавляйте лишние зависимости, удаляйте ненужные)
 - Выносите версии зависимостей в ext так, как это показано [тут](https://github.com/JakeWharton/SdkSearch/blob/master/build.gradle)
