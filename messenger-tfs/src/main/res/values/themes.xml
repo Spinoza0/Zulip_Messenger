@@ -14,6 +14,7 @@
 
         <!-- Common messenger colors -->
         <item name="background_200_color">@color/background_200</item>
+        <item name="background_250_color">@color/background_250</item>
         <item name="background_300_color">@color/background_300</item>
         <item name="background_400_color">@color/background_400</item>
         <item name="background_500_color">@color/background_500</item>

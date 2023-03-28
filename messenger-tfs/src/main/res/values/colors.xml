@@ -11,6 +11,8 @@
     <!-- Common messenger colors -->
     <color name="background_200">#3A3A3A</color>
     <color name="background_200_night">#3A3A3A</color>
+    <color name="background_250">#323232</color>
+    <color name="background_250_night">#323232</color>
     <color name="background_300">#282828</color>
     <color name="background_300_night">#282828</color>
     <color name="background_400">#1E1E1E</color>
