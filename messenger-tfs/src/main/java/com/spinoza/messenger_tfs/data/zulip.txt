@@ -2,3 +2,4 @@
 email=spinoza0@gmail.com
 key=Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH
 site=https://tinkoff-android-spring-2023.zulipchat.com
+base64=Basic c3Bpbm96YUBnbWFpbC5jb206VHUxczUxR3RxMWVjMDJmQmQxbGhBYU9BTEQwaGMySkg=
