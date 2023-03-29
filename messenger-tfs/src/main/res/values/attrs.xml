@@ -60,10 +60,6 @@
         <attr name="odd_topic_color" format="color" />
     </declare-styleable>
 
-    <declare-styleable name="fragment_people">
-        <attr name="online_color" format="color" />
-    </declare-styleable>
-
     <declare-styleable name="fragment_profile">
         <attr name="button_logout_color" format="color" />
     </declare-styleable>

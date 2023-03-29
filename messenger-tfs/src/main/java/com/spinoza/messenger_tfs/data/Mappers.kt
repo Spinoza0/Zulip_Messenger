@@ -7,11 +7,10 @@ import java.util.*
 private fun User.toDto(): UserDto {
     return UserDto(
         userId = this.userId,
-        isActive = this.isActive,
         email = this.email,
         full_name = this.full_name,
         avatar_url = this.avatar_url,
-        status = this.status
+        presence = this.presence
     )
 }
 
@@ -75,11 +74,10 @@ fun Message.toDto(userId: Long, messageId: Long, messagesFilter: MessagesFilter)
 fun UserDto.toDomain(): User {
     return User(
         userId = this.userId,
-        isActive = this.isActive,
         email = this.email,
         full_name = this.full_name,
         avatar_url = this.avatar_url ?: "",
-        status = this.status ?: ""
+        presence = this.presence
     )
 }
 

@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.adapter.people
 
-import android.view.View
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.spinoza.messenger_tfs.R
@@ -18,9 +18,9 @@ class UserViewHolder(private val binding: UserItemBinding) : RecyclerView.ViewHo
                 .circleCrop()
                 .error(R.drawable.ic_default_avatar)
                 .into(imageViewAvatar)
-            val visibility = if (user.isActive) View.VISIBLE else View.GONE
-            imageViewCircleBorder.visibility = visibility
-            imageViewCircle.visibility = visibility
+            imageViewCircleOnline.isVisible = user.presence == User.Presence.ONLINE
+            imageViewCircleIdle.isVisible = user.presence == User.Presence.IDLE
+            imageViewCircleOffline.isVisible = user.presence == User.Presence.OFFLINE
             root.setOnClickListener {
                 if (adapterPosition != RecyclerView.NO_POSITION) onClickListener(user.userId)
             }

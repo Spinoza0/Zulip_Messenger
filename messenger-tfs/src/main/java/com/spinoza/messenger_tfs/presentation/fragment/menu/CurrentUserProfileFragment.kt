@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -86,20 +85,14 @@ class CurrentUserProfileFragment : Fragment() {
     private fun showProfileInfo(user: User) {
         with(binding) {
             textViewName.text = user.full_name
-            textViewStatus.text = user.status
-            if (user.status.isEmpty()) {
-                textViewStatus.visibility = View.GONE
-            } else {
-                textViewStatus.text = user.status
-            }
-            textViewStatusOnline.isVisible = user.isActive
-            textViewStatusOffline.isGone = user.isActive
+            textViewStatusOnline.isVisible = user.presence == User.Presence.ONLINE
+            textViewStatusIdle.isVisible = user.presence == User.Presence.IDLE
+            textViewStatusOffline.isVisible = user.presence == User.Presence.OFFLINE
             com.bumptech.glide.Glide.with(imageViewAvatar)
                 .load(user.avatar_url)
                 .transform(RoundedCorners(20))
                 .error(R.drawable.ic_default_avatar)
                 .into(imageViewAvatar)
-            binding.textViewLogout.isVisible = true
         }
     }
 

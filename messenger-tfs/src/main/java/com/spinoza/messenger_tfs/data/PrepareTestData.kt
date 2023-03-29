@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.data
 import com.spinoza.messenger_tfs.data.model.*
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import kotlin.random.Random
 
@@ -34,38 +35,34 @@ val channelsDto = listOf(
 
 val testUserDto = UserDto(
     100,
-    true,
     "TestUser@mail.com",
     "Test User",
     "https://cs11.pikabu.ru/post_img/2020/04/12/9/158670440816531661.png",
-    "Working..."
+    User.Presence.IDLE
 )
 
 
 val usersDto = listOf(
     UserDto(
         1,
-        true,
         "fakeemail@mail.com",
         "Darrel Steward",
         "https://cs11.pikabu.ru/post_img/big/2020/04/12/9/1586704514168132921.png",
-        "In a meeting"
+        User.Presence.ONLINE
     ),
     UserDto(
         2,
-        false,
         "vasyapupkin@mail.ru",
         "Vasya Pupkin",
         null,
-        "On vacation"
+        User.Presence.OFFLINE
     ),
     UserDto(
         3,
-        true,
         "max@mail.ru",
         "Maxim Ivanov",
         "https://cs14.pikabu.ru/post_img/big/2023/02/13/8/1676295806139337963.png",
-        null
+        User.Presence.IDLE
     )
 )
 

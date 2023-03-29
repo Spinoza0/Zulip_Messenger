@@ -52,9 +52,6 @@
         <item name="even_topic_color">@color/even_topic_night</item>
         <item name="odd_topic_color">@color/odd_topic_night</item>
 
-        <!-- Fragment People -->
-        <item name="online_color">@color/online_night</item>
-
         <!-- Fragment Profile -->
         <item name="button_logout_color">@color/button_logout</item>
 

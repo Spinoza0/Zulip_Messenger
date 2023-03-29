@@ -27,11 +27,35 @@
         app:layout_constraintEnd_toEndOf="@id/imageViewAvatar" />
 
     <ImageView
-        android:id="@+id/imageViewCircle"
+        android:id="@+id/imageViewCircleOnline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="@string/online_status"
-        android:src="@drawable/shape_circle_online"
+        android:src="@drawable/shape_circle_presence_online"
+        app:layout_constraintBottom_toBottomOf="@id/imageViewCircleBorder"
+        app:layout_constraintEnd_toEndOf="@id/imageViewCircleBorder"
+        app:layout_constraintStart_toStartOf="@id/imageViewCircleBorder"
+        app:layout_constraintTop_toTopOf="@id/imageViewCircleBorder" />
+
+    <ImageView
+        android:id="@+id/imageViewCircleIdle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/online_status"
+        android:src="@drawable/shape_circle_presence_idle"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/imageViewCircleBorder"
+        app:layout_constraintEnd_toEndOf="@id/imageViewCircleBorder"
+        app:layout_constraintStart_toStartOf="@id/imageViewCircleBorder"
+        app:layout_constraintTop_toTopOf="@id/imageViewCircleBorder" />
+
+    <ImageView
+        android:id="@+id/imageViewCircleOffline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/online_status"
+        android:src="@drawable/shape_circle_presence_offline"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@id/imageViewCircleBorder"
         app:layout_constraintEnd_toEndOf="@id/imageViewCircleBorder"
         app:layout_constraintStart_toStartOf="@id/imageViewCircleBorder"

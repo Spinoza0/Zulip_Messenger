@@ -29,8 +29,8 @@
 
     <!-- Fragment Profile -->
     <string name="online">online</string>
+    <string name="idle">idle</string>
     <string name="offline">offline</string>
-    <string name="log_out">Log out</string>
 
     <!-- Shimmer -->
     <string name="loading">Loading...</string>
