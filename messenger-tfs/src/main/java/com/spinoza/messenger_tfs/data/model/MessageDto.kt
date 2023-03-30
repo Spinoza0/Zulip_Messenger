@@ -5,7 +5,7 @@ import com.spinoza.messenger_tfs.domain.model.MessageDate
 data class MessageDto(
     val id: Long,
     val date: MessageDate,
-    val user: UserDto,
+    val user: OldUserDto,
     val content: String,
     val reactions: Map<String, ReactionParamDto>,
     val channelId: Long,

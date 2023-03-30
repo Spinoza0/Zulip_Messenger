@@ -4,8 +4,8 @@ import com.spinoza.messenger_tfs.data.model.*
 import com.spinoza.messenger_tfs.domain.model.*
 import java.util.*
 
-private fun User.toDto(): UserDto {
-    return UserDto(
+private fun User.toDto(): OldUserDto {
+    return OldUserDto(
         userId = this.userId,
         email = this.email,
         full_name = this.full_name,
@@ -14,7 +14,7 @@ private fun User.toDto(): UserDto {
     )
 }
 
-fun List<UserDto>.listToDomain(usersFilter: String): List<User> {
+fun List<OldUserDto>.listToDomain(usersFilter: String): List<User> {
     return this.filter {
         if (usersFilter.isBlank()) {
             true
@@ -71,13 +71,23 @@ fun Message.toDto(userId: Long, messageId: Long, messagesFilter: MessagesFilter)
     )
 }
 
-fun UserDto.toDomain(): User {
+fun OldUserDto.toDomain(): User {
     return User(
         userId = this.userId,
         email = this.email,
         full_name = this.full_name,
         avatar_url = this.avatar_url ?: "",
         presence = this.presence
+    )
+}
+
+fun UserDto.toDomain(presence: User.Presence): User {
+    return User(
+        userId = this.userId,
+        email = this.email,
+        full_name = this.fullName,
+        avatar_url = this.avatarUrl,
+        presence = presence
     )
 }
 
@@ -89,6 +99,32 @@ fun UserResponseDto.toDomain(presence: User.Presence): User {
         avatar_url = this.avatarUrl,
         presence = presence
     )
+}
+
+fun UserResponseDto.toUserDto(): UserDto {
+    return UserDto(
+        email = this.email,
+        userId = this.userId,
+        avatarVersion = this.avatarVersion,
+        isAdmin = this.isAdmin,
+        isOwner = this.isOwner,
+        isGuest = this.isGuest,
+        isBillingAdmin = this.isBillingAdmin,
+        role = this.role,
+        isBot = this.isBot,
+        fullName = this.fullName,
+        timezone = this.timezone,
+        isActive = this.isActive,
+        dateJoined = this.dateJoined,
+        avatarUrl = this.avatarUrl,
+        deliveryEmail = this.deliveryEmail
+    )
+}
+
+fun PresenceDto.toDomain(): User.Presence = when (aggregated.status) {
+    "active" -> User.Presence.ONLINE
+    "idle" -> User.Presence.IDLE
+    else -> User.Presence.OFFLINE
 }
 
 fun TopicDto.toDomain(messages: TreeSet<MessageDto>, channelId: Long): Topic {

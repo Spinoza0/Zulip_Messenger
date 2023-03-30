@@ -4,7 +4,7 @@ import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
 import com.spinoza.messenger_tfs.data.model.TopicDto
-import com.spinoza.messenger_tfs.data.model.UserResponseDto
+import com.spinoza.messenger_tfs.data.model.UserDto
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
@@ -23,7 +23,7 @@ import java.util.*
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
-    private var ownUser = UserResponseDto()
+    private var ownUser = UserDto()
 
     private val authHeader =
         Credentials.basic("spinoza0@gmail.com", "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH")
@@ -41,9 +41,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             if (response.isSuccessful) {
                 response.body()?.let { userResponseDto ->
                     if (userResponseDto.result == RESULT_SUCCESS) {
-                        ownUser = userResponseDto
-                        val presence = getUserPresence(userResponseDto.userId)
-                        RepositoryResult.Success(userResponseDto.toDomain(presence))
+                        ownUser = userResponseDto.toUserDto()
+                        val presence = getUserPresence(ownUser.userId)
+                        RepositoryResult.Success(ownUser.toDomain(presence))
                     } else {
                         RepositoryResult.Failure.OwnUserNotFound(userResponseDto.msg)
                     }

@@ -34,21 +34,21 @@ val channelsDto = listOf(
 )
 
 val usersDto = listOf(
-    UserDto(
+    OldUserDto(
         1,
         "fakeemail@mail.com",
         "Darrel Steward",
         "https://cs11.pikabu.ru/post_img/big/2020/04/12/9/1586704514168132921.png",
         User.Presence.ONLINE
     ),
-    UserDto(
+    OldUserDto(
         2,
         "vasyapupkin@mail.ru",
         "Vasya Pupkin",
         null,
         User.Presence.OFFLINE
     ),
-    UserDto(
+    OldUserDto(
         3,
         "max@mail.ru",
         "Maxim Ivanov",
