@@ -2,7 +2,6 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
@@ -31,18 +30,27 @@ class ProfileFragmentViewModel(
 
     fun loadUser(userId: Long) {
         viewModelScope.launch {
+            var isFirstTime = true
             val setLoadingState = setLoadingStateWithDelay()
-            val result =
-                if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
-            updateState(result)
-            setLoadingState.cancel()
-        }
-    }
-
-    private fun updateState(result: RepositoryResult<User>) {
-        when (result) {
-            is RepositoryResult.Success -> _state.value = ProfileScreenState.UserData(result.value)
-            is RepositoryResult.Failure -> handleErrors(result)
+            while (true) {
+                val result =
+                    if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
+                if (isFirstTime) {
+                    setLoadingState.cancel()
+                    when (result) {
+                        is RepositoryResult.Success ->
+                            _state.value = ProfileScreenState.UserData(result.value)
+                        is RepositoryResult.Failure -> {
+                            handleErrors(result)
+                            break
+                        }
+                    }
+                } else if (result is RepositoryResult.Success) {
+                    _state.value = ProfileScreenState.UserData(result.value)
+                }
+                delay(DELAY_BEFORE_UPDATE_INFO)
+                isFirstTime = false
+            }
         }
     }
 
@@ -66,6 +74,7 @@ class ProfileFragmentViewModel(
     private companion object {
 
         const val DELAY_BEFORE_SET_STATE = 200L
+        const val DELAY_BEFORE_UPDATE_INFO = 60000L
         const val CURRENT_USER = -1L
     }
 }

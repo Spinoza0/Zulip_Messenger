@@ -81,14 +81,13 @@ fun UserDto.toDomain(): User {
     )
 }
 
-fun UserProfileDto.toDomain(): User {
+fun UserResponseDto.toDomain(presence: User.Presence): User {
     return User(
         userId = this.userId,
         email = this.email,
         full_name = this.fullName,
         avatar_url = this.avatarUrl,
-        // TODO: for testing purpose
-        presence = User.Presence.IDLE
+        presence = presence
     )
 }
 

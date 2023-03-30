@@ -4,7 +4,7 @@ import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
 import com.spinoza.messenger_tfs.data.model.TopicDto
-import com.spinoza.messenger_tfs.data.model.UserProfileDto
+import com.spinoza.messenger_tfs.data.model.UserResponseDto
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
@@ -23,7 +23,7 @@ import java.util.*
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
-    private var ownUser = UserProfileDto()
+    private var ownUser = UserResponseDto()
 
     private val authHeader =
         Credentials.basic("spinoza0@gmail.com", "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH")
@@ -37,16 +37,28 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun getOwnUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
         runCatching {
-            val userProfileDto = apiService.getOwnUser(authHeader)
-            if (userProfileDto.result == RESULT_SUCCESS) {
-                ownUser = userProfileDto
-                RepositoryResult.Success(ownUser.toDomain())
+            val userResponseDto = apiService.getOwnUser(authHeader)
+            if (userResponseDto.result == RESULT_SUCCESS) {
+                ownUser = userResponseDto
+                val presence = getUserPresence(ownUser.userId)
+                RepositoryResult.Success(ownUser.toDomain(presence))
             } else {
-                RepositoryResult.Failure.OwnUserNotFound(userProfileDto.msg)
+                RepositoryResult.Failure.OwnUserNotFound(userResponseDto.msg)
             }
         }.getOrElse {
             RepositoryResult.Failure.Network(getErrorText(it))
         }
+    }
+
+    private suspend fun getUserPresence(userId: Long): User.Presence = runCatching {
+        val presenceResponseDto = apiService.getUserPresence(authHeader, userId)
+        if (presenceResponseDto.result == RESULT_SUCCESS) {
+            presenceResponseDto.presence.toDomain()
+        } else {
+            User.Presence.OFFLINE
+        }
+    }.getOrElse {
+        User.Presence.OFFLINE
     }
 
     override suspend fun getUser(userId: Long): RepositoryResult<User> =
