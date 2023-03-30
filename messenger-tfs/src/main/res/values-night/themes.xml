@@ -27,10 +27,10 @@
         <item name="text_900_color">@color/text_900_night</item>
 
         <!-- MessageView -->
-        <item name="message_user_background_start_color">
+        <item name="message_own_background_start_color">
             @color/message_user_background_start_night
         </item>
-        <item name="message_user_background_end_color">@color/message_user_background_end_night
+        <item name="message_own_background_end_color">@color/message_user_background_end_night
         </item>
         <item name="message_name_color">@color/message_name_night</item>
 

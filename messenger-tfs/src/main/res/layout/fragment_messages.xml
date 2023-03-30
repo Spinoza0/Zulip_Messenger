@@ -44,7 +44,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textViewTopic"
-        tools:listitem="@layout/companion_message_item" />
+        tools:listitem="@layout/user_message_item" />
 
     <LinearLayout
         android:id="@+id/textInput"

@@ -7,7 +7,7 @@ import com.spinoza.messenger_tfs.presentation.fragment.MessagesFragment
 import com.spinoza.messenger_tfs.presentation.fragment.UserProfileFragment
 import com.spinoza.messenger_tfs.presentation.fragment.menu.ChannelsFragment
 import com.spinoza.messenger_tfs.presentation.fragment.menu.PeopleFragment
-import com.spinoza.messenger_tfs.presentation.fragment.menu.CurrentUserProfileFragment
+import com.spinoza.messenger_tfs.presentation.fragment.menu.OwnUserProfileFragment
 
 object Screens {
 
@@ -23,5 +23,5 @@ object Screens {
 
     fun ItemPeople() = FragmentScreen { PeopleFragment.newInstance() }
 
-    fun ItemProfile() = FragmentScreen { CurrentUserProfileFragment.newInstance() }
+    fun ItemProfile() = FragmentScreen { OwnUserProfileFragment.newInstance() }
 }

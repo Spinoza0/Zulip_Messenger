@@ -21,8 +21,8 @@ import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegate
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
@@ -46,7 +46,7 @@ class MessagesFragment : Fragment() {
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
-            GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
+            GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
@@ -101,17 +101,14 @@ class MessagesFragment : Fragment() {
     private fun setupRecyclerView() {
         val messagesAdapter = MainDelegateAdapter().apply {
             addDelegate(
-                CompanionMessageDelegate(
+                UserMessageDelegate(
                     ::onReactionAddClickListener,
                     ::onReactionClickListener,
                     ::onAvatarClickListener
                 )
             )
             addDelegate(
-                UserMessageDelegate(
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener
-                )
+                OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener)
             )
             addDelegate(DateDelegate())
         }

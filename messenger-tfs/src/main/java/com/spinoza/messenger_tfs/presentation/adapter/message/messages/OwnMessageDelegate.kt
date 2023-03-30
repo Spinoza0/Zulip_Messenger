@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.databinding.CompanionMessageItemBinding
+import com.spinoza.messenger_tfs.databinding.OwnMessageItemBinding
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
@@ -13,15 +13,14 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterIt
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
-class CompanionMessageDelegate(
+class OwnMessageDelegate(
     private val onReactionAddClickListener: (MessageView) -> Unit,
     private val onReactionClickListener: (MessageView, ReactionView) -> Unit,
-    private val onAvatarClickListener: (MessageView) -> Unit,
 ) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val binding = CompanionMessageItemBinding.inflate(
+        val binding = OwnMessageItemBinding.inflate(
             inflater,
             parent,
             false
@@ -35,10 +34,9 @@ class CompanionMessageDelegate(
         position: Int,
     ) {
         (holder as ViewHolder).bind(
-            item as CompanionMessageDelegateItem,
+            item as OwnMessageDelegateItem,
             onReactionAddClickListener,
             onReactionClickListener,
-            onAvatarClickListener
         )
     }
 
@@ -56,17 +54,15 @@ class CompanionMessageDelegate(
     }
 
     override fun isOfViewType(item: DelegateAdapterItem): Boolean {
-        return item is CompanionMessageDelegateItem
+        return item is OwnMessageDelegateItem
     }
 
-    class ViewHolder(val binding: CompanionMessageItemBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder(val binding: OwnMessageItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(
-            item: CompanionMessageDelegateItem,
+            item: OwnMessageDelegateItem,
             onReactionAddClickListener: (MessageView) -> Unit,
             onReactionClickListener: (MessageView, ReactionView) -> Unit,
-            onAvatarClickListener: ((MessageView) -> Unit)? = null,
         ) {
             with(binding.messageView) {
                 val message = item.content() as Message
@@ -76,7 +72,6 @@ class CompanionMessageDelegate(
                     .circleCrop()
                     .error(R.drawable.ic_default_avatar)
                     .into(avatarImage)
-                setOnAvatarClickListener(onAvatarClickListener)
                 setOnMessageLongClickListener(onReactionAddClickListener)
                 setOnReactionClickListener(onReactionClickListener)
             }

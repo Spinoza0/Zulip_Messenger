@@ -4,7 +4,7 @@
     <corners android:radius="18dp" />
     <gradient
         android:angle="0"
-        android:endColor="?attr/message_user_background_end_color"
-        android:startColor="?attr/message_user_background_start_color"
+        android:endColor="?attr/message_own_background_end_color"
+        android:startColor="?attr/message_own_background_start_color"
         android:type="linear" />
 </shape>

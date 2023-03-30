@@ -27,8 +27,8 @@
         <item name="text_900_color">@color/text_900</item>
 
         <!-- MessageView -->
-        <item name="message_user_background_start_color">@color/message_user_background_start</item>
-        <item name="message_user_background_end_color">@color/message_user_background_end</item>
+        <item name="message_own_background_start_color">@color/message_user_background_start</item>
+        <item name="message_own_background_end_color">@color/message_user_background_end</item>
         <item name="message_name_color">@color/message_name</item>
 
         <!-- Channel -->

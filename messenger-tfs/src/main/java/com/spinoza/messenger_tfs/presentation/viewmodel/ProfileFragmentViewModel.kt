@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import kotlinx.coroutines.*
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class ProfileFragmentViewModel(
-    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
 ) : ViewModel() {
 
@@ -31,7 +31,7 @@ class ProfileFragmentViewModel(
         viewModelScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             val result =
-                if (userId == CURRENT_USER) getCurrentUserUseCase() else getUserUseCase(userId)
+                if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
             updateState(result)
             setLoadingState.cancel()
         }

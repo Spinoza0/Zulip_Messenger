@@ -7,11 +7,11 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 
 @Suppress("UNCHECKED_CAST")
 class ProfileFragmentViewModelFactory(
-    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ProfileFragmentViewModel(getCurrentUserUseCase, getUserUseCase) as T
+        return ProfileFragmentViewModel(getOwnUserUseCase, getUserUseCase) as T
     }
 }

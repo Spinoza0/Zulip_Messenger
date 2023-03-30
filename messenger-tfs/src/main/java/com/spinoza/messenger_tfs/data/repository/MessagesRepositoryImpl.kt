@@ -4,14 +4,15 @@ import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.MessageDto
 import com.spinoza.messenger_tfs.data.model.ReactionParamDto
 import com.spinoza.messenger_tfs.data.model.TopicDto
+import com.spinoza.messenger_tfs.data.model.UserProfileDto
+import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import okhttp3.Credentials
 import java.util.*
 
 
@@ -20,23 +21,33 @@ import java.util.*
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
-    // TODO: for testing purpose
-    private val currentUser = testUserDto
+    private var ownUser = UserProfileDto()
 
+    private val authHeader =
+        Credentials.basic("spinoza0@gmail.com", "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH")
     private val messagesLocalCache = TreeSet<MessageDto>()
+    private val apiService = ZulipApiFactory.apiService
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
         // TODO: for testing purpose
         messagesLocalCache.addAll(prepareTestData())
+
+        repositoryScope.launch {
+            val userProfileDto = apiService.getOwnUser(authHeader)
+            if (userProfileDto.result == RESULT_SUCCESS) {
+                ownUser = userProfileDto
+            }
+        }
     }
 
-    override suspend fun getCurrentUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
-        // TODO: for testing purpose
-        delay(DELAY_VALUE)
-        if (!isErrorInRepository()) {
-            RepositoryResult.Success(currentUser.toDomain())
+    override suspend fun getOwnUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
+        val userProfileDto = apiService.getOwnUser(authHeader)
+        if (userProfileDto.result == RESULT_SUCCESS) {
+            ownUser = userProfileDto
+            RepositoryResult.Success(ownUser.toDomain())
         } else {
-            RepositoryResult.Failure.CurrentUserNotFound(errorText)
+            RepositoryResult.Failure.CurrentUserNotFound(userProfileDto.msg)
         }
     }
 
@@ -70,7 +81,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         if (!isErrorInRepository()) {
             RepositoryResult.Success(
                 MessagesResult(
-                    messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
+                    messagesLocalCache.toDomain(ownUser.userId, messagesFilter),
                     MessagePosition()
                 )
             )
@@ -164,21 +175,21 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             val newReactionsDto = messageDto.reactions.toMutableMap()
             if (reactionDto != null) {
                 val newUsersIds =
-                    reactionDto.usersIds.removeIfExistsOrAddToList(currentUser.userId)
+                    reactionDto.usersIds.removeIfExistsOrAddToList(ownUser.userId)
                 if (newUsersIds.isNotEmpty()) {
                     newReactionsDto[reaction] = ReactionParamDto(newUsersIds)
                 } else {
                     newReactionsDto.remove(reaction)
                 }
             } else {
-                newReactionsDto[reaction] = ReactionParamDto(listOf(currentUser.userId))
+                newReactionsDto[reaction] = ReactionParamDto(listOf(ownUser.userId))
             }
             messagesLocalCache.removeIf { it.id == messageId }
             messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
             if (!isErrorInRepository()) {
                 RepositoryResult.Success(
                     MessagesResult(
-                        messagesLocalCache.toDomain(currentUser.userId, messagesFilter),
+                        messagesLocalCache.toDomain(ownUser.userId, messagesFilter),
                         MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
                     )
                 )
@@ -208,6 +219,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         // TODO: for testing purpose
         private const val DELAY_VALUE = 1000L
+
+        private const val RESULT_SUCCESS = "success"
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit

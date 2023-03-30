@@ -33,15 +33,6 @@ val channelsDto = listOf(
     ChannelDto(4L, "Events", topics2, false),
 )
 
-val testUserDto = UserDto(
-    100,
-    "TestUser@mail.com",
-    "Test User",
-    "https://cs11.pikabu.ru/post_img/2020/04/12/9/158670440816531661.png",
-    User.Presence.IDLE
-)
-
-
 val usersDto = listOf(
     UserDto(
         1,

@@ -64,7 +64,7 @@ class MessageView @JvmOverloads constructor(
             if (messageTypeIsUser) {
                 val messageBackground = this.getResourceId(
                     R.styleable.message_view_message_background_color,
-                    R.drawable.shape_message_companion_bottom
+                    R.drawable.shape_message_user_bottom
                 )
                 binding.contentTextView.setBackgroundResource(messageBackground)
                 binding.avatarImageView.visibility = View.GONE

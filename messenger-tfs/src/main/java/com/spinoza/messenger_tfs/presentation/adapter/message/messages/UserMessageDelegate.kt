@@ -16,6 +16,7 @@ import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 class UserMessageDelegate(
     private val onReactionAddClickListener: (MessageView) -> Unit,
     private val onReactionClickListener: (MessageView, ReactionView) -> Unit,
+    private val onAvatarClickListener: (MessageView) -> Unit,
 ) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -37,6 +38,7 @@ class UserMessageDelegate(
             item as UserMessageDelegateItem,
             onReactionAddClickListener,
             onReactionClickListener,
+            onAvatarClickListener
         )
     }
 
@@ -57,12 +59,14 @@ class UserMessageDelegate(
         return item is UserMessageDelegateItem
     }
 
-    class ViewHolder(val binding: UserMessageItemBinding) : RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder(val binding: UserMessageItemBinding) :
+        RecyclerView.ViewHolder(binding.root) {
 
         fun bind(
             item: UserMessageDelegateItem,
             onReactionAddClickListener: (MessageView) -> Unit,
             onReactionClickListener: (MessageView, ReactionView) -> Unit,
+            onAvatarClickListener: ((MessageView) -> Unit)? = null,
         ) {
             with(binding.messageView) {
                 val message = item.content() as Message
@@ -72,6 +76,7 @@ class UserMessageDelegate(
                     .circleCrop()
                     .error(R.drawable.ic_default_avatar)
                     .into(avatarImage)
+                setOnAvatarClickListener(onAvatarClickListener)
                 setOnMessageLongClickListener(onReactionAddClickListener)
                 setOnReactionClickListener(onReactionClickListener)
             }

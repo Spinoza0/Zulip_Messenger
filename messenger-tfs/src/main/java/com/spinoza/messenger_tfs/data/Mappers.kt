@@ -81,6 +81,17 @@ fun UserDto.toDomain(): User {
     )
 }
 
+fun UserProfileDto.toDomain(): User {
+    return User(
+        userId = this.userId,
+        email = this.email,
+        full_name = this.fullName,
+        avatar_url = this.avatarUrl,
+        // TODO: for testing purpose
+        presence = User.Presence.IDLE
+    )
+}
+
 fun TopicDto.toDomain(messages: TreeSet<MessageDto>, channelId: Long): Topic {
     return Topic(
         name = this.name,

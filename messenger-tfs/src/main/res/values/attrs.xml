@@ -32,8 +32,8 @@
     </declare-styleable>
 
     <declare-styleable name="message_view">
-        <attr name="message_user_background_start_color" format="color" />
-        <attr name="message_user_background_end_color" format="color" />
+        <attr name="message_own_background_start_color" format="color" />
+        <attr name="message_own_background_end_color" format="color" />
         <attr name="message_name_color" format="color" />
         <attr name="message_background_color" format="reference" />
         <attr name="message_type_is_user" format="boolean" />

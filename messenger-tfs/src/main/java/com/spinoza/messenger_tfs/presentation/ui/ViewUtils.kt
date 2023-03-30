@@ -9,8 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.spinoza.messenger_tfs.databinding.ShimmerBinding
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegate
 
 private const val MAX_DISTANCE = 10
 
@@ -60,9 +60,9 @@ fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Long) {
         val messageView = this.getChildAt(i)
         val viewHolder = this.getChildViewHolder(messageView)
         var messageId = Message.UNDEFINED_ID
-        if (viewHolder is UserMessageDelegate.ViewHolder)
+        if (viewHolder is OwnMessageDelegate.ViewHolder)
             messageId = viewHolder.binding.messageView.messageId
-        else if (viewHolder is CompanionMessageDelegate.ViewHolder)
+        else if (viewHolder is UserMessageDelegate.ViewHolder)
             messageId = viewHolder.binding.messageView.messageId
         if (messageId == changedMessageId) {
             position = viewHolder.adapterPosition

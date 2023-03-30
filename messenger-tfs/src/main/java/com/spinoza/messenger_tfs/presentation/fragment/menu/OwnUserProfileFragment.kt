@@ -15,7 +15,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
@@ -25,7 +25,7 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ProfileFragmentViewModelFactory
 import kotlinx.coroutines.launch
 
-class CurrentUserProfileFragment : Fragment() {
+class OwnUserProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding: FragmentProfileBinding
@@ -34,7 +34,7 @@ class CurrentUserProfileFragment : Fragment() {
 
     private val viewModel: ProfileFragmentViewModel by viewModels {
         ProfileFragmentViewModelFactory(
-            GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
+            GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
             GetUserUseCase(MessagesRepositoryImpl.getInstance())
         )
     }
@@ -108,8 +108,8 @@ class CurrentUserProfileFragment : Fragment() {
 
     companion object {
 
-        fun newInstance(): CurrentUserProfileFragment {
-            return CurrentUserProfileFragment()
+        fun newInstance(): OwnUserProfileFragment {
+            return OwnUserProfileFragment()
         }
     }
 }

@@ -17,7 +17,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
@@ -40,7 +40,7 @@ class UserProfileFragment : Fragment() {
 
     private val viewModel: ProfileFragmentViewModel by viewModels {
         ProfileFragmentViewModelFactory(
-            GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
+            GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
             GetUserUseCase(MessagesRepositoryImpl.getInstance())
         )
     }

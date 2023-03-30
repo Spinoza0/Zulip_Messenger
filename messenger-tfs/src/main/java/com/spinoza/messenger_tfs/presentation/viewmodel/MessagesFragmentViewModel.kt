@@ -9,14 +9,14 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
 import kotlinx.coroutines.*
@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import java.util.*
 
 class MessagesFragmentViewModel(
-    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+    private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
@@ -87,7 +87,7 @@ class MessagesFragmentViewModel(
 
     private suspend fun loadCurrentUser() {
         val setLoadingState = setLoadingStateWithDelay()
-        val result = getCurrentUserUseCase()
+        val result = getOwnUserUseCase()
         setLoadingState.cancel()
         when (result) {
             is RepositoryResult.Success -> {
@@ -169,9 +169,9 @@ class MessagesFragmentViewModel(
 
             allDayMessages.forEach { message ->
                 if (message.user.userId == user.userId) {
-                    messageAdapterItemList.add(UserMessageDelegateItem(message))
+                    messageAdapterItemList.add(OwnMessageDelegateItem(message))
                 } else {
-                    messageAdapterItemList.add(CompanionMessageDelegateItem(message))
+                    messageAdapterItemList.add(UserMessageDelegateItem(message))
                 }
             }
         }
