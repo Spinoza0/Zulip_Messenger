@@ -49,10 +49,6 @@ dependencies {
 
     implementation navigation.cicerone
 
-    implementation room.runtime
-    kapt(room.compiler)
-    implementation room.ktx
-
     implementation glide.glide
     kapt(glide.compiler)
 
