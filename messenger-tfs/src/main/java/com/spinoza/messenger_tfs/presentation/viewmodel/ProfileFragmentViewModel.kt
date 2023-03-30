@@ -7,10 +7,12 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class ProfileFragmentViewModel(
     private val getOwnUserUseCase: GetOwnUserUseCase,
@@ -46,8 +48,10 @@ class ProfileFragmentViewModel(
 
     private fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
-            is RepositoryResult.Failure.UserNotFound -> _state.value =
-                ProfileScreenState.Failure.UserNotFound(error.userId)
+            is RepositoryResult.Failure.UserNotFound ->
+                _state.value = ProfileScreenState.Failure.UserNotFound(error.userId)
+            is RepositoryResult.Failure.Network ->
+                _state.value = ProfileScreenState.Failure.Network(error.value)
             else -> {}
         }
     }

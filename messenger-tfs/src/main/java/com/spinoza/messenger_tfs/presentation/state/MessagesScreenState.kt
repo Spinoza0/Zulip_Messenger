@@ -16,7 +16,9 @@ sealed class MessagesScreenState {
 
     sealed class Failure : MessagesScreenState() {
 
-        class CurrentUserNotFound(val value: String) : Failure()
+        class Network(val value: String) : Failure()
+
+        class OwnUserNotFound(val value: String) : Failure()
 
         class UserNotFound(val userId: Long) : Failure()
 

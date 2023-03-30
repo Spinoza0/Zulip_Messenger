@@ -78,6 +78,9 @@ class OwnUserProfileFragment : Fragment() {
                     state.userId
                 )
             )
+            is ProfileScreenState.Failure.Network -> showError(
+                String.format(getString(R.string.error_network), state.value)
+            )
             is ProfileScreenState.Idle -> {}
         }
     }

@@ -21,8 +21,8 @@ import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
@@ -172,36 +172,23 @@ class MessagesFragment : Fragment() {
     private fun handleErrors(error: MessagesScreenState.Failure) {
         when (error) {
             is MessagesScreenState.Failure.MessageNotFound -> showError(
-                String.format(
-                    getString(R.string.error_message_not_found),
-                    error.messageId
-                )
+                String.format(getString(R.string.error_message_not_found), error.messageId)
             )
             is MessagesScreenState.Failure.UserNotFound -> showError(
-                String.format(
-                    getString(R.string.error_user_not_found),
-                    error.userId
-                )
+                String.format(getString(R.string.error_user_not_found), error.userId)
             )
             is MessagesScreenState.Failure.SendingMessage -> showError(
-                String.format(
-                    getString(R.string.error_sending_message),
-                    error.value
-                )
+                String.format(getString(R.string.error_sending_message), error.value)
             )
             is MessagesScreenState.Failure.UpdatingReaction -> showError(
-                String.format(
-                    getString(R.string.error_updating_reaction),
-                    error.value
-                )
+                String.format(getString(R.string.error_updating_reaction), error.value)
             )
-            is MessagesScreenState.Failure.CurrentUserNotFound -> {
-                showError(
-                    String.format(
-                        getString(R.string.error_loading_current_user),
-                        error.value
-                    )
-                )
+            is MessagesScreenState.Failure.OwnUserNotFound -> {
+                showError(String.format(getString(R.string.error_loading_user), error.value))
+                goBack()
+            }
+            is MessagesScreenState.Failure.Network -> {
+                showError(String.format(getString(R.string.error_network), error.value))
                 goBack()
             }
         }

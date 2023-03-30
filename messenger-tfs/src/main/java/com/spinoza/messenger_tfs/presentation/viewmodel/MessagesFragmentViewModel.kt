@@ -9,14 +9,14 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
 import kotlinx.coroutines.*
@@ -50,7 +50,7 @@ class MessagesFragmentViewModel(
     fun sendMessage(messageText: String) {
         if (messageText.isNotEmpty()) viewModelScope.launch {
             if (currentUser == null) {
-                _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
+                _state.emit(MessagesScreenState.Failure.OwnUserNotFound(""))
             } else currentUser?.let { user ->
                 _state.emit(MessagesScreenState.MessageSent)
                 val message = Message(
@@ -100,7 +100,7 @@ class MessagesFragmentViewModel(
 
     private suspend fun loadMessages() {
         if (currentUser == null) {
-            _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
+            _state.emit(MessagesScreenState.Failure.OwnUserNotFound(""))
         } else {
             val setLoadingState = setLoadingStateWithDelay()
             val result = getMessagesUseCase(messagesFilter)
@@ -111,7 +111,7 @@ class MessagesFragmentViewModel(
 
     private suspend fun handleRepositoryResult(result: RepositoryResult<MessagesResult>) {
         if (currentUser == null) {
-            _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(""))
+            _state.emit(MessagesScreenState.Failure.OwnUserNotFound(""))
         } else currentUser?.let { user ->
             when (result) {
                 is RepositoryResult.Success -> withContext(Dispatchers.Default) {
@@ -131,8 +131,8 @@ class MessagesFragmentViewModel(
 
     private suspend fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
-            is RepositoryResult.Failure.CurrentUserNotFound ->
-                _state.emit(MessagesScreenState.Failure.CurrentUserNotFound(error.value))
+            is RepositoryResult.Failure.OwnUserNotFound ->
+                _state.emit(MessagesScreenState.Failure.OwnUserNotFound(error.value))
             is RepositoryResult.Failure.MessageNotFound ->
                 _state.emit(MessagesScreenState.Failure.MessageNotFound(error.messageId))
             is RepositoryResult.Failure.UserNotFound -> {
@@ -142,6 +142,8 @@ class MessagesFragmentViewModel(
                 _state.emit(MessagesScreenState.Failure.SendingMessage(error.value))
             is RepositoryResult.Failure.UpdatingReaction ->
                 _state.emit(MessagesScreenState.Failure.UpdatingReaction(error.value))
+            is RepositoryResult.Failure.Network ->
+                _state.emit(MessagesScreenState.Failure.Network(error.value))
             else -> {}
         }
     }

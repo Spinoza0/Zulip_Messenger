@@ -11,7 +11,9 @@ import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import okhttp3.Credentials
 import java.util.*
 
@@ -27,27 +29,23 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         Credentials.basic("spinoza0@gmail.com", "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH")
     private val messagesLocalCache = TreeSet<MessageDto>()
     private val apiService = ZulipApiFactory.apiService
-    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
         // TODO: for testing purpose
         messagesLocalCache.addAll(prepareTestData())
-
-        repositoryScope.launch {
-            val userProfileDto = apiService.getOwnUser(authHeader)
-            if (userProfileDto.result == RESULT_SUCCESS) {
-                ownUser = userProfileDto
-            }
-        }
     }
 
     override suspend fun getOwnUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
-        val userProfileDto = apiService.getOwnUser(authHeader)
-        if (userProfileDto.result == RESULT_SUCCESS) {
-            ownUser = userProfileDto
-            RepositoryResult.Success(ownUser.toDomain())
-        } else {
-            RepositoryResult.Failure.CurrentUserNotFound(userProfileDto.msg)
+        runCatching {
+            val userProfileDto = apiService.getOwnUser(authHeader)
+            if (userProfileDto.result == RESULT_SUCCESS) {
+                ownUser = userProfileDto
+                RepositoryResult.Success(ownUser.toDomain())
+            } else {
+                RepositoryResult.Failure.OwnUserNotFound(userProfileDto.msg)
+            }
+        }.getOrElse {
+            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
@@ -214,6 +212,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
         return result
     }
+
+    private fun getErrorText(e: Throwable): String = e.localizedMessage ?: e.message ?: e.toString()
 
     companion object {
 

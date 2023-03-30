@@ -10,7 +10,9 @@ sealed class RepositoryResult<out T> {
 
     sealed class Failure : RepositoryResult<Nothing>() {
 
-        class CurrentUserNotFound(val value: String) : Failure()
+        class Network(val value: String) : Failure()
+
+        class OwnUserNotFound(val value: String) : Failure()
 
         class UserNotFound(val userId: Long) : Failure()
 
