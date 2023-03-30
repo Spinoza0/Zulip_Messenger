@@ -136,7 +136,7 @@ class MessagesFragmentViewModel(
             is RepositoryResult.Failure.MessageNotFound ->
                 _state.emit(MessagesScreenState.Failure.MessageNotFound(error.messageId))
             is RepositoryResult.Failure.UserNotFound -> {
-                _state.emit(MessagesScreenState.Failure.UserNotFound(error.userId))
+                _state.emit(MessagesScreenState.Failure.UserNotFound(error.userId, error.value))
             }
             is RepositoryResult.Failure.SendingMessage ->
                 _state.emit(MessagesScreenState.Failure.SendingMessage(error.value))

@@ -95,10 +95,7 @@ class UserProfileFragment : Fragment() {
             is ProfileScreenState.UserData -> showProfileInfo(state.value)
             is ProfileScreenState.Loading -> binding.shimmer.on()
             is ProfileScreenState.Failure.UserNotFound -> showError(
-                String.format(
-                    getString(R.string.error_user_not_found),
-                    state.userId
-                )
+                String.format(getString(R.string.error_user_not_found), state.userId, state.value)
             )
             is ProfileScreenState.Failure.Network -> showError(
                 String.format(getString(R.string.error_network), state.value)

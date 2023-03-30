@@ -14,6 +14,6 @@ sealed class ProfileScreenState {
 
         class Network(val value: String) : Failure()
 
-        class UserNotFound(val userId: Long) : Failure()
+        class UserNotFound(val userId: Long, val value: String) : Failure()
     }
 }

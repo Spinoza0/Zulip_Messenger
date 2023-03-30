@@ -37,39 +37,44 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun getOwnUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
         runCatching {
-            val userResponseDto = apiService.getOwnUser(authHeader)
-            if (userResponseDto.result == RESULT_SUCCESS) {
-                ownUser = userResponseDto
-                val presence = getUserPresence(ownUser.userId)
-                RepositoryResult.Success(ownUser.toDomain(presence))
+            val response = apiService.getOwnUser(authHeader)
+            if (response.isSuccessful) {
+                response.body()?.let { userResponseDto ->
+                    if (userResponseDto.result == RESULT_SUCCESS) {
+                        ownUser = userResponseDto
+                        val presence = getUserPresence(userResponseDto.userId)
+                        RepositoryResult.Success(userResponseDto.toDomain(presence))
+                    } else {
+                        RepositoryResult.Failure.OwnUserNotFound(userResponseDto.msg)
+                    }
+                } ?: RepositoryResult.Failure.OwnUserNotFound(response.message())
             } else {
-                RepositoryResult.Failure.OwnUserNotFound(userResponseDto.msg)
+                RepositoryResult.Failure.OwnUserNotFound(response.message())
             }
         }.getOrElse {
             RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
-    private suspend fun getUserPresence(userId: Long): User.Presence = runCatching {
-        val presenceResponseDto = apiService.getUserPresence(authHeader, userId)
-        if (presenceResponseDto.result == RESULT_SUCCESS) {
-            presenceResponseDto.presence.toDomain()
-        } else {
-            User.Presence.OFFLINE
-        }
-    }.getOrElse {
-        User.Presence.OFFLINE
-    }
-
     override suspend fun getUser(userId: Long): RepositoryResult<User> =
         withContext(Dispatchers.IO) {
-            // TODO: for testing purpose
-            delay(DELAY_VALUE)
-            val user = usersDto.find { it.userId == userId }
-            if (user != null)
-                RepositoryResult.Success(user.toDomain())
-            else
-                RepositoryResult.Failure.UserNotFound(userId)
+            runCatching {
+                val response = apiService.getUser(authHeader, userId)
+                if (response.isSuccessful) {
+                    response.body()?.let { userResponseDto ->
+                        if (userResponseDto.result == RESULT_SUCCESS) {
+                            val presence = getUserPresence(userResponseDto.userId)
+                            RepositoryResult.Success(userResponseDto.toDomain(presence))
+                        } else {
+                            RepositoryResult.Failure.UserNotFound(userId, userResponseDto.msg)
+                        }
+                    } ?: RepositoryResult.Failure.UserNotFound(userId, response.message())
+                } else {
+                    RepositoryResult.Failure.UserNotFound(userId, response.message())
+                }
+            }.getOrElse {
+                RepositoryResult.Failure.Network(getErrorText(it))
+            }
         }
 
     override suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>> =
@@ -223,6 +228,17 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             result.add(value)
         }
         return result
+    }
+
+    private suspend fun getUserPresence(userId: Long): User.Presence = runCatching {
+        val presenceResponseDto = apiService.getUserPresence(authHeader, userId)
+        if (presenceResponseDto.result == RESULT_SUCCESS) {
+            presenceResponseDto.presence.toDomain()
+        } else {
+            User.Presence.OFFLINE
+        }
+    }.getOrElse {
+        User.Presence.OFFLINE
     }
 
     private fun getErrorText(e: Throwable): String = e.localizedMessage ?: e.message ?: e.toString()

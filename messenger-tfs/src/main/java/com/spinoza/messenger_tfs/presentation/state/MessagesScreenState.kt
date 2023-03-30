@@ -20,7 +20,7 @@ sealed class MessagesScreenState {
 
         class OwnUserNotFound(val value: String) : Failure()
 
-        class UserNotFound(val userId: Long) : Failure()
+        class UserNotFound(val userId: Long, val value: String) : Failure()
 
         class MessageNotFound(val messageId: Long) : Failure()
 

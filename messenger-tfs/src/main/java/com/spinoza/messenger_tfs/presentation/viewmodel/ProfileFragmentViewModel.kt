@@ -57,7 +57,7 @@ class ProfileFragmentViewModel(
     private fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
             is RepositoryResult.Failure.UserNotFound ->
-                _state.value = ProfileScreenState.Failure.UserNotFound(error.userId)
+                _state.value = ProfileScreenState.Failure.UserNotFound(error.userId, error.value)
             is RepositoryResult.Failure.Network ->
                 _state.value = ProfileScreenState.Failure.Network(error.value)
             else -> {}
