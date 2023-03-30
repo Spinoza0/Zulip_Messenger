@@ -18,8 +18,8 @@ data class UserDto(
     @SerialName("timezone") val timezone: String = "",
     @SerialName("is_active") val isActive: Boolean = false,
     @SerialName("date_joined") val dateJoined: String = "",
-    @SerialName("avatar_url") val avatarUrl: String = "",
-    @SerialName("delivery_email") val deliveryEmail: String = "",
+    @SerialName("avatar_url") val avatarUrl: String? = null,
+    @SerialName("delivery_email") val deliveryEmail: String? = null,
     @SerialName("bot_type") val botType: Int? = null,
     @SerialName("bot_owner_id") val botOwnerId: Int? = null,
 ) {

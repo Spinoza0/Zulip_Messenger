@@ -86,7 +86,7 @@ fun UserDto.toDomain(presence: User.Presence): User {
         userId = this.userId,
         email = this.email,
         full_name = this.fullName,
-        avatar_url = this.avatarUrl,
+        avatar_url = this.avatarUrl ?: "",
         presence = presence
     )
 }
@@ -96,7 +96,7 @@ fun UserResponseDto.toDomain(presence: User.Presence): User {
         userId = this.userId,
         email = this.email,
         full_name = this.fullName,
-        avatar_url = this.avatarUrl,
+        avatar_url = this.avatarUrl ?: "",
         presence = presence
     )
 }

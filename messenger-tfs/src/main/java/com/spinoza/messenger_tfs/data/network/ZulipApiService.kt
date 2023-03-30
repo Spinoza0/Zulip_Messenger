@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data.network
 
+import com.spinoza.messenger_tfs.data.model.AllUsersResponseDto
 import com.spinoza.messenger_tfs.data.model.PresenceResponseDto
 import com.spinoza.messenger_tfs.data.model.UserResponseDto
 import retrofit2.Response
@@ -15,6 +16,11 @@ interface ZulipApiService {
         @Header("Authorization") authHeader: String,
         @Path(QUERY_USER_ID) userId: Long,
     ): Response<UserResponseDto>
+
+    @GET("users")
+    suspend fun getAllUsers(
+        @Header("Authorization") authHeader: String,
+    ): Response<AllUsersResponseDto>
 
     @GET("users/{$QUERY_USER_ID}/presence")
     suspend fun getUserPresence(
