@@ -14,16 +14,6 @@ private fun User.toDto(): OldUserDto {
     )
 }
 
-fun List<OldUserDto>.listToDomain(usersFilter: String): List<User> {
-    return this.filter {
-        if (usersFilter.isBlank()) {
-            true
-        } else {
-            it.full_name.contains(usersFilter, true)
-        }
-    }.map { it.toDomain() }
-}
-
 fun List<TopicDto>.toDomain(messages: TreeSet<MessageDto>, channelId: Long): List<Topic> {
     return this.map { it.toDomain(messages, channelId) }
 }
@@ -91,17 +81,7 @@ fun UserDto.toDomain(presence: User.Presence): User {
     )
 }
 
-fun UserResponseDto.toDomain(presence: User.Presence): User {
-    return User(
-        userId = this.userId,
-        email = this.email,
-        full_name = this.fullName,
-        avatar_url = this.avatarUrl ?: "",
-        presence = presence
-    )
-}
-
-fun UserResponseDto.toUserDto(): UserDto {
+fun OwnResponseDto.toUserDto(): UserDto {
     return UserDto(
         email = this.email,
         userId = this.userId,
@@ -117,7 +97,8 @@ fun UserResponseDto.toUserDto(): UserDto {
         isActive = this.isActive,
         dateJoined = this.dateJoined,
         avatarUrl = this.avatarUrl,
-        deliveryEmail = this.deliveryEmail
+        deliveryEmail = this.deliveryEmail,
+        profileData = this.profileData
     )
 }
 

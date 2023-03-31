@@ -68,6 +68,9 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="8dp"
         android:textColor="?attr/text_300_color"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toEndOf="@id/imageViewAvatar"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="@tools:sample/full_names" />
@@ -78,6 +81,10 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:textColor="?attr/text_700_color"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
         app:layout_constraintStart_toStartOf="@id/textViewName"
         app:layout_constraintTop_toBottomOf="@id/textViewName"
         tools:text="@tools:sample/cities" />

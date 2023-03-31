@@ -34,14 +34,28 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
         }
     }
 
-    fun loadUsers() {
+    private fun loadUsers() {
         viewModelScope.launch {
+            var isFirstTime = true
             val setLoadingState = setLoadingStateWithDelay()
-            when (val result = getUsersByFilterUseCase(usersFilter)) {
-                is RepositoryResult.Success -> _state.emit(PeopleScreenState.Users(result.value))
-                is RepositoryResult.Failure -> handleErrors(result)
+            while (true) {
+                val result = getUsersByFilterUseCase(usersFilter)
+                if (isFirstTime) {
+                    setLoadingState.cancel()
+                    when (result) {
+                        is RepositoryResult.Success ->
+                            _state.value = PeopleScreenState.Users(result.value)
+                        is RepositoryResult.Failure -> {
+                            handleErrors(result)
+                            break
+                        }
+                    }
+                } else if (result is RepositoryResult.Success) {
+                    _state.value = PeopleScreenState.Users(result.value)
+                }
+                delay(DELAY_BEFORE_UPDATE_INFO)
+                isFirstTime = false
             }
-            setLoadingState.cancel()
         }
     }
 
@@ -82,5 +96,6 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
 
         const val DURATION_MILLIS = 300L
         const val DELAY_BEFORE_SET_STATE = 200L
+        const val DELAY_BEFORE_UPDATE_INFO = 60000L
     }
 }

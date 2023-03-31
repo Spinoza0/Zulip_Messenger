@@ -103,13 +103,6 @@ class PeopleFragment : Fragment() {
         globalRouter.navigateTo(Screens.UserProfile(userId))
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (peopleListIsEmpty()) {
-            viewModel.loadUsers()
-        }
-    }
-
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()

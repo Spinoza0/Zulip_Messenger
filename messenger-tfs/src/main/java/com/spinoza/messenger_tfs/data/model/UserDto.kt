@@ -22,6 +22,7 @@ data class UserDto(
     @SerialName("delivery_email") val deliveryEmail: String? = null,
     @SerialName("bot_type") val botType: Int? = null,
     @SerialName("bot_owner_id") val botOwnerId: Int? = null,
+    @SerialName("profile_data") val profileData: Map<String, ProfileDataDto> = emptyMap(),
 ) {
 
     companion object {
