@@ -22,4 +22,16 @@ class PeopleAdapter(
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         holder.bind(getItem(position), onClickListener)
     }
+
+    override fun onBindViewHolder(
+        holder: UserViewHolder,
+        position: Int,
+        payloads: MutableList<Any>,
+    ) {
+        if (payloads.isEmpty() || (payloads[0] as? Int) == null) {
+            onBindViewHolder(holder, position)
+        } else {
+            holder.bind(payloads[0] as User.Presence)
+        }
+    }
 }

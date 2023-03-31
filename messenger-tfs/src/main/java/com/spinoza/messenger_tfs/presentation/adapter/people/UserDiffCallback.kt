@@ -12,4 +12,8 @@ class UserDiffCallback : DiffUtil.ItemCallback<User>() {
     override fun areContentsTheSame(oldItem: User, newItem: User): Boolean {
         return oldItem == newItem
     }
+
+    override fun getChangePayload(oldItem: User, newItem: User): Any? {
+        return if (oldItem.presence == newItem.presence) null else newItem.presence
+    }
 }

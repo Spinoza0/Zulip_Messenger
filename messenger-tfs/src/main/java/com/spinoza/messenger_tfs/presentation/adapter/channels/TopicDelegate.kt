@@ -69,10 +69,10 @@ class TopicDelegate(
             val messagesFilter = (item.content() as MessagesFilter)
             binding.textViewTopicLayout.setBackgroundColor(color)
             binding.textViewTopicName.text = messagesFilter.topic.name
-            binding.textViewTopicMessagesCount.text = messagesFilter.topic.messageCount.toString()
             binding.root.setOnClickListener {
                 onClickListener(messagesFilter)
             }
+            bind(messagesFilter.topic.messageCount)
         }
 
         fun bind(messageCount: Int) {

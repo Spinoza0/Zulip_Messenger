@@ -18,12 +18,16 @@ class UserViewHolder(private val binding: UserItemBinding) : RecyclerView.ViewHo
                 .circleCrop()
                 .error(R.drawable.ic_default_avatar)
                 .into(imageViewAvatar)
-            imageViewCircleOnline.isVisible = user.presence == User.Presence.ONLINE
-            imageViewCircleIdle.isVisible = user.presence == User.Presence.IDLE
-            imageViewCircleOffline.isVisible = user.presence == User.Presence.OFFLINE
             root.setOnClickListener {
                 if (adapterPosition != RecyclerView.NO_POSITION) onClickListener(user.userId)
             }
+            bind(user.presence)
         }
+    }
+
+    fun bind(presence: User.Presence) {
+        binding.imageViewCircleOnline.isVisible = presence == User.Presence.ONLINE
+        binding.imageViewCircleIdle.isVisible = presence == User.Presence.IDLE
+        binding.imageViewCircleOffline.isVisible = presence == User.Presence.OFFLINE
     }
 }

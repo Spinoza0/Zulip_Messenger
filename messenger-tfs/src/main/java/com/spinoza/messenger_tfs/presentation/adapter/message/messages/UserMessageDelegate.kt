@@ -76,6 +76,7 @@ class UserMessageDelegate(
                     .circleCrop()
                     .error(R.drawable.ic_default_avatar)
                     .into(avatarImage)
+                setReactions(message.reactions)
                 setOnAvatarClickListener(onAvatarClickListener)
                 setOnMessageLongClickListener(onReactionAddClickListener)
                 setOnReactionClickListener(onReactionClickListener)
