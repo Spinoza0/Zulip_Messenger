@@ -14,8 +14,8 @@ private fun User.toDto(): OldUserDto {
     )
 }
 
-fun List<TopicDto>.toDomain(messages: TreeSet<MessageDto>, channelId: Long): List<Topic> {
-    return map { it.toDomain(messages, channelId) }
+fun List<TopicDto>.toDomain(): List<Topic> {
+    return map { it.toDomain() }
 }
 
 fun List<StreamDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
@@ -106,6 +106,14 @@ fun TopicDto.toDomain(messages: TreeSet<MessageDto>, channelId: Long): Topic {
     return Topic(
         name = name,
         messageCount = messages.count { it.channelId == channelId && it.topicName == name }
+    )
+}
+
+fun TopicDto.toDomain(): Topic {
+    return Topic(
+        name = name,
+        // TODO: count messages
+        messageCount = 0
     )
 }
 

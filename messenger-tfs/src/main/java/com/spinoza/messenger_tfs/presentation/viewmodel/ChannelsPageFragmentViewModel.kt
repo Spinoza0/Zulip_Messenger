@@ -215,8 +215,12 @@ class ChannelsPageFragmentViewModel(
                     error.value
                 )
             )
-            is RepositoryResult.Failure.LoadingChannelTopics ->
-                _state.emit(ChannelsPageScreenState.Failure.LoadingChannelTopics(error.channel))
+            is RepositoryResult.Failure.LoadingChannelTopics -> _state.emit(
+                ChannelsPageScreenState.Failure.LoadingChannelTopics(
+                    error.channel,
+                    error.value
+                )
+            )
             else -> {}
         }
     }

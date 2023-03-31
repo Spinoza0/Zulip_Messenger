@@ -26,7 +26,7 @@ sealed class RepositoryResult<out T> {
 
         class LoadingTopicData(val messagesFilter: MessagesFilter) : Failure()
 
-        class LoadingChannelTopics(val channel: Channel) : Failure()
+        class LoadingChannelTopics(val channel: Channel, val value: String) : Failure()
 
         class SendingMessage(val value: String) : Failure()
 

@@ -41,7 +41,14 @@ interface ZulipApiService {
         @Header("Authorization") authHeader: String,
     ): Response<AllStreamsResponseDto>
 
+    @GET("users/me/{$QUERY_STREAM_ID}/topics")
+    suspend fun getTopics(
+        @Header("Authorization") authHeader: String,
+        @Path(QUERY_STREAM_ID) streamId: Long,
+    ): Response<TopicsResponseDto>
+
     private companion object {
         private const val QUERY_USER_ID = "user_id"
+        private const val QUERY_STREAM_ID = "stream_id"
     }
 }

@@ -24,7 +24,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     private val authHeader =
         Credentials.basic("ivan.sintyurin@gmail.com", "RaINyfjtFHz8KEUFXtXzxPcVVRjaDdrm")
-//        Credentials.basic("spinoza0@gmail.com", "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH")
+
+    //        Credentials.basic("spinoza0@gmail.com", "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH")
     private val messagesLocalCache = TreeSet<MessageDto>()
     private val apiService = ZulipApiFactory.apiService
 
@@ -176,16 +177,25 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>> =
         withContext(Dispatchers.IO) {
-            // TODO: for testing purpose
-            delay(DELAY_VALUE)
-            val topics = channelsDto
-                .find { it.id == channel.channelId }
-                ?.topics
-                ?.toDomain(messagesLocalCache, channel.channelId) ?: listOf()
-            if (!isErrorInRepository()) {
-                RepositoryResult.Success(topics)
-            } else {
-                RepositoryResult.Failure.LoadingChannelTopics(channel)
+            runCatching {
+                val response = apiService.getTopics(authHeader, channel.channelId)
+                if (response.isSuccessful) {
+                    response.body()?.let { topicsResponseDto ->
+                        if (topicsResponseDto.result == RESULT_SUCCESS) {
+                            RepositoryResult.Success(topicsResponseDto.topics.toDomain())
+                        } else {
+                            RepositoryResult.Failure.LoadingChannelTopics(
+                                channel,
+                                topicsResponseDto.msg
+                            )
+                        }
+                    } ?: RepositoryResult.Failure.LoadingChannelTopics(channel, response.message())
+                } else {
+                    RepositoryResult.Failure.LoadingChannelTopics(channel, response.message())
+                }
+
+            }.getOrElse {
+                RepositoryResult.Failure.LoadingChannelTopics(channel, getErrorText(it))
             }
         }
 

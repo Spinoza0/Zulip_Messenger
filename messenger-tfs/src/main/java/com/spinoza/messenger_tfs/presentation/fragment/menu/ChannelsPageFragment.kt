@@ -133,7 +133,8 @@ class ChannelsPageFragment : Fragment() {
             is ChannelsPageScreenState.Failure.LoadingChannelTopics -> showError(
                 String.format(
                     getString(R.string.error_loading_topics),
-                    error.channel.name
+                    error.channel.name,
+                    error.value
                 )
             )
         }
