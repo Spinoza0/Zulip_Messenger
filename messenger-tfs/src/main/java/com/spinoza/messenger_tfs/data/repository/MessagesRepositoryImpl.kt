@@ -23,7 +23,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     private var ownUser = UserDto()
 
     private val authHeader =
-        Credentials.basic("spinoza0@gmail.com", "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH")
+        Credentials.basic("ivan.sintyurin@gmail.com", "RaINyfjtFHz8KEUFXtXzxPcVVRjaDdrm")
+//        Credentials.basic("spinoza0@gmail.com", "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH")
     private val messagesLocalCache = TreeSet<MessageDto>()
     private val apiService = ZulipApiFactory.apiService
 

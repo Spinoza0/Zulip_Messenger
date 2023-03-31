@@ -9,7 +9,8 @@ import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 
 object ZulipApiFactory {
-    private const val BASE_URL = "https://tinkoff-android-spring-2023.zulipchat.com/api/v1/"
+    private const val BASE_URL = "https://victoryvalery.zulipchat.com/api/v1/"
+    // private const val BASE_URL = "https://tinkoff-android-spring-2023.zulipchat.com/api/v1/"
     private const val TIME_OUT_SECONDS = 15L
 
     private val json = Json {
