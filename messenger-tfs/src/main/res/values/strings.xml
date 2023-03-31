@@ -38,7 +38,7 @@
     <!-- Errors -->
     <string name="error_user_not_found">User with id=%s not found. %s</string>
     <string name="error_message_not_found">Message not found: %s</string>
-    <string name="error_loading_channels">Error loading channels with filter: \"%s\"</string>
+    <string name="error_loading_channels">Error loading channels with filter \"%s\". %s</string>
     <string name="error_loading_topics">Error loading topics for channel: \"%s\"</string>
     <string name="error_loading_users">Error loading users list: %s</string>
     <string name="error_sending_message">Sending message error: %s</string>

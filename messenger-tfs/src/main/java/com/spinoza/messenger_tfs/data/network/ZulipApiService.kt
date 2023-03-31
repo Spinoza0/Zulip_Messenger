@@ -31,6 +31,11 @@ interface ZulipApiService {
         @Header("Authorization") authHeader: String,
     ): Response<AllPresencesResponseDto>
 
+    @GET("users/me/subscriptions")
+    suspend fun getSubscribedStreams(
+        @Header("Authorization") authHeader: String,
+    ): Response<SubscribedStreamsResponseDto>
+
     private companion object {
         private const val QUERY_USER_ID = "user_id"
     }

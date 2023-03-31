@@ -209,12 +209,14 @@ class ChannelsPageFragmentViewModel(
 
     private suspend fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
-            is RepositoryResult.Failure.LoadingChannels -> {
-                _state.emit(ChannelsPageScreenState.Failure.LoadingChannels(error.channelsFilter))
-            }
-            is RepositoryResult.Failure.LoadingChannelTopics -> {
+            is RepositoryResult.Failure.LoadingChannels -> _state.emit(
+                ChannelsPageScreenState.Failure.LoadingChannels(
+                    error.channelsFilter,
+                    error.value
+                )
+            )
+            is RepositoryResult.Failure.LoadingChannelTopics ->
                 _state.emit(ChannelsPageScreenState.Failure.LoadingChannelTopics(error.channel))
-            }
             else -> {}
         }
     }

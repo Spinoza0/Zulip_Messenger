@@ -22,7 +22,7 @@ sealed class RepositoryResult<out T> {
 
         class LoadingMessages(val messagesFilter: MessagesFilter) : Failure()
 
-        class LoadingChannels(val channelsFilter: ChannelsFilter) : Failure()
+        class LoadingChannels(val channelsFilter: ChannelsFilter, val value: String) : Failure()
 
         class LoadingTopicData(val messagesFilter: MessagesFilter) : Failure()
 

@@ -120,12 +120,29 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
     ): RepositoryResult<List<Channel>> = withContext(Dispatchers.IO) {
-        // TODO: for testing purpose
-        delay(DELAY_VALUE)
-        if (!isErrorInRepository()) {
-            RepositoryResult.Success(channelsDto.toDomain(channelsFilter))
+        if (!channelsFilter.isSubscribed) {
+            // TODO
+            RepositoryResult.Success(channelsDto.listToDomain(channelsFilter))
         } else {
-            RepositoryResult.Failure.LoadingChannels(channelsFilter)
+            runCatching {
+                val response = apiService.getSubscribedStreams(authHeader)
+                if (response.isSuccessful) {
+                    response.body()?.let { subscribedStreamsDto ->
+                        RepositoryResult.Success(
+                            subscribedStreamsDto.subscriptions.toDomain(
+                                channelsFilter
+                            )
+                        )
+                    } ?: RepositoryResult.Failure.LoadingChannels(
+                        channelsFilter,
+                        response.message()
+                    )
+                } else {
+                    RepositoryResult.Failure.LoadingChannels(channelsFilter, response.message())
+                }
+            }.getOrElse {
+                RepositoryResult.Failure.LoadingChannels(channelsFilter, getErrorText(it))
+            }
         }
     }
 
