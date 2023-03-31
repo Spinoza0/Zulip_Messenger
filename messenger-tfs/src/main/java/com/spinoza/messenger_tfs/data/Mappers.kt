@@ -18,18 +18,7 @@ fun List<TopicDto>.toDomain(messages: TreeSet<MessageDto>, channelId: Long): Lis
     return map { it.toDomain(messages, channelId) }
 }
 
-fun List<ChannelDto>.listToDomain(channelsFilter: ChannelsFilter): List<Channel> {
-    return filter { channelsDto ->
-        if (channelsFilter.isSubscribed) channelsDto.subscriptionStatus
-        else true
-    }.filter { channelsDto ->
-        channelsFilter.name.split(" ").all { word ->
-            channelsDto.name.contains(word, true)
-        }
-    }.map { it.toDomain() }
-}
-
-fun List<SubscribedStreamDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
+fun List<StreamDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
     return filter { subscribedStreamDto ->
         channelsFilter.name.split(" ").all { word ->
             subscribedStreamDto.name.contains(word, true)
@@ -132,14 +121,7 @@ private fun ReactionParamDto.toDomain(userId: Long): ReactionParam {
     return ReactionParam(usersIds.size, usersIds.contains(userId))
 }
 
-private fun ChannelDto.toDomain(): Channel {
-    return Channel(
-        channelId = id,
-        name = name
-    )
-}
-
-private fun SubscribedStreamDto.toDomain(): Channel {
+private fun StreamDto.toDomain(): Channel {
     return Channel(
         channelId = streamId,
         name = name

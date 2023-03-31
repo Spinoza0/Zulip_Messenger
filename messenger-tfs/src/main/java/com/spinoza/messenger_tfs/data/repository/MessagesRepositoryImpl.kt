@@ -81,15 +81,19 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 val usersResponse = apiService.getAllUsers(authHeader)
                 if (usersResponse.isSuccessful) {
                     usersResponse.body()?.let { allUsersResponseDto ->
-                        val presencesResponse = apiService.getAllPresences(authHeader)
-                        if (presencesResponse.isSuccessful) {
-                            makeAllUsersAnswer(
-                                usersFilter,
-                                allUsersResponseDto,
-                                presencesResponse.body()
-                            )
+                        if (allUsersResponseDto.result == RESULT_SUCCESS) {
+                            val presencesResponse = apiService.getAllPresences(authHeader)
+                            if (presencesResponse.isSuccessful) {
+                                makeAllUsersAnswer(
+                                    usersFilter,
+                                    allUsersResponseDto,
+                                    presencesResponse.body()
+                                )
+                            } else {
+                                makeAllUsersAnswer(usersFilter, allUsersResponseDto)
+                            }
                         } else {
-                            makeAllUsersAnswer(usersFilter, allUsersResponseDto)
+                            RepositoryResult.Failure.LoadingUsers(allUsersResponseDto.msg)
                         }
                     } ?: RepositoryResult.Failure.LoadingUsers(usersResponse.message())
                 } else {
@@ -120,19 +124,21 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
     ): RepositoryResult<List<Channel>> = withContext(Dispatchers.IO) {
-        if (!channelsFilter.isSubscribed) {
-            // TODO
-            RepositoryResult.Success(channelsDto.listToDomain(channelsFilter))
-        } else {
-            runCatching {
+        runCatching {
+            if (channelsFilter.isSubscribed) {
                 val response = apiService.getSubscribedStreams(authHeader)
                 if (response.isSuccessful) {
                     response.body()?.let { subscribedStreamsDto ->
-                        RepositoryResult.Success(
-                            subscribedStreamsDto.subscriptions.toDomain(
-                                channelsFilter
+                        if (subscribedStreamsDto.result == RESULT_SUCCESS) {
+                            RepositoryResult.Success(
+                                subscribedStreamsDto.subscriptions.toDomain(channelsFilter)
                             )
-                        )
+                        } else {
+                            RepositoryResult.Failure.LoadingChannels(
+                                channelsFilter,
+                                subscribedStreamsDto.msg
+                            )
+                        }
                     } ?: RepositoryResult.Failure.LoadingChannels(
                         channelsFilter,
                         response.message()
@@ -140,9 +146,30 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 } else {
                     RepositoryResult.Failure.LoadingChannels(channelsFilter, response.message())
                 }
-            }.getOrElse {
-                RepositoryResult.Failure.LoadingChannels(channelsFilter, getErrorText(it))
+            } else {
+                val response = apiService.getAllStreams(authHeader)
+                if (response.isSuccessful) {
+                    response.body()?.let { allStreamsDto ->
+                        if (allStreamsDto.result == RESULT_SUCCESS) {
+                            RepositoryResult.Success(
+                                allStreamsDto.streams.toDomain(channelsFilter)
+                            )
+                        } else {
+                            RepositoryResult.Failure.LoadingChannels(
+                                channelsFilter,
+                                allStreamsDto.msg
+                            )
+                        }
+                    } ?: RepositoryResult.Failure.LoadingChannels(
+                        channelsFilter,
+                        response.message()
+                    )
+                } else {
+                    RepositoryResult.Failure.LoadingChannels(channelsFilter, response.message())
+                }
             }
+        }.getOrElse {
+            RepositoryResult.Failure.LoadingChannels(channelsFilter, getErrorText(it))
         }
     }
 
@@ -234,7 +261,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 RepositoryResult.Success(
                     MessagesResult(
                         messagesLocalCache.toDomain(ownUser.userId, messagesFilter),
-                        MessagePosition(type = MessagePosition.Type.EXACTLY, messageId = messageId)
+                        MessagePosition(
+                            type = MessagePosition.Type.EXACTLY,
+                            messageId = messageId
+                        )
                     )
                 )
             } else {
@@ -303,7 +333,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         RepositoryResult.Failure.LoadingUsers(usersResponseDto.msg)
     }
 
-    private fun getErrorText(e: Throwable): String = e.localizedMessage ?: e.message ?: e.toString()
+    private fun getErrorText(e: Throwable): String =
+        e.localizedMessage ?: e.message ?: e.toString()
 
     companion object {
 
