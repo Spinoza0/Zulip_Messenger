@@ -20,7 +20,7 @@ sealed class RepositoryResult<out T> {
 
         class LoadingUsers(val value: String) : Failure()
 
-        class LoadingMessages(val messagesFilter: MessagesFilter) : Failure()
+        class LoadingMessages(val messagesFilter: MessagesFilter, val value: String) : Failure()
 
         class LoadingChannels(val channelsFilter: ChannelsFilter, val value: String) : Failure()
 

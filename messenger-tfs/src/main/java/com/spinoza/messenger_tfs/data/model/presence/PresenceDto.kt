@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.data.model
+package com.spinoza.messenger_tfs.data.model.presence
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -1,11 +1,11 @@
-package com.spinoza.messenger_tfs.data.model
+package com.spinoza.messenger_tfs.data.model.message
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AllUsersResponseDto(
+data class SendMessageResponseDto(
     @SerialName("result") val result: String,
     @SerialName("msg") val msg: String,
-    @SerialName("members") val members: List<UserDto>,
+    @SerialName("id") val messageId: Long? = null,
 )

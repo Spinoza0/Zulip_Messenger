@@ -1,11 +1,11 @@
-package com.spinoza.messenger_tfs.data.model
+package com.spinoza.messenger_tfs.data.model.user
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AllStreamsResponseDto(
+data class AllUsersResponseDto(
     @SerialName("result") val result: String,
     @SerialName("msg") val msg: String,
-    @SerialName("streams") val streams: List<StreamDto>,
+    @SerialName("members") val members: List<UserDto>,
 )

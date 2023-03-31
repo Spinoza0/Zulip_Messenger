@@ -17,8 +17,6 @@
     </declare-styleable>
 
     <declare-styleable name="reaction_view">
-        <attr name="emoji" format="string" />
-        <attr name="count" format="integer" />
         <attr name="size" format="dimension" />
     </declare-styleable>
 

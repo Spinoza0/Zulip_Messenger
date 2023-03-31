@@ -191,6 +191,14 @@ class MessagesFragment : Fragment() {
                 showError(String.format(getString(R.string.error_network), error.value))
                 goBack()
             }
+            is MessagesScreenState.Failure.LoadingMessages -> showError(
+                String.format(
+                    getString(R.string.error_loading_messages),
+                    error.messagesFilter.channel.name,
+                    error.messagesFilter.topic.name,
+                    error.value
+                )
+            )
         }
     }
 

@@ -11,10 +11,10 @@ class UserViewHolder(private val binding: UserItemBinding) : RecyclerView.ViewHo
 
     fun bind(user: User, onClickListener: (Long) -> Unit) {
         with(binding) {
-            textViewName.text = user.full_name
+            textViewName.text = user.fullName
             textViewEmail.text = user.email
             Glide.with(imageViewAvatar)
-                .load(user.avatar_url)
+                .load(user.avatarUrl)
                 .circleCrop()
                 .error(R.drawable.ic_default_avatar)
                 .into(imageViewAvatar)

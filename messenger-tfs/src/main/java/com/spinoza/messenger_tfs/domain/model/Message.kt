@@ -4,7 +4,8 @@ data class Message(
     val date: MessageDate,
     val user: User,
     val content: String,
-    val reactions: Map<String, ReactionParam>,
+    val subject: String,
+    val reactions: Map<Emoji, ReactionParam>,
     val isIconAddVisible: Boolean,
     val id: Long = UNDEFINED_ID,
 ) {

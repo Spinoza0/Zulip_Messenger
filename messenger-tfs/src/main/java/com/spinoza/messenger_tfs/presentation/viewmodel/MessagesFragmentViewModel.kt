@@ -3,10 +3,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
@@ -49,28 +46,16 @@ class MessagesFragmentViewModel(
 
     fun sendMessage(messageText: String) {
         if (messageText.isNotEmpty()) viewModelScope.launch {
-            if (currentUser == null) {
-                _state.emit(MessagesScreenState.Failure.OwnUserNotFound(""))
-            } else currentUser?.let { user ->
-                _state.emit(MessagesScreenState.MessageSent)
-                val message = Message(
-                    // TODO: test data
-                    MessageDate("2 марта 2023"),
-                    user,
-                    messageText,
-                    emptyMap(),
-                    false
-                )
-                val result = sendMessageUseCase(message, messagesFilter)
-                handleRepositoryResult(result)
-            }
+            _state.emit(MessagesScreenState.MessageSent)
+            val result = sendMessageUseCase(messageText, messagesFilter)
+            handleRepositoryResult(result)
         }
     }
 
-    fun updateReaction(messageId: Long, reaction: String) {
+    fun updateReaction(messageId: Long, emoji: Emoji) {
         viewModelScope.launch {
             _state.emit(MessagesScreenState.ReactionSent)
-            val result = updateReactionUseCase(messageId, reaction, messagesFilter)
+            val result = updateReactionUseCase(messageId, emoji, messagesFilter)
             handleRepositoryResult(result)
         }
     }
@@ -135,15 +120,20 @@ class MessagesFragmentViewModel(
                 _state.emit(MessagesScreenState.Failure.OwnUserNotFound(error.value))
             is RepositoryResult.Failure.MessageNotFound ->
                 _state.emit(MessagesScreenState.Failure.MessageNotFound(error.messageId))
-            is RepositoryResult.Failure.UserNotFound -> {
+            is RepositoryResult.Failure.UserNotFound ->
                 _state.emit(MessagesScreenState.Failure.UserNotFound(error.userId, error.value))
-            }
             is RepositoryResult.Failure.SendingMessage ->
                 _state.emit(MessagesScreenState.Failure.SendingMessage(error.value))
             is RepositoryResult.Failure.UpdatingReaction ->
                 _state.emit(MessagesScreenState.Failure.UpdatingReaction(error.value))
             is RepositoryResult.Failure.Network ->
                 _state.emit(MessagesScreenState.Failure.Network(error.value))
+            is RepositoryResult.Failure.LoadingMessages -> _state.emit(
+                MessagesScreenState.Failure.LoadingMessages(
+                    error.messagesFilter,
+                    error.value
+                )
+            )
             else -> {}
         }
     }

@@ -1,22 +1,17 @@
 package com.spinoza.messenger_tfs.data
 
-import com.spinoza.messenger_tfs.data.model.*
+import com.spinoza.messenger_tfs.data.model.message.MessageDto
+import com.spinoza.messenger_tfs.data.model.message.ReactionDto
+import com.spinoza.messenger_tfs.data.model.presence.PresenceDto
+import com.spinoza.messenger_tfs.data.model.stream.StreamDto
+import com.spinoza.messenger_tfs.data.model.stream.TopicDto
+import com.spinoza.messenger_tfs.data.model.user.OwnResponseDto
+import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.repository.MessagesResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import java.text.SimpleDateFormat
 import java.util.*
-
-private fun User.toDto(): OldUserDto {
-    return OldUserDto(
-        userId = userId,
-        email = email,
-        full_name = full_name,
-        avatar_url = avatar_url,
-        presence = presence
-    )
-}
-
-fun List<TopicDto>.toDomain(): List<Topic> {
-    return map { it.toDomain() }
-}
 
 fun List<StreamDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
     return filter { subscribedStreamDto ->
@@ -28,49 +23,43 @@ fun List<StreamDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
 
 fun MessageDto.toDomain(userId: Long): Message {
     return Message(
-        date = date,
-        user = user.toDomain(),
+        date = MessageDate(timestamp.unixTimeToString()),
+        user = User(
+            userId = senderId,
+            email = senderEmail,
+            fullName = senderFullName,
+            avatarUrl = avatarUrl ?: "",
+            presence = User.Presence.OFFLINE
+        ),
         content = content,
+        subject = subject,
         reactions = reactions.toDomain(userId),
         isIconAddVisible = reactions.isNotEmpty(),
         id = id
     )
 }
 
-fun TreeSet<MessageDto>.toDomain(userId: Long, messagesFilter: MessagesFilter): List<Message> {
+fun List<ReactionDto>.toDomain(userId: Long): Map<Emoji, ReactionParam> {
+    return associate { reactionDto ->
+        Emoji(reactionDto.emoji_name, reactionDto.emoji_code) to ReactionParam(
+            this.count { it.emoji_code == reactionDto.emoji_code },
+            reactionDto.user_id == userId
+        )
+    }
+}
+
+fun List<MessageDto>.toDomain(userId: Long): List<Message> {
     return filter {
-        it.channelId == messagesFilter.channel.channelId && it.topicName == messagesFilter.topic.name
+        !it.isMeMessage
     }.map { it.toDomain(userId) }
-}
-
-fun Message.toDto(userId: Long, messageId: Long, messagesFilter: MessagesFilter): MessageDto {
-    return MessageDto(
-        date = date,
-        user = user.toDto(),
-        content = content,
-        reactions = reactions.toDto(userId),
-        id = messageId,
-        channelId = messagesFilter.channel.channelId,
-        topicName = messagesFilter.topic.name
-    )
-}
-
-fun OldUserDto.toDomain(): User {
-    return User(
-        userId = userId,
-        email = email,
-        full_name = full_name,
-        avatar_url = avatar_url ?: "",
-        presence = presence
-    )
 }
 
 fun UserDto.toDomain(presence: User.Presence): User {
     return User(
         userId = userId,
         email = email,
-        full_name = fullName,
-        avatar_url = avatarUrl ?: "",
+        fullName = fullName,
+        avatarUrl = avatarUrl ?: "",
         presence = presence
     )
 }
@@ -102,31 +91,21 @@ fun PresenceDto.toDomain(): User.Presence = when (aggregated.status) {
     else -> User.Presence.OFFLINE
 }
 
-fun TopicDto.toDomain(messages: TreeSet<MessageDto>, channelId: Long): Topic {
-    return Topic(
-        name = name,
-        messageCount = messages.count { it.channelId == channelId && it.topicName == name }
-    )
+fun List<TopicDto>.toDomain(messagesResult: RepositoryResult<MessagesResult>): List<Topic> {
+    return if (messagesResult is RepositoryResult.Success) {
+        map { topicDto ->
+            Topic(
+                topicDto.name,
+                messagesResult.value.messages.count { it.subject == topicDto.name }
+            )
+        }
+    } else {
+        map { Topic(it.name, 0) }
+    }
 }
 
-fun TopicDto.toDomain(): Topic {
-    return Topic(
-        name = name,
-        // TODO: count messages
-        messageCount = 0
-    )
-}
-
-private fun Map<String, ReactionParamDto>.toDomain(userId: Long): Map<String, ReactionParam> {
-    return map { it.key to it.value.toDomain(userId) }.toMap()
-}
-
-private fun Map<String, ReactionParam>.toDto(userId: Long): Map<String, ReactionParamDto> {
-    return map { it.key to ReactionParamDto(listOf(userId)) }.toMap()
-}
-
-private fun ReactionParamDto.toDomain(userId: Long): ReactionParam {
-    return ReactionParam(usersIds.size, usersIds.contains(userId))
+private fun Long.unixTimeToString(): String {
+    return SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(this * 1000))
 }
 
 private fun StreamDto.toDomain(): Channel {

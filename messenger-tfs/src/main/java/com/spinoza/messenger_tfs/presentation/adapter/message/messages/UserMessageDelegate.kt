@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
+import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.AdapterDelegate
@@ -72,7 +73,7 @@ class UserMessageDelegate(
                 val message = item.content() as Message
                 setMessage(message, item.getGravity())
                 Glide.with(avatarImage)
-                    .load(message.user.avatar_url)
+                    .load(message.user.avatarUrl)
                     .circleCrop()
                     .error(R.drawable.ic_default_avatar)
                     .into(avatarImage)
@@ -85,7 +86,7 @@ class UserMessageDelegate(
 
         fun bind(payloadMap: Map<*, *>) {
             val reactions = payloadMap.entries
-                .filterIsInstance<Map.Entry<String, ReactionParam>>()
+                .filterIsInstance<Map.Entry<Emoji, ReactionParam>>()
                 .associateBy({ it.key }, { it.value })
             binding.messageView.setReactions(reactions)
         }

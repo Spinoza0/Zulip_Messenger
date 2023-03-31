@@ -8,12 +8,13 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.spinoza.messenger_tfs.databinding.FragmentDialogChooseReactionBinding
+import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import com.spinoza.messenger_tfs.presentation.ui.ReactionView
 
 class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
 
-    var listener: ((Long, String) -> Unit)? = null
+    var listener: ((Long, Emoji) -> Unit)? = null
 
     private var _binding: FragmentDialogChooseReactionBinding? = null
     private val binding: FragmentDialogChooseReactionBinding
@@ -61,7 +62,7 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     private fun setupScreen() {
         emojiSet.forEach { emojiFromSet ->
             val reactionView = ReactionView(requireContext()).apply {
-                emoji = emojiFromSet.toString()
+                emoji = emojiFromSet
                 isBackgroundVisible = false
                 isCountVisible = false
                 size = 30f
@@ -71,8 +72,8 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun dismissWithResult(reaction: String) {
-        listener?.invoke(messageId, reaction)
+    private fun dismissWithResult(emoji: Emoji) {
+        listener?.invoke(messageId, emoji)
         dismiss()
     }
 

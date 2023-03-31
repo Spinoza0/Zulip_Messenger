@@ -1,18 +1,24 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.data.*
-import com.spinoza.messenger_tfs.data.model.*
+import com.spinoza.messenger_tfs.data.model.message.NarrowItemDto
+import com.spinoza.messenger_tfs.data.model.message.ReactionDto
+import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponseDto
+import com.spinoza.messenger_tfs.data.model.user.AllUsersResponseDto
+import com.spinoza.messenger_tfs.data.model.user.OwnResponseDto
+import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
+import com.spinoza.messenger_tfs.data.toDomain
+import com.spinoza.messenger_tfs.data.toUserDto
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okhttp3.Credentials
-import java.util.*
 
 
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
@@ -21,18 +27,8 @@ import java.util.*
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     private var ownUser = UserDto()
-
-    private val authHeader =
-        Credentials.basic("ivan.sintyurin@gmail.com", "RaINyfjtFHz8KEUFXtXzxPcVVRjaDdrm")
-
-    //        Credentials.basic("spinoza0@gmail.com", "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH")
-    private val messagesLocalCache = TreeSet<MessageDto>()
+    private val authHeader = Credentials.basic(CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD)
     private val apiService = ZulipApiFactory.apiService
-
-    init {
-        // TODO: for testing purpose
-        messagesLocalCache.addAll(prepareTestData())
-    }
 
     override suspend fun getOwnUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
         runCatching {
@@ -108,18 +104,52 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun getMessages(
         messagesFilter: MessagesFilter,
+        messageId: Long,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
-        // TODO: for testing purpose
-        delay(DELAY_VALUE)
-        if (!isErrorInRepository()) {
-            RepositoryResult.Success(
-                MessagesResult(
-                    messagesLocalCache.toDomain(ownUser.userId, messagesFilter),
-                    MessagePosition()
-                )
+        runCatching {
+            val narrowDtoList = mutableListOf(
+                NarrowItemDto(OPERATOR_STREAM, messagesFilter.channel.name)
             )
-        } else {
-            RepositoryResult.Failure.LoadingMessages(messagesFilter)
+            if (messagesFilter.topic.name.isNotEmpty()) {
+                narrowDtoList.add(NarrowItemDto(OPERATOR_TOPIC, messagesFilter.topic.name))
+            }
+            val narrow = Json.encodeToString(narrowDtoList)
+            val response = apiService.getMessages(
+                authHeader = authHeader,
+                narrow = narrow
+            )
+            if (response.isSuccessful) {
+                response.body()?.let { messagesResponseDto ->
+                    if (messagesResponseDto.result == RESULT_SUCCESS) {
+                        val positionType =
+                            if (messageId != Message.UNDEFINED_ID) {
+                                if (messagesResponseDto.messages.last().id == messageId) {
+                                    MessagePosition.Type.LAST_POSITION
+                                }
+                                else {
+                                    MessagePosition.Type.EXACTLY
+                                }
+                            } else {
+                                MessagePosition.Type.UNDEFINED
+                            }
+                        RepositoryResult.Success(
+                            MessagesResult(
+                                messagesResponseDto.messages.toDomain(ownUser.userId),
+                                MessagePosition(positionType, messageId)
+                            )
+                        )
+                    } else {
+                        RepositoryResult.Failure.LoadingMessages(
+                            messagesFilter,
+                            messagesResponseDto.msg
+                        )
+                    }
+                } ?: RepositoryResult.Failure.LoadingMessages(messagesFilter, response.message())
+            } else {
+                RepositoryResult.Failure.LoadingMessages(messagesFilter, response.message())
+            }
+        }.getOrElse {
+            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
@@ -171,7 +201,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
             }
         }.getOrElse {
-            RepositoryResult.Failure.LoadingChannels(channelsFilter, getErrorText(it))
+            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
@@ -182,7 +212,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 if (response.isSuccessful) {
                     response.body()?.let { topicsResponseDto ->
                         if (topicsResponseDto.result == RESULT_SUCCESS) {
-                            RepositoryResult.Success(topicsResponseDto.topics.toDomain())
+                            RepositoryResult.Success(
+                                topicsResponseDto.topics.toDomain(
+                                    getMessages(MessagesFilter(channel, Topic("", 0)))
+                                )
+                            )
                         } else {
                             RepositoryResult.Failure.LoadingChannelTopics(
                                 channel,
@@ -193,19 +227,21 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 } else {
                     RepositoryResult.Failure.LoadingChannelTopics(channel, response.message())
                 }
-
             }.getOrElse {
-                RepositoryResult.Failure.LoadingChannelTopics(channel, getErrorText(it))
+                RepositoryResult.Failure.Network(getErrorText(it))
             }
         }
 
     override suspend fun getTopic(
         messagesFilter: MessagesFilter,
     ): RepositoryResult<Topic> = withContext(Dispatchers.IO) {
-        if (!isErrorInRepository()) {
+        val messagesResult = getMessages(messagesFilter)
+        if (messagesResult is RepositoryResult.Success) {
             RepositoryResult.Success(
-                TopicDto(messagesFilter.topic.name, Message.UNDEFINED_ID)
-                    .toDomain(messagesLocalCache, messagesFilter.channel.channelId)
+                Topic(
+                    messagesFilter.topic.name,
+                    messagesResult.value.messages.size
+                )
             )
         } else {
             RepositoryResult.Failure.LoadingTopicData(messagesFilter)
@@ -213,91 +249,86 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun sendMessage(
-        message: Message,
+        content: String,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
-        // TODO: for testing purpose
-        delay(DELAY_VALUE)
-        val newMessageId = if (message.id == Message.UNDEFINED_ID) {
-            messagesLocalCache.size.toLong()
-        } else {
-            message.id
-        }
-        messagesLocalCache.add(
-            message.toDto(
-                userId = message.user.userId,
-                messageId = newMessageId,
-                messagesFilter = messagesFilter
+        runCatching {
+            val response = apiService.sendMessageToStream(
+                authHeader,
+                messagesFilter.channel.channelId,
+                messagesFilter.topic.name,
+                // TODO: add using https://zulip.com/api/render-message#render-message
+                content
             )
-        )
-        if (!isErrorInRepository()) {
-            RepositoryResult.Success(
-                MessagesResult(
-                    messagesLocalCache.toDomain(message.user.userId, messagesFilter),
-                    MessagePosition(type = MessagePosition.Type.LAST_POSITION)
-                )
-            )
-        } else {
-            RepositoryResult.Failure.SendingMessage(errorText)
+            if (response.isSuccessful && response.body() != null) {
+                if (response.body()?.result == RESULT_SUCCESS) {
+                    val messageId = response.body()?.messageId ?: Message.UNDEFINED_ID
+                    getMessages(messagesFilter, messageId)
+                } else {
+                    RepositoryResult.Failure.SendingMessage(response.body()?.msg ?: "")
+                }
+            } else {
+                RepositoryResult.Failure.SendingMessage(response.message())
+            }
+        }.getOrElse {
+            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
     override suspend fun updateReaction(
         messageId: Long,
-        reaction: String,
+        emoji: Emoji,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
-        // TODO: for testing purpose
-        delay(DELAY_VALUE)
-        val messageDto = messagesLocalCache.find { it.id == messageId }
-        if (messageDto == null) {
-            RepositoryResult.Failure.MessageNotFound(messageId)
-        } else {
-            val reactionDto = messageDto.reactions[reaction]
-            val newReactionsDto = messageDto.reactions.toMutableMap()
-            if (reactionDto != null) {
-                val newUsersIds =
-                    reactionDto.usersIds.removeIfExistsOrAddToList(ownUser.userId)
-                if (newUsersIds.isNotEmpty()) {
-                    newReactionsDto[reaction] = ReactionParamDto(newUsersIds)
-                } else {
-                    newReactionsDto.remove(reaction)
-                }
-            } else {
-                newReactionsDto[reaction] = ReactionParamDto(listOf(ownUser.userId))
-            }
-            messagesLocalCache.removeIf { it.id == messageId }
-            messagesLocalCache.add(messageDto.copy(reactions = newReactionsDto))
-            if (!isErrorInRepository()) {
-                RepositoryResult.Success(
-                    MessagesResult(
-                        messagesLocalCache.toDomain(ownUser.userId, messagesFilter),
-                        MessagePosition(
-                            type = MessagePosition.Type.EXACTLY,
-                            messageId = messageId
+        runCatching {
+            val response = apiService.getSingleMessage(authHeader, messageId)
+            if (response.isSuccessful) {
+                response.body()?.let { singleMessageResponseDto ->
+                    if (singleMessageResponseDto.result == RESULT_SUCCESS) {
+                        updateReaction(
+                            singleMessageResponseDto.message.reactions,
+                            messageId,
+                            emoji,
+                            messagesFilter
                         )
-                    )
-                )
+                    } else {
+                        RepositoryResult.Failure.UpdatingReaction(singleMessageResponseDto.msg)
+                    }
+                } ?: RepositoryResult.Failure.UpdatingReaction(response.message())
             } else {
-                RepositoryResult.Failure.UpdatingReaction(errorText)
+                RepositoryResult.Failure.UpdatingReaction(response.message())
             }
+        }.getOrElse {
+            RepositoryResult.Failure.UpdatingReaction(getErrorText(it))
         }
     }
 
-    private fun List<Long>.removeIfExistsOrAddToList(value: Long): List<Long> {
-        val result = mutableListOf<Long>()
-        var deletedFromList = false
-        this.forEach { existingValue ->
-            if (existingValue == value) {
-                deletedFromList = true
+    private suspend fun updateReaction(
+        reactions: List<ReactionDto>,
+        messageId: Long,
+        emoji: Emoji,
+        messagesFilter: MessagesFilter,
+    ): RepositoryResult<MessagesResult> = runCatching {
+        val isAddReaction = null == reactions.find {
+            it.emoji_code == emoji.code && it.emoji_name == emoji.name
+        }
+        val response = if (isAddReaction) {
+            apiService.addReaction(authHeader, messageId, emoji.name, emoji.code)
+        } else {
+            apiService.removeReaction(authHeader, messageId, emoji.name, emoji.code)
+        }
+        if (response.isSuccessful && response.body() != null) {
+            if (response.body()?.result == RESULT_SUCCESS) {
+                getMessages(messagesFilter, messageId)
             } else {
-                result.add(existingValue)
+                RepositoryResult.Failure.UpdatingReaction(response.body()?.msg ?: "")
             }
+        } else {
+            RepositoryResult.Failure.UpdatingReaction(response.message())
         }
-        if (!deletedFromList) {
-            result.add(value)
-        }
-        return result
+    }.getOrElse {
+        it.printStackTrace()
+        RepositoryResult.Failure.UpdatingReaction(getErrorText(it))
     }
 
     private suspend fun getUserPresence(userId: Long): User.Presence = runCatching {
@@ -338,7 +369,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         RepositoryResult.Success(if (usersFilter.isBlank())
             users
         else
-            users.filter { it.full_name.contains(usersFilter, true) }
+            users.filter { it.fullName.contains(usersFilter, true) }
         )
     } else {
         RepositoryResult.Failure.LoadingUsers(usersResponseDto.msg)
@@ -353,6 +384,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         private const val DELAY_VALUE = 1000L
 
         private const val RESULT_SUCCESS = "success"
+        private const val OPERATOR_STREAM = "stream"
+        private const val OPERATOR_TOPIC = "topic"
+
+        // "spinoza0@gmail.com"
+        private const val CREDENTIALS_USERNAME = "ivan.sintyurin@gmail.com"
+
+        // "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH"
+        private const val CREDENTIALS_PASSWORD = "RaINyfjtFHz8KEUFXtXzxPcVVRjaDdrm"
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit

@@ -10,7 +10,10 @@ interface MessagesRepository {
 
     suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>>
 
-    suspend fun getMessages(messagesFilter: MessagesFilter): RepositoryResult<MessagesResult>
+    suspend fun getMessages(
+        messagesFilter: MessagesFilter,
+        messageId: Long = Message.UNDEFINED_ID,
+    ): RepositoryResult<MessagesResult>
 
     suspend fun getChannels(channelsFilter: ChannelsFilter): RepositoryResult<List<Channel>>
 
@@ -19,13 +22,13 @@ interface MessagesRepository {
     suspend fun getTopic(messagesFilter: MessagesFilter): RepositoryResult<Topic>
 
     suspend fun sendMessage(
-        message: Message,
+        content: String,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult>
 
     suspend fun updateReaction(
         messageId: Long,
-        reaction: String,
+        emoji: Emoji,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult>
 }
