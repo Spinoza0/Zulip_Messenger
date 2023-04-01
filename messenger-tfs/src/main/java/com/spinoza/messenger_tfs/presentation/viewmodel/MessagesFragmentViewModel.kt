@@ -35,7 +35,7 @@ class MessagesFragmentViewModel(
         get() = _state.asSharedFlow()
 
     private val _state =
-        MutableSharedFlow<MessagesScreenState>(replay = 3)
+        MutableSharedFlow<MessagesScreenState>(replay = 10)
     private val newMessageFieldState = MutableSharedFlow<String>()
 
     init {
@@ -70,12 +70,15 @@ class MessagesFragmentViewModel(
         newMessageFieldState
             .distinctUntilChanged()
             .debounce(DELAY_BEFORE_SET_STATE)
-            .flatMapLatest { flow { emit(it) } }
-            .onEach { text ->
+            .mapLatest { text ->
                 val resId = if (text.isNotBlank())
                     R.drawable.ic_send
                 else
                     R.drawable.ic_add_circle_outline
+                resId
+            }
+            .distinctUntilChanged()
+            .onEach { resId ->
                 _state.emit(MessagesScreenState.UpdateIconImage(resId))
             }
             .flowOn(Dispatchers.Default)
