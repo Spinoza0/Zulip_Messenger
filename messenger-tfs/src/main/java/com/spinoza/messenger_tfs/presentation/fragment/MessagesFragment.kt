@@ -46,7 +46,7 @@ class MessagesFragment : Fragment() {
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
-            GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
+            GetOwnUserIdUseCase(MessagesRepositoryImpl.getInstance()),
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
@@ -119,7 +119,7 @@ class MessagesFragment : Fragment() {
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::handleState)
             }
         }
@@ -259,11 +259,6 @@ class MessagesFragment : Fragment() {
 
     private fun messagesListIsEmpty(): Boolean {
         return (binding.recyclerViewMessages.adapter as MainDelegateAdapter).itemCount == NO_ITEMS
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.onResume(messagesListIsEmpty())
     }
 
     override fun onPause() {

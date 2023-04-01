@@ -3,11 +3,14 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserIdUseCase
 import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
@@ -17,31 +20,27 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessa
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.*
 import java.util.*
 
 class MessagesFragmentViewModel(
-    private val getOwnUserUseCase: GetOwnUserUseCase,
+    private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
     private val messagesFilter: MessagesFilter,
 ) : ViewModel() {
 
-    private var currentUser: User? = null
-
     val state: SharedFlow<MessagesScreenState>
         get() = _state.asSharedFlow()
 
     private val _state =
-        MutableSharedFlow<MessagesScreenState>(replay = 1)
+        MutableSharedFlow<MessagesScreenState>(replay = 3)
+    private val newMessageFieldState = MutableSharedFlow<String>()
 
-    fun onResume(isMessagesListEmpty: Boolean) {
-        if (isMessagesListEmpty) viewModelScope.launch {
-            loadCurrentUser()
-        }
+    init {
+        loadMessages()
+        subscribeToNewMessageFieldChanges()
     }
 
     fun sendMessage(messageText: String) {
@@ -62,31 +61,28 @@ class MessagesFragmentViewModel(
 
     fun doOnTextChanged(text: CharSequence?) {
         viewModelScope.launch {
-            val resId = if (text?.toString()?.isNotBlank() == true)
-                R.drawable.ic_send
-            else
-                R.drawable.ic_add_circle_outline
-            _state.emit(MessagesScreenState.UpdateIconImage(resId))
+            newMessageFieldState.emit(text.toString())
         }
     }
 
-    private suspend fun loadCurrentUser() {
-        val setLoadingState = setLoadingStateWithDelay()
-        val result = getOwnUserUseCase()
-        setLoadingState.cancel()
-        when (result) {
-            is RepositoryResult.Success -> {
-                currentUser = result.value
-                loadMessages()
+    @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+    private fun subscribeToNewMessageFieldChanges() {
+        newMessageFieldState
+            .distinctUntilChanged()
+            .flatMapLatest { flow { emit(it) } }
+            .onEach { text ->
+                val resId = if (text.isNotBlank())
+                    R.drawable.ic_send
+                else
+                    R.drawable.ic_add_circle_outline
+                _state.emit(MessagesScreenState.UpdateIconImage(resId))
             }
-            is RepositoryResult.Failure -> handleErrors(result)
-        }
+            .flowOn(Dispatchers.Default)
+            .launchIn(viewModelScope)
     }
 
-    private suspend fun loadMessages() {
-        if (currentUser == null) {
-            _state.emit(MessagesScreenState.Failure.OwnUserNotFound(""))
-        } else {
+    private fun loadMessages() {
+        viewModelScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             val result = getMessagesUseCase(messagesFilter)
             handleRepositoryResult(result)
@@ -95,22 +91,21 @@ class MessagesFragmentViewModel(
     }
 
     private suspend fun handleRepositoryResult(result: RepositoryResult<MessagesResult>) {
-        if (currentUser == null) {
-            _state.emit(MessagesScreenState.Failure.OwnUserNotFound(""))
-        } else currentUser?.let { user ->
-            when (result) {
-                is RepositoryResult.Success -> withContext(Dispatchers.Default) {
-                    _state.emit(
+        when (result) {
+            is RepositoryResult.Success -> withContext(Dispatchers.Default) {
+                when (val userIdResult = getOwnUserIdUseCase()) {
+                    is RepositoryResult.Success -> _state.emit(
                         MessagesScreenState.Messages(
                             MessagesResultDelegate(
-                                result.value.messages.groupByDate(user),
+                                result.value.messages.groupByDate(userIdResult.value),
                                 result.value.position
                             )
                         )
                     )
+                    is RepositoryResult.Failure -> handleErrors(userIdResult)
                 }
-                is RepositoryResult.Failure -> handleErrors(result)
             }
+            is RepositoryResult.Failure -> handleErrors(result)
         }
     }
 
@@ -145,7 +140,7 @@ class MessagesFragmentViewModel(
         }
     }
 
-    private fun List<Message>.groupByDate(user: User): List<DelegateAdapterItem> {
+    private fun List<Message>.groupByDate(userId: Long): List<DelegateAdapterItem> {
 
         val messageAdapterItemList = mutableListOf<DelegateAdapterItem>()
         val dates = TreeSet<MessageDate>()
@@ -160,7 +155,7 @@ class MessagesFragmentViewModel(
             }
 
             allDayMessages.forEach { message ->
-                if (message.user.userId == user.userId) {
+                if (message.user.userId == userId) {
                     messageAdapterItemList.add(OwnMessageDelegateItem(message))
                 } else {
                     messageAdapterItemList.add(UserMessageDelegateItem(message))

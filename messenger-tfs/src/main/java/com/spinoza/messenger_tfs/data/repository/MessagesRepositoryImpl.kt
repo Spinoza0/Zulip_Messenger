@@ -28,9 +28,24 @@ import retrofit2.Response
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
-    private var ownUser = UserDto()
+    private var ownUser: UserDto = UserDto()
+    private var isOwnUserLoaded = false
     private val authHeader = Credentials.basic(CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD)
     private val apiService = ZulipApiFactory.apiService
+
+    override suspend fun getOwnUserId(): RepositoryResult<Long> {
+        return if (isOwnUserLoaded) {
+            RepositoryResult.Success(ownUser.userId)
+        } else
+            when (val result = getOwnUser()) {
+                is RepositoryResult.Success -> RepositoryResult.Success(ownUser.userId)
+                is RepositoryResult.Failure.OwnUserNotFound -> RepositoryResult.Failure.OwnUserNotFound(
+                    result.value
+                )
+                is RepositoryResult.Failure.Network -> RepositoryResult.Failure.Network(result.value)
+                else -> RepositoryResult.Failure.Network("")
+            }
+    }
 
     override suspend fun getOwnUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
         runCatching {
