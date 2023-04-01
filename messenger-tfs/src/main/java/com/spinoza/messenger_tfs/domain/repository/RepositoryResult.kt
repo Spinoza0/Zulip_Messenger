@@ -12,6 +12,10 @@ sealed class RepositoryResult<out T> {
 
         class Network(val value: String) : Failure()
 
+        class RegisterPresenceEventQueue(val value: String) : Failure()
+
+        class GetPresenceEvent(val value: String) : Failure()
+
         class OwnUserNotFound(val value: String) : Failure()
 
         class UserNotFound(val userId: Long, val value: String) : Failure()

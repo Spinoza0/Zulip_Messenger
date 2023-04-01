@@ -2,9 +2,10 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.repository.PresenceQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -16,6 +17,9 @@ import kotlinx.coroutines.launch
 class ProfileFragmentViewModel(
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
+    private val registerPresenceEventQueueUseCase: RegisterPresenceEventQueueUseCase,
+    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val getPresenceEventUseCase: GetPresenceEventUseCase,
 ) : ViewModel() {
 
     val state: StateFlow<ProfileScreenState>
@@ -24,32 +28,54 @@ class ProfileFragmentViewModel(
     private val _state =
         MutableStateFlow<ProfileScreenState>(ProfileScreenState.Idle)
 
+    private lateinit var user: User
+    private var presenceQueue = PresenceQueue()
+
     fun loadCurrentUser() {
         loadUser(CURRENT_USER)
     }
 
     fun loadUser(userId: Long) {
         viewModelScope.launch {
-            var isFirstTime = true
             val setLoadingState = setLoadingStateWithDelay()
-            while (true) {
-                val result =
-                    if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
-                if (isFirstTime) {
-                    setLoadingState.cancel()
-                    when (result) {
-                        is RepositoryResult.Success ->
-                            _state.value = ProfileScreenState.UserData(result.value)
-                        is RepositoryResult.Failure -> {
-                            handleErrors(result)
-                            break
-                        }
-                    }
-                } else if (result is RepositoryResult.Success) {
+            val result =
+                if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
+            setLoadingState.cancel()
+            when (result) {
+                is RepositoryResult.Success -> {
+                    user = result.value
                     _state.value = ProfileScreenState.UserData(result.value)
                 }
+                is RepositoryResult.Failure -> {
+                    handleErrors(result)
+                }
+            }
+        }
+    }
+
+    private fun registerEventQueue() {
+        viewModelScope.launch {
+            when (val queueResult = registerPresenceEventQueueUseCase()) {
+                is RepositoryResult.Success -> {
+                    presenceQueue = queueResult.value
+                    handleOnSuccessQueueRegistration()
+                }
+                is RepositoryResult.Failure -> handleErrors(queueResult)
+            }
+        }
+    }
+
+    private fun handleOnSuccessQueueRegistration() {
+        viewModelScope.launch {
+            while (true) {
                 delay(DELAY_BEFORE_UPDATE_INFO)
-                isFirstTime = false
+                val eventResult = getPresenceEventUseCase(presenceQueue)
+                if (eventResult is RepositoryResult.Success) {
+                    presenceQueue.lastEventId = eventResult.value.id
+                    if (user.userId == eventResult.value.userId) {
+                        _state.value = ProfileScreenState.Presence(eventResult.value.presence)
+                    }
+                }
             }
         }
     }
@@ -60,6 +86,7 @@ class ProfileFragmentViewModel(
                 _state.value = ProfileScreenState.Failure.UserNotFound(error.userId, error.value)
             is RepositoryResult.Failure.Network ->
                 _state.value = ProfileScreenState.Failure.Network(error.value)
+            is RepositoryResult.Failure.RegisterPresenceEventQueue -> {}
             else -> {}
         }
     }
@@ -71,10 +98,17 @@ class ProfileFragmentViewModel(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        viewModelScope.launch {
+            deletePresenceEventQueueUseCase(presenceQueue.queueId)
+        }
+    }
+
     private companion object {
 
         const val DELAY_BEFORE_SET_STATE = 200L
-        const val DELAY_BEFORE_UPDATE_INFO = 60000L
+        const val DELAY_BEFORE_UPDATE_INFO = 500L
         const val CURRENT_USER = -1L
     }
 }

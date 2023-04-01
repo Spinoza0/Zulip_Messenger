@@ -10,6 +10,8 @@ sealed class ProfileScreenState {
 
     class UserData(val value: User) : ProfileScreenState()
 
+    class Presence(val value: User.Presence) : ProfileScreenState()
+
     sealed class Failure : ProfileScreenState() {
 
         class Network(val value: String) : Failure()

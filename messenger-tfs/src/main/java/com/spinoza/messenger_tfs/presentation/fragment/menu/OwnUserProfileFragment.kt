@@ -15,8 +15,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
@@ -35,7 +34,10 @@ class OwnUserProfileFragment : Fragment() {
     private val viewModel: ProfileFragmentViewModel by viewModels {
         ProfileFragmentViewModelFactory(
             GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
-            GetUserUseCase(MessagesRepositoryImpl.getInstance())
+            GetUserUseCase(MessagesRepositoryImpl.getInstance()),
+            RegisterPresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            DeletePresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            GetPresenceEventUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
 
@@ -78,22 +80,25 @@ class OwnUserProfileFragment : Fragment() {
             is ProfileScreenState.Failure.Network -> showError(
                 String.format(getString(R.string.error_network), state.value)
             )
+            is ProfileScreenState.Presence -> showPresence(state.value)
             is ProfileScreenState.Idle -> {}
         }
     }
 
     private fun showProfileInfo(user: User) {
-        with(binding) {
-            textViewName.text = user.fullName
-            textViewStatusActive.isVisible = user.presence == User.Presence.ACTIVE
-            textViewStatusIdle.isVisible = user.presence == User.Presence.IDLE
-            textViewStatusOffline.isVisible = user.presence == User.Presence.OFFLINE
-            com.bumptech.glide.Glide.with(imageViewAvatar)
-                .load(user.avatarUrl)
-                .transform(RoundedCorners(20))
-                .error(R.drawable.ic_default_avatar)
-                .into(imageViewAvatar)
-        }
+        binding.textViewName.text = user.fullName
+        showPresence(user.presence)
+        com.bumptech.glide.Glide.with(binding.imageViewAvatar)
+            .load(user.avatarUrl)
+            .transform(RoundedCorners(20))
+            .error(R.drawable.ic_default_avatar)
+            .into(binding.imageViewAvatar)
+    }
+
+    private fun showPresence(presence: User.Presence) {
+        binding.textViewStatusActive.isVisible = presence == User.Presence.ACTIVE
+        binding.textViewStatusIdle.isVisible = presence == User.Presence.IDLE
+        binding.textViewStatusOffline.isVisible = presence == User.Presence.OFFLINE
     }
 
     override fun onPause() {

@@ -11,10 +11,7 @@ import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.data.toDomain
 import com.spinoza.messenger_tfs.data.toUserDto
 import com.spinoza.messenger_tfs.domain.model.*
-import com.spinoza.messenger_tfs.domain.repository.MessagePosition
-import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
-import com.spinoza.messenger_tfs.domain.repository.MessagesResult
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import com.spinoza.messenger_tfs.domain.repository.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -320,6 +317,18 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }.getOrElse {
             RepositoryResult.Failure.UpdatingReaction(getErrorText(it))
         }
+    }
+
+    override suspend fun registerPresenceEventQueue(): RepositoryResult<PresenceQueue> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getPresenceEvent(queue: PresenceQueue): RepositoryResult<PresenceEvent> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deletePresenceEventQueue(queueId: String) {
+        TODO("Not yet implemented")
     }
 
     private suspend fun updateReaction(

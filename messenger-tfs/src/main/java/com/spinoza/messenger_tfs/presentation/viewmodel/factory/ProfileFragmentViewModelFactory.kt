@@ -9,9 +9,18 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 class ProfileFragmentViewModelFactory(
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
+    private val registerPresenceEventQueueUseCase: RegisterPresenceEventQueueUseCase,
+    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val getPresenceEventUseCase: GetPresenceEventUseCase,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return ProfileFragmentViewModel(getOwnUserUseCase, getUserUseCase) as T
+        return ProfileFragmentViewModel(
+            getOwnUserUseCase,
+            getUserUseCase,
+            registerPresenceEventQueueUseCase,
+            deletePresenceEventQueueUseCase,
+            getPresenceEventUseCase
+        ) as T
     }
 }

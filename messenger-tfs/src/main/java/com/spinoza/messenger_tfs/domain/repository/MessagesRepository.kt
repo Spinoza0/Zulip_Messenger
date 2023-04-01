@@ -33,4 +33,10 @@ interface MessagesRepository {
         emoji: Emoji,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult>
+
+    suspend fun registerPresenceEventQueue(): RepositoryResult<PresenceQueue>
+
+    suspend fun getPresenceEvent(queue: PresenceQueue): RepositoryResult<PresenceEvent>
+
+    suspend fun deletePresenceEventQueue(queueId: String)
 }
