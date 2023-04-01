@@ -69,6 +69,7 @@ class MessagesFragmentViewModel(
     private fun subscribeToNewMessageFieldChanges() {
         newMessageFieldState
             .distinctUntilChanged()
+            .debounce(DELAY_BEFORE_SET_STATE)
             .flatMapLatest { flow { emit(it) } }
             .onEach { text ->
                 val resId = if (text.isNotBlank())
