@@ -11,7 +11,7 @@ class ProfileFragmentViewModelFactory(
     private val getUserUseCase: GetUserUseCase,
     private val registerPresenceEventQueueUseCase: RegisterPresenceEventQueueUseCase,
     private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
-    private val getPresenceEventUseCase: GetPresenceEventUseCase,
+    private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -20,7 +20,7 @@ class ProfileFragmentViewModelFactory(
             getUserUseCase,
             registerPresenceEventQueueUseCase,
             deletePresenceEventQueueUseCase,
-            getPresenceEventUseCase
+            getPresenceEventsUseCase
         ) as T
     }
 }

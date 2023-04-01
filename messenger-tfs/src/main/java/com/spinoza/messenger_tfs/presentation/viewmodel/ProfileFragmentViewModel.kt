@@ -19,7 +19,7 @@ class ProfileFragmentViewModel(
     private val getUserUseCase: GetUserUseCase,
     private val registerPresenceEventQueueUseCase: RegisterPresenceEventQueueUseCase,
     private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
-    private val getPresenceEventUseCase: GetPresenceEventUseCase,
+    private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModel() {
 
     val state: StateFlow<ProfileScreenState>
@@ -45,6 +45,7 @@ class ProfileFragmentViewModel(
                 is RepositoryResult.Success -> {
                     user = result.value
                     _state.value = ProfileScreenState.UserData(result.value)
+                    registerEventQueue()
                 }
                 is RepositoryResult.Failure -> {
                     handleErrors(result)
@@ -69,11 +70,13 @@ class ProfileFragmentViewModel(
         viewModelScope.launch {
             while (true) {
                 delay(DELAY_BEFORE_UPDATE_INFO)
-                val eventResult = getPresenceEventUseCase(presenceQueue)
+                val eventResult = getPresenceEventsUseCase(presenceQueue)
                 if (eventResult is RepositoryResult.Success) {
-                    presenceQueue.lastEventId = eventResult.value.id
-                    if (user.userId == eventResult.value.userId) {
-                        _state.value = ProfileScreenState.Presence(eventResult.value.presence)
+                    eventResult.value.forEach { event ->
+                        presenceQueue.lastEventId = event.id
+                        if (user.userId == event.userId) {
+                            _state.emit(ProfileScreenState.Presence(event.presence))
+                        }
                     }
                 }
             }

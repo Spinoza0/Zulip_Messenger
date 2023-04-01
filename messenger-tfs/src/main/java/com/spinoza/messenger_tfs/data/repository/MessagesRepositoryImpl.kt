@@ -319,16 +319,67 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
-    override suspend fun registerPresenceEventQueue(): RepositoryResult<PresenceQueue> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun registerPresenceEventQueue(): RepositoryResult<PresenceQueue> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val response = apiService.registerEventQueue(
+                    authHeader,
+                    eventTypes = Json.encodeToString(listOf(EVENT_TYPE_PRESENCE))
+                )
+                when (response.isSuccessful) {
+                    true -> {
+                        val registerResponse = response.getBodyOrThrow()
+                        when (registerResponse.result) {
+                            RESULT_SUCCESS -> RepositoryResult.Success(
+                                PresenceQueue(
+                                    registerResponse.queueId,
+                                    registerResponse.lastEventId
+                                )
+                            )
+                            else -> RepositoryResult.Failure.RegisterPresenceEventQueue(
+                                registerResponse.msg
+                            )
+                        }
+                    }
+                    false -> RepositoryResult.Failure.RegisterPresenceEventQueue(response.message())
+                }
+            }.getOrElse {
+                RepositoryResult.Failure.Network(getErrorText(it))
+            }
+        }
 
-    override suspend fun getPresenceEvent(queue: PresenceQueue): RepositoryResult<PresenceEvent> {
-        TODO("Not yet implemented")
-    }
+    override suspend fun getPresenceEvents(queue: PresenceQueue): RepositoryResult<List<PresenceEvent>> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val response =
+                    apiService.getPresenceEventsFromQueue(
+                        authHeader,
+                        queue.queueId,
+                        queue.lastEventId
+                    )
+                when (response.isSuccessful) {
+                    true -> {
+                        val eventResponse = response.getBodyOrThrow()
+                        when (eventResponse.result) {
+                            RESULT_SUCCESS -> RepositoryResult.Success(
+                                eventResponse.events.toDomain()
+                            )
+                            else -> RepositoryResult.Failure.GetPresenceEvent(eventResponse.msg)
+                        }
+                    }
+                    false -> RepositoryResult.Failure.RegisterPresenceEventQueue(response.message())
+                }
+            }.getOrElse {
+                RepositoryResult.Failure.Network(getErrorText(it))
+            }
+        }
 
     override suspend fun deletePresenceEventQueue(queueId: String) {
-        TODO("Not yet implemented")
+        withContext(Dispatchers.IO) {
+            runCatching {
+                apiService.deleteEventQueue(authHeader, queueId)
+            }
+        }
     }
 
     private suspend fun updateReaction(
@@ -422,6 +473,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         private const val RESULT_SUCCESS = "success"
         private const val OPERATOR_STREAM = "stream"
         private const val OPERATOR_TOPIC = "topic"
+        private const val EVENT_TYPE_PRESENCE = "presence"
 
         // "spinoza0@gmail.com"
         private const val CREDENTIALS_USERNAME = "ivan.sintyurin@gmail.com"

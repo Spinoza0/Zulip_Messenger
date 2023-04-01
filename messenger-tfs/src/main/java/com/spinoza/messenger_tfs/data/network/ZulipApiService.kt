@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.data.network
 
 import com.spinoza.messenger_tfs.data.model.*
+import com.spinoza.messenger_tfs.data.model.event.PresenceEventResponse
 import com.spinoza.messenger_tfs.data.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.model.message.SendMessageResponse
@@ -67,7 +68,7 @@ interface ZulipApiService {
         @Query(QUERY_NUM_BEFORE) numBefore: Int = DEFAULT_NUM_BEFORE,
         @Query(QUERY_NUM_AFTER) numAfter: Int = DEFAULT_NUM_AFTER,
         @Query(QUERY_ANCHOR) anchor: String = ANCHOR_FIRST_UNREAD,
-        @Query(QUERY_NARROW) narrow: String = "",
+        @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = false,
     ): Response<MessagesResponse>
 
@@ -103,16 +104,23 @@ interface ZulipApiService {
     @POST("register")
     suspend fun registerEventQueue(
         @Header(HEADER_AUTHORIZATION) authHeader: String,
-        @Query(QUERY_NARROW) narrow: String = "",
-        @Query(QUERY_EVENT_TYPES) evenTypes: String = "",
+        @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
+        @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = false,
     ): Response<RegisterEventQueueResponse>
 
-    @POST("events")
+    @DELETE("events")
     suspend fun deleteEventQueue(
         @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Query(QUERY_QUEUE_ID) queueId: String,
     ): Response<BasicResponse>
+
+    @GET("events")
+    suspend fun getPresenceEventsFromQueue(
+        @Header(HEADER_AUTHORIZATION) authHeader: String,
+        @Query(QUERY_QUEUE_ID) queueId: String,
+        @Query(QUERY_LAST_EVENT_ID) lastEventId: Long,
+    ): Response<PresenceEventResponse>
 
     companion object {
 
@@ -131,6 +139,7 @@ interface ZulipApiService {
         private const val QUERY_MESSAGE_ID = "message_id"
         private const val QUERY_EMOJI_NAME = "emoji_name"
         private const val QUERY_QUEUE_ID = "queue_id"
+        private const val QUERY_LAST_EVENT_ID = "last_event_id"
         private const val QUERY_EVENT_TYPES = "event_types"
         private const val QUERY_APPLY_MARKDOWN = "apply_markdown"
         private const val QUERY_TO = "to"
@@ -140,6 +149,7 @@ interface ZulipApiService {
 
         private const val DEFAULT_NUM_BEFORE = 50
         private const val DEFAULT_NUM_AFTER = 50
+        private const val DEFAULT_EMPTY_JSON = "[]"
 
         private const val SEND_MESSAGE_TYPE_PRIVATE = "private"
         private const val SEND_MESSAGE_TYPE_STREAM = "stream"

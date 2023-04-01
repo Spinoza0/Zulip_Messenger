@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data
 
+import com.spinoza.messenger_tfs.data.model.event.PresenceEventDto
 import com.spinoza.messenger_tfs.data.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.model.presence.PresenceDto
@@ -9,6 +10,7 @@ import com.spinoza.messenger_tfs.data.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
+import com.spinoza.messenger_tfs.domain.repository.PresenceEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import java.text.SimpleDateFormat
 import java.util.*
@@ -102,6 +104,27 @@ fun List<TopicDto>.toDomain(messagesResult: RepositoryResult<MessagesResult>): L
     } else {
         map { Topic(it.name, 0) }
     }
+}
+
+fun List<PresenceEventDto>.toDomain(): List<PresenceEvent> {
+    return map { it.toDomain() }
+}
+
+private fun PresenceEventDto.toDomain(): PresenceEvent {
+    var presenceValue = User.Presence.OFFLINE
+    presence.values.forEach { value ->
+        if (value.status == PRESENCE_IDLE && presenceValue.ordinal > User.Presence.IDLE.ordinal) {
+            presenceValue = User.Presence.IDLE
+        } else if (value.status == PRESENCE_ACTIVE) {
+            presenceValue = User.Presence.ACTIVE
+        }
+    }
+    return PresenceEvent(
+        id = id,
+        userId = userId,
+        email = email,
+        presence = presenceValue
+    )
 }
 
 private fun Long.unixTimeToString(): String {

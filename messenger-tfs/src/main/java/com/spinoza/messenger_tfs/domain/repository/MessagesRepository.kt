@@ -36,7 +36,7 @@ interface MessagesRepository {
 
     suspend fun registerPresenceEventQueue(): RepositoryResult<PresenceQueue>
 
-    suspend fun getPresenceEvent(queue: PresenceQueue): RepositoryResult<PresenceEvent>
+    suspend fun getPresenceEvents(queue: PresenceQueue): RepositoryResult<List<PresenceEvent>>
 
     suspend fun deletePresenceEventQueue(queueId: String)
 }

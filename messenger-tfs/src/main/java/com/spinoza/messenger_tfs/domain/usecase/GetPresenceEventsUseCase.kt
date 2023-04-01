@@ -5,9 +5,9 @@ import com.spinoza.messenger_tfs.domain.repository.PresenceEvent
 import com.spinoza.messenger_tfs.domain.repository.PresenceQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
-class GetPresenceEventUseCase(private val repository: MessagesRepository) {
+class GetPresenceEventsUseCase(private val repository: MessagesRepository) {
 
-    suspend operator fun invoke(queue: PresenceQueue): RepositoryResult<PresenceEvent> {
-        return repository.getPresenceEvent(queue)
+    suspend operator fun invoke(queue: PresenceQueue): RepositoryResult<List<PresenceEvent>> {
+        return repository.getPresenceEvents(queue)
     }
 }

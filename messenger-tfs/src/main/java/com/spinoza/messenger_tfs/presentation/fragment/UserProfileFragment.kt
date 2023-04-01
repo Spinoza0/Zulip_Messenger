@@ -43,7 +43,7 @@ class UserProfileFragment : Fragment() {
             GetUserUseCase(MessagesRepositoryImpl.getInstance()),
             RegisterPresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             DeletePresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            GetPresenceEventUseCase(MessagesRepositoryImpl.getInstance()),
+            GetPresenceEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
 

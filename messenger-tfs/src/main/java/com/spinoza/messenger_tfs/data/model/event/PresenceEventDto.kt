@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PresenceEventDto(
     @SerialName("type") val type: String,
-    @SerialName("user_id") val userId: Int,
+    @SerialName("user_id") val userId: Long,
     @SerialName("email") val email: String,
     @SerialName("presence") val presence: Map<String, PresenceDataDto>,
-    @SerialName("id") val id: Int,
+    @SerialName("id") val id: Long,
 )
