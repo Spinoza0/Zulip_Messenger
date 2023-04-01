@@ -6,7 +6,6 @@ data class Message(
     val content: String,
     val subject: String,
     val reactions: Map<Emoji, ReactionParam>,
-    val isIconAddVisible: Boolean,
     val id: Long = UNDEFINED_ID,
 ) {
     companion object {

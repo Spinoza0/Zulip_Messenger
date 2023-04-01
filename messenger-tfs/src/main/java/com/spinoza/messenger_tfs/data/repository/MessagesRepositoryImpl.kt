@@ -68,7 +68,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                     RepositoryResult.Failure.UserNotFound(userId, response.message())
                 }
             }.getOrElse {
-                it.printStackTrace()
                 RepositoryResult.Failure.Network(getErrorText(it))
             }
         }
@@ -310,12 +309,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult> = runCatching {
         val isAddReaction = null == reactions.find {
-            it.emoji_code == emoji.code && it.emoji_name == emoji.name
+            it.emoji_name == emoji.name && it.user_id == ownUser.userId
         }
         val response = if (isAddReaction) {
-            apiService.addReaction(authHeader, messageId, emoji.name, emoji.code)
+            apiService.addReaction(authHeader, messageId, emoji.name)
         } else {
-            apiService.removeReaction(authHeader, messageId, emoji.name, emoji.code)
+            apiService.removeReaction(authHeader, messageId, emoji.name)
         }
         if (response.isSuccessful && response.body() != null) {
             if (response.body()?.result == RESULT_SUCCESS) {
@@ -327,7 +326,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             RepositoryResult.Failure.UpdatingReaction(response.message())
         }
     }.getOrElse {
-        it.printStackTrace()
         RepositoryResult.Failure.UpdatingReaction(getErrorText(it))
     }
 
@@ -379,9 +377,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         e.localizedMessage ?: e.message ?: e.toString()
 
     companion object {
-
-        // TODO: for testing purpose
-        private const val DELAY_VALUE = 1000L
 
         private const val RESULT_SUCCESS = "success"
         private const val OPERATOR_STREAM = "stream"

@@ -34,7 +34,6 @@ fun MessageDto.toDomain(userId: Long): Message {
         content = content,
         subject = subject,
         reactions = reactions.toDomain(userId),
-        isIconAddVisible = reactions.isNotEmpty(),
         id = id
     )
 }

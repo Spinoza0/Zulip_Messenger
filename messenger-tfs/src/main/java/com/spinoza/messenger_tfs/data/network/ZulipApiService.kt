@@ -80,16 +80,14 @@ interface ZulipApiService {
     suspend fun addReaction(
         @Header("Authorization") authHeader: String,
         @Path(QUERY_MESSAGE_ID) messageId: Long,
-        @Path(QUERY_EMOJI_NAME) emojiName: String,
-        @Path(QUERY_EMOJI_CODE) emojiCode: String,
+        @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): Response<UpdateReactionResponseDto>
 
     @DELETE("messages/{$QUERY_MESSAGE_ID}/reactions")
     suspend fun removeReaction(
         @Header("Authorization") authHeader: String,
         @Path(QUERY_MESSAGE_ID) messageId: Long,
-        @Path(QUERY_EMOJI_NAME) emojiName: String,
-        @Path(QUERY_EMOJI_CODE) emojiCode: String,
+        @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): Response<UpdateReactionResponseDto>
 
     @POST("messages")
@@ -111,7 +109,6 @@ interface ZulipApiService {
         private const val QUERY_STREAM_ID = "stream_id"
         private const val QUERY_MESSAGE_ID = "message_id"
         private const val QUERY_EMOJI_NAME = "emoji_name"
-        private const val QUERY_EMOJI_CODE = "emoji_code"
 
         private const val DEFAULT_NUM_BEFORE = 50
         private const val DEFAULT_NUM_AFTER = 50

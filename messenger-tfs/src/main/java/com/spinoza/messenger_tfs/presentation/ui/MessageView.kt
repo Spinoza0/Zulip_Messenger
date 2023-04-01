@@ -211,19 +211,15 @@ class MessageView @JvmOverloads constructor(
         name = message.user.fullName
         content = message.content
         this.reactionsGravity = reactionsGravity
-        setIconAddVisibility(message.isIconAddVisible)
         setReactions(message.reactions)
     }
 
     fun setReactions(reactions: Map<Emoji, ReactionParam>) {
         binding.reactionsFlexBoxLayout.removeAllViews()
+        binding.reactionsFlexBoxLayout.setIconAddVisibility(reactions.isNotEmpty())
         reactions.forEach {
             addReaction(it.key, it.value)
         }
-    }
-
-    private fun setIconAddVisibility(state: Boolean) {
-        binding.reactionsFlexBoxLayout.setIconAddVisibility(state)
     }
 
     private fun addReaction(reaction: Emoji, reactionParam: ReactionParam) {
