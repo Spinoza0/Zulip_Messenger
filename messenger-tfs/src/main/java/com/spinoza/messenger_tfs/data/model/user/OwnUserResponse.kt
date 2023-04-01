@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class OwnResponseDto(
+data class OwnUserResponse(
     @SerialName("result") val result: String,
     @SerialName("msg") val msg: String,
     @SerialName("email") val email: String,

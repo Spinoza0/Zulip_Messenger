@@ -1,11 +1,11 @@
-package com.spinoza.messenger_tfs.data.model.presence
+package com.spinoza.messenger_tfs.data.model.event
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class PresenceResponseDto(
+class PresenceEventResponse(
     @SerialName("result") val result: String,
     @SerialName("msg") val msg: String,
-    @SerialName("presence") val presence: PresenceDto
+    @SerialName("events") val events: List<PresenceEventDto>,
 )

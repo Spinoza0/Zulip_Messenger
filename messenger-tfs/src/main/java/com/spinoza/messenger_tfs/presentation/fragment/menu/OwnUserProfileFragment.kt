@@ -85,7 +85,7 @@ class OwnUserProfileFragment : Fragment() {
     private fun showProfileInfo(user: User) {
         with(binding) {
             textViewName.text = user.fullName
-            textViewStatusOnline.isVisible = user.presence == User.Presence.ONLINE
+            textViewStatusActive.isVisible = user.presence == User.Presence.ACTIVE
             textViewStatusIdle.isVisible = user.presence == User.Presence.IDLE
             textViewStatusOffline.isVisible = user.presence == User.Presence.OFFLINE
             com.bumptech.glide.Glide.with(imageViewAvatar)

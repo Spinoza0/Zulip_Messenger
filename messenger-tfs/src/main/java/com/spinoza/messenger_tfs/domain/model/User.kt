@@ -8,7 +8,7 @@ data class User(
     val presence: Presence,
 ) {
     enum class Presence {
-        ONLINE,
+        ACTIVE,
         IDLE,
         OFFLINE
     }

@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MessagesResponseDto(
+data class MessagesResponse(
     @SerialName("result") val result: String,
     @SerialName("msg") val msg: String,
     @SerialName("messages") val messages: List<MessageDto>,

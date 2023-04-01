@@ -28,7 +28,7 @@
     <string name="online_status">Online status</string>
 
     <!-- Fragment Profile -->
-    <string name="online">online</string>
+    <string name="active">active</string>
     <string name="idle">idle</string>
     <string name="offline">offline</string>
 

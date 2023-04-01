@@ -26,7 +26,7 @@ class UserViewHolder(private val binding: UserItemBinding) : RecyclerView.ViewHo
     }
 
     fun bind(presence: User.Presence) {
-        binding.imageViewCircleOnline.isVisible = presence == User.Presence.ONLINE
+        binding.imageViewCircleOnline.isVisible = presence == User.Presence.ACTIVE
         binding.imageViewCircleIdle.isVisible = presence == User.Presence.IDLE
         binding.imageViewCircleOffline.isVisible = presence == User.Presence.OFFLINE
     }

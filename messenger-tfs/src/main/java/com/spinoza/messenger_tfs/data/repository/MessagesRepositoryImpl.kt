@@ -1,11 +1,11 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.data.model.message.MessagesResponseDto
+import com.spinoza.messenger_tfs.data.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.model.message.NarrowItemDto
 import com.spinoza.messenger_tfs.data.model.message.ReactionDto
-import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponseDto
+import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.model.stream.StreamDto
-import com.spinoza.messenger_tfs.data.model.user.AllUsersResponseDto
+import com.spinoza.messenger_tfs.data.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.data.toDomain
@@ -109,21 +109,21 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
 
     private suspend fun handleGetUsersByFilterResult(
-        allUsersResponseDto: AllUsersResponseDto,
+        allUsersResponse: AllUsersResponse,
         usersFilter: String,
-    ) = when (allUsersResponseDto.result) {
+    ) = when (allUsersResponse.result) {
         RESULT_SUCCESS -> {
             val presencesResponse = apiService.getAllPresences(authHeader)
             when (presencesResponse.isSuccessful) {
                 true -> makeAllUsersAnswer(
                     usersFilter,
-                    allUsersResponseDto,
+                    allUsersResponse,
                     presencesResponse.body()
                 )
-                false -> makeAllUsersAnswer(usersFilter, allUsersResponseDto)
+                false -> makeAllUsersAnswer(usersFilter, allUsersResponse)
             }
         }
-        else -> RepositoryResult.Failure.LoadingUsers(allUsersResponseDto.msg)
+        else -> RepositoryResult.Failure.LoadingUsers(allUsersResponse.msg)
     }
 
     override suspend fun getMessages(
@@ -147,14 +147,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     private fun handleGetMessagesResult(
-        messagesResponseDto: MessagesResponseDto,
+        messagesResponse: MessagesResponse,
         messageId: Long,
         messagesFilter: MessagesFilter,
-    ) = when (messagesResponseDto.result) {
+    ) = when (messagesResponse.result) {
         RESULT_SUCCESS -> {
             val positionType =
                 if (messageId != Message.UNDEFINED_ID) {
-                    if (messagesResponseDto.messages.last().id == messageId) {
+                    if (messagesResponse.messages.last().id == messageId) {
                         MessagePosition.Type.LAST_POSITION
                     } else {
                         MessagePosition.Type.EXACTLY
@@ -164,14 +164,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
             RepositoryResult.Success(
                 MessagesResult(
-                    messagesResponseDto.messages.toDomain(ownUser.userId),
+                    messagesResponse.messages.toDomain(ownUser.userId),
                     MessagePosition(positionType, messageId)
                 )
             )
         }
         else -> RepositoryResult.Failure.LoadingMessages(
             messagesFilter,
-            messagesResponseDto.msg
+            messagesResponse.msg
         )
     }
 
@@ -368,8 +368,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     private fun makeAllUsersAnswer(
         usersFilter: String,
-        usersResponseDto: AllUsersResponseDto,
-        presencesResponseDto: AllPresencesResponseDto? = null,
+        usersResponseDto: AllUsersResponse,
+        presencesResponseDto: AllPresencesResponse? = null,
     ): RepositoryResult<List<User>> = if (usersResponseDto.result == RESULT_SUCCESS) {
         val users = mutableListOf<User>()
         usersResponseDto.members

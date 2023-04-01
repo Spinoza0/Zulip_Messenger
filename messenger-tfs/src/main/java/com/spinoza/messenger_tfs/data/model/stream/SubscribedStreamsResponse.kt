@@ -4,8 +4,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class TopicsResponseDto(
+data class SubscribedStreamsResponse(
     @SerialName("result") val result: String,
     @SerialName("msg") val msg: String,
-    @SerialName("topics") val topics: List<TopicDto>,
+    @SerialName("subscriptions") val subscriptions: List<StreamDto>,
 )

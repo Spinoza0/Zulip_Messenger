@@ -5,7 +5,7 @@ import com.spinoza.messenger_tfs.data.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.model.presence.PresenceDto
 import com.spinoza.messenger_tfs.data.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.model.stream.TopicDto
-import com.spinoza.messenger_tfs.data.model.user.OwnResponseDto
+import com.spinoza.messenger_tfs.data.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesResult
@@ -64,7 +64,7 @@ fun UserDto.toDomain(presence: User.Presence): User {
     )
 }
 
-fun OwnResponseDto.toUserDto(): UserDto {
+fun OwnUserResponse.toUserDto(): UserDto {
     return UserDto(
         email = email,
         userId = userId,
@@ -86,8 +86,8 @@ fun OwnResponseDto.toUserDto(): UserDto {
 }
 
 fun PresenceDto.toDomain(): User.Presence = when (aggregated.status) {
-    "active" -> User.Presence.ONLINE
-    "idle" -> User.Presence.IDLE
+    PRESENCE_ACTIVE -> User.Presence.ACTIVE
+    PRESENCE_IDLE -> User.Presence.IDLE
     else -> User.Presence.OFFLINE
 }
 
@@ -123,5 +123,7 @@ private fun StreamDto.toDomain(): Channel {
 }
 
 private const val DATE_FORMAT = "dd.MM.yyyy"
+private const val PRESENCE_ACTIVE = "active"
+private const val PRESENCE_IDLE = "idle"
 private const val MILLIS_IN_SECOND = 1000L
 private const val SECONDS_IN_DAY = 24 * 60 * 60
