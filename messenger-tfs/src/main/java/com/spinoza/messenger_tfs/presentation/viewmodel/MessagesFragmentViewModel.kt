@@ -149,14 +149,14 @@ class MessagesFragmentViewModel(
 
         val messageAdapterItemList = mutableListOf<DelegateAdapterItem>()
         val dates = TreeSet<MessageDate>()
-        this.forEach {
+        forEach {
             dates.add(it.date)
         }
 
         dates.forEach { messageDate ->
             messageAdapterItemList.add(DateDelegateItem(messageDate))
             val allDayMessages = this.filter { message ->
-                message.date.date == messageDate.date
+                message.date.value == messageDate.value
             }
 
             allDayMessages.forEach { message ->

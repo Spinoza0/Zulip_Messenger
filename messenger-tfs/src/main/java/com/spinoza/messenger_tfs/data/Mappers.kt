@@ -22,8 +22,9 @@ fun List<StreamDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
 }
 
 fun MessageDto.toDomain(userId: Long): Message {
+    val strippedTimestamp = timestamp.stripTimeFromTimestamp()
     return Message(
-        date = MessageDate(timestamp.unixTimeToString()),
+        date = MessageDate(strippedTimestamp.unixTimeToString(), strippedTimestamp),
         user = User(
             userId = senderId,
             email = senderEmail,
@@ -104,7 +105,14 @@ fun List<TopicDto>.toDomain(messagesResult: RepositoryResult<MessagesResult>): L
 }
 
 private fun Long.unixTimeToString(): String {
-    return SimpleDateFormat("dd.MM.yyyy", Locale.getDefault()).format(Date(this * 1000))
+    return SimpleDateFormat(
+        DATE_FORMAT,
+        Locale.getDefault()
+    ).format(Date(this * MILLIS_IN_SECOND))
+}
+
+private fun Long.stripTimeFromTimestamp(): Long {
+    return this - (this % SECONDS_IN_DAY)
 }
 
 private fun StreamDto.toDomain(): Channel {
@@ -113,3 +121,7 @@ private fun StreamDto.toDomain(): Channel {
         name = name
     )
 }
+
+private const val DATE_FORMAT = "dd.MM.yyyy"
+private const val MILLIS_IN_SECOND = 1000L
+private const val SECONDS_IN_DAY = 24 * 60 * 60
