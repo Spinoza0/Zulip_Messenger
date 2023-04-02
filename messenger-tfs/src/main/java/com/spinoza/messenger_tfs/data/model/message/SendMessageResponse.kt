@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class SendMessageResponse(
     @SerialName("result") val result: String,
     @SerialName("msg") val msg: String,
-    @SerialName("id") val messageId: Long? = null,
+    @SerialName("id") val messageId: Long,
 )

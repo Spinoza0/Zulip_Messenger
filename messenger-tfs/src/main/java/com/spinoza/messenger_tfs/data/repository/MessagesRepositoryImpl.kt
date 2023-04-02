@@ -219,7 +219,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun sendMessage(
         content: String,
         messagesFilter: MessagesFilter,
-    ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
+    ): RepositoryResult<Long> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.sendMessageToStream(
                 messagesFilter.channel.channelId,
@@ -230,10 +230,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 true -> {
                     val messagesResponseDto = response.getBodyOrThrow()
                     when (messagesResponseDto.result) {
-                        RESULT_SUCCESS -> {
-                            val messageId = messagesResponseDto.messageId ?: Message.UNDEFINED_ID
-                            getMessages(messagesFilter, messageId)
-                        }
+                        RESULT_SUCCESS -> RepositoryResult.Success(messagesResponseDto.messageId)
                         else -> RepositoryResult.Failure.SendingMessage(messagesResponseDto.msg)
                     }
                 }

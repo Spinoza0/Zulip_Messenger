@@ -37,6 +37,7 @@ class MessagesFragmentViewModel(
         MutableSharedFlow<MessagesScreenState>(replay = 10)
     private val newMessageFieldState = MutableSharedFlow<String>()
     private var eventsQueue = EventsQueue()
+    private var isMessageSent = false
 
     init {
         loadMessages()
@@ -45,15 +46,20 @@ class MessagesFragmentViewModel(
 
     fun sendMessage(messageText: String) {
         if (messageText.isNotEmpty()) viewModelScope.launch {
-            _state.emit(MessagesScreenState.MessageSent)
-            handleRepositoryResult(sendMessageUseCase(messageText, messagesFilter))
+            val result = sendMessageUseCase(messageText, messagesFilter)
+            if (result is RepositoryResult.Success) {
+                isMessageSent = true
+                _state.emit(MessagesScreenState.MessageSent(result.value))
+            }
         }
     }
 
     fun updateReaction(messageId: Long, emoji: Emoji) {
         viewModelScope.launch {
-            _state.emit(MessagesScreenState.ReactionSent)
-            updateReactionUseCase(messageId, emoji)
+            val result = updateReactionUseCase(messageId, emoji)
+            if (result is RepositoryResult.Success) {
+                _state.emit(MessagesScreenState.ReactionSent)
+            }
         }
     }
 
@@ -153,7 +159,15 @@ class MessagesFragmentViewModel(
         val userIdResult = getOwnUserIdUseCase()
         if (userIdResult is RepositoryResult.Success) {
             eventsQueue = eventsQueue.copy(lastEventId = messageEvent.lastEventId)
-            handleSuccessMessagesResult(messageEvent.messagesResult, userIdResult.value)
+            val messagesResult = if (isMessageSent) {
+                isMessageSent = false
+                messageEvent.messagesResult.copy(
+                    position = MessagePosition(MessagePosition.Type.LAST_POSITION)
+                )
+            } else {
+                messageEvent.messagesResult
+            }
+            handleSuccessMessagesResult(messagesResult, userIdResult.value)
         }
     }
 
