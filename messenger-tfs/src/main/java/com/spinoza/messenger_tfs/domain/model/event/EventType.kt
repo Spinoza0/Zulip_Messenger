@@ -4,5 +4,6 @@ enum class EventType {
     PRESENCE,
     CHANNEL,
     MESSAGE,
+    DELETE_MESSAGE,
     REACTION
 }

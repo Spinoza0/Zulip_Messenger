@@ -6,6 +6,7 @@ import com.spinoza.messenger_tfs.data.model.event.StreamEventDto
 import com.spinoza.messenger_tfs.data.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.model.presence.PresenceDto
+import com.spinoza.messenger_tfs.data.model.presence.PresenceTypeDto
 import com.spinoza.messenger_tfs.data.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.model.stream.TopicDto
 import com.spinoza.messenger_tfs.data.model.user.OwnUserResponse
@@ -125,6 +126,7 @@ private fun EventType.toDto(): EventTypeDto = when (this) {
     EventType.PRESENCE -> EventTypeDto.PRESENCE
     EventType.CHANNEL -> EventTypeDto.STREAM
     EventType.MESSAGE -> EventTypeDto.MESSAGE
+    EventType.DELETE_MESSAGE -> EventTypeDto.DELETE_MESSAGE
     EventType.REACTION -> EventTypeDto.REACTION
 }
 
@@ -170,12 +172,6 @@ private fun StreamDto.toDomain(): Channel {
         channelId = streamId,
         name = name
     )
-}
-
-private enum class PresenceTypeDto(val value: String) {
-    ACTIVE("active"),
-    IDLE("idle"),
-    OFFLINE("offline")
 }
 
 private const val DATE_FORMAT = "dd.MM.yyyy"

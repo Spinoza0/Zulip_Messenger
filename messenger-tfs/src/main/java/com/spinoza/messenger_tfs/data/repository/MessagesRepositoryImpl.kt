@@ -279,10 +279,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     ): RepositoryResult<EventsQueue> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val eventTypesDto = eventTypes.toStringsList()
-                val eventTypesJson = Json.encodeToString(eventTypesDto)
                 val response = apiService.registerEventQueue(
-                    eventTypes = eventTypesJson
+                    eventTypes = Json.encodeToString(eventTypes.toStringsList())
                 )
                 when (response.isSuccessful) {
                     true -> {
@@ -330,23 +328,30 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     ): RepositoryResult<MessageEvent> {
         val messageEventsResult: RepositoryResult<List<MessageEventDto>> =
             getEvents(queue, EventType.MESSAGE)
+        val deleteMessageEventsResult: RepositoryResult<List<DeleteMessageEventDto>> =
+            getEvents(queue, EventType.DELETE_MESSAGE)
         val reactionEventsResult: RepositoryResult<List<ReactionEventDto>> =
             getEvents(queue, EventType.REACTION)
         var lastEventId = UNDEFINED_EVENT_ID
-        var isSuccess = false
         if (messageEventsResult is RepositoryResult.Success) {
-            messageEventsResult.value.forEach {
-                messagesCache.add(it.message)
-                lastEventId = it.id
+            messageEventsResult.value.forEach { messageEventDto ->
+                messagesCache.add(messageEventDto.message)
+                lastEventId = messageEventDto.id
             }
-            isSuccess = true
+        }
+        if (deleteMessageEventsResult is RepositoryResult.Success) {
+            deleteMessageEventsResult.value.forEach { deleteMessageEventDto ->
+                messagesCache.remove(deleteMessageEventDto.messageId)
+                lastEventId = maxOf(lastEventId, deleteMessageEventDto.id)
+            }
         }
         if (reactionEventsResult is RepositoryResult.Success) {
-            // TODO
-            lastEventId = maxOf(lastEventId, reactionEventsResult.value.last().id)
-            isSuccess = true
+            reactionEventsResult.value.forEach { reactionEventDto ->
+                messagesCache.updateReaction(reactionEventDto)
+                lastEventId = maxOf(lastEventId, reactionEventDto.id)
+            }
         }
-        return if (isSuccess) {
+        return if (lastEventId != UNDEFINED_EVENT_ID) {
             RepositoryResult.Success(
                 MessageEvent(
                     lastEventId,
@@ -384,7 +389,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             val response =
                 apiService.getMessages(narrow = messagesFilter.createNarrow())
             if (response.isSuccessful) {
-                messagesCache.addAll(response.getBodyOrThrow().messages)
+                messagesCache.replaceAll(response.getBodyOrThrow().messages)
             }
         }
     }
@@ -405,7 +410,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 } else {
                     MessagePosition.Type.UNDEFINED
                 }
-            messagesCache.addAll(messagesResponse.messages)
+            messagesCache.replaceAll(messagesResponse.messages)
             RepositoryResult.Success(
                 MessagesResult(
                     messagesResponse.messages.toDomain(ownUser.userId),
@@ -453,9 +458,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                                 else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
                             }
                         }
-                        EventType.MESSAGE -> {
+                        EventType.DELETE_MESSAGE -> {
                             val eventResponse = jsonConverter.decodeFromString(
-                                MessageEventsResponse.serializer(),
+                                DeleteMessageEventsResponse.serializer(),
                                 eventResponseBody.string()
                             )
                             when (eventResponse.result) {
@@ -467,6 +472,17 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         EventType.REACTION -> {
                             val eventResponse = jsonConverter.decodeFromString(
                                 ReactionEventsResponse.serializer(),
+                                eventResponseBody.string()
+                            )
+                            when (eventResponse.result) {
+                                RESULT_SUCCESS ->
+                                    RepositoryResult.Success(eventResponse.events as R)
+                                else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
+                            }
+                        }
+                        EventType.MESSAGE -> {
+                            val eventResponse = jsonConverter.decodeFromString(
+                                MessageEventsResponse.serializer(),
                                 eventResponseBody.string()
                             )
                             when (eventResponse.result) {

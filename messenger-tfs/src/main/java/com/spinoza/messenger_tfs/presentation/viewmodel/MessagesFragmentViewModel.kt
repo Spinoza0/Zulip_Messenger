@@ -125,8 +125,13 @@ class MessagesFragmentViewModel(
 
     private fun registerEventQueue() {
         viewModelScope.launch {
-            when (val queueResult =
-                registerEventQueueUseCase(listOf(EventType.MESSAGE, EventType.REACTION))) {
+            when (val queueResult = registerEventQueueUseCase(
+                listOf(
+                    EventType.MESSAGE,
+                    EventType.DELETE_MESSAGE,
+                    EventType.REACTION
+                )
+            )) {
                 is RepositoryResult.Success -> {
                     eventsQueue = queueResult.value
                     handleOnSuccessQueueRegistration()

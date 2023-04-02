@@ -8,4 +8,5 @@ import kotlinx.serialization.Serializable
 data class MessageEventDto(
     @SerialName("id") val id: Long,
     @SerialName("message") val message: MessageDto,
+    @SerialName("flags") val flags: List<String>,
 )
