@@ -8,7 +8,9 @@ data class Channel(
     val channelId: Long,
     val name: String,
 ) : Parcelable {
+
     companion object {
+
         const val UNDEFINED_ID = -1L
     }
 }

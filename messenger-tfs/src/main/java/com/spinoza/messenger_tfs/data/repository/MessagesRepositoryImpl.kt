@@ -30,10 +30,11 @@ import retrofit2.Response
 
 
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
-// TODO: 2) отрефакторить - кэш (messagesLocalCache) вынести в отдельный класс
+// TODO: 2) пагинация для сообщений
 
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
+    private val messagesCache = MessagesCache()
     private var ownUser: UserDto = UserDto()
     private var isOwnUserLoaded = false
     private val apiService = ZulipApiFactory.apiService
@@ -116,24 +117,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             }
         }
 
-    private suspend fun handleGetUsersByFilterResult(
-        allUsersResponse: AllUsersResponse,
-        usersFilter: String,
-    ) = when (allUsersResponse.result) {
-        RESULT_SUCCESS -> {
-            val presencesResponse = apiService.getAllPresences()
-            when (presencesResponse.isSuccessful) {
-                true -> makeAllUsersAnswer(
-                    usersFilter,
-                    allUsersResponse,
-                    presencesResponse.body()
-                )
-                false -> makeAllUsersAnswer(usersFilter, allUsersResponse)
-            }
-        }
-        else -> RepositoryResult.Failure.LoadingUsers(allUsersResponse.msg)
-    }
-
     override suspend fun getMessages(
         messagesFilter: MessagesFilter,
         messageId: Long,
@@ -152,35 +135,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }.getOrElse {
             RepositoryResult.Failure.Network(getErrorText(it))
         }
-    }
-
-    private fun handleGetMessagesResult(
-        messagesResponse: MessagesResponse,
-        messageId: Long,
-        messagesFilter: MessagesFilter,
-    ) = when (messagesResponse.result) {
-        RESULT_SUCCESS -> {
-            val positionType =
-                if (messageId != Message.UNDEFINED_ID) {
-                    if (messagesResponse.messages.last().id == messageId) {
-                        MessagePosition.Type.LAST_POSITION
-                    } else {
-                        MessagePosition.Type.EXACTLY
-                    }
-                } else {
-                    MessagePosition.Type.UNDEFINED
-                }
-            RepositoryResult.Success(
-                MessagesResult(
-                    messagesResponse.messages.toDomain(ownUser.userId),
-                    MessagePosition(positionType, messageId)
-                )
-            )
-        }
-        else -> RepositoryResult.Failure.LoadingMessages(
-            messagesFilter,
-            messagesResponse.msg
-        )
     }
 
     override suspend fun getChannels(
@@ -233,9 +187,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         val topicsResponseDto = response.getBodyOrThrow()
                         when (topicsResponseDto.result) {
                             RESULT_SUCCESS -> {
+                                val messagesFilter = MessagesFilter(channel, Topic("", 0))
+                                updateMessagesCache(messagesFilter)
                                 RepositoryResult.Success(
                                     topicsResponseDto.topics.toDomain(
-                                        getMessages(MessagesFilter(channel, Topic("", 0)))
+                                        messagesCache.getMessages(messagesFilter)
                                     )
                                 )
                             }
@@ -258,17 +214,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getTopic(
         messagesFilter: MessagesFilter,
     ): RepositoryResult<Topic> = withContext(Dispatchers.IO) {
-        val messagesResult = getMessages(messagesFilter)
-        if (messagesResult is RepositoryResult.Success) {
-            RepositoryResult.Success(
-                Topic(
-                    messagesFilter.topic.name,
-                    messagesResult.value.messages.size
-                )
-            )
-        } else {
-            RepositoryResult.Failure.LoadingTopicData(messagesFilter)
-        }
+        updateMessagesCache(messagesFilter)
+        RepositoryResult.Success(
+            Topic(messagesFilter.topic.name, messagesCache.getMessages(messagesFilter).size)
+        )
     }
 
     override suspend fun sendMessage(
@@ -366,6 +315,74 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
+    override suspend fun getPresenceEvents(
+        queue: EventsQueue,
+    ): RepositoryResult<List<PresenceEvent>> {
+        return getEvents(queue, EventType.PRESENCE)
+    }
+
+    override suspend fun getChannelEvents(queue: EventsQueue): RepositoryResult<List<ChannelEvent>> {
+        return getEvents(queue, EventType.CHANNEL)
+    }
+
+    private suspend fun handleGetUsersByFilterResult(
+        allUsersResponse: AllUsersResponse,
+        usersFilter: String,
+    ) = when (allUsersResponse.result) {
+        RESULT_SUCCESS -> {
+            val presencesResponse = apiService.getAllPresences()
+            when (presencesResponse.isSuccessful) {
+                true -> makeAllUsersAnswer(
+                    usersFilter,
+                    allUsersResponse,
+                    presencesResponse.body()
+                )
+                false -> makeAllUsersAnswer(usersFilter, allUsersResponse)
+            }
+        }
+        else -> RepositoryResult.Failure.LoadingUsers(allUsersResponse.msg)
+    }
+
+    private suspend fun updateMessagesCache(messagesFilter: MessagesFilter) {
+        runCatching {
+            val response =
+                apiService.getMessages(narrow = messagesFilter.createNarrow())
+            if (response.isSuccessful) {
+                messagesCache.addAll(response.getBodyOrThrow().messages)
+            }
+        }
+    }
+
+    private fun handleGetMessagesResult(
+        messagesResponse: MessagesResponse,
+        messageId: Long,
+        messagesFilter: MessagesFilter,
+    ) = when (messagesResponse.result) {
+        RESULT_SUCCESS -> {
+            val positionType =
+                if (messageId != Message.UNDEFINED_ID) {
+                    if (messagesResponse.messages.last().id == messageId) {
+                        MessagePosition.Type.LAST_POSITION
+                    } else {
+                        MessagePosition.Type.EXACTLY
+                    }
+                } else {
+                    MessagePosition.Type.UNDEFINED
+                }
+            messagesCache.addAll(messagesResponse.messages)
+            RepositoryResult.Success(
+                MessagesResult(
+                    messagesResponse.messages.toDomain(ownUser.userId),
+                    MessagePosition(positionType, messageId)
+                )
+            )
+        }
+        else -> RepositoryResult.Failure.LoadingMessages(
+            messagesFilter,
+            messagesResponse.msg
+        )
+    }
+
     private suspend inline fun <reified R> getEvents(
         queue: EventsQueue,
         eventType: EventType,
@@ -407,16 +424,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }.getOrElse {
             RepositoryResult.Failure.Network(getErrorText(it))
         }
-    }
-
-    override suspend fun getPresenceEvents(
-        queue: EventsQueue,
-    ): RepositoryResult<List<PresenceEvent>> {
-        return getEvents(queue, EventType.PRESENCE)
-    }
-
-    override suspend fun getChannelEvents(queue: EventsQueue): RepositoryResult<List<ChannelEvent>> {
-        return getEvents(queue, EventType.CHANNEL)
     }
 
     private suspend fun updateReaction(

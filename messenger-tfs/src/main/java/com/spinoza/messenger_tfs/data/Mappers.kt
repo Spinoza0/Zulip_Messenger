@@ -14,7 +14,6 @@ import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -97,16 +96,12 @@ fun PresenceDto.toDomain(): User.Presence = when (aggregated.status) {
     else -> throw RuntimeException("Unknown presence status ${aggregated.status}")
 }
 
-fun List<TopicDto>.toDomain(messagesResult: RepositoryResult<MessagesResult>): List<Topic> {
-    return if (messagesResult is RepositoryResult.Success) {
-        map { topicDto ->
-            Topic(
-                topicDto.name,
-                messagesResult.value.messages.count { it.subject == topicDto.name }
-            )
-        }
-    } else {
-        map { Topic(it.name, 0) }
+fun List<TopicDto>.toDomain(messages: List<MessageDto>): List<Topic> {
+    return map { topicDto ->
+        Topic(
+            topicDto.name,
+            messages.count { it.subject == topicDto.name }
+        )
     }
 }
 

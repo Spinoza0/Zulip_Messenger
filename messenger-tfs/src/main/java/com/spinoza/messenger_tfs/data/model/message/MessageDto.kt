@@ -18,4 +18,9 @@ data class MessageDto(
     @SerialName("sender_full_name") val senderFullName: String,
     @SerialName("sender_email") val senderEmail: String,
     @SerialName("avatar_url") val avatarUrl: String? = null,
-)
+) : Comparable<MessageDto> {
+
+    override fun compareTo(other: MessageDto): Int {
+        return id.compareTo(other.id)
+    }
+}
