@@ -30,13 +30,17 @@ class MessagesCache {
                 val reactions = mutableListOf<ReactionDto>()
                 reactions.addAll(messageDto.reactions)
                 reactions.add(reactionEventDto.toReactionDto())
-                data.add(messageDto.copy(reactions = reactions))
+                val newMessageDto = messageDto.copy(reactions = reactions)
+                data.remove(messageDto)
+                data.add(newMessageDto)
             }
             if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value) {
                 val reactions = mutableListOf<ReactionDto>()
                 val reactionToRemove = reactionEventDto.toReactionDto()
                 reactions.addAll(messageDto.reactions.filter { it != reactionToRemove })
-                data.add(messageDto.copy(reactions = reactions))
+                val newMessageDto = messageDto.copy(reactions = reactions)
+                data.remove(messageDto)
+                data.add(newMessageDto)
             }
         }
     }

@@ -326,19 +326,13 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessageEvent> {
-        val messageEventsResult: RepositoryResult<List<MessageEventDto>> =
-            getEvents(queue, EventType.MESSAGE)
         val deleteMessageEventsResult: RepositoryResult<List<DeleteMessageEventDto>> =
             getEvents(queue, EventType.DELETE_MESSAGE)
         val reactionEventsResult: RepositoryResult<List<ReactionEventDto>> =
             getEvents(queue, EventType.REACTION)
+        val messageEventsResult: RepositoryResult<List<MessageEventDto>> =
+            getEvents(queue, EventType.MESSAGE)
         var lastEventId = UNDEFINED_EVENT_ID
-        if (messageEventsResult is RepositoryResult.Success) {
-            messageEventsResult.value.forEach { messageEventDto ->
-                messagesCache.add(messageEventDto.message)
-                lastEventId = messageEventDto.id
-            }
-        }
         if (deleteMessageEventsResult is RepositoryResult.Success) {
             deleteMessageEventsResult.value.forEach { deleteMessageEventDto ->
                 messagesCache.remove(deleteMessageEventDto.messageId)
@@ -349,6 +343,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             reactionEventsResult.value.forEach { reactionEventDto ->
                 messagesCache.updateReaction(reactionEventDto)
                 lastEventId = maxOf(lastEventId, reactionEventDto.id)
+            }
+        }
+        if (messageEventsResult is RepositoryResult.Success) {
+            messageEventsResult.value.forEach { messageEventDto ->
+                messagesCache.add(messageEventDto.message)
+                lastEventId = messageEventDto.id
             }
         }
         return if (lastEventId != UNDEFINED_EVENT_ID) {
