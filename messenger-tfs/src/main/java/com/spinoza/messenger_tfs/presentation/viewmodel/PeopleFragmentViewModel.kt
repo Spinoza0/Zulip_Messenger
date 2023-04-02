@@ -2,13 +2,23 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.repository.PresenceQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import com.spinoza.messenger_tfs.domain.usecase.DeletePresenceEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
+import com.spinoza.messenger_tfs.domain.usecase.RegisterPresenceEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFilterUseCase) :
+class PeopleFragmentViewModel(
+    private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
+    private val registerPresenceEventQueueUseCase: RegisterPresenceEventQueueUseCase,
+    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
+) :
     ViewModel() {
 
     val state: StateFlow<PeopleScreenState>
@@ -19,6 +29,8 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
         MutableStateFlow<PeopleScreenState>(PeopleScreenState.Start)
     private val searchQueryState = MutableSharedFlow<String>()
     private var isFirstLoading = true
+    private var presenceQueue = PresenceQueue()
+    private var usersCache = mutableListOf<User>()
 
     init {
         subscribeToSearchQueryChanges()
@@ -36,25 +48,17 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
 
     private fun loadUsers() {
         viewModelScope.launch {
-            var isFirstTime = true
             val setLoadingState = setLoadingStateWithDelay()
-            while (true) {
-                val result = getUsersByFilterUseCase(usersFilter)
-                if (isFirstTime) {
-                    setLoadingState.cancel()
-                    when (result) {
-                        is RepositoryResult.Success ->
-                            _state.value = PeopleScreenState.Users(result.value)
-                        is RepositoryResult.Failure -> {
-                            handleErrors(result)
-                            break
-                        }
-                    }
-                } else if (result is RepositoryResult.Success) {
+            val result = getUsersByFilterUseCase(usersFilter)
+            setLoadingState.cancel()
+            when (result) {
+                is RepositoryResult.Success -> {
+                    usersCache.clear()
+                    usersCache.addAll(result.value)
                     _state.value = PeopleScreenState.Users(result.value)
+                    registerEventQueue()
                 }
-                delay(DELAY_BEFORE_UPDATE_INFO)
-                isFirstTime = false
+                is RepositoryResult.Failure -> handleErrors(result)
             }
         }
     }
@@ -76,6 +80,41 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
             .launchIn(viewModelScope)
     }
 
+    private fun registerEventQueue() {
+        viewModelScope.launch {
+            when (val queueResult = registerPresenceEventQueueUseCase()) {
+                is RepositoryResult.Success -> {
+                    presenceQueue = queueResult.value
+                    handleOnSuccessQueueRegistration()
+                }
+                is RepositoryResult.Failure -> handleErrors(queueResult)
+            }
+        }
+    }
+
+    private fun handleOnSuccessQueueRegistration() {
+        viewModelScope.launch {
+            while (true) {
+                delay(DELAY_BEFORE_UPDATE_INFO)
+                val eventResult = getPresenceEventsUseCase(presenceQueue)
+                if (eventResult is RepositoryResult.Success) {
+                    var isListChanged = false
+                    eventResult.value.forEach { event ->
+                        presenceQueue.lastEventId = event.id
+                        val index = usersCache.indexOfFirst { it.userId == event.userId }
+                        if (index != INDEX_NOT_FOUND) {
+                            usersCache[index] = usersCache[index].copy(presence = event.presence)
+                            isListChanged = true
+                        }
+                    }
+                    if (isListChanged) {
+                        _state.emit(PeopleScreenState.Users(usersCache.toList()))
+                    }
+                }
+            }
+        }
+    }
+
     private suspend fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
             is RepositoryResult.Failure.LoadingUsers -> {
@@ -92,10 +131,18 @@ class PeopleFragmentViewModel(private val getUsersByFilterUseCase: GetUsersByFil
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        viewModelScope.launch {
+            deletePresenceEventQueueUseCase(presenceQueue.queueId)
+        }
+    }
+
     private companion object {
 
         const val DURATION_MILLIS = 300L
         const val DELAY_BEFORE_SET_STATE = 200L
-        const val DELAY_BEFORE_UPDATE_INFO = 60000L
+        const val DELAY_BEFORE_UPDATE_INFO = 30_000L
+        const val INDEX_NOT_FOUND = -1
     }
 }

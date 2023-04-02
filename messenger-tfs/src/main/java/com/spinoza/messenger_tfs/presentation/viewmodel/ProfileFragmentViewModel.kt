@@ -111,7 +111,7 @@ class ProfileFragmentViewModel(
     private companion object {
 
         const val DELAY_BEFORE_SET_STATE = 200L
-        const val DELAY_BEFORE_UPDATE_INFO = 500L
+        const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val CURRENT_USER = -1L
     }
 }
