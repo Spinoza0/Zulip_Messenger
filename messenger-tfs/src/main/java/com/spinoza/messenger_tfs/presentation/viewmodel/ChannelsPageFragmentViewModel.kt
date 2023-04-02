@@ -7,6 +7,9 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
@@ -30,7 +33,7 @@ class ChannelsPageFragmentViewModel(
     private val getTopicUseCase: GetTopicUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
-    private val getChannelEventsUseCase: GetChannelEventsUseCase
+    private val getChannelEventsUseCase: GetChannelEventsUseCase,
 ) : ViewModel() {
 
     val state: SharedFlow<ChannelsPageScreenState>
@@ -45,10 +48,14 @@ class ChannelsPageFragmentViewModel(
     private val globalRouter = App.router
     private var isReturnFromMessagesScreen = false
     private var isFirstLoading = true
+    private var eventsQueue = EventsQueue()
 
     override fun onCleared() {
         super.onCleared()
         cache.clear()
+        viewModelScope.launch {
+            deletePresenceEventQueueUseCase(eventsQueue.queueId)
+        }
     }
 
     fun setChannelsFilter(newFilter: ChannelsFilter) {
@@ -68,6 +75,7 @@ class ChannelsPageFragmentViewModel(
                 is RepositoryResult.Success -> {
                     updateCacheWithShowedTopicsSaving(result.value.toDelegateItem(isAllChannels))
                     _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                    registerEventQueue()
                 }
                 is RepositoryResult.Failure -> handleErrors(result)
             }
@@ -140,6 +148,49 @@ class ChannelsPageFragmentViewModel(
     fun onTopicClickListener(messagesFilter: MessagesFilter) {
         isReturnFromMessagesScreen = true
         globalRouter.navigateTo(Screens.Messages(messagesFilter))
+    }
+
+    private fun registerEventQueue() {
+        viewModelScope.launch {
+            when (val queueResult = registerEventQueueUseCase(EventType.CHANNEL)) {
+                is RepositoryResult.Success -> {
+                    eventsQueue = queueResult.value
+                    handleOnSuccessQueueRegistration()
+                }
+                is RepositoryResult.Failure -> handleErrors(queueResult)
+            }
+        }
+    }
+
+    private fun handleOnSuccessQueueRegistration() {
+        viewModelScope.launch {
+            while (true) {
+                delay(DELAY_BEFORE_UPDATE_INFO)
+                val eventResult = getChannelEventsUseCase(eventsQueue)
+                if (eventResult is RepositoryResult.Success) {
+                    val channels = mutableListOf<Channel>()
+                    channels.addAll(cache
+                        .filterIsInstance<ChannelDelegateItem>()
+                        .filter { channelDelegateItem ->
+                            val event = eventResult.value.find { channelEvent ->
+                                channelEvent.channel.channelId == channelDelegateItem.id()
+                            }
+                            if (event == null) true
+                            else {
+                                event.operation != ChannelEvent.Operation.DELETE
+                            }
+                        }.map { (it.content() as ChannelItem).channel }
+                    )
+                    eventResult.value
+                        .filter { it.operation != ChannelEvent.Operation.DELETE }
+                        .filter { !channels.contains(it.channel) }
+                        .forEach { channels.add(it.channel) }
+                    eventsQueue.lastEventId = eventResult.value.last().id
+                    updateCacheWithShowedTopicsSaving(channels.toDelegateItem(isAllChannels))
+                    _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                }
+            }
+        }
     }
 
     private fun updateCacheWithShowedTopicsSaving(newItems: List<DelegateAdapterItem>) {

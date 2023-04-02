@@ -113,15 +113,17 @@ fun List<PresenceEventDto>.toDomain(): List<PresenceEvent> {
 
 fun List<StreamEventDto>.listToDomain(): List<ChannelEvent> {
     val events = mutableListOf<ChannelEvent>()
-    filter { it.operation != OPERATION_DELETE }
-        .map { streamEventDto ->
-            streamEventDto.streams.forEach { events.add(streamEventDto.toDomain(it)) }
-        }
+    map { streamEventDto ->
+        streamEventDto.streams.forEach { events.add(streamEventDto.toDomain(it)) }
+    }
     return events
 }
 
 private fun StreamEventDto.toDomain(streamDto: StreamDto): ChannelEvent {
-    return ChannelEvent(id, streamDto.toDomain())
+    val operation =
+        if (operation == OPERATION_DELETE) ChannelEvent.Operation.DELETE
+        else ChannelEvent.Operation.CREATE
+    return ChannelEvent(id, operation, streamDto.toDomain())
 }
 
 private fun PresenceEventDto.toDomain(): PresenceEvent {
