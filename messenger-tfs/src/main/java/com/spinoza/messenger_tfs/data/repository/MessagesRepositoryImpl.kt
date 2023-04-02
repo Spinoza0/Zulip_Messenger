@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.data.listToDomain
+import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.event.*
 import com.spinoza.messenger_tfs.data.model.message.*
 import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
@@ -8,9 +8,6 @@ import com.spinoza.messenger_tfs.data.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
-import com.spinoza.messenger_tfs.data.toDomain
-import com.spinoza.messenger_tfs.data.toDto
-import com.spinoza.messenger_tfs.data.toUserDto
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
@@ -279,9 +276,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     ): RepositoryResult<EventsQueue> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val eventTypesDto = eventTypes.toDto()
+                val eventTypesDto = eventTypes.toStringsList()
+                val eventTypesJson = Json.encodeToString(eventTypesDto)
                 val response = apiService.registerEventQueue(
-                    eventTypes = Json.encodeToString(eventTypesDto)
+                    eventTypes = eventTypesJson
                 )
                 when (response.isSuccessful) {
                     true -> {

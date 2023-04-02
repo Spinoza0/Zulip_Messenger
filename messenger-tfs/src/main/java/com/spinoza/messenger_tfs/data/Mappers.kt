@@ -109,8 +109,8 @@ fun List<PresenceEventDto>.toDomain(): List<PresenceEvent> {
     return map { it.toDomain() }
 }
 
-fun List<EventType>.toDto(): List<EventTypeDto> {
-    return map { it.toDto() }
+fun List<EventType>.toStringsList(): List<String> {
+    return map { it.toDto().value }
 }
 
 fun List<StreamEventDto>.listToDomain(): List<ChannelEvent> {
