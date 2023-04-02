@@ -247,22 +247,18 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun updateReaction(
         messageId: Long,
         emoji: Emoji,
-        messagesFilter: MessagesFilter,
-    ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
+    ): RepositoryResult<Unit> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.getSingleMessage(messageId)
             when (response.isSuccessful) {
                 true -> {
                     val singleMessageResponseDto = response.getBodyOrThrow()
                     when (singleMessageResponseDto.result) {
-                        RESULT_SUCCESS -> {
-                            updateReaction(
-                                singleMessageResponseDto.message.reactions,
-                                messageId,
-                                emoji,
-                                messagesFilter
-                            )
-                        }
+                        RESULT_SUCCESS -> updateReaction(
+                            singleMessageResponseDto.message.reactions,
+                            messageId,
+                            emoji
+                        )
                         else ->
                             RepositoryResult.Failure.UpdatingReaction(singleMessageResponseDto.msg)
                     }
@@ -504,8 +500,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         reactions: List<ReactionDto>,
         messageId: Long,
         emoji: Emoji,
-        messagesFilter: MessagesFilter,
-    ): RepositoryResult<MessagesResult> = runCatching {
+    ): RepositoryResult<Unit> = runCatching {
         val isAddReaction = null == reactions.find {
             it.emoji_name == emoji.name && it.user_id == ownUser.userId
         }
@@ -518,7 +513,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             true -> {
                 val updateReactionResponseDto = response.getBodyOrThrow()
                 when (updateReactionResponseDto.result) {
-                    RESULT_SUCCESS -> getMessages(messagesFilter, messageId)
+                    RESULT_SUCCESS -> RepositoryResult.Success(Unit)
                     else -> RepositoryResult.Failure.UpdatingReaction(updateReactionResponseDto.msg)
                 }
             }

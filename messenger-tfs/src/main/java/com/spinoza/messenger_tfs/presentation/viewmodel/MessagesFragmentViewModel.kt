@@ -46,16 +46,14 @@ class MessagesFragmentViewModel(
     fun sendMessage(messageText: String) {
         if (messageText.isNotEmpty()) viewModelScope.launch {
             _state.emit(MessagesScreenState.MessageSent)
-            val result = sendMessageUseCase(messageText, messagesFilter)
-            handleRepositoryResult(result)
+            handleRepositoryResult(sendMessageUseCase(messageText, messagesFilter))
         }
     }
 
     fun updateReaction(messageId: Long, emoji: Emoji) {
         viewModelScope.launch {
             _state.emit(MessagesScreenState.ReactionSent)
-            val result = updateReactionUseCase(messageId, emoji, messagesFilter)
-            handleRepositoryResult(result)
+            updateReactionUseCase(messageId, emoji)
         }
     }
 
