@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.data.model.event.PresenceEventsResponse
 import com.spinoza.messenger_tfs.data.model.event.StreamEventsResponse
 import com.spinoza.messenger_tfs.data.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.model.message.NarrowItemDto
+import com.spinoza.messenger_tfs.data.model.message.NarrowOperator
 import com.spinoza.messenger_tfs.data.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.model.stream.StreamDto
@@ -12,6 +13,7 @@ import com.spinoza.messenger_tfs.data.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.data.toDomain
+import com.spinoza.messenger_tfs.data.toDto
 import com.spinoza.messenger_tfs.data.toUserDto
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
@@ -46,9 +48,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         } else
             when (val result = getOwnUser()) {
                 is RepositoryResult.Success -> RepositoryResult.Success(ownUser.userId)
-                is RepositoryResult.Failure.OwnUserNotFound -> RepositoryResult.Failure.OwnUserNotFound(
-                    result.value
-                )
+                is RepositoryResult.Failure.OwnUserNotFound ->
+                    RepositoryResult.Failure.OwnUserNotFound(result.value)
                 is RepositoryResult.Failure.Network -> RepositoryResult.Failure.Network(result.value)
                 else -> RepositoryResult.Failure.Network("")
             }
@@ -331,10 +332,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun registerEventQueue(eventType: EventType): RepositoryResult<EventsQueue> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val eventTypeString = when (eventType) {
-                    EventType.PRESENCE -> EVENT_TYPE_PRESENCE
-                    EventType.CHANNEL -> EVENT_TYPE_STREAM
-                }
+                val eventTypeString = eventType.toDto()
                 val response = apiService.registerEventQueue(
                     eventTypes = Json.encodeToString(listOf(eventTypeString))
                 )
@@ -472,7 +470,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     ): RepositoryResult<List<User>> = if (usersResponseDto.result == RESULT_SUCCESS) {
         val users = mutableListOf<User>()
         usersResponseDto.members
-            .filter { it.isBot.not() }
+            .filter { it.isBot.not() && it.isActive }
             .forEach { userDto ->
                 val presence =
                     if (presencesResponseDto != null && presencesResponseDto.result == RESULT_SUCCESS) {
@@ -496,10 +494,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     private fun MessagesFilter.createNarrow(): String {
         val narrowDtoList = mutableListOf(
-            NarrowItemDto(OPERATOR_STREAM, channel.name)
+            NarrowItemDto(NarrowOperator.STREAM.value, channel.name)
         )
         if (topic.name.isNotEmpty()) {
-            narrowDtoList.add(NarrowItemDto(OPERATOR_TOPIC, topic.name))
+            narrowDtoList.add(NarrowItemDto(NarrowOperator.TOPIC.value, topic.name))
         }
         return Json.encodeToString(narrowDtoList)
     }
@@ -510,11 +508,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     companion object {
 
         private const val RESULT_SUCCESS = "success"
-        private const val OPERATOR_STREAM = "stream"
-        private const val OPERATOR_TOPIC = "topic"
-
-        private const val EVENT_TYPE_PRESENCE = "presence"
-        private const val EVENT_TYPE_STREAM = "stream"
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit

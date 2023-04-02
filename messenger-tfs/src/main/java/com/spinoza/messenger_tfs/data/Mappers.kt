@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data
 
+import com.spinoza.messenger_tfs.data.model.event.EventTypeDto
 import com.spinoza.messenger_tfs.data.model.event.PresenceEventDto
 import com.spinoza.messenger_tfs.data.model.event.StreamEventDto
 import com.spinoza.messenger_tfs.data.model.message.MessageDto
@@ -11,6 +12,7 @@ import com.spinoza.messenger_tfs.data.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import java.text.SimpleDateFormat
@@ -89,9 +91,10 @@ fun OwnUserResponse.toUserDto(): UserDto {
 }
 
 fun PresenceDto.toDomain(): User.Presence = when (aggregated.status) {
-    PRESENCE_ACTIVE -> User.Presence.ACTIVE
-    PRESENCE_IDLE -> User.Presence.IDLE
-    else -> User.Presence.OFFLINE
+    PresenceTypeDto.ACTIVE.value -> User.Presence.ACTIVE
+    PresenceTypeDto.IDLE.value -> User.Presence.IDLE
+    PresenceTypeDto.OFFLINE.value -> User.Presence.OFFLINE
+    else -> throw RuntimeException("Unknown presence status ${aggregated.status}")
 }
 
 fun List<TopicDto>.toDomain(messagesResult: RepositoryResult<MessagesResult>): List<Topic> {
@@ -109,6 +112,11 @@ fun List<TopicDto>.toDomain(messagesResult: RepositoryResult<MessagesResult>): L
 
 fun List<PresenceEventDto>.toDomain(): List<PresenceEvent> {
     return map { it.toDomain() }
+}
+
+fun EventType.toDto(): EventTypeDto = when (this) {
+    EventType.PRESENCE -> EventTypeDto.PRESENCE
+    EventType.CHANNEL -> EventTypeDto.STREAM
 }
 
 fun List<StreamEventDto>.listToDomain(): List<ChannelEvent> {
@@ -129,9 +137,11 @@ private fun StreamEventDto.toDomain(streamDto: StreamDto): ChannelEvent {
 private fun PresenceEventDto.toDomain(): PresenceEvent {
     var presenceValue = User.Presence.OFFLINE
     presence.values.forEach { value ->
-        if (value.status == PRESENCE_IDLE && presenceValue.ordinal > User.Presence.IDLE.ordinal) {
+        if (value.status == PresenceTypeDto.IDLE.value &&
+            presenceValue.ordinal > User.Presence.IDLE.ordinal
+        ) {
             presenceValue = User.Presence.IDLE
-        } else if (value.status == PRESENCE_ACTIVE) {
+        } else if (value.status == PresenceTypeDto.ACTIVE.value) {
             presenceValue = User.Presence.ACTIVE
         }
     }
@@ -161,9 +171,13 @@ private fun StreamDto.toDomain(): Channel {
     )
 }
 
+private enum class PresenceTypeDto(val value: String) {
+    ACTIVE("active"),
+    IDLE("idle"),
+    OFFLINE("offline");
+}
+
 private const val DATE_FORMAT = "dd.MM.yyyy"
-private const val PRESENCE_ACTIVE = "active"
-private const val PRESENCE_IDLE = "idle"
 private const val OPERATION_DELETE = "delete"
 private const val MILLIS_IN_SECOND = 1000L
 private const val SECONDS_IN_DAY = 24 * 60 * 60
