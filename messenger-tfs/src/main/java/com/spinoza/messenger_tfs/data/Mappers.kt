@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.data
 
 import com.spinoza.messenger_tfs.data.model.event.PresenceEventDto
+import com.spinoza.messenger_tfs.data.model.event.StreamEventDto
 import com.spinoza.messenger_tfs.data.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.model.presence.PresenceDto
@@ -9,8 +10,8 @@ import com.spinoza.messenger_tfs.data.model.stream.TopicDto
 import com.spinoza.messenger_tfs.data.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.domain.model.*
-import com.spinoza.messenger_tfs.domain.repository.MessagesResult
-import com.spinoza.messenger_tfs.domain.repository.PresenceEvent
+import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import java.text.SimpleDateFormat
 import java.util.*
@@ -110,6 +111,19 @@ fun List<PresenceEventDto>.toDomain(): List<PresenceEvent> {
     return map { it.toDomain() }
 }
 
+fun List<StreamEventDto>.listToDomain(): List<ChannelEvent> {
+    val events = mutableListOf<ChannelEvent>()
+    filter { it.operation != OPERATION_DELETE }
+        .map { streamEventDto ->
+            streamEventDto.streams.forEach { events.add(streamEventDto.toDomain(it)) }
+        }
+    return events
+}
+
+private fun StreamEventDto.toDomain(streamDto: StreamDto): ChannelEvent {
+    return ChannelEvent(id, streamDto.toDomain())
+}
+
 private fun PresenceEventDto.toDomain(): PresenceEvent {
     var presenceValue = User.Presence.OFFLINE
     presence.values.forEach { value ->
@@ -148,5 +162,6 @@ private fun StreamDto.toDomain(): Channel {
 private const val DATE_FORMAT = "dd.MM.yyyy"
 private const val PRESENCE_ACTIVE = "active"
 private const val PRESENCE_IDLE = "idle"
+private const val OPERATION_DELETE = "delete"
 private const val MILLIS_IN_SECOND = 1000L
 private const val SECONDS_IN_DAY = 24 * 60 * 60

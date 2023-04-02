@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.repository
+package com.spinoza.messenger_tfs.domain.model.event
 
 import com.spinoza.messenger_tfs.domain.model.User
 

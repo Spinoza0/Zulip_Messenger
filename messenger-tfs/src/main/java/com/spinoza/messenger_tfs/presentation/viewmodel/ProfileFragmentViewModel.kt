@@ -3,7 +3,8 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.repository.PresenceQueue
+import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
@@ -17,7 +18,7 @@ import kotlinx.coroutines.launch
 class ProfileFragmentViewModel(
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
-    private val registerPresenceEventQueueUseCase: RegisterPresenceEventQueueUseCase,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModel() {
@@ -29,7 +30,7 @@ class ProfileFragmentViewModel(
         MutableStateFlow<ProfileScreenState>(ProfileScreenState.Idle)
 
     private lateinit var user: User
-    private var presenceQueue = PresenceQueue()
+    private var eventsQueue = EventsQueue()
 
     fun loadCurrentUser() {
         loadUser(CURRENT_USER)
@@ -56,9 +57,9 @@ class ProfileFragmentViewModel(
 
     private fun registerEventQueue() {
         viewModelScope.launch {
-            when (val queueResult = registerPresenceEventQueueUseCase()) {
+            when (val queueResult = registerEventQueueUseCase(EventType.PRESENCE)) {
                 is RepositoryResult.Success -> {
-                    presenceQueue = queueResult.value
+                    eventsQueue = queueResult.value
                     handleOnSuccessQueueRegistration()
                 }
                 is RepositoryResult.Failure -> handleErrors(queueResult)
@@ -70,10 +71,10 @@ class ProfileFragmentViewModel(
         viewModelScope.launch {
             while (true) {
                 delay(DELAY_BEFORE_UPDATE_INFO)
-                val eventResult = getPresenceEventsUseCase(presenceQueue)
+                val eventResult = getPresenceEventsUseCase(eventsQueue)
                 if (eventResult is RepositoryResult.Success) {
                     eventResult.value.forEach { event ->
-                        presenceQueue.lastEventId = event.id
+                        eventsQueue.lastEventId = event.id
                         if (user.userId == event.userId) {
                             _state.emit(ProfileScreenState.Presence(event.presence))
                         }
@@ -96,7 +97,7 @@ class ProfileFragmentViewModel(
 
     private fun setLoadingStateWithDelay(): Job {
         return viewModelScope.launch {
-            delay(DELAY_BEFORE_SET_STATE)
+            delay(DELAY_BEFORE_SHOW_SHIMMER)
             _state.value = ProfileScreenState.Loading
         }
     }
@@ -104,13 +105,13 @@ class ProfileFragmentViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
-            deletePresenceEventQueueUseCase(presenceQueue.queueId)
+            deletePresenceEventQueueUseCase(eventsQueue.queueId)
         }
     }
 
     private companion object {
 
-        const val DELAY_BEFORE_SET_STATE = 200L
+        const val DELAY_BEFORE_SHOW_SHIMMER = 200L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val CURRENT_USER = -1L
     }

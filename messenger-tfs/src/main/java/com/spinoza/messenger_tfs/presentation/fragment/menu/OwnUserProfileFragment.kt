@@ -35,7 +35,7 @@ class OwnUserProfileFragment : Fragment() {
         ProfileFragmentViewModelFactory(
             GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
             GetUserUseCase(MessagesRepositoryImpl.getInstance()),
-            RegisterPresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             DeletePresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             GetPresenceEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )

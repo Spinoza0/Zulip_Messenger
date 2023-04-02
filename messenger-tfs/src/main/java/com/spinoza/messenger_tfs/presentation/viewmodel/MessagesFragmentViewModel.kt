@@ -7,7 +7,7 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.domain.repository.MessagesResult
+import com.spinoza.messenger_tfs.domain.model.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserIdUseCase
@@ -69,7 +69,7 @@ class MessagesFragmentViewModel(
     private fun subscribeToNewMessageFieldChanges() {
         newMessageFieldState
             .distinctUntilChanged()
-            .debounce(DELAY_BEFORE_SET_STATE)
+            .debounce(DELAY_BEFORE_UPDATE_ACTION_ICON)
             .mapLatest { text ->
                 val resId = if (text.isNotBlank())
                     R.drawable.ic_send
@@ -139,7 +139,7 @@ class MessagesFragmentViewModel(
 
     private fun setLoadingStateWithDelay(): Job {
         return viewModelScope.launch {
-            delay(DELAY_BEFORE_SET_STATE)
+            delay(DELAY_BEFORE_UPDATE_ACTION_ICON)
             _state.emit(MessagesScreenState.Loading)
         }
     }
@@ -172,6 +172,6 @@ class MessagesFragmentViewModel(
 
     private companion object {
 
-        const val DELAY_BEFORE_SET_STATE = 200L
+        const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
     }
 }

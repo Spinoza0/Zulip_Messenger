@@ -8,9 +8,7 @@ import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.usecase.GetChannelsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetTopicUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
@@ -30,6 +28,9 @@ class ChannelsPageFragmentViewModel(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
+    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val getChannelEventsUseCase: GetChannelEventsUseCase
 ) : ViewModel() {
 
     val state: SharedFlow<ChannelsPageScreenState>
@@ -202,7 +203,7 @@ class ChannelsPageFragmentViewModel(
 
     private fun setLoadingStateWithDelay(): Job {
         return viewModelScope.launch {
-            delay(DELAY_BEFORE_SET_STATE)
+            delay(DELAY_BEFORE_SHOW_SHIMMER)
             _state.emit(ChannelsPageScreenState.Loading)
         }
     }
@@ -244,6 +245,7 @@ class ChannelsPageFragmentViewModel(
     private companion object {
 
         const val UNDEFINED_INDEX = -1
-        const val DELAY_BEFORE_SET_STATE = 200L
+        const val DELAY_BEFORE_SHOW_SHIMMER = 200L
+        const val DELAY_BEFORE_UPDATE_INFO = 30_000L
     }
 }

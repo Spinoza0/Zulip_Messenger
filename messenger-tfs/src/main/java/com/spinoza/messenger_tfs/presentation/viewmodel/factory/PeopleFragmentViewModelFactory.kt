@@ -8,7 +8,7 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.PeopleFragmentViewModel
 @Suppress("UNCHECKED_CAST")
 class PeopleFragmentViewModelFactory(
     private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
-    private val registerPresenceEventQueueUseCase: RegisterPresenceEventQueueUseCase,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModelProvider.Factory {
@@ -16,7 +16,7 @@ class PeopleFragmentViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return PeopleFragmentViewModel(
             getUsersByFilterUseCase,
-            registerPresenceEventQueueUseCase,
+            registerEventQueueUseCase,
             deletePresenceEventQueueUseCase,
             getPresenceEventsUseCase
         ) as T

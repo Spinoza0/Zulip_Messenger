@@ -1,6 +1,6 @@
-package com.spinoza.messenger_tfs.domain.repository
+package com.spinoza.messenger_tfs.domain.model.event
 
-data class PresenceQueue(
+data class EventsQueue(
     val queueId: String = "",
     var lastEventId: Long = DEFAULT_ID,
 ) {

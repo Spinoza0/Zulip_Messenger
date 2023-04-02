@@ -9,7 +9,7 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
 class ProfileFragmentViewModelFactory(
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
-    private val registerPresenceEventQueueUseCase: RegisterPresenceEventQueueUseCase,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModelProvider.Factory {
@@ -18,7 +18,7 @@ class ProfileFragmentViewModelFactory(
         return ProfileFragmentViewModel(
             getOwnUserUseCase,
             getUserUseCase,
-            registerPresenceEventQueueUseCase,
+            registerEventQueueUseCase,
             deletePresenceEventQueueUseCase,
             getPresenceEventsUseCase
         ) as T

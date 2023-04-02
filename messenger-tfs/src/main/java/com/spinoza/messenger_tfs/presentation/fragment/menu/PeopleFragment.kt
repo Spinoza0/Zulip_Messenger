@@ -17,7 +17,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
 import com.spinoza.messenger_tfs.domain.usecase.DeletePresenceEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
-import com.spinoza.messenger_tfs.domain.usecase.RegisterPresenceEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
@@ -39,7 +39,7 @@ class PeopleFragment : Fragment() {
     private val viewModel: PeopleFragmentViewModel by viewModels {
         PeopleFragmentViewModelFactory(
             GetUsersByFilterUseCase(MessagesRepositoryImpl.getInstance()),
-            RegisterPresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             DeletePresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             GetPresenceEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )

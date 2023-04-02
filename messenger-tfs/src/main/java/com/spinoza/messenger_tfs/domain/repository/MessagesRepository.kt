@@ -1,6 +1,10 @@
 package com.spinoza.messenger_tfs.domain.repository
 
 import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
+import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 
 interface MessagesRepository {
 
@@ -34,9 +38,11 @@ interface MessagesRepository {
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult>
 
-    suspend fun registerPresenceEventQueue(): RepositoryResult<PresenceQueue>
+    suspend fun registerEventQueue(eventType: EventType): RepositoryResult<EventsQueue>
 
-    suspend fun getPresenceEvents(queue: PresenceQueue): RepositoryResult<List<PresenceEvent>>
+    suspend fun deleteEventQueue(queueId: String)
 
-    suspend fun deletePresenceEventQueue(queueId: String)
+    suspend fun getPresenceEvents(queue: EventsQueue): RepositoryResult<List<PresenceEvent>>
+
+    suspend fun getChannelEvents(queue: EventsQueue): RepositoryResult<List<ChannelEvent>>
 }

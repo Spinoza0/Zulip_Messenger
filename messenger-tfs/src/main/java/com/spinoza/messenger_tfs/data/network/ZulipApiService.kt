@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs.data.network
 
 import com.spinoza.messenger_tfs.data.model.*
-import com.spinoza.messenger_tfs.data.model.event.PresenceEventResponse
 import com.spinoza.messenger_tfs.data.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.model.message.SendMessageResponse
@@ -14,57 +13,44 @@ import com.spinoza.messenger_tfs.data.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.model.user.UserResponse
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 
 interface ZulipApiService {
 
     @GET("users/me")
-    suspend fun getOwnUser(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
-    ): Response<OwnUserResponse>
+    suspend fun getOwnUser(): Response<OwnUserResponse>
 
     @GET("users/{$QUERY_USER_ID}")
     suspend fun getUser(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Path(QUERY_USER_ID) userId: Long,
     ): Response<UserResponse>
 
     @GET("users")
-    suspend fun getAllUsers(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
-    ): Response<AllUsersResponse>
+    suspend fun getAllUsers(): Response<AllUsersResponse>
 
     @GET("users/{$QUERY_USER_ID}/presence")
     suspend fun getUserPresence(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Path(QUERY_USER_ID) userId: Long,
     ): Response<PresenceResponse>
 
     @GET("realm/presence")
-    suspend fun getAllPresences(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
-    ): Response<AllPresencesResponse>
+    suspend fun getAllPresences(): Response<AllPresencesResponse>
 
     @GET("users/me/subscriptions")
-    suspend fun getSubscribedStreams(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
-    ): Response<SubscribedStreamsResponse>
+    suspend fun getSubscribedStreams(): Response<SubscribedStreamsResponse>
 
     @GET("streams")
-    suspend fun getAllStreams(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
-    ): Response<AllStreamsResponse>
+    suspend fun getAllStreams(): Response<AllStreamsResponse>
 
     @GET("users/me/{$QUERY_STREAM_ID}/topics")
     suspend fun getTopics(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Path(QUERY_STREAM_ID) streamId: Long,
     ): Response<TopicsResponse>
 
     @GET("messages")
     suspend fun getMessages(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Query(QUERY_NUM_BEFORE) numBefore: Int = DEFAULT_NUM_BEFORE,
         @Query(QUERY_NUM_AFTER) numAfter: Int = DEFAULT_NUM_AFTER,
         @Query(QUERY_ANCHOR) anchor: String = ANCHOR_FIRST_UNREAD,
@@ -74,27 +60,23 @@ interface ZulipApiService {
 
     @GET("messages/{$QUERY_MESSAGE_ID}")
     suspend fun getSingleMessage(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Path(QUERY_MESSAGE_ID) messageId: Long,
     ): Response<SingleMessageResponse>
 
     @POST("messages/{$QUERY_MESSAGE_ID}/reactions")
     suspend fun addReaction(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Path(QUERY_MESSAGE_ID) messageId: Long,
         @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): Response<BasicResponse>
 
     @DELETE("messages/{$QUERY_MESSAGE_ID}/reactions")
     suspend fun removeReaction(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Path(QUERY_MESSAGE_ID) messageId: Long,
         @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): Response<BasicResponse>
 
     @POST("messages")
     suspend fun sendMessageToStream(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Query(QUERY_TO) streamId: Long,
         @Query(QUERY_TOPIC) topic: String,
         @Query(QUERY_CONTENT) content: String,
@@ -103,7 +85,6 @@ interface ZulipApiService {
 
     @POST("register")
     suspend fun registerEventQueue(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = false,
@@ -111,24 +92,20 @@ interface ZulipApiService {
 
     @DELETE("events")
     suspend fun deleteEventQueue(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
         @Query(QUERY_QUEUE_ID) queueId: String,
     ): Response<BasicResponse>
 
     @GET("events")
-    suspend fun getPresenceEventsFromQueue(
-        @Header(HEADER_AUTHORIZATION) authHeader: String,
+    suspend fun getEventsFromQueue(
         @Query(QUERY_QUEUE_ID) queueId: String,
         @Query(QUERY_LAST_EVENT_ID) lastEventId: Long,
-    ): Response<PresenceEventResponse>
+    ): Response<ResponseBody>
 
     companion object {
 
         const val ANCHOR_NEWEST = "newest"
         const val ANCHOR_OLDEST = "oldest"
         const val ANCHOR_FIRST_UNREAD = "first_unread"
-
-        private const val HEADER_AUTHORIZATION = "Authorization"
 
         private const val QUERY_USER_ID = "user_id"
         private const val QUERY_NARROW = "narrow"

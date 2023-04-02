@@ -1,5 +1,8 @@
 package com.spinoza.messenger_tfs.data.repository
 
+import com.spinoza.messenger_tfs.data.listToDomain
+import com.spinoza.messenger_tfs.data.model.event.PresenceEventsResponse
+import com.spinoza.messenger_tfs.data.model.event.StreamEventsResponse
 import com.spinoza.messenger_tfs.data.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.model.message.NarrowItemDto
 import com.spinoza.messenger_tfs.data.model.message.ReactionDto
@@ -11,12 +14,16 @@ import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.data.toDomain
 import com.spinoza.messenger_tfs.data.toUserDto
 import com.spinoza.messenger_tfs.domain.model.*
-import com.spinoza.messenger_tfs.domain.repository.*
+import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
+import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
+import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.Credentials
 import retrofit2.Response
 
 
@@ -27,8 +34,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     private var ownUser: UserDto = UserDto()
     private var isOwnUserLoaded = false
-    private val authHeader = Credentials.basic(CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD)
     private val apiService = ZulipApiFactory.apiService
+    private val jsonConverter = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
 
     override suspend fun getOwnUserId(): RepositoryResult<Long> {
         return if (isOwnUserLoaded) {
@@ -46,7 +56,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun getOwnUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
         runCatching {
-            val response = apiService.getOwnUser(authHeader)
+            val response = apiService.getOwnUser()
             when (response.isSuccessful) {
                 true -> {
                     val ownResponseDto = response.getBodyOrThrow()
@@ -69,7 +79,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getUser(userId: Long): RepositoryResult<User> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val response = apiService.getUser(authHeader, userId)
+                val response = apiService.getUser(userId)
                 when (response.isSuccessful) {
                     true -> {
                         val userResponseDto = response.getBodyOrThrow()
@@ -94,7 +104,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val usersResponse = apiService.getAllUsers(authHeader)
+                val usersResponse = apiService.getAllUsers()
                 when (usersResponse.isSuccessful) {
                     true ->
                         handleGetUsersByFilterResult(usersResponse.getBodyOrThrow(), usersFilter)
@@ -110,7 +120,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         usersFilter: String,
     ) = when (allUsersResponse.result) {
         RESULT_SUCCESS -> {
-            val presencesResponse = apiService.getAllPresences(authHeader)
+            val presencesResponse = apiService.getAllPresences()
             when (presencesResponse.isSuccessful) {
                 true -> makeAllUsersAnswer(
                     usersFilter,
@@ -129,7 +139,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
         runCatching {
             val response =
-                apiService.getMessages(authHeader, narrow = messagesFilter.createNarrow())
+                apiService.getMessages(narrow = messagesFilter.createNarrow())
             when (response.isSuccessful) {
                 true ->
                     handleGetMessagesResult(response.getBodyOrThrow(), messageId, messagesFilter)
@@ -179,7 +189,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             var streamsList: List<StreamDto> = emptyList()
             var errorMsg = ""
             if (channelsFilter.isSubscribed) {
-                val response = apiService.getSubscribedStreams(authHeader)
+                val response = apiService.getSubscribedStreams()
                 if (response.isSuccessful) {
                     val subscribedStreamsDto = response.getBodyOrThrow()
                     if (subscribedStreamsDto.result == RESULT_SUCCESS) {
@@ -191,7 +201,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                     errorMsg = response.message()
                 }
             } else {
-                val response = apiService.getAllStreams(authHeader)
+                val response = apiService.getAllStreams()
                 if (response.isSuccessful) {
                     val allStreamsDto = response.getBodyOrThrow()
                     if (allStreamsDto.result == RESULT_SUCCESS) {
@@ -216,7 +226,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val response = apiService.getTopics(authHeader, channel.channelId)
+                val response = apiService.getTopics(channel.channelId)
                 when (response.isSuccessful) {
                     true -> {
                         val topicsResponseDto = response.getBodyOrThrow()
@@ -266,7 +276,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.sendMessageToStream(
-                authHeader,
                 messagesFilter.channel.channelId,
                 messagesFilter.topic.name,
                 content
@@ -295,7 +304,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
         runCatching {
-            val response = apiService.getSingleMessage(authHeader, messageId)
+            val response = apiService.getSingleMessage(messageId)
             when (response.isSuccessful) {
                 true -> {
                     val singleMessageResponseDto = response.getBodyOrThrow()
@@ -319,19 +328,22 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
-    override suspend fun registerPresenceEventQueue(): RepositoryResult<PresenceQueue> =
+    override suspend fun registerEventQueue(eventType: EventType): RepositoryResult<EventsQueue> =
         withContext(Dispatchers.IO) {
             runCatching {
+                val eventTypeString = when (eventType) {
+                    EventType.PRESENCE -> EVENT_TYPE_PRESENCE
+                    EventType.CHANNEL -> EVENT_TYPE_STREAM
+                }
                 val response = apiService.registerEventQueue(
-                    authHeader,
-                    eventTypes = Json.encodeToString(listOf(EVENT_TYPE_PRESENCE))
+                    eventTypes = Json.encodeToString(listOf(eventTypeString))
                 )
                 when (response.isSuccessful) {
                     true -> {
                         val registerResponse = response.getBodyOrThrow()
                         when (registerResponse.result) {
                             RESULT_SUCCESS -> RepositoryResult.Success(
-                                PresenceQueue(
+                                EventsQueue(
                                     registerResponse.queueId,
                                     registerResponse.lastEventId
                                 )
@@ -348,38 +360,65 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             }
         }
 
-    override suspend fun getPresenceEvents(queue: PresenceQueue): RepositoryResult<List<PresenceEvent>> =
+    override suspend fun deleteEventQueue(queueId: String) {
         withContext(Dispatchers.IO) {
             runCatching {
-                val response =
-                    apiService.getPresenceEventsFromQueue(
-                        authHeader,
-                        queue.queueId,
-                        queue.lastEventId
-                    )
-                when (response.isSuccessful) {
-                    true -> {
-                        val eventResponse = response.getBodyOrThrow()
-                        when (eventResponse.result) {
-                            RESULT_SUCCESS -> RepositoryResult.Success(
-                                eventResponse.events.toDomain()
+                apiService.deleteEventQueue(queueId)
+            }
+        }
+    }
+
+    private suspend inline fun <reified R> getEvents(
+        queue: EventsQueue,
+        eventType: EventType,
+    ): RepositoryResult<R> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
+            when (response.isSuccessful) {
+                true -> {
+                    val eventResponseBody = response.getBodyOrThrow()
+                    when (eventType) {
+                        EventType.PRESENCE -> {
+                            val eventResponse = jsonConverter.decodeFromString(
+                                PresenceEventsResponse.serializer(),
+                                eventResponseBody.string()
                             )
-                            else -> RepositoryResult.Failure.GetPresenceEvent(eventResponse.msg)
+                            when (eventResponse.result) {
+                                RESULT_SUCCESS -> RepositoryResult.Success(
+                                    eventResponse.events.toDomain() as R
+                                )
+                                else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
+                            }
+                        }
+                        EventType.CHANNEL -> {
+                            val eventResponse = jsonConverter.decodeFromString(
+                                StreamEventsResponse.serializer(),
+                                eventResponseBody.string()
+                            )
+                            when (eventResponse.result) {
+                                RESULT_SUCCESS -> RepositoryResult.Success(
+                                    eventResponse.events.listToDomain() as R
+                                )
+                                else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
+                            }
                         }
                     }
-                    false -> RepositoryResult.Failure.RegisterPresenceEventQueue(response.message())
                 }
-            }.getOrElse {
-                RepositoryResult.Failure.Network(getErrorText(it))
+                false -> RepositoryResult.Failure.GetEvents(response.message())
             }
+        }.getOrElse {
+            RepositoryResult.Failure.Network(getErrorText(it))
         }
+    }
 
-    override suspend fun deletePresenceEventQueue(queueId: String) {
-        withContext(Dispatchers.IO) {
-            runCatching {
-                apiService.deleteEventQueue(authHeader, queueId)
-            }
-        }
+    override suspend fun getPresenceEvents(
+        queue: EventsQueue,
+    ): RepositoryResult<List<PresenceEvent>> {
+        return getEvents(queue, EventType.PRESENCE)
+    }
+
+    override suspend fun getChannelEvents(queue: EventsQueue): RepositoryResult<List<ChannelEvent>> {
+        return getEvents(queue, EventType.CHANNEL)
     }
 
     private suspend fun updateReaction(
@@ -392,9 +431,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             it.emoji_name == emoji.name && it.user_id == ownUser.userId
         }
         val response = if (isAddReaction) {
-            apiService.addReaction(authHeader, messageId, emoji.name)
+            apiService.addReaction(messageId, emoji.name)
         } else {
-            apiService.removeReaction(authHeader, messageId, emoji.name)
+            apiService.removeReaction(messageId, emoji.name)
         }
         when (response.isSuccessful) {
             true -> {
@@ -411,7 +450,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     private suspend fun getUserPresence(userId: Long): User.Presence = runCatching {
-        val response = apiService.getUserPresence(authHeader, userId)
+        val response = apiService.getUserPresence(userId)
         when (response.isSuccessful) {
             true -> {
                 val presenceResponseDto = response.getBodyOrThrow()
@@ -473,13 +512,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         private const val RESULT_SUCCESS = "success"
         private const val OPERATOR_STREAM = "stream"
         private const val OPERATOR_TOPIC = "topic"
+
         private const val EVENT_TYPE_PRESENCE = "presence"
-
-        // "spinoza0@gmail.com"
-        private const val CREDENTIALS_USERNAME = "ivan.sintyurin@gmail.com"
-
-        // "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH"
-        private const val CREDENTIALS_PASSWORD = "RaINyfjtFHz8KEUFXtXzxPcVVRjaDdrm"
+        private const val EVENT_TYPE_STREAM = "stream"
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit

@@ -14,9 +14,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
-import com.spinoza.messenger_tfs.domain.usecase.GetChannelsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetTopicUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
@@ -45,6 +43,9 @@ class ChannelsPageFragment : Fragment() {
             GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
             GetChannelsUseCase(MessagesRepositoryImpl.getInstance()),
             GetTopicUseCase(MessagesRepositoryImpl.getInstance()),
+            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            DeletePresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            GetChannelEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
     private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()

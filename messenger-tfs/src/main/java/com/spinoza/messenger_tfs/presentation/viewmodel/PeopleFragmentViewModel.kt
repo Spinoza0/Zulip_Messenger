@@ -3,19 +3,20 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.repository.PresenceQueue
+import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.DeletePresenceEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
-import com.spinoza.messenger_tfs.domain.usecase.RegisterPresenceEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 class PeopleFragmentViewModel(
     private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
-    private val registerPresenceEventQueueUseCase: RegisterPresenceEventQueueUseCase,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) :
@@ -29,7 +30,7 @@ class PeopleFragmentViewModel(
         MutableStateFlow<PeopleScreenState>(PeopleScreenState.Start)
     private val searchQueryState = MutableSharedFlow<String>()
     private var isFirstLoading = true
-    private var presenceQueue = PresenceQueue()
+    private var eventsQueue = EventsQueue()
     private var usersCache = mutableListOf<User>()
 
     init {
@@ -82,9 +83,9 @@ class PeopleFragmentViewModel(
 
     private fun registerEventQueue() {
         viewModelScope.launch {
-            when (val queueResult = registerPresenceEventQueueUseCase()) {
+            when (val queueResult = registerEventQueueUseCase(EventType.PRESENCE)) {
                 is RepositoryResult.Success -> {
-                    presenceQueue = queueResult.value
+                    eventsQueue = queueResult.value
                     handleOnSuccessQueueRegistration()
                 }
                 is RepositoryResult.Failure -> handleErrors(queueResult)
@@ -96,11 +97,11 @@ class PeopleFragmentViewModel(
         viewModelScope.launch {
             while (true) {
                 delay(DELAY_BEFORE_UPDATE_INFO)
-                val eventResult = getPresenceEventsUseCase(presenceQueue)
+                val eventResult = getPresenceEventsUseCase(eventsQueue)
                 if (eventResult is RepositoryResult.Success) {
                     var isListChanged = false
                     eventResult.value.forEach { event ->
-                        presenceQueue.lastEventId = event.id
+                        eventsQueue.lastEventId = event.id
                         val index = usersCache.indexOfFirst { it.userId == event.userId }
                         if (index != INDEX_NOT_FOUND) {
                             usersCache[index] = usersCache[index].copy(presence = event.presence)
@@ -126,7 +127,7 @@ class PeopleFragmentViewModel(
 
     private fun setLoadingStateWithDelay(): Job {
         return viewModelScope.launch {
-            delay(DELAY_BEFORE_SET_STATE)
+            delay(DELAY_BEFORE_SHOW_SHIMMER)
             _state.emit(PeopleScreenState.Loading)
         }
     }
@@ -134,14 +135,14 @@ class PeopleFragmentViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
-            deletePresenceEventQueueUseCase(presenceQueue.queueId)
+            deletePresenceEventQueueUseCase(eventsQueue.queueId)
         }
     }
 
     private companion object {
 
         const val DURATION_MILLIS = 300L
-        const val DELAY_BEFORE_SET_STATE = 200L
+        const val DELAY_BEFORE_SHOW_SHIMMER = 200L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val INDEX_NOT_FOUND = -1
     }

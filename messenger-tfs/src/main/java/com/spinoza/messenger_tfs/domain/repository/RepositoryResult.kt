@@ -14,7 +14,7 @@ sealed class RepositoryResult<out T> {
 
         class RegisterPresenceEventQueue(val value: String) : Failure()
 
-        class GetPresenceEvent(val value: String) : Failure()
+        class GetEvents(val value: String) : Failure()
 
         class OwnUserNotFound(val value: String) : Failure()
 
