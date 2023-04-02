@@ -45,11 +45,14 @@ class MessagesFragment : Fragment() {
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
+            messagesFilter,
             GetOwnUserIdUseCase(MessagesRepositoryImpl.getInstance()),
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            messagesFilter
+            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            GetMessageEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
 

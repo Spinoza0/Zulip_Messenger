@@ -14,7 +14,7 @@ import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
-import com.spinoza.messenger_tfs.domain.usecase.DeletePresenceEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
@@ -40,7 +40,7 @@ class PeopleFragment : Fragment() {
         PeopleFragmentViewModelFactory(
             GetUsersByFilterUseCase(MessagesRepositoryImpl.getInstance()),
             RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            DeletePresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             GetPresenceEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }

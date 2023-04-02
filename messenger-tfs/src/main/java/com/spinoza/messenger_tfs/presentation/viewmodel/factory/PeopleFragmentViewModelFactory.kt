@@ -9,7 +9,7 @@ import com.spinoza.messenger_tfs.presentation.viewmodel.PeopleFragmentViewModel
 class PeopleFragmentViewModelFactory(
     private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModelProvider.Factory {
 
@@ -17,7 +17,7 @@ class PeopleFragmentViewModelFactory(
         return PeopleFragmentViewModel(
             getUsersByFilterUseCase,
             registerEventQueueUseCase,
-            deletePresenceEventQueueUseCase,
+            deleteEventQueueUseCase,
             getPresenceEventsUseCase
         ) as T
     }

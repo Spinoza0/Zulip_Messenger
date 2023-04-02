@@ -6,7 +6,7 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.usecase.DeletePresenceEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.*
 class PeopleFragmentViewModel(
     private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) :
     ViewModel() {
@@ -135,7 +135,7 @@ class PeopleFragmentViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
-            deletePresenceEventQueueUseCase(eventsQueue.queueId)
+            deleteEventQueueUseCase(eventsQueue.queueId)
         }
     }
 

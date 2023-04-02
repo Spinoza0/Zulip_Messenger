@@ -9,6 +9,10 @@ class MessagesCache {
 
     private val data = TreeSet<MessageDto>()
 
+    fun add(messageDto: MessageDto) {
+        data.add(messageDto)
+    }
+
     fun addAll(messagesDto: List<MessageDto>) {
         data.addAll(messagesDto)
     }

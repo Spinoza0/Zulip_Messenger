@@ -44,7 +44,7 @@ class ChannelsPageFragment : Fragment() {
             GetChannelsUseCase(MessagesRepositoryImpl.getInstance()),
             GetTopicUseCase(MessagesRepositoryImpl.getInstance()),
             RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            DeletePresenceEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             GetChannelEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }

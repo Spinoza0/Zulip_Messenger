@@ -1,18 +1,21 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.data.*
+import com.spinoza.messenger_tfs.data.listToDomain
 import com.spinoza.messenger_tfs.data.model.event.*
-import com.spinoza.messenger_tfs.data.model.message.*
+import com.spinoza.messenger_tfs.data.model.message.MessagesResponse
+import com.spinoza.messenger_tfs.data.model.message.NarrowItemDto
+import com.spinoza.messenger_tfs.data.model.message.NarrowOperator
+import com.spinoza.messenger_tfs.data.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
+import com.spinoza.messenger_tfs.data.toDomain
+import com.spinoza.messenger_tfs.data.toStringsList
+import com.spinoza.messenger_tfs.data.toUserDto
 import com.spinoza.messenger_tfs.domain.model.*
-import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
-import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
-import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
+import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import kotlinx.coroutines.Dispatchers
@@ -324,12 +327,38 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getMessageEvents(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
-    ): RepositoryResult<List<Message>> {
-        val messages: RepositoryResult<List<MessageDto>> = getEvents(queue, EventType.MESSAGE)
-        val reactions: RepositoryResult<List<ReactionEventDto>> =
+    ): RepositoryResult<MessageEvent> {
+        val messageEventsResult: RepositoryResult<List<MessageEventDto>> =
+            getEvents(queue, EventType.MESSAGE)
+        val reactionEventsResult: RepositoryResult<List<ReactionEventDto>> =
             getEvents(queue, EventType.REACTION)
-
-        TODO()
+        var lastEventId = UNDEFINED_EVENT_ID
+        var isSuccess = false
+        if (messageEventsResult is RepositoryResult.Success) {
+            messageEventsResult.value.forEach {
+                messagesCache.add(it.message)
+                lastEventId = it.id
+            }
+            isSuccess = true
+        }
+        if (reactionEventsResult is RepositoryResult.Success) {
+            // TODO
+            lastEventId = maxOf(lastEventId, reactionEventsResult.value.last().id)
+            isSuccess = true
+        }
+        return if (isSuccess) {
+            RepositoryResult.Success(
+                MessageEvent(
+                    lastEventId,
+                    MessagesResult(
+                        messagesCache.getMessages(messagesFilter).toDomain(ownUser.userId),
+                        MessagePosition()
+                    )
+                )
+            )
+        } else {
+            RepositoryResult.Failure.GetEvents("")
+        }
     }
 
     private suspend fun handleGetUsersByFilterResult(
@@ -544,6 +573,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     companion object {
 
         private const val RESULT_SUCCESS = "success"
+        private const val UNDEFINED_EVENT_ID = -1L
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit

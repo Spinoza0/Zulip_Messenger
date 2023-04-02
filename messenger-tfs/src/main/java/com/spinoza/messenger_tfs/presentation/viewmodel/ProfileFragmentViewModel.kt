@@ -19,7 +19,7 @@ class ProfileFragmentViewModel(
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModel() {
 
@@ -105,7 +105,7 @@ class ProfileFragmentViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
-            deletePresenceEventQueueUseCase(eventsQueue.queueId)
+            deleteEventQueueUseCase(eventsQueue.queueId)
         }
     }
 

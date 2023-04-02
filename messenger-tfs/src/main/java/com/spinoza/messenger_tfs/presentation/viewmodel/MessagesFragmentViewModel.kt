@@ -3,16 +3,12 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.Emoji
-import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.domain.model.MessagesResult
+import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
+import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserIdUseCase
-import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
-import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
@@ -24,11 +20,14 @@ import kotlinx.coroutines.flow.*
 import java.util.*
 
 class MessagesFragmentViewModel(
+    private val messagesFilter: MessagesFilter,
     private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
-    private val messagesFilter: MessagesFilter,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    private val getMessageEventsUseCase: GetMessageEventsUseCase,
 ) : ViewModel() {
 
     val state: SharedFlow<MessagesScreenState>
@@ -37,6 +36,7 @@ class MessagesFragmentViewModel(
     private val _state =
         MutableSharedFlow<MessagesScreenState>(replay = 10)
     private val newMessageFieldState = MutableSharedFlow<String>()
+    private var eventsQueue = EventsQueue()
 
     init {
         loadMessages()
@@ -89,8 +89,8 @@ class MessagesFragmentViewModel(
         viewModelScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             val result = getMessagesUseCase(messagesFilter)
-            handleRepositoryResult(result)
             setLoadingState.cancel()
+            handleRepositoryResult(result)
         }
     }
 
@@ -98,18 +98,59 @@ class MessagesFragmentViewModel(
         when (result) {
             is RepositoryResult.Success -> withContext(Dispatchers.Default) {
                 when (val userIdResult = getOwnUserIdUseCase()) {
-                    is RepositoryResult.Success -> _state.emit(
-                        MessagesScreenState.Messages(
-                            MessagesResultDelegate(
-                                result.value.messages.groupByDate(userIdResult.value),
-                                result.value.position
-                            )
-                        )
-                    )
+                    is RepositoryResult.Success -> {
+                        handleSuccessMessagesResult(result.value, userIdResult.value)
+                        registerEventQueue()
+                    }
                     is RepositoryResult.Failure -> handleErrors(userIdResult)
                 }
             }
             is RepositoryResult.Failure -> handleErrors(result)
+        }
+    }
+
+    private suspend fun handleSuccessMessagesResult(
+        messagesResult: MessagesResult,
+        userId: Long,
+    ) {
+        _state.emit(
+            MessagesScreenState.Messages(
+                MessagesResultDelegate(
+                    messagesResult.messages.groupByDate(userId),
+                    messagesResult.position
+                )
+            )
+        )
+    }
+
+    private fun registerEventQueue() {
+        viewModelScope.launch {
+            when (val queueResult =
+                registerEventQueueUseCase(listOf(EventType.MESSAGE, EventType.REACTION))) {
+                is RepositoryResult.Success -> {
+                    eventsQueue = queueResult.value
+                    handleOnSuccessQueueRegistration()
+                }
+                is RepositoryResult.Failure -> handleErrors(queueResult)
+            }
+        }
+    }
+
+    private suspend fun handleOnSuccessQueueRegistration() {
+        while (true) {
+            delay(DELAY_BEFORE_UPDATE_INFO)
+            val eventResult = getMessageEventsUseCase(eventsQueue, messagesFilter)
+            if (eventResult is RepositoryResult.Success) {
+                handleEvent(eventResult.value)
+            }
+        }
+    }
+
+    private suspend fun handleEvent(messageEvent: MessageEvent) {
+        val userIdResult = getOwnUserIdUseCase()
+        if (userIdResult is RepositoryResult.Success) {
+            eventsQueue = eventsQueue.copy(lastEventId = messageEvent.lastEventId)
+            handleSuccessMessagesResult(messageEvent.messagesResult, userIdResult.value)
         }
     }
 
@@ -170,8 +211,16 @@ class MessagesFragmentViewModel(
         return messageAdapterItemList
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        viewModelScope.launch {
+            deleteEventQueueUseCase(eventsQueue.queueId)
+        }
+    }
+
     private companion object {
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
+        const val DELAY_BEFORE_UPDATE_INFO = 100L
     }
 }

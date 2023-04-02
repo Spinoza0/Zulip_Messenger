@@ -12,7 +12,7 @@ class ChannelsPageFragmentViewModelFactory(
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
 ) : ViewModelProvider.Factory {
 
@@ -23,7 +23,7 @@ class ChannelsPageFragmentViewModelFactory(
             getChannelsUseCase,
             getTopicUseCase,
             registerEventQueueUseCase,
-            deletePresenceEventQueueUseCase,
+            deleteEventQueueUseCase,
             getChannelEventsUseCase
         ) as T
     }

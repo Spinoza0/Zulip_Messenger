@@ -32,7 +32,7 @@ class ChannelsPageFragmentViewModel(
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
 ) : ViewModel() {
 
@@ -54,7 +54,7 @@ class ChannelsPageFragmentViewModel(
         super.onCleared()
         cache.clear()
         viewModelScope.launch {
-            deletePresenceEventQueueUseCase(eventsQueue.queueId)
+            deleteEventQueueUseCase(eventsQueue.queueId)
         }
     }
 

@@ -10,7 +10,7 @@ class ProfileFragmentViewModelFactory(
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deletePresenceEventQueueUseCase: DeletePresenceEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModelProvider.Factory {
 
@@ -19,7 +19,7 @@ class ProfileFragmentViewModelFactory(
             getOwnUserUseCase,
             getUserUseCase,
             registerEventQueueUseCase,
-            deletePresenceEventQueueUseCase,
+            deleteEventQueueUseCase,
             getPresenceEventsUseCase
         ) as T
     }
