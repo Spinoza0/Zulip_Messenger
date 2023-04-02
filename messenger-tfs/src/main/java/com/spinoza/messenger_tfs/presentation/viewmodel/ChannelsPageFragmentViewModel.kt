@@ -185,7 +185,7 @@ class ChannelsPageFragmentViewModel(
                         .filter { it.operation != ChannelEvent.Operation.DELETE }
                         .filter { !channels.contains(it.channel) }
                         .forEach { channels.add(it.channel) }
-                    eventsQueue.lastEventId = eventResult.value.last().id
+                    eventsQueue = eventsQueue.copy(lastEventId = eventResult.value.last().id)
                     updateCacheWithShowedTopicsSaving(channels.toDelegateItem(isAllChannels))
                     _state.emit(ChannelsPageScreenState.Items(cache.toList()))
                 }

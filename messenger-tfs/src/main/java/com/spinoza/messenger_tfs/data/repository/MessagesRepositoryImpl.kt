@@ -1,12 +1,8 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.listToDomain
-import com.spinoza.messenger_tfs.data.model.event.PresenceEventsResponse
-import com.spinoza.messenger_tfs.data.model.event.StreamEventsResponse
-import com.spinoza.messenger_tfs.data.model.message.MessagesResponse
-import com.spinoza.messenger_tfs.data.model.message.NarrowItemDto
-import com.spinoza.messenger_tfs.data.model.message.NarrowOperator
-import com.spinoza.messenger_tfs.data.model.message.ReactionDto
+import com.spinoza.messenger_tfs.data.model.event.*
+import com.spinoza.messenger_tfs.data.model.message.*
 import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.model.user.AllUsersResponse
@@ -331,7 +327,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<List<Message>> {
-        TODO("Not yet implemented")
+        val messages: RepositoryResult<List<MessageDto>> = getEvents(queue, EventType.MESSAGE)
+        val reactions: RepositoryResult<List<ReactionEventDto>> =
+            getEvents(queue, EventType.REACTION)
+
+        TODO()
     }
 
     private suspend fun handleGetUsersByFilterResult(
@@ -395,7 +395,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     private suspend inline fun <reified R> getEvents(
         queue: EventsQueue,
         eventType: EventType,
-        messagesFilter: MessagesFilter = MessagesFilter(),
     ): RepositoryResult<R> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
@@ -428,10 +427,26 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                             }
                         }
                         EventType.MESSAGE -> {
-                            TODO()
+                            val eventResponse = jsonConverter.decodeFromString(
+                                MessageEventsResponse.serializer(),
+                                eventResponseBody.string()
+                            )
+                            when (eventResponse.result) {
+                                RESULT_SUCCESS ->
+                                    RepositoryResult.Success(eventResponse.events as R)
+                                else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
+                            }
                         }
                         EventType.REACTION -> {
-                            TODO()
+                            val eventResponse = jsonConverter.decodeFromString(
+                                ReactionEventsResponse.serializer(),
+                                eventResponseBody.string()
+                            )
+                            when (eventResponse.result) {
+                                RESULT_SUCCESS ->
+                                    RepositoryResult.Success(eventResponse.events as R)
+                                else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
+                            }
                         }
                     }
                 }

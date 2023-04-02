@@ -74,7 +74,7 @@ class ProfileFragmentViewModel(
                 val eventResult = getPresenceEventsUseCase(eventsQueue)
                 if (eventResult is RepositoryResult.Success) {
                     eventResult.value.forEach { event ->
-                        eventsQueue.lastEventId = event.id
+                        eventsQueue = eventsQueue.copy(lastEventId = event.id)
                         if (user.userId == event.userId) {
                             _state.emit(ProfileScreenState.Presence(event.presence))
                         }

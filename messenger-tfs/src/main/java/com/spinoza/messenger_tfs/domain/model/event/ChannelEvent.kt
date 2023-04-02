@@ -7,8 +7,9 @@ data class ChannelEvent(
     val operation: Operation,
     val channel: Channel,
 ) {
-    enum class Operation {
-        CREATE,
-        DELETE
+
+    enum class Operation(val value: String) {
+        CREATE("create"),
+        DELETE("delete")
     }
 }

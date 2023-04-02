@@ -130,7 +130,7 @@ private fun EventType.toDto(): EventTypeDto = when (this) {
 
 private fun StreamEventDto.toDomain(streamDto: StreamDto): ChannelEvent {
     val operation =
-        if (operation == OPERATION_DELETE) ChannelEvent.Operation.DELETE
+        if (operation == ChannelEvent.Operation.DELETE.value) ChannelEvent.Operation.DELETE
         else ChannelEvent.Operation.CREATE
     return ChannelEvent(id, operation, streamDto.toDomain())
 }
@@ -179,6 +179,5 @@ private enum class PresenceTypeDto(val value: String) {
 }
 
 private const val DATE_FORMAT = "dd.MM.yyyy"
-private const val OPERATION_DELETE = "delete"
 private const val MILLIS_IN_SECOND = 1000L
 private const val SECONDS_IN_DAY = 24 * 60 * 60

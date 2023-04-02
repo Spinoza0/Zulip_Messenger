@@ -101,7 +101,7 @@ class PeopleFragmentViewModel(
                 if (eventResult is RepositoryResult.Success) {
                     var isListChanged = false
                     eventResult.value.forEach { event ->
-                        eventsQueue.lastEventId = event.id
+                        eventsQueue = eventsQueue.copy(lastEventId = event.id)
                         val index = usersCache.indexOfFirst { it.userId == event.userId }
                         if (index != INDEX_NOT_FOUND) {
                             usersCache[index] = usersCache[index].copy(presence = event.presence)
