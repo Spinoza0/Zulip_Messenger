@@ -7,7 +7,7 @@ import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
 class RegisterEventQueueUseCase(private val repository: MessagesRepository) {
 
-    suspend operator fun invoke(eventType: EventType): RepositoryResult<EventsQueue> {
-        return repository.registerEventQueue(eventType)
+    suspend operator fun invoke(eventTypes: List<EventType>): RepositoryResult<EventsQueue> {
+        return repository.registerEventQueue(eventTypes)
     }
 }

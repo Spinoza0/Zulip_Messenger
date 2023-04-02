@@ -83,7 +83,7 @@ class PeopleFragmentViewModel(
 
     private fun registerEventQueue() {
         viewModelScope.launch {
-            when (val queueResult = registerEventQueueUseCase(EventType.PRESENCE)) {
+            when (val queueResult = registerEventQueueUseCase(listOf(EventType.PRESENCE))) {
                 is RepositoryResult.Success -> {
                     eventsQueue = queueResult.value
                     handleOnSuccessQueueRegistration()

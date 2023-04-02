@@ -38,11 +38,16 @@ interface MessagesRepository {
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult>
 
-    suspend fun registerEventQueue(eventType: EventType): RepositoryResult<EventsQueue>
+    suspend fun registerEventQueue(eventTypes: List<EventType>): RepositoryResult<EventsQueue>
 
     suspend fun deleteEventQueue(queueId: String)
 
     suspend fun getPresenceEvents(queue: EventsQueue): RepositoryResult<List<PresenceEvent>>
 
     suspend fun getChannelEvents(queue: EventsQueue): RepositoryResult<List<ChannelEvent>>
+
+    suspend fun getMessageEvents(
+        queue: EventsQueue,
+        messagesFilter: MessagesFilter,
+    ): RepositoryResult<List<Message>>
 }

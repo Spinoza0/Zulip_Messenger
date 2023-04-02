@@ -82,14 +82,12 @@ class PeopleFragment : Fragment() {
     private fun handleState(state: PeopleScreenState) {
         if (state !is PeopleScreenState.Loading) {
             binding.shimmerLarge.off()
-            binding.shimmerSmall.off()
         }
         when (state) {
             is PeopleScreenState.Users ->
                 (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(state.value)
             is PeopleScreenState.Loading -> {
                 if (peopleListIsEmpty()) binding.shimmerLarge.on()
-                else binding.shimmerSmall.on()
             }
             is PeopleScreenState.Failure.LoadingUsers -> showError(
                 String.format(
@@ -112,7 +110,6 @@ class PeopleFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
-        binding.shimmerSmall.off()
     }
 
     override fun onDestroyView() {

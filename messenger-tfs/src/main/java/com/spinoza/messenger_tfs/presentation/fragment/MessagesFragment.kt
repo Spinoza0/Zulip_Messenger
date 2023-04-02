@@ -16,7 +16,6 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.*
-import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
@@ -142,11 +141,9 @@ class MessagesFragment : Fragment() {
     private fun handleState(state: MessagesScreenState) {
         if (state !is MessagesScreenState.Loading) {
             binding.shimmerLarge.off()
-            binding.shimmerSmall.off()
         }
         when (state) {
             is MessagesScreenState.Messages -> {
-                binding.shimmerSent.off()
                 submitMessages(state.value)
             }
             is MessagesScreenState.UpdateIconImage -> {
@@ -154,16 +151,12 @@ class MessagesFragment : Fragment() {
             }
             is MessagesScreenState.MessageSent -> {
                 binding.editTextMessage.text?.clear()
-                binding.shimmerSent.on()
             }
-            is MessagesScreenState.ReactionSent -> binding.shimmerSent.on()
+            is MessagesScreenState.ReactionSent -> {}
             is MessagesScreenState.Loading -> {
-                binding.shimmerSent.off()
                 if (messagesListIsEmpty()) binding.shimmerLarge.on()
-                else binding.shimmerSmall.on()
             }
             is MessagesScreenState.Failure -> {
-                binding.shimmerSent.off()
                 handleErrors(state)
             }
         }
@@ -264,8 +257,6 @@ class MessagesFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
-        binding.shimmerSmall.off()
-        binding.shimmerSent.off()
     }
 
     override fun onStop() {

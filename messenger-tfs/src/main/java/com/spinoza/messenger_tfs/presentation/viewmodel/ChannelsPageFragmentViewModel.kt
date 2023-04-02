@@ -152,7 +152,7 @@ class ChannelsPageFragmentViewModel(
 
     private fun registerEventQueue() {
         viewModelScope.launch {
-            when (val queueResult = registerEventQueueUseCase(EventType.CHANNEL)) {
+            when (val queueResult = registerEventQueueUseCase(listOf(EventType.CHANNEL))) {
                 is RepositoryResult.Success -> {
                     eventsQueue = queueResult.value
                     handleOnSuccessQueueRegistration()

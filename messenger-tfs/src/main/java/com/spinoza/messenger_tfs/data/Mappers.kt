@@ -109,9 +109,8 @@ fun List<PresenceEventDto>.toDomain(): List<PresenceEvent> {
     return map { it.toDomain() }
 }
 
-fun EventType.toDto(): EventTypeDto = when (this) {
-    EventType.PRESENCE -> EventTypeDto.PRESENCE
-    EventType.CHANNEL -> EventTypeDto.STREAM
+fun List<EventType>.toDto(): List<EventTypeDto> {
+    return map { it.toDto() }
 }
 
 fun List<StreamEventDto>.listToDomain(): List<ChannelEvent> {
@@ -120,6 +119,13 @@ fun List<StreamEventDto>.listToDomain(): List<ChannelEvent> {
         streamEventDto.streams.forEach { events.add(streamEventDto.toDomain(it)) }
     }
     return events
+}
+
+private fun EventType.toDto(): EventTypeDto = when (this) {
+    EventType.PRESENCE -> EventTypeDto.PRESENCE
+    EventType.CHANNEL -> EventTypeDto.STREAM
+    EventType.MESSAGE -> EventTypeDto.MESSAGE
+    EventType.REACTION -> EventTypeDto.REACTION
 }
 
 private fun StreamEventDto.toDomain(streamDto: StreamDto): ChannelEvent {
@@ -169,7 +175,7 @@ private fun StreamDto.toDomain(): Channel {
 private enum class PresenceTypeDto(val value: String) {
     ACTIVE("active"),
     IDLE("idle"),
-    OFFLINE("offline");
+    OFFLINE("offline")
 }
 
 private const val DATE_FORMAT = "dd.MM.yyyy"

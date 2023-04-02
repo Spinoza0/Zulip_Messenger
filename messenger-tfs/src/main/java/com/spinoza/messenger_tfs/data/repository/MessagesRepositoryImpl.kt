@@ -187,7 +187,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         val topicsResponseDto = response.getBodyOrThrow()
                         when (topicsResponseDto.result) {
                             RESULT_SUCCESS -> {
-                                val messagesFilter = MessagesFilter(channel, Topic("", 0))
+                                val messagesFilter = MessagesFilter(channel)
                                 updateMessagesCache(messagesFilter)
                                 RepositoryResult.Success(
                                     topicsResponseDto.topics.toDomain(
@@ -278,12 +278,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
-    override suspend fun registerEventQueue(eventType: EventType): RepositoryResult<EventsQueue> =
+    override suspend fun registerEventQueue(
+        eventTypes: List<EventType>,
+    ): RepositoryResult<EventsQueue> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val eventTypeString = eventType.toDto()
+                val eventTypesDto = eventTypes.toDto()
                 val response = apiService.registerEventQueue(
-                    eventTypes = Json.encodeToString(listOf(eventTypeString))
+                    eventTypes = Json.encodeToString(eventTypesDto)
                 )
                 when (response.isSuccessful) {
                     true -> {
@@ -323,6 +325,13 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun getChannelEvents(queue: EventsQueue): RepositoryResult<List<ChannelEvent>> {
         return getEvents(queue, EventType.CHANNEL)
+    }
+
+    override suspend fun getMessageEvents(
+        queue: EventsQueue,
+        messagesFilter: MessagesFilter,
+    ): RepositoryResult<List<Message>> {
+        TODO("Not yet implemented")
     }
 
     private suspend fun handleGetUsersByFilterResult(
@@ -386,6 +395,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     private suspend inline fun <reified R> getEvents(
         queue: EventsQueue,
         eventType: EventType,
+        messagesFilter: MessagesFilter = MessagesFilter(),
     ): RepositoryResult<R> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
@@ -416,6 +426,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                                 )
                                 else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
                             }
+                        }
+                        EventType.MESSAGE -> {
+                            TODO()
+                        }
+                        EventType.REACTION -> {
+                            TODO()
                         }
                     }
                 }

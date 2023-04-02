@@ -105,7 +105,6 @@ class ChannelsPageFragment : Fragment() {
     private fun handleState(state: ChannelsPageScreenState) {
         if (state !is ChannelsPageScreenState.Loading) {
             binding.shimmerLarge.off()
-            binding.shimmerSmall.off()
         }
         when (state) {
             is ChannelsPageScreenState.Items ->
@@ -116,7 +115,6 @@ class ChannelsPageFragment : Fragment() {
                     .submitList(state.value)
             is ChannelsPageScreenState.Loading -> {
                 if (channelsListIsEmpty()) binding.shimmerLarge.on()
-                else binding.shimmerSmall.on()
             }
             is ChannelsPageScreenState.Failure -> handleErrors(state)
         }
@@ -165,7 +163,6 @@ class ChannelsPageFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
-        binding.shimmerSmall.off()
     }
 
     override fun onDestroyView() {
