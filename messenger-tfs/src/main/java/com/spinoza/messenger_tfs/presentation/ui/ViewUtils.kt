@@ -7,10 +7,9 @@ import androidx.core.view.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
-import com.spinoza.messenger_tfs.databinding.ShimmerBinding
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 
 private const val MAX_DISTANCE = 10
 
@@ -84,18 +83,17 @@ fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Long) {
     }
 }
 
+fun RecyclerView.smoothScrollToLastPosition() {
+    val lastItemPosition = adapter?.itemCount?.minus(1)
+    if (lastItemPosition != null) {
+        smoothScrollToTargetPosition(lastItemPosition)
+    }
+}
+
 fun Context.getThemeColor(attr: Int): Int {
     val typedValue = TypedValue()
     this.theme.resolveAttribute(attr, typedValue, true)
     return typedValue.data
-}
-
-fun ShimmerBinding.on() {
-    shimmer.on()
-}
-
-fun ShimmerBinding.off() {
-    shimmer.off()
 }
 
 fun ShimmerFrameLayout.on() {

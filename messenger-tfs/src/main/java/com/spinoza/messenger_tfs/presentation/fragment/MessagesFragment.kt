@@ -5,12 +5,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
@@ -114,9 +117,14 @@ class MessagesFragment : Fragment() {
             )
             addDelegate(DateDelegate())
         }
-
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
+        binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                showArrowDown()
+            }
+        })
     }
 
     private fun setupObservers() {
@@ -131,13 +139,14 @@ class MessagesFragment : Fragment() {
         binding.toolbar.setNavigationOnClickListener {
             goBack()
         }
-
         binding.imageViewAction.setOnClickListener {
             viewModel.sendMessage(binding.editTextMessage.text.toString())
         }
-
         binding.editTextMessage.doOnTextChanged { text, _, _, _ ->
             viewModel.doOnTextChanged(text)
+        }
+        binding.imageViewArrow.setOnClickListener {
+            binding.recyclerViewMessages.smoothScrollToLastPosition()
         }
     }
 
@@ -203,10 +212,8 @@ class MessagesFragment : Fragment() {
             binding.recyclerViewMessages.adapter as MainDelegateAdapter
         messagesAdapter.submitList(result.messages) {
             when (result.position.type) {
-                MessagePosition.Type.LAST_POSITION -> {
-                    val lastItemPosition = messagesAdapter.itemCount - 1
-                    binding.recyclerViewMessages.smoothScrollToPosition(lastItemPosition)
-                }
+                MessagePosition.Type.LAST_POSITION ->
+                    binding.recyclerViewMessages.smoothScrollToLastPosition()
                 MessagePosition.Type.EXACTLY -> {
                     binding.recyclerViewMessages.smoothScrollToChangedMessage(
                         result.position.messageId
@@ -214,7 +221,16 @@ class MessagesFragment : Fragment() {
                 }
                 MessagePosition.Type.UNDEFINED -> {}
             }
+            showArrowDown()
         }
+    }
+
+    private fun showArrowDown() {
+        val layoutManager = binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+        val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+        val lastItemPosition = binding.recyclerViewMessages.adapter?.itemCount?.minus(1)
+        binding.imageViewArrow.isVisible =
+            lastItemPosition != null && lastVisibleItemPosition < lastItemPosition
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
