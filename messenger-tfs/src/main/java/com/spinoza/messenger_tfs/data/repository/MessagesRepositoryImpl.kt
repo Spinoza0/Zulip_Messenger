@@ -2,10 +2,7 @@ package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.listToDomain
 import com.spinoza.messenger_tfs.data.model.event.*
-import com.spinoza.messenger_tfs.data.model.message.MessagesResponse
-import com.spinoza.messenger_tfs.data.model.message.NarrowItemDto
-import com.spinoza.messenger_tfs.data.model.message.NarrowOperator
-import com.spinoza.messenger_tfs.data.model.message.ReactionDto
+import com.spinoza.messenger_tfs.data.model.message.*
 import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.model.user.AllUsersResponse
@@ -186,7 +183,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun sendMessage(
         content: String,
         messagesFilter: MessagesFilter,
-    ): RepositoryResult<Long> = withContext(Dispatchers.IO) {
+    ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.sendMessageToStream(
                 messagesFilter.channel.channelId,
@@ -197,7 +194,34 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 true -> {
                     val sendMessageResponse = response.getBodyOrThrow()
                     when (sendMessageResponse.result) {
-                        RESULT_SUCCESS -> RepositoryResult.Success(sendMessageResponse.messageId)
+                        RESULT_SUCCESS -> {
+                            val messageDto = MessageDto(
+                                sendMessageResponse.messageId,
+                                messagesFilter.channel.channelId,
+                                ownUser.userId,
+                                content,
+                                "",
+                                0,
+                                System.currentTimeMillis() / MILLIS_IN_SECOND,
+                                messagesFilter.topic.name,
+                                false,
+                                emptyList(),
+                                ownUser.fullName,
+                                ownUser.email,
+                                ownUser.avatarUrl
+                            )
+                            messagesCache.add(messageDto)
+                            RepositoryResult.Success(
+                                MessagesResult(
+                                    messagesCache.getMessages(messagesFilter)
+                                        .toDomain(ownUser.userId),
+                                    MessagePosition(
+                                        MessagePosition.Type.LAST_POSITION,
+                                        sendMessageResponse.messageId
+                                    )
+                                )
+                            )
+                        }
                         else -> RepositoryResult.Failure.SendingMessage(sendMessageResponse.msg)
                     }
                 }
