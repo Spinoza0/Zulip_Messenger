@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.data
 
 import com.spinoza.messenger_tfs.data.model.event.EventTypeDto
 import com.spinoza.messenger_tfs.data.model.event.PresenceEventDto
+import com.spinoza.messenger_tfs.data.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.model.event.StreamEventDto
 import com.spinoza.messenger_tfs.data.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.model.message.ReactionDto
@@ -59,6 +60,15 @@ fun Emoji.toDto(userId: Long): ReactionDto {
         emojiCode = code,
         reactionType = ReactionDto.REACTION_TYPE_UNICODE_EMOJI,
         userId = userId
+    )
+}
+
+fun ReactionEventDto.toReactionDto(): ReactionDto {
+    return ReactionDto(
+        emoji_name,
+        emoji_code,
+        reaction_type,
+        userId
     )
 }
 
