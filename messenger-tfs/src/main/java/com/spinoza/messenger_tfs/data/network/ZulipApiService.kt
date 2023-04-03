@@ -56,7 +56,7 @@ interface ZulipApiService {
     suspend fun getMessages(
         @Query(QUERY_NUM_BEFORE) numBefore: Int = DEFAULT_NUM_BEFORE,
         @Query(QUERY_NUM_AFTER) numAfter: Int = DEFAULT_NUM_AFTER,
-        @Query(QUERY_ANCHOR) anchor: String = ANCHOR_FIRST_UNREAD,
+        @Query(QUERY_ANCHOR) anchor: String = ANCHOR_NEWEST,
         @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = false,
     ): Response<MessagesResponse>
@@ -127,7 +127,7 @@ interface ZulipApiService {
         private const val QUERY_TYPE = "type"
         private const val QUERY_CONTENT = "content"
 
-        private const val DEFAULT_NUM_BEFORE = 50
+        private const val DEFAULT_NUM_BEFORE = 1000
         private const val DEFAULT_NUM_AFTER = 50
         private const val DEFAULT_EMPTY_JSON = "[]"
 
