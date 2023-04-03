@@ -56,6 +56,7 @@ class MessagesFragment : Fragment() {
             RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             GetMessageEventsUseCase(MessagesRepositoryImpl.getInstance()),
+            SetOwnStatusActiveUseCase(MessagesRepositoryImpl.getInstance())
         )
     }
 

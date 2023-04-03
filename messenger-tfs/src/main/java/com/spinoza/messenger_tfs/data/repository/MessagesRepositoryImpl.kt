@@ -41,6 +41,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         coerceInputValues = true
     }
 
+    override suspend fun setOwnStatusActive() {
+        withContext(Dispatchers.IO) {
+            runCatching { apiService.setOwnStatusActive() }
+        }
+    }
+
     override suspend fun getOwnUserId(): RepositoryResult<Long> {
         return if (isOwnUserLoaded) {
             RepositoryResult.Success(ownUser.userId)

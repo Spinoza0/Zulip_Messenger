@@ -43,4 +43,6 @@ interface MessagesRepository {
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessageEvent>
+
+    suspend fun setOwnStatusActive()
 }

@@ -38,6 +38,9 @@ interface ZulipApiService {
     @GET("realm/presence")
     suspend fun getAllPresences(): Response<AllPresencesResponse>
 
+    @POST("users/me/presence?status=active")
+    suspend fun setOwnStatusActive()
+
     @GET("users/me/subscriptions")
     suspend fun getSubscribedStreams(): Response<SubscribedStreamsResponse>
 

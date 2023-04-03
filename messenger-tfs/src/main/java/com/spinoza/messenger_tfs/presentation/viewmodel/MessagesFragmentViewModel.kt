@@ -28,6 +28,7 @@ class MessagesFragmentViewModel(
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getMessageEventsUseCase: GetMessageEventsUseCase,
+    private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
 ) : ViewModel() {
 
     val state: SharedFlow<MessagesScreenState>
@@ -42,6 +43,13 @@ class MessagesFragmentViewModel(
     init {
         loadMessages()
         subscribeToNewMessageFieldChanges()
+
+        viewModelScope.launch {
+            while (true) {
+                setOwnStatusActiveUseCase()
+                delay(DELAY_BEFORE_UPDATE_OWN_STATUS)
+            }
+        }
     }
 
     fun sendMessage(messageText: String) {
@@ -239,5 +247,6 @@ class MessagesFragmentViewModel(
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_UPDATE_INFO = 100L
+        const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
     }
 }

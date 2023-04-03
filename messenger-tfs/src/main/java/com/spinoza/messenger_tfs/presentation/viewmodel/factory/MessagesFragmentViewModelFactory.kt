@@ -16,6 +16,7 @@ class MessagesFragmentViewModelFactory(
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getMessageEventsUseCase: GetMessageEventsUseCase,
+    private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -27,7 +28,8 @@ class MessagesFragmentViewModelFactory(
             updateReactionUseCase,
             registerEventQueueUseCase,
             deleteEventQueueUseCase,
-            getMessageEventsUseCase
+            getMessageEventsUseCase,
+            setOwnStatusActiveUseCase
         ) as T
     }
 }
