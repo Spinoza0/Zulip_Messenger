@@ -9,7 +9,9 @@ import com.spinoza.messenger_tfs.data.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.model.user.AllUsersResponse
+import com.spinoza.messenger_tfs.data.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
+import com.spinoza.messenger_tfs.data.model.user.UserResponse
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.data.toDomain
 import com.spinoza.messenger_tfs.data.toStringsList
@@ -52,61 +54,22 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             }
     }
 
-    override suspend fun getOwnUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
-        runCatching {
-            val response = apiService.getOwnUser()
-            when (response.isSuccessful) {
-                true -> {
-                    val ownResponseDto = response.getBodyOrThrow()
-                    when (ownResponseDto.result) {
-                        RESULT_SUCCESS -> {
-                            ownUser = ownResponseDto.toUserDto()
-                            val presence = getUserPresence(ownUser.userId)
-                            RepositoryResult.Success(ownUser.toDomain(presence))
-                        }
-                        else -> RepositoryResult.Failure.OwnUserNotFound(ownResponseDto.msg)
-                    }
-                }
-                false -> RepositoryResult.Failure.OwnUserNotFound(response.message())
-            }
-        }.getOrElse {
-            RepositoryResult.Failure.Network(getErrorText(it))
-        }
+    override suspend fun getOwnUser(): RepositoryResult<User> {
+        return getUserFromApi(null)
     }
 
-    override suspend fun getUser(userId: Long): RepositoryResult<User> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                val response = apiService.getUser(userId)
-                when (response.isSuccessful) {
-                    true -> {
-                        val userResponseDto = response.getBodyOrThrow()
-                        when (userResponseDto.result) {
-                            RESULT_SUCCESS -> {
-                                val presence = getUserPresence(userResponseDto.user.userId)
-                                RepositoryResult.Success(userResponseDto.user.toDomain(presence))
-                            }
-                            else -> RepositoryResult.Failure.UserNotFound(
-                                userId,
-                                userResponseDto.msg
-                            )
-                        }
-                    }
-                    false -> RepositoryResult.Failure.UserNotFound(userId, response.message())
-                }
-            }.getOrElse {
-                RepositoryResult.Failure.Network(getErrorText(it))
-            }
-        }
+    override suspend fun getUser(userId: Long): RepositoryResult<User> {
+        return getUserFromApi(userId)
+    }
 
     override suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>> =
         withContext(Dispatchers.IO) {
             runCatching {
-                val usersResponse = apiService.getAllUsers()
-                when (usersResponse.isSuccessful) {
+                val response = apiService.getAllUsers()
+                when (response.isSuccessful) {
                     true ->
-                        handleGetUsersByFilterResult(usersResponse.getBodyOrThrow(), usersFilter)
-                    false -> RepositoryResult.Failure.LoadingUsers(usersResponse.message())
+                        handleGetUsersByFilterResult(response.getBodyOrThrow(), usersFilter)
+                    false -> RepositoryResult.Failure.LoadingUsers(response.message())
                 }
             }.getOrElse {
                 RepositoryResult.Failure.Network(getErrorText(it))
@@ -123,10 +86,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             when (response.isSuccessful) {
                 true ->
                     handleGetMessagesResult(response.getBodyOrThrow(), messageId, messagesFilter)
-                false -> RepositoryResult.Failure.LoadingMessages(
-                    messagesFilter,
-                    response.message()
-                )
+                false ->
+                    RepositoryResult.Failure.LoadingMessages(messagesFilter, response.message())
             }
         }.getOrElse {
             RepositoryResult.Failure.Network(getErrorText(it))
@@ -228,10 +189,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             )
             when (response.isSuccessful) {
                 true -> {
-                    val messagesResponseDto = response.getBodyOrThrow()
-                    when (messagesResponseDto.result) {
-                        RESULT_SUCCESS -> RepositoryResult.Success(messagesResponseDto.messageId)
-                        else -> RepositoryResult.Failure.SendingMessage(messagesResponseDto.msg)
+                    val sendMessageResponse = response.getBodyOrThrow()
+                    when (sendMessageResponse.result) {
+                        RESULT_SUCCESS -> RepositoryResult.Success(sendMessageResponse.messageId)
+                        else -> RepositoryResult.Failure.SendingMessage(sendMessageResponse.msg)
                     }
                 }
                 false -> RepositoryResult.Failure.SendingMessage(response.message())
@@ -249,15 +210,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             val response = apiService.getSingleMessage(messageId)
             when (response.isSuccessful) {
                 true -> {
-                    val singleMessageResponseDto = response.getBodyOrThrow()
-                    when (singleMessageResponseDto.result) {
+                    val singleMessageResponse = response.getBodyOrThrow()
+                    when (singleMessageResponse.result) {
                         RESULT_SUCCESS -> updateReaction(
-                            singleMessageResponseDto.message.reactions,
+                            singleMessageResponse.message.reactions,
                             messageId,
                             emoji
                         )
-                        else ->
-                            RepositoryResult.Failure.UpdatingReaction(singleMessageResponseDto.msg)
+                        else -> RepositoryResult.Failure.UpdatingReaction(singleMessageResponse.msg)
                     }
                 }
                 false -> RepositoryResult.Failure.UpdatingReaction(response.message())
@@ -280,10 +240,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         val registerResponse = response.getBodyOrThrow()
                         when (registerResponse.result) {
                             RESULT_SUCCESS -> RepositoryResult.Success(
-                                EventsQueue(
-                                    registerResponse.queueId,
-                                    registerResponse.lastEventId
-                                )
+                                EventsQueue(registerResponse.queueId, registerResponse.lastEventId)
                             )
                             else -> RepositoryResult.Failure.RegisterPresenceEventQueue(
                                 registerResponse.msg
@@ -358,6 +315,51 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             RepositoryResult.Failure.GetEvents("")
         }
     }
+
+    private suspend fun getUserFromApi(userId: Long?): RepositoryResult<User> =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val response =
+                    if (userId == null) apiService.getOwnUser() else apiService.getUser(userId)
+                when (response.isSuccessful) {
+                    true -> {
+                        var userDto: UserDto? = null
+                        val responseMsg: String
+                        if (userId == null) {
+                            val ownUserResponse = response.body() as OwnUserResponse
+                            responseMsg = ownUserResponse.msg
+                            if (ownUserResponse.result == RESULT_SUCCESS) {
+                                isOwnUserLoaded = true
+                                ownUser = ownUserResponse.toUserDto()
+                                userDto = ownUser
+                            }
+                        } else {
+                            val userResponse = response.body() as UserResponse
+                            responseMsg = userResponse.msg
+                            if (userResponse.result == RESULT_SUCCESS) {
+                                userDto = userResponse.user
+                            }
+                        }
+
+                        if (userDto != null) {
+                            val presence = getUserPresence(userDto.userId)
+                            RepositoryResult.Success(userDto.toDomain(presence))
+                        } else if (userId == null) {
+                            RepositoryResult.Failure.OwnUserNotFound(responseMsg)
+                        } else {
+                            RepositoryResult.Failure.UserNotFound(userId, responseMsg)
+                        }
+                    }
+                    false -> if (userId == null) {
+                        RepositoryResult.Failure.OwnUserNotFound(response.message())
+                    } else {
+                        RepositoryResult.Failure.UserNotFound(userId, response.message())
+                    }
+                }
+            }.getOrElse {
+                RepositoryResult.Failure.Network(getErrorText(it))
+            }
+        }
 
     private suspend fun handleGetUsersByFilterResult(
         allUsersResponse: AllUsersResponse,
@@ -508,10 +510,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
         when (response.isSuccessful) {
             true -> {
-                val updateReactionResponseDto = response.getBodyOrThrow()
-                when (updateReactionResponseDto.result) {
+                val updateReactionResponse = response.getBodyOrThrow()
+                when (updateReactionResponse.result) {
                     RESULT_SUCCESS -> RepositoryResult.Success(Unit)
-                    else -> RepositoryResult.Failure.UpdatingReaction(updateReactionResponseDto.msg)
+                    else -> RepositoryResult.Failure.UpdatingReaction(updateReactionResponse.msg)
                 }
             }
             false -> RepositoryResult.Failure.UpdatingReaction(response.message())
@@ -524,9 +526,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         val response = apiService.getUserPresence(userId)
         when (response.isSuccessful) {
             true -> {
-                val presenceResponseDto = response.getBodyOrThrow()
-                when (presenceResponseDto.result) {
-                    RESULT_SUCCESS -> presenceResponseDto.presence.toDomain()
+                val presenceResponse = response.getBodyOrThrow()
+                when (presenceResponse.result) {
+                    RESULT_SUCCESS -> presenceResponse.presence.toDomain()
                     else -> User.Presence.OFFLINE
                 }
             }
@@ -538,27 +540,30 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     private fun makeAllUsersAnswer(
         usersFilter: String,
-        usersResponseDto: AllUsersResponse,
-        presencesResponseDto: AllPresencesResponse? = null,
-    ): RepositoryResult<List<User>> = if (usersResponseDto.result == RESULT_SUCCESS) {
+        usersResponse: AllUsersResponse,
+        presencesResponse: AllPresencesResponse? = null,
+    ): RepositoryResult<List<User>> = if (usersResponse.result == RESULT_SUCCESS) {
         val users = mutableListOf<User>()
-        usersResponseDto.members
+        usersResponse.members
             .filter { it.isBot.not() && it.isActive }
             .forEach { userDto ->
                 val presence =
-                    if (presencesResponseDto != null && presencesResponseDto.result == RESULT_SUCCESS) {
-                        presencesResponseDto.presences[userDto.email]?.toDomain()
-                            ?: User.Presence.OFFLINE
+                    if (presencesResponse != null && presencesResponse.result == RESULT_SUCCESS) {
+                        presencesResponse
+                            .presences[userDto.email]?.toDomain() ?: User.Presence.OFFLINE
                     } else {
                         User.Presence.OFFLINE
                     }
                 users.add(userDto.toDomain(presence))
             }
-        val result = if (usersFilter.isBlank()) users
-        else users.filter { it.fullName.contains(usersFilter, true) }
-        RepositoryResult.Success(result)
+        val userList = if (usersFilter.isBlank()) {
+            users
+        } else {
+            users.filter { it.fullName.contains(usersFilter, true) }
+        }
+        RepositoryResult.Success(userList)
     } else {
-        RepositoryResult.Failure.LoadingUsers(usersResponseDto.msg)
+        RepositoryResult.Failure.LoadingUsers(usersResponse.msg)
     }
 
     private inline fun <reified T> Response<T>?.getBodyOrThrow(): T {
