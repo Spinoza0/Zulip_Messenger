@@ -12,11 +12,12 @@ class MessagesCache {
     private val data = TreeSet<MessageDto>()
 
     fun add(messageDto: MessageDto) {
+        data.remove(messageDto)
         data.add(messageDto)
     }
 
-    fun replaceAll(messagesDto: List<MessageDto>) {
-        data.clear()
+    fun addAll(messagesDto: List<MessageDto>) {
+        data.removeAll(messagesDto.toSet())
         data.addAll(messagesDto)
     }
 
@@ -50,9 +51,7 @@ class MessagesCache {
                 val reactions = mutableListOf<ReactionDto>()
                 reactions.addAll(messageDto.reactions)
                 reactions.add(reactionEventDto.toReactionDto())
-                val newMessageDto = messageDto.copy(reactions = reactions)
-                data.remove(messageDto)
-                data.add(newMessageDto)
+                add(messageDto.copy(reactions = reactions))
             }
             if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value &&
                 isUserReactionExists
@@ -60,9 +59,7 @@ class MessagesCache {
                 val reactions = mutableListOf<ReactionDto>()
                 val reactionToRemove = reactionEventDto.toReactionDto()
                 reactions.addAll(messageDto.reactions.filter { it != reactionToRemove })
-                val newMessageDto = messageDto.copy(reactions = reactions)
-                data.remove(messageDto)
-                data.add(newMessageDto)
+                add(messageDto.copy(reactions = reactions))
             }
         }
     }

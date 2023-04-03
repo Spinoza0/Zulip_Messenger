@@ -14,7 +14,9 @@ import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -413,7 +415,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             val response =
                 apiService.getMessages(narrow = messagesFilter.createNarrow())
             if (response.isSuccessful) {
-                messagesCache.replaceAll(response.getBodyOrThrow().messages)
+                messagesCache.addAll(response.getBodyOrThrow().messages)
             }
         }
     }
@@ -433,7 +435,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             } else {
                 MessagePosition.Type.UNDEFINED
             }
-            messagesCache.replaceAll(messagesResponse.messages)
+            messagesCache.addAll(messagesResponse.messages)
             RepositoryResult.Success(
                 MessagesResult(
                     messagesResponse.messages.toDomain(ownUser.userId),
@@ -528,39 +530,26 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messageId: Long,
         emoji: Emoji,
         messagesFilter: MessagesFilter,
-    ): RepositoryResult<MessagesResult> = runCatching {
+    ): RepositoryResult<MessagesResult> {
         val isAddReaction = null == reactions.find {
             it.emojiName == emoji.name && it.userId == ownUser.userId
         }
-        val response = if (isAddReaction) {
-            apiService.addReaction(messageId, emoji.name)
-        } else {
-            apiService.removeReaction(messageId, emoji.name)
-        }
-        when (response.isSuccessful) {
-            true -> {
-                val updateReactionResponse = response.getBodyOrThrow()
-                when (updateReactionResponse.result) {
-                    RESULT_SUCCESS -> {
-                        messagesCache.updateReaction(
-                            messageId,
-                            emoji.toDto(ownUser.userId),
-                            isAddReaction
-                        )
-                        RepositoryResult.Success(
-                            MessagesResult(
-                                messagesCache.getMessages(messagesFilter).toDomain(ownUser.userId),
-                                MessagePosition(MessagePosition.Type.EXACTLY, messageId)
-                            )
-                        )
-                    }
-                    else -> RepositoryResult.Failure.UpdatingReaction(updateReactionResponse.msg)
+        messagesCache.updateReaction(messageId, emoji.toDto(ownUser.userId), isAddReaction)
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching {
+                if (isAddReaction) {
+                    apiService.addReaction(messageId, emoji.name)
+                } else {
+                    apiService.removeReaction(messageId, emoji.name)
                 }
             }
-            false -> RepositoryResult.Failure.UpdatingReaction(response.message())
         }
-    }.getOrElse {
-        RepositoryResult.Failure.UpdatingReaction(getErrorText(it))
+        return RepositoryResult.Success(
+            MessagesResult(
+                messagesCache.getMessages(messagesFilter).toDomain(ownUser.userId),
+                MessagePosition(MessagePosition.Type.EXACTLY, messageId)
+            )
+        )
     }
 
     private suspend fun getUserPresence(userId: Long): User.Presence = runCatching {
