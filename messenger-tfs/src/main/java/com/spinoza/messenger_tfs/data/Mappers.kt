@@ -46,11 +46,20 @@ fun MessageDto.toDomain(userId: Long): Message {
 
 fun List<ReactionDto>.toDomain(userId: Long): Map<Emoji, ReactionParam> {
     return associate { reactionDto ->
-        Emoji(reactionDto.emoji_name, reactionDto.emoji_code) to ReactionParam(
-            this.count { it.emoji_code == reactionDto.emoji_code },
-            reactionDto.user_id == userId
+        Emoji(reactionDto.emojiName, reactionDto.emojiCode) to ReactionParam(
+            this.count { it.emojiCode == reactionDto.emojiCode },
+            reactionDto.userId == userId
         )
     }
+}
+
+fun Emoji.toDto(userId: Long): ReactionDto {
+    return ReactionDto(
+        emojiName = name,
+        emojiCode = code,
+        reactionType = ReactionDto.REACTION_TYPE_UNICODE_EMOJI,
+        userId = userId
+    )
 }
 
 fun List<MessageDto>.toDomain(userId: Long): List<Message> {

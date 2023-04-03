@@ -24,9 +24,29 @@ class MessagesCache {
         data.removeIf { it.id == messageId }
     }
 
+    fun updateReaction(messageId: Long, reactionDto: ReactionDto, isAddReaction: Boolean) {
+        val reactionEventDto = ReactionEventDto(
+            UNDEFINED_EVENT_ID,
+            if (isAddReaction) ReactionEventDto.Operation.ADD.value
+            else ReactionEventDto.Operation.REMOVE.value,
+            reactionDto.userId,
+            messageId,
+            reactionDto.emojiName,
+            reactionDto.emojiCode,
+            reactionDto.reactionType
+        )
+        updateReaction(reactionEventDto)
+    }
+
     fun updateReaction(reactionEventDto: ReactionEventDto) {
         data.find { it.id == reactionEventDto.messageId }?.let { messageDto ->
-            if (reactionEventDto.operation == ReactionEventDto.Operation.ADD.value) {
+            val isUserReactionExists = messageDto.reactions.find {
+                it.emojiName == reactionEventDto.emoji_name &&
+                        it.userId == reactionEventDto.userId
+            } != null
+            if (reactionEventDto.operation == ReactionEventDto.Operation.ADD.value &&
+                !isUserReactionExists
+            ) {
                 val reactions = mutableListOf<ReactionDto>()
                 reactions.addAll(messageDto.reactions)
                 reactions.add(reactionEventDto.toReactionDto())
@@ -34,7 +54,9 @@ class MessagesCache {
                 data.remove(messageDto)
                 data.add(newMessageDto)
             }
-            if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value) {
+            if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value &&
+                isUserReactionExists
+            ) {
                 val reactions = mutableListOf<ReactionDto>()
                 val reactionToRemove = reactionEventDto.toReactionDto()
                 reactions.addAll(messageDto.reactions.filter { it != reactionToRemove })
@@ -66,5 +88,10 @@ class MessagesCache {
             reaction_type,
             userId
         )
+    }
+
+    private companion object {
+
+        private const val UNDEFINED_EVENT_ID = -1L
     }
 }

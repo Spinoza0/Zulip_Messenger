@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.data.listToDomain
+import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.event.*
 import com.spinoza.messenger_tfs.data.model.message.*
 import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
@@ -10,9 +10,6 @@ import com.spinoza.messenger_tfs.data.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.data.model.user.UserResponse
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
-import com.spinoza.messenger_tfs.data.toDomain
-import com.spinoza.messenger_tfs.data.toStringsList
-import com.spinoza.messenger_tfs.data.toUserDto
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -201,7 +198,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                                 ownUser.userId,
                                 content,
                                 "",
-                                0,
+                                UNDEFINED_ID,
                                 System.currentTimeMillis() / MILLIS_IN_SECOND,
                                 messagesFilter.topic.name,
                                 false,
@@ -235,7 +232,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun updateReaction(
         messageId: Long,
         emoji: Emoji,
-    ): RepositoryResult<Unit> = withContext(Dispatchers.IO) {
+        messagesFilter: MessagesFilter,
+    ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.getSingleMessage(messageId)
             when (response.isSuccessful) {
@@ -245,7 +243,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         RESULT_SUCCESS -> updateReaction(
                             singleMessageResponse.message.reactions,
                             messageId,
-                            emoji
+                            emoji,
+                            messagesFilter
                         )
                         else -> RepositoryResult.Failure.UpdatingReaction(singleMessageResponse.msg)
                     }
@@ -528,9 +527,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         reactions: List<ReactionDto>,
         messageId: Long,
         emoji: Emoji,
-    ): RepositoryResult<Unit> = runCatching {
+        messagesFilter: MessagesFilter,
+    ): RepositoryResult<MessagesResult> = runCatching {
         val isAddReaction = null == reactions.find {
-            it.emoji_name == emoji.name && it.user_id == ownUser.userId
+            it.emojiName == emoji.name && it.userId == ownUser.userId
         }
         val response = if (isAddReaction) {
             apiService.addReaction(messageId, emoji.name)
@@ -541,7 +541,19 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             true -> {
                 val updateReactionResponse = response.getBodyOrThrow()
                 when (updateReactionResponse.result) {
-                    RESULT_SUCCESS -> RepositoryResult.Success(Unit)
+                    RESULT_SUCCESS -> {
+                        messagesCache.updateReaction(
+                            messageId,
+                            emoji.toDto(ownUser.userId),
+                            isAddReaction
+                        )
+                        RepositoryResult.Success(
+                            MessagesResult(
+                                messagesCache.getMessages(messagesFilter).toDomain(ownUser.userId),
+                                MessagePosition(MessagePosition.Type.EXACTLY, messageId)
+                            )
+                        )
+                    }
                     else -> RepositoryResult.Failure.UpdatingReaction(updateReactionResponse.msg)
                 }
             }
@@ -622,6 +634,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         private const val RESULT_SUCCESS = "success"
         private const val UNDEFINED_EVENT_ID = -1L
+        private const val UNDEFINED_ID = -1
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
 

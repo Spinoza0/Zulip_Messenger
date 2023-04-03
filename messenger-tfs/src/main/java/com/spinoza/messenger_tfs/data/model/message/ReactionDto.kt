@@ -5,10 +5,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ReactionDto(
-    @SerialName("emoji_name") val emoji_name: String,
-    @SerialName("emoji_code") val emoji_code: String,
-    @SerialName("reaction_type") val reaction_type: String,
-    @SerialName("user_id") val user_id: Long,
+    @SerialName("emoji_name") val emojiName: String,
+    @SerialName("emoji_code") val emojiCode: String,
+    @SerialName("reaction_type") val reactionType: String,
+    @SerialName("user_id") val userId: Long,
 ) {
 
     companion object {

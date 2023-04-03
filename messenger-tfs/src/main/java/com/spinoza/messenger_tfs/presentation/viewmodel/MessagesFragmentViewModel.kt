@@ -68,9 +68,15 @@ class MessagesFragmentViewModel(
 
     fun updateReaction(messageId: Long, emoji: Emoji) {
         viewModelScope.launch {
-            val result = updateReactionUseCase(messageId, emoji)
+            val result = updateReactionUseCase(messageId, emoji, messagesFilter)
             if (result is RepositoryResult.Success) {
                 _state.emit(MessagesScreenState.ReactionSent)
+                when (val userIdResult = getOwnUserIdUseCase()) {
+                    is RepositoryResult.Success -> {
+                        handleSuccessMessagesResult(result.value, userIdResult.value)
+                    }
+                    is RepositoryResult.Failure -> handleErrors(userIdResult)
+                }
             }
         }
     }

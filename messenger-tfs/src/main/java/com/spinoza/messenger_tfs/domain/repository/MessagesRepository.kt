@@ -29,7 +29,11 @@ interface MessagesRepository {
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult>
 
-    suspend fun updateReaction(messageId: Long, emoji: Emoji): RepositoryResult<Unit>
+    suspend fun updateReaction(
+        messageId: Long,
+        emoji: Emoji,
+        messagesFilter: MessagesFilter,
+    ): RepositoryResult<MessagesResult>
 
     suspend fun registerEventQueue(eventTypes: List<EventType>): RepositoryResult<EventsQueue>
 
