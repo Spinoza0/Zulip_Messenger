@@ -571,7 +571,10 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         val userList = if (usersFilter.isBlank()) {
             users
         } else {
-            users.filter { it.fullName.contains(usersFilter, true) }
+            users.filter {
+                it.fullName.contains(usersFilter, true) ||
+                        it.email.contains(usersFilter, true)
+            }
         }
         RepositoryResult.Success(userList)
     } else {
