@@ -246,7 +246,7 @@ class MessagesFragmentViewModel(
     private companion object {
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
-        const val DELAY_BEFORE_UPDATE_INFO = 100L
+        const val DELAY_BEFORE_UPDATE_INFO = 1L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
     }
 }

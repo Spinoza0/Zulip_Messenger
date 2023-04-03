@@ -297,6 +297,6 @@ class ChannelsPageFragmentViewModel(
 
         const val UNDEFINED_INDEX = -1
         const val DELAY_BEFORE_SHOW_SHIMMER = 200L
-        const val DELAY_BEFORE_UPDATE_INFO = 30_000L
+        const val DELAY_BEFORE_UPDATE_INFO = 15_000L
     }
 }
