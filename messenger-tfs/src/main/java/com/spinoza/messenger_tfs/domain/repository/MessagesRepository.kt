@@ -27,7 +27,7 @@ interface MessagesRepository {
     suspend fun sendMessage(
         content: String,
         messagesFilter: MessagesFilter,
-    ): RepositoryResult<MessagesResult>
+    ): RepositoryResult<Long>
 
     suspend fun updateReaction(
         messageId: Long,

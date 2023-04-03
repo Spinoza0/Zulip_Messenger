@@ -38,6 +38,7 @@ class MessagesFragmentViewModel(
         MutableSharedFlow<MessagesScreenState>(replay = 10)
     private val newMessageFieldState = MutableSharedFlow<String>()
     private var eventsQueue = EventsQueue()
+    private var isMessageSent = false
 
     init {
         loadMessages()
@@ -55,13 +56,8 @@ class MessagesFragmentViewModel(
         if (messageText.isNotEmpty()) viewModelScope.launch {
             val result = sendMessageUseCase(messageText, messagesFilter)
             if (result is RepositoryResult.Success) {
-                _state.emit(MessagesScreenState.MessageSent)
-                when (val userIdResult = getOwnUserIdUseCase()) {
-                    is RepositoryResult.Success -> {
-                        handleSuccessMessagesResult(result.value, userIdResult.value)
-                    }
-                    is RepositoryResult.Failure -> handleErrors(userIdResult)
-                }
+                isMessageSent = true
+                _state.emit(MessagesScreenState.MessageSent(result.value))
             }
         }
     }
@@ -177,7 +173,15 @@ class MessagesFragmentViewModel(
         val userIdResult = getOwnUserIdUseCase()
         if (userIdResult is RepositoryResult.Success) {
             eventsQueue = eventsQueue.copy(lastEventId = messageEvent.lastEventId)
-            handleSuccessMessagesResult(messageEvent.messagesResult, userIdResult.value)
+            val messagesResult = if (isMessageSent) {
+                isMessageSent = false
+                messageEvent.messagesResult.copy(
+                    position = MessagePosition(MessagePosition.Type.LAST_POSITION)
+                )
+            } else {
+                messageEvent.messagesResult
+            }
+            handleSuccessMessagesResult(messagesResult, userIdResult.value)
         }
     }
 
