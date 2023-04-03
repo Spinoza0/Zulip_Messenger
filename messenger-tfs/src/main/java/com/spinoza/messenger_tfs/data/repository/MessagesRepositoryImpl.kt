@@ -550,7 +550,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 val presence =
                     if (presencesResponse != null && presencesResponse.result == RESULT_SUCCESS) {
                         presencesResponse.presences[userDto.email]?.let { presenceDto ->
-                            if (timestamp - presenceDto.aggregated.timestamp < SECONDS_IN_MINUTE) {
+                            if (timestamp - presenceDto.aggregated.timestamp < OFFLINE_TIME) {
                                 presenceDto.toDomain()
                             } else {
                                 User.Presence.OFFLINE
@@ -593,7 +593,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         private const val RESULT_SUCCESS = "success"
         private const val UNDEFINED_EVENT_ID = -1L
         private const val MILLIS_IN_SECOND = 1000
-        private const val SECONDS_IN_MINUTE = 60
+        private const val OFFLINE_TIME = 180
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit

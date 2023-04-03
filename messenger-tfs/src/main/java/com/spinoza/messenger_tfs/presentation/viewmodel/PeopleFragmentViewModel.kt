@@ -95,6 +95,7 @@ class PeopleFragmentViewModel(
 
     private fun handleOnSuccessQueueRegistration() {
         viewModelScope.launch {
+            var lastUpdatingTimeStamp = 0L
             while (true) {
                 delay(DELAY_BEFORE_UPDATE_INFO)
                 val eventResult = getPresenceEventsUseCase(eventsQueue)
@@ -109,6 +110,17 @@ class PeopleFragmentViewModel(
                         }
                     }
                     if (isListChanged) {
+                        lastUpdatingTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
+                        _state.emit(PeopleScreenState.Users(usersCache.toList()))
+                    }
+                } else {
+                    val currentTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
+                    if (currentTimeStamp - lastUpdatingTimeStamp > OFFLINE_TIME) {
+                        for (index in 0 until usersCache.size) {
+                            usersCache[index] =
+                                usersCache[index].copy(presence = User.Presence.OFFLINE)
+                        }
+                        lastUpdatingTimeStamp = currentTimeStamp
                         _state.emit(PeopleScreenState.Users(usersCache.toList()))
                     }
                 }
@@ -145,5 +157,7 @@ class PeopleFragmentViewModel(
         const val DELAY_BEFORE_SHOW_SHIMMER = 200L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val INDEX_NOT_FOUND = -1
+        const val MILLIS_IN_SECOND = 1000
+        const val OFFLINE_TIME = 180
     }
 }
