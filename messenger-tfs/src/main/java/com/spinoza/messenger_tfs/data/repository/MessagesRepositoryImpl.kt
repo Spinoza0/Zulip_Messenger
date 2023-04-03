@@ -395,16 +395,15 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messagesFilter: MessagesFilter,
     ) = when (messagesResponse.result) {
         RESULT_SUCCESS -> {
-            val positionType =
-                if (messageId != Message.UNDEFINED_ID) {
-                    if (messagesResponse.messages.last().id == messageId) {
-                        MessagePosition.Type.LAST_POSITION
-                    } else {
-                        MessagePosition.Type.EXACTLY
-                    }
+            val positionType = if (messageId != Message.UNDEFINED_ID) {
+                if (messagesResponse.messages.last().id == messageId) {
+                    MessagePosition.Type.LAST_POSITION
                 } else {
-                    MessagePosition.Type.UNDEFINED
+                    MessagePosition.Type.EXACTLY
                 }
+            } else {
+                MessagePosition.Type.UNDEFINED
+            }
             messagesCache.replaceAll(messagesResponse.messages)
             RepositoryResult.Success(
                 MessagesResult(
@@ -544,13 +543,19 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         presencesResponse: AllPresencesResponse? = null,
     ): RepositoryResult<List<User>> = if (usersResponse.result == RESULT_SUCCESS) {
         val users = mutableListOf<User>()
+        val timestamp = System.currentTimeMillis() / MILLIS_IN_SECOND
         usersResponse.members
             .filter { it.isBot.not() && it.isActive }
             .forEach { userDto ->
                 val presence =
                     if (presencesResponse != null && presencesResponse.result == RESULT_SUCCESS) {
-                        presencesResponse
-                            .presences[userDto.email]?.toDomain() ?: User.Presence.OFFLINE
+                        presencesResponse.presences[userDto.email]?.let { presenceDto ->
+                            if (timestamp - presenceDto.aggregated.timestamp < SECONDS_IN_MINUTE) {
+                                presenceDto.toDomain()
+                            } else {
+                                User.Presence.OFFLINE
+                            }
+                        } ?: User.Presence.OFFLINE
                     } else {
                         User.Presence.OFFLINE
                     }
@@ -587,6 +592,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         private const val RESULT_SUCCESS = "success"
         private const val UNDEFINED_EVENT_ID = -1L
+        private const val MILLIS_IN_SECOND = 1000
+        private const val SECONDS_IN_MINUTE = 60
 
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit
