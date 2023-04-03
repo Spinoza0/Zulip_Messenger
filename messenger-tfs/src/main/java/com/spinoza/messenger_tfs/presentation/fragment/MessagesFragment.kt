@@ -155,6 +155,9 @@ class MessagesFragment : Fragment() {
         if (state !is MessagesScreenState.Loading) {
             binding.shimmerLarge.off()
         }
+        if (state !is MessagesScreenState.SendingMessage) {
+            binding.shimmerSending.off()
+        }
         when (state) {
             is MessagesScreenState.Messages -> {
                 submitMessages(state.value)
@@ -172,6 +175,7 @@ class MessagesFragment : Fragment() {
             is MessagesScreenState.Failure -> {
                 handleErrors(state)
             }
+            is MessagesScreenState.SendingMessage -> binding.shimmerSending.on()
         }
     }
 
@@ -277,6 +281,7 @@ class MessagesFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
+        binding.shimmerSending.off()
     }
 
     override fun onStop() {

@@ -7,6 +7,8 @@ sealed class MessagesScreenState {
 
     object Loading : MessagesScreenState()
 
+    object SendingMessage : MessagesScreenState()
+
     object ReactionSent : MessagesScreenState()
 
     class MessageSent(val messageId: Long) : MessagesScreenState()

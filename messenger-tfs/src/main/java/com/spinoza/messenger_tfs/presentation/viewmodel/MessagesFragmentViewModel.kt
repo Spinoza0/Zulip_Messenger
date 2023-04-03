@@ -54,6 +54,7 @@ class MessagesFragmentViewModel(
 
     fun sendMessage(messageText: String) {
         if (messageText.isNotEmpty()) viewModelScope.launch {
+            _state.emit(MessagesScreenState.SendingMessage)
             val result = sendMessageUseCase(messageText, messagesFilter)
             if (result is RepositoryResult.Success) {
                 isMessageSent = true
