@@ -13,6 +13,7 @@ import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import java.util.*
 
 class PeopleFragmentViewModel(
     private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
@@ -56,7 +57,7 @@ class PeopleFragmentViewModel(
                 is RepositoryResult.Success -> {
                     usersCache.clear()
                     usersCache.addAll(result.value)
-                    _state.value = PeopleScreenState.Users(result.value)
+                    _state.value = PeopleScreenState.Users(usersCache.toSortedList())
                     registerEventQueue()
                 }
                 is RepositoryResult.Failure -> handleErrors(result)
@@ -111,7 +112,7 @@ class PeopleFragmentViewModel(
                     }
                     if (isListChanged) {
                         lastUpdatingTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
-                        _state.emit(PeopleScreenState.Users(usersCache.toList()))
+                        _state.emit(PeopleScreenState.Users(usersCache.toSortedList()))
                     }
                 } else {
                     val currentTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
@@ -121,7 +122,7 @@ class PeopleFragmentViewModel(
                                 usersCache[index].copy(presence = User.Presence.OFFLINE)
                         }
                         lastUpdatingTimeStamp = currentTimeStamp
-                        _state.emit(PeopleScreenState.Users(usersCache.toList()))
+                        _state.emit(PeopleScreenState.Users(usersCache.toSortedList()))
                     }
                 }
             }
@@ -135,6 +136,12 @@ class PeopleFragmentViewModel(
             }
             else -> {}
         }
+    }
+
+    private fun List<User>.toSortedList(): List<User> {
+        val sortedList = ArrayList(this)
+        sortedList.sortWith(compareBy<User> { it.presence }.thenBy { it.fullName })
+        return sortedList
     }
 
     private fun setLoadingStateWithDelay(): Job {
