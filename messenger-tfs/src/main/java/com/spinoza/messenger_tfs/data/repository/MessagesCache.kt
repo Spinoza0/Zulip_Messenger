@@ -16,8 +16,8 @@ class MessagesCache {
         data.add(messageDto)
     }
 
-    fun addAll(messagesDto: List<MessageDto>) {
-        data.removeAll(messagesDto.toSet())
+    fun replaceAll(messagesDto: List<MessageDto>) {
+        data.clear()
         data.addAll(messagesDto)
     }
 

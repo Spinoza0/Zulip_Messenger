@@ -415,7 +415,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             val response =
                 apiService.getMessages(narrow = messagesFilter.createNarrow())
             if (response.isSuccessful) {
-                messagesCache.addAll(response.getBodyOrThrow().messages)
+                messagesCache.replaceAll(response.getBodyOrThrow().messages)
             }
         }
     }
@@ -435,7 +435,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             } else {
                 MessagePosition.Type.UNDEFINED
             }
-            messagesCache.addAll(messagesResponse.messages)
+            messagesCache.replaceAll(messagesResponse.messages)
             RepositoryResult.Success(
                 MessagesResult(
                     messagesResponse.messages.toDomain(ownUser.userId),
