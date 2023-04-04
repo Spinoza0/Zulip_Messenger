@@ -8,7 +8,6 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,10 +37,9 @@ class ProfileFragmentViewModel(
 
     fun loadUser(userId: Long) {
         viewModelScope.launch {
-            val setLoadingState = setLoadingStateWithDelay()
+            _state.value = ProfileScreenState.Loading
             val result =
                 if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
-            setLoadingState.cancel()
             when (result) {
                 is RepositoryResult.Success -> {
                     user = result.value
@@ -95,13 +93,6 @@ class ProfileFragmentViewModel(
         }
     }
 
-    private fun setLoadingStateWithDelay(): Job {
-        return viewModelScope.launch {
-            delay(DELAY_BEFORE_SHOW_SHIMMER)
-            _state.value = ProfileScreenState.Loading
-        }
-    }
-
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
@@ -111,7 +102,6 @@ class ProfileFragmentViewModel(
 
     private companion object {
 
-        const val DELAY_BEFORE_SHOW_SHIMMER = 100L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val CURRENT_USER = -1L
     }

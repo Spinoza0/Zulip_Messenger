@@ -49,10 +49,8 @@ class PeopleFragmentViewModel(
 
     fun loadUsers() {
         viewModelScope.launch {
-            val setLoadingState = setLoadingStateWithDelay()
-            val result = getUsersByFilterUseCase(usersFilter)
-            setLoadingState.cancel()
-            when (result) {
+            _state.emit(PeopleScreenState.Loading)
+            when (val result = getUsersByFilterUseCase(usersFilter)) {
                 is RepositoryResult.Success -> {
                     usersCache.clear()
                     usersCache.addAll(result.value)
@@ -144,13 +142,6 @@ class PeopleFragmentViewModel(
         return sortedList
     }
 
-    private fun setLoadingStateWithDelay(): Job {
-        return viewModelScope.launch {
-            delay(DELAY_BEFORE_SHOW_SHIMMER)
-            _state.emit(PeopleScreenState.Loading)
-        }
-    }
-
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
@@ -161,7 +152,6 @@ class PeopleFragmentViewModel(
     private companion object {
 
         const val DURATION_MILLIS = 300L
-        const val DELAY_BEFORE_SHOW_SHIMMER = 100L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val INDEX_NOT_FOUND = -1
         const val MILLIS_IN_SECOND = 1000

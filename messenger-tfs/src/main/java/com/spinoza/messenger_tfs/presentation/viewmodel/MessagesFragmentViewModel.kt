@@ -82,9 +82,8 @@ class MessagesFragmentViewModel(
 
     fun loadMessages() {
         viewModelScope.launch {
-            val setLoadingState = setLoadingStateWithDelay()
+            _state.emit(MessagesScreenState.Loading)
             val result = getMessagesUseCase(messagesFilter)
-            setLoadingState.cancel()
             handleRepositoryResult(result)
         }
     }
@@ -261,13 +260,6 @@ class MessagesFragmentViewModel(
         }
     }
 
-    private fun setLoadingStateWithDelay(): Job {
-        return viewModelScope.launch {
-            delay(DELAY_BEFORE_SHOW_SHIMMER)
-            _state.emit(MessagesScreenState.Loading)
-        }
-    }
-
     private fun List<Message>.groupByDate(userId: Long): List<DelegateAdapterItem> {
 
         val messageAdapterItemList = mutableListOf<DelegateAdapterItem>()
@@ -305,7 +297,6 @@ class MessagesFragmentViewModel(
 
     private companion object {
 
-        const val DELAY_BEFORE_SHOW_SHIMMER = 100L
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
         const val DELAY_REACTIONS_EVENTS = 200L

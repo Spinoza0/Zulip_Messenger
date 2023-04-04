@@ -19,7 +19,6 @@ import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -70,7 +69,7 @@ class ChannelsPageFragmentViewModel(
 
     fun loadItems() {
         viewModelScope.launch(Dispatchers.Default) {
-            val setLoadingState = setLoadingStateWithDelay()
+            _state.emit(ChannelsPageScreenState.Loading)
             when (val result = getChannelsUseCase(channelsFilter)) {
                 is RepositoryResult.Success -> {
                     updateCacheWithShowedTopicsSaving(result.value.toDelegateItem(isAllChannels))
@@ -79,14 +78,12 @@ class ChannelsPageFragmentViewModel(
                 }
                 is RepositoryResult.Failure -> handleErrors(result)
             }
-            setLoadingState.cancel()
         }
     }
 
     fun updateMessagesCount() {
         if (isReturnFromMessagesScreen) {
             viewModelScope.launch(Dispatchers.Default) {
-                val setLoadingState = setLoadingStateWithDelay()
                 for (i in 0 until cache.size) {
                     if (cache[i] is TopicDelegateItem) {
                         val messagesFilter = cache[i].content() as MessagesFilter
@@ -97,7 +94,6 @@ class ChannelsPageFragmentViewModel(
                     }
                 }
                 _state.emit(ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList()))
-                setLoadingState.cancel()
             }
             isReturnFromMessagesScreen = false
         }
@@ -105,7 +101,7 @@ class ChannelsPageFragmentViewModel(
 
     fun onChannelClickListener(channelItem: ChannelItem) {
         viewModelScope.launch(Dispatchers.Default) {
-            val setLoadingState = setLoadingStateWithDelay()
+            _state.emit(ChannelsPageScreenState.Loading)
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -140,7 +136,6 @@ class ChannelsPageFragmentViewModel(
                 }
                 _state.emit(ChannelsPageScreenState.Items(cache.toList()))
             }
-            setLoadingState.cancel()
         }
     }
 
@@ -251,13 +246,6 @@ class ChannelsPageFragmentViewModel(
         }
     }
 
-    private fun setLoadingStateWithDelay(): Job {
-        return viewModelScope.launch {
-            delay(DELAY_BEFORE_SHOW_SHIMMER)
-            _state.emit(ChannelsPageScreenState.Loading)
-        }
-    }
-
     private suspend fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
             is RepositoryResult.Failure.LoadingChannels -> _state.emit(
@@ -297,7 +285,6 @@ class ChannelsPageFragmentViewModel(
     private companion object {
 
         const val UNDEFINED_INDEX = -1
-        const val DELAY_BEFORE_SHOW_SHIMMER = 100L
         const val DELAY_BEFORE_UPDATE_INFO = 15_000L
     }
 }
