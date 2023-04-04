@@ -48,7 +48,7 @@ class PeopleFragmentViewModel(
         }
     }
 
-    private fun loadUsers() {
+    fun loadUsers() {
         viewModelScope.launch {
             val setLoadingState = setLoadingStateWithDelay()
             val result = getUsersByFilterUseCase(usersFilter)

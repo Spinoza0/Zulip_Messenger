@@ -10,6 +10,8 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
@@ -63,6 +65,23 @@ class PeopleFragment : Fragment() {
 
     private fun setupRecyclerView() {
         binding.recyclerViewUsers.adapter = PeopleAdapter(::onUserClickListener)
+        binding.recyclerViewUsers.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+                val lastItem = layoutManager.itemCount - 1
+                val firstItem = 0
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    if (lastVisibleItemPosition == lastItem ||
+                        firstVisibleItemPosition == firstItem
+                    ) {
+                        viewModel.loadUsers()
+                    }
+                }
+            }
+        })
     }
 
     private fun setupListeners() {
@@ -86,8 +105,8 @@ class PeopleFragment : Fragment() {
         when (state) {
             is PeopleScreenState.Users ->
                 (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(state.value)
-            is PeopleScreenState.Loading -> {
-                if (peopleListIsEmpty()) binding.shimmerLarge.on()
+            is PeopleScreenState.Loading -> if (peopleListIsEmpty()) {
+                binding.shimmerLarge.on()
             }
             is PeopleScreenState.Failure.LoadingUsers -> showError(
                 String.format(
