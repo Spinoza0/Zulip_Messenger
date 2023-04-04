@@ -130,7 +130,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun getMessages(
         filter: MessagesFilter,
-        messageId: Long,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
         runCatching {
             if (ownUser.userId == UserDto.UNDEFINED_ID) {
@@ -143,20 +142,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                     val messagesResponse = response.getBodyOrThrow()
                     when (messagesResponse.result) {
                         RESULT_SUCCESS -> {
-                            val positionType = if (messageId != Message.UNDEFINED_ID) {
-                                if (messagesResponse.messages.last().id == messageId) {
-                                    MessagePosition.Type.LAST_POSITION
-                                } else {
-                                    MessagePosition.Type.EXACTLY
-                                }
-                            } else {
-                                MessagePosition.Type.UNDEFINED
-                            }
                             messagesCache.addAll(messagesResponse.messages)
                             RepositoryResult.Success(
                                 MessagesResult(
                                     messagesCache.getMessages(filter).toDomain(ownUser.userId),
-                                    MessagePosition(positionType, messageId)
+                                    MessagePosition()
                                 )
                             )
                         }

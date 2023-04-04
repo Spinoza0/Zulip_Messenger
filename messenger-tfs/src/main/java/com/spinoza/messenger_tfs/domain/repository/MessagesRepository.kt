@@ -13,10 +13,7 @@ interface MessagesRepository {
 
     suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>>
 
-    suspend fun getMessages(
-        filter: MessagesFilter,
-        messageId: Long = Message.UNDEFINED_ID,
-    ): RepositoryResult<MessagesResult>
+    suspend fun getMessages(filter: MessagesFilter): RepositoryResult<MessagesResult>
 
     suspend fun getChannels(channelsFilter: ChannelsFilter): RepositoryResult<List<Channel>>
 
