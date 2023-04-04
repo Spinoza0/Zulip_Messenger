@@ -2,7 +2,6 @@ package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.event.*
-import com.spinoza.messenger_tfs.data.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.model.message.NarrowItemDto
 import com.spinoza.messenger_tfs.data.model.message.NarrowOperator
 import com.spinoza.messenger_tfs.data.model.message.ReactionDto
@@ -137,8 +136,33 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             val response =
                 apiService.getMessages(narrow = filter.createNarrow())
             when (response.isSuccessful) {
-                true ->
-                    handleGetMessagesResult(response.getBodyOrThrow(), messageId, filter)
+                true -> {
+                    val messagesResponse = response.getBodyOrThrow()
+                    when (messagesResponse.result) {
+                        RESULT_SUCCESS -> {
+                            val positionType = if (messageId != Message.UNDEFINED_ID) {
+                                if (messagesResponse.messages.last().id == messageId) {
+                                    MessagePosition.Type.LAST_POSITION
+                                } else {
+                                    MessagePosition.Type.EXACTLY
+                                }
+                            } else {
+                                MessagePosition.Type.UNDEFINED
+                            }
+                            messagesCache.addAll(messagesResponse.messages)
+                            RepositoryResult.Success(
+                                MessagesResult(
+                                    messagesCache.getMessages(filter).toDomain(ownUser.userId),
+                                    MessagePosition(positionType, messageId)
+                                )
+                            )
+                        }
+                        else -> RepositoryResult.Failure.LoadingMessages(
+                            filter,
+                            messagesResponse.msg
+                        )
+                    }
+                }
                 false ->
                     RepositoryResult.Failure.LoadingMessages(filter, response.message())
             }
@@ -197,11 +221,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         val topicsResponseDto = response.getBodyOrThrow()
                         when (topicsResponseDto.result) {
                             RESULT_SUCCESS -> {
-                                val messagesFilter = MessagesFilter(channel)
-                                updateMessagesCache(messagesFilter)
+                                val filter = MessagesFilter(channel)
+                                updateMessagesCache(filter)
                                 RepositoryResult.Success(
                                     topicsResponseDto.topics.toDomain(
-                                        messagesCache.getMessages(messagesFilter)
+                                        messagesCache.getMessages(filter)
                                     )
                                 )
                             }
@@ -282,43 +306,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
-    private suspend fun updateMessagesCache(messagesFilter: MessagesFilter) {
+    private suspend fun updateMessagesCache(filter: MessagesFilter) {
         runCatching {
             val response =
-                apiService.getMessages(narrow = messagesFilter.createNarrow())
+                apiService.getMessages(narrow = filter.createNarrow())
             if (response.isSuccessful) {
-                messagesCache.replaceAll(response.getBodyOrThrow().messages)
+                messagesCache.addAll(response.getBodyOrThrow().messages)
             }
         }
-    }
-
-    private fun handleGetMessagesResult(
-        messagesResponse: MessagesResponse,
-        messageId: Long,
-        messagesFilter: MessagesFilter,
-    ) = when (messagesResponse.result) {
-        RESULT_SUCCESS -> {
-            val positionType = if (messageId != Message.UNDEFINED_ID) {
-                if (messagesResponse.messages.last().id == messageId) {
-                    MessagePosition.Type.LAST_POSITION
-                } else {
-                    MessagePosition.Type.EXACTLY
-                }
-            } else {
-                MessagePosition.Type.UNDEFINED
-            }
-            messagesCache.replaceAll(messagesResponse.messages)
-            RepositoryResult.Success(
-                MessagesResult(
-                    messagesResponse.messages.toDomain(ownUser.userId),
-                    MessagePosition(positionType, messageId)
-                )
-            )
-        }
-        else -> RepositoryResult.Failure.LoadingMessages(
-            messagesFilter,
-            messagesResponse.msg
-        )
     }
 
     override suspend fun registerEventQueue(

@@ -120,7 +120,7 @@ fun List<TopicDto>.toDomain(messages: List<MessageDto>): List<Topic> {
     return map { topicDto ->
         Topic(
             topicDto.name,
-            messages.count { it.subject == topicDto.name }
+            messages.count { topicDto.name.equals(it.subject, ignoreCase = true) }
         )
     }
 }

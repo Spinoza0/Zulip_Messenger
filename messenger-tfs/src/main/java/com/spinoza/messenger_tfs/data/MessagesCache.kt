@@ -10,24 +10,24 @@ import java.util.*
 class MessagesCache {
 
     private val data = TreeSet<MessageDto>()
-    private val LOCK = Any()
+    private val lock = Any()
 
     fun add(messageDto: MessageDto) {
-        synchronized(LOCK) {
+        synchronized(lock) {
             data.remove(messageDto)
             data.add(messageDto)
         }
     }
 
-    fun replaceAll(messagesDto: List<MessageDto>) {
-        synchronized(LOCK) {
+    fun addAll(messagesDto: List<MessageDto>) {
+        synchronized(lock) {
             messagesDto.forEach { data.remove(it) }
             data.addAll(messagesDto)
         }
     }
 
     fun remove(messageId: Long) {
-        synchronized(LOCK) {
+        synchronized(lock) {
             data.removeIf { it.id == messageId }
         }
     }
@@ -48,7 +48,7 @@ class MessagesCache {
     }
 
     fun updateReaction(reactionEventDto: ReactionEventDto) {
-        synchronized(LOCK) {
+        synchronized(lock) {
             data.find { it.id == reactionEventDto.messageId }?.let { messageDto ->
                 val isUserReactionExists = messageDto.reactions.find {
                     it.emojiName == reactionEventDto.emoji_name &&
@@ -74,19 +74,21 @@ class MessagesCache {
         }
     }
 
-    fun getMessages(messagesFilter: MessagesFilter): List<MessageDto> {
-        synchronized(LOCK) {
-            return data
-                .filter {
-                    if (messagesFilter.channel.channelId != Channel.UNDEFINED_ID)
-                        messagesFilter.channel.channelId == it.streamId
-                    else true
+    fun getMessages(filter: MessagesFilter): List<MessageDto> {
+        synchronized(lock) {
+            val streamMessages =
+                if (filter.channel.channelId != Channel.UNDEFINED_ID) {
+                    data.filter { filter.channel.channelId == it.streamId }
+                } else {
+                    data
                 }
-                .filter {
-                    if (messagesFilter.topic.name.isNotEmpty())
-                        messagesFilter.topic.name == it.subject
-                    else true
-                }.toList()
+            val topicMessages =
+                if (filter.topic.name.isNotEmpty()) {
+                    streamMessages.filter { filter.topic.name.equals(it.subject, true) }
+                } else {
+                    streamMessages
+                }
+            return topicMessages.toList()
         }
     }
 

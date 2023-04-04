@@ -128,7 +128,7 @@ interface ZulipApiService {
         private const val QUERY_CONTENT = "content"
 
         private const val DEFAULT_NUM_BEFORE = 1000
-        private const val DEFAULT_NUM_AFTER = 50
+        private const val DEFAULT_NUM_AFTER = 1000
         private const val DEFAULT_EMPTY_JSON = "[]"
 
         private const val SEND_MESSAGE_TYPE_PRIVATE = "private"
