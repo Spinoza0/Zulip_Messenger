@@ -49,9 +49,6 @@ class MainFragment : Fragment(), OnItemSelectedListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        setupNavigation()
-        setupOnBackPressedCallback()
         setupStatusBar()
     }
 
@@ -92,6 +89,12 @@ class MainFragment : Fragment(), OnItemSelectedListener {
             }
         }
         return true
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setupNavigation()
+        setupOnBackPressedCallback()
     }
 
     override fun onStop() {

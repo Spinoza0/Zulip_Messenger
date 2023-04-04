@@ -69,11 +69,8 @@ class MessagesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         parseParams()
-
         setupRecyclerView()
-        setupOnBackPressedCallback()
         setupStatusBar()
         setupObservers()
         setupListeners()
@@ -276,6 +273,11 @@ class MessagesFragment : Fragment() {
 
     private fun messagesListIsEmpty(): Boolean {
         return (binding.recyclerViewMessages.adapter as MainDelegateAdapter).itemCount == NO_ITEMS
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setupOnBackPressedCallback()
     }
 
     override fun onPause() {

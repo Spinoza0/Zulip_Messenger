@@ -59,7 +59,6 @@ class UserProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         parseParams()
-        setupOnBackPressedCallback()
         setupListeners()
         setupObservers()
         setupScreen()
@@ -144,6 +143,11 @@ class UserProfileFragment : Fragment() {
             requireActivity(),
             onBackPressedCallback
         )
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setupOnBackPressedCallback()
     }
 
     override fun onPause() {
