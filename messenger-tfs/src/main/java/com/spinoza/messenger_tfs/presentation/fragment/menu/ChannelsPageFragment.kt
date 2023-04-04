@@ -1,5 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.fragment.menu
 
+import android.app.AlertDialog
+import android.content.Context
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -93,7 +96,7 @@ class ChannelsPageFragment : Fragment() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                sharedViewModel.state.collect(::handleChannelsScreenState)
+                sharedViewModel.state.collect(::handleSharedScreenState)
             }
         }
     }
@@ -136,10 +139,11 @@ class ChannelsPageFragment : Fragment() {
                     error.value
                 )
             )
+            is ChannelsPageScreenState.Failure.Network -> showCheckInternetConnectionDialog()
         }
     }
 
-    private fun handleChannelsScreenState(state: ChannelsScreenState) {
+    private fun handleSharedScreenState(state: ChannelsScreenState) {
         when (state) {
             is ChannelsScreenState.Idle -> {}
             is ChannelsScreenState.Filter -> {
@@ -170,6 +174,31 @@ class ChannelsPageFragment : Fragment() {
         (binding.recyclerViewChannels.adapter as MainDelegateAdapter).clear()
         binding.recyclerViewChannels.adapter = null
         _binding = null
+    }
+
+    private fun showCheckInternetConnectionDialog() {
+        AlertDialog.Builder(requireContext())
+            .setMessage(getString(R.string.check_internet_connection))
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.button_ok)) { _, _ ->
+                if (isNetworkConnected()) {
+                    viewModel.loadItems()
+                } else {
+                    showCheckInternetConnectionDialog()
+                }
+            }
+            .setNegativeButton(getString(R.string.button_close_application)) { _, _ ->
+                requireActivity().moveTaskToBack(true)
+                requireActivity().finish()
+            }
+            .create()
+            .show()
+    }
+
+    private fun isNetworkConnected(): Boolean {
+        val cm =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        return cm.activeNetwork != null && cm.getNetworkCapabilities(cm.activeNetwork) != null
     }
 
     companion object {

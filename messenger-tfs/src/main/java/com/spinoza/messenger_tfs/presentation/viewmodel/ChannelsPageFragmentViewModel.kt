@@ -68,7 +68,7 @@ class ChannelsPageFragmentViewModel(
         }
     }
 
-    private fun loadItems() {
+    fun loadItems() {
         viewModelScope.launch(Dispatchers.Default) {
             val setLoadingState = setLoadingStateWithDelay()
             when (val result = getChannelsUseCase(channelsFilter)) {
@@ -273,6 +273,8 @@ class ChannelsPageFragmentViewModel(
                     error.value
                 )
             )
+            is RepositoryResult.Failure.Network ->
+                _state.emit(ChannelsPageScreenState.Failure.Network(error.value))
             else -> {}
         }
     }

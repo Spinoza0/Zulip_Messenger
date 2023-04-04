@@ -46,5 +46,8 @@
     <string name="error_updating_reaction">Updating reaction error: %s</string>
     <string name="error_loading_user">Error loading user: %s</string>
     <string name="error_network">Network error, please check your internet connection: %s</string>
+    <string name="check_internet_connection">Check your internet connection</string>
+    <string name="button_ok">OK</string>
+    <string name="button_close_application">Close application</string>
 
 </resources>
