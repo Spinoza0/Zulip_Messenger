@@ -1,8 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.fragment.menu
 
-import android.app.AlertDialog
-import android.content.Context
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +18,8 @@ import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.fragment.closeApplication
+import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
@@ -139,7 +138,8 @@ class ChannelsPageFragment : Fragment() {
                     error.value
                 )
             )
-            is ChannelsPageScreenState.Failure.Network -> showCheckInternetConnectionDialog()
+            is ChannelsPageScreenState.Failure.Network ->
+                showCheckInternetConnectionDialog(viewModel::loadItems) { closeApplication() }
         }
     }
 
@@ -174,31 +174,6 @@ class ChannelsPageFragment : Fragment() {
         (binding.recyclerViewChannels.adapter as MainDelegateAdapter).clear()
         binding.recyclerViewChannels.adapter = null
         _binding = null
-    }
-
-    private fun showCheckInternetConnectionDialog() {
-        AlertDialog.Builder(requireContext())
-            .setMessage(getString(R.string.check_internet_connection))
-            .setCancelable(false)
-            .setPositiveButton(getString(R.string.button_ok)) { _, _ ->
-                if (isNetworkConnected()) {
-                    viewModel.loadItems()
-                } else {
-                    showCheckInternetConnectionDialog()
-                }
-            }
-            .setNegativeButton(getString(R.string.button_close_application)) { _, _ ->
-                requireActivity().moveTaskToBack(true)
-                requireActivity().finish()
-            }
-            .create()
-            .show()
-    }
-
-    private fun isNetworkConnected(): Boolean {
-        val cm =
-            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        return cm.activeNetwork != null && cm.getNetworkCapabilities(cm.activeNetwork) != null
     }
 
     companion object {

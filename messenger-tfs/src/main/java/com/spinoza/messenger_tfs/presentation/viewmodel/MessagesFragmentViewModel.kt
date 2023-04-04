@@ -84,6 +84,15 @@ class MessagesFragmentViewModel(
         }
     }
 
+    fun loadMessages() {
+        viewModelScope.launch {
+            val setLoadingState = setLoadingStateWithDelay()
+            val result = getMessagesUseCase(messagesFilter)
+            setLoadingState.cancel()
+            handleRepositoryResult(result)
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     private fun subscribeToNewMessageFieldChanges() {
         newMessageFieldState
@@ -102,15 +111,6 @@ class MessagesFragmentViewModel(
             }
             .flowOn(Dispatchers.Default)
             .launchIn(viewModelScope)
-    }
-
-    private fun loadMessages() {
-        viewModelScope.launch {
-            val setLoadingState = setLoadingStateWithDelay()
-            val result = getMessagesUseCase(messagesFilter)
-            setLoadingState.cancel()
-            handleRepositoryResult(result)
-        }
     }
 
     private suspend fun handleRepositoryResult(result: RepositoryResult<MessagesResult>) {

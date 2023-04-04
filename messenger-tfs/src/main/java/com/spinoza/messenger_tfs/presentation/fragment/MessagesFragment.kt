@@ -196,7 +196,7 @@ class MessagesFragment : Fragment() {
             }
             is MessagesScreenState.Failure.Network -> {
                 showError(String.format(getString(R.string.error_network), error.value))
-                goBack()
+                showCheckInternetConnectionDialog(viewModel::loadMessages) { goBack() }
             }
             is MessagesScreenState.Failure.LoadingMessages -> showError(
                 String.format(

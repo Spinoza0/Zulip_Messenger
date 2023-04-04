@@ -56,10 +56,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 when (binding.bottomNavigationView.selectedItemId) {
-                    R.id.menu_channels -> {
-                        requireActivity().moveTaskToBack(true)
-                        requireActivity().finish()
-                    }
+                    R.id.menu_channels -> closeApplication()
                     R.id.menu_people, R.id.menu_profile -> {
                         binding.bottomNavigationView.selectedItemId = R.id.menu_channels
                     }
