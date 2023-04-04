@@ -94,7 +94,6 @@ class ChannelsPageFragmentViewModel(
                         if (result is RepositoryResult.Success) {
                             cache[i] = TopicDelegateItem(messagesFilter.copy(topic = result.value))
                         }
-                        // TODO: process errors
                     }
                 }
                 _state.emit(ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList()))
@@ -298,7 +297,7 @@ class ChannelsPageFragmentViewModel(
     private companion object {
 
         const val UNDEFINED_INDEX = -1
-        const val DELAY_BEFORE_SHOW_SHIMMER = 200L
+        const val DELAY_BEFORE_SHOW_SHIMMER = 100L
         const val DELAY_BEFORE_UPDATE_INFO = 15_000L
     }
 }

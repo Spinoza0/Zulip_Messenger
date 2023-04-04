@@ -35,7 +35,10 @@ interface MessagesRepository {
         messagesFilter: MessagesFilter,
     ): RepositoryResult<MessagesResult>
 
-    suspend fun registerEventQueue(eventTypes: List<EventType>): RepositoryResult<EventsQueue>
+    suspend fun registerEventQueue(
+        eventTypes: List<EventType>,
+        messagesFilter: MessagesFilter = MessagesFilter(),
+    ): RepositoryResult<EventsQueue>
 
     suspend fun deleteEventQueue(queueId: String)
 
@@ -46,7 +49,7 @@ interface MessagesRepository {
     suspend fun getMessageEvents(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
-    ): RepositoryResult<MessageEvent>
+    ): RepositoryResult<MessagesEvent>
 
     suspend fun setOwnStatusActive()
 }

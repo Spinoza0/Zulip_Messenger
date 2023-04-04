@@ -90,7 +90,7 @@ class ProfileFragmentViewModel(
                 _state.value = ProfileScreenState.Failure.UserNotFound(error.userId, error.value)
             is RepositoryResult.Failure.Network ->
                 _state.value = ProfileScreenState.Failure.Network(error.value)
-            is RepositoryResult.Failure.RegisterPresenceEventQueue -> {}
+            is RepositoryResult.Failure.RegisterEventQueue -> {}
             else -> {}
         }
     }
@@ -111,7 +111,7 @@ class ProfileFragmentViewModel(
 
     private companion object {
 
-        const val DELAY_BEFORE_SHOW_SHIMMER = 200L
+        const val DELAY_BEFORE_SHOW_SHIMMER = 100L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val CURRENT_USER = -1L
     }

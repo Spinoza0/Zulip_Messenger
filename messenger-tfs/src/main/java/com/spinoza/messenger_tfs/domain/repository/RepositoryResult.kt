@@ -12,7 +12,7 @@ sealed class RepositoryResult<out T> {
 
         class Network(val value: String) : Failure()
 
-        class RegisterPresenceEventQueue(val value: String) : Failure()
+        class RegisterEventQueue(val value: String) : Failure()
 
         class GetEvents(val value: String) : Failure()
 
@@ -27,9 +27,7 @@ sealed class RepositoryResult<out T> {
         class LoadingMessages(val messagesFilter: MessagesFilter, val value: String) : Failure()
 
         class LoadingChannels(val channelsFilter: ChannelsFilter, val value: String) : Failure()
-
-        class LoadingTopicData(val messagesFilter: MessagesFilter) : Failure()
-
+        
         class LoadingChannelTopics(val channel: Channel, val value: String) : Failure()
 
         class SendingMessage(val value: String) : Failure()

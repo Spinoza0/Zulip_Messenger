@@ -6,7 +6,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
-import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
+import com.spinoza.messenger_tfs.domain.model.event.MessagesEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
@@ -43,13 +43,7 @@ class MessagesFragmentViewModel(
     init {
         loadMessages()
         subscribeToNewMessageFieldChanges()
-
-        viewModelScope.launch {
-            while (true) {
-                setOwnStatusActiveUseCase()
-                delay(DELAY_BEFORE_UPDATE_OWN_STATUS)
-            }
-        }
+        setOwnStatusToActive()
     }
 
     fun sendMessage(messageText: String) {
@@ -90,6 +84,15 @@ class MessagesFragmentViewModel(
             val result = getMessagesUseCase(messagesFilter)
             setLoadingState.cancel()
             handleRepositoryResult(result)
+        }
+    }
+
+    private fun setOwnStatusToActive() {
+        viewModelScope.launch {
+            while (true) {
+                setOwnStatusActiveUseCase()
+                delay(DELAY_BEFORE_UPDATE_OWN_STATUS)
+            }
         }
     }
 
@@ -149,7 +152,7 @@ class MessagesFragmentViewModel(
                     EventType.MESSAGE,
                     EventType.DELETE_MESSAGE,
                     EventType.REACTION
-                )
+                ), messagesFilter
             )) {
                 is RepositoryResult.Success -> {
                     eventsQueue = queueResult.value
@@ -162,7 +165,6 @@ class MessagesFragmentViewModel(
 
     private suspend fun handleOnSuccessQueueRegistration() {
         while (true) {
-            delay(DELAY_BEFORE_UPDATE_INFO)
             val eventResult = getMessageEventsUseCase(eventsQueue, messagesFilter)
             if (eventResult is RepositoryResult.Success) {
                 handleEvent(eventResult.value)
@@ -170,17 +172,17 @@ class MessagesFragmentViewModel(
         }
     }
 
-    private suspend fun handleEvent(messageEvent: MessageEvent) {
+    private suspend fun handleEvent(messagesEvent: MessagesEvent) {
         val userIdResult = getOwnUserIdUseCase()
         if (userIdResult is RepositoryResult.Success) {
-            eventsQueue = eventsQueue.copy(lastEventId = messageEvent.lastEventId)
+            eventsQueue = eventsQueue.copy(lastEventId = messagesEvent.lastEventId)
             val messagesResult = if (isMessageSent) {
                 isMessageSent = false
-                messageEvent.messagesResult.copy(
+                messagesEvent.messagesResult.copy(
                     position = MessagePosition(MessagePosition.Type.LAST_POSITION)
                 )
             } else {
-                messageEvent.messagesResult
+                messagesEvent.messagesResult
             }
             handleSuccessMessagesResult(messagesResult, userIdResult.value)
         }
@@ -212,7 +214,7 @@ class MessagesFragmentViewModel(
 
     private fun setLoadingStateWithDelay(): Job {
         return viewModelScope.launch {
-            delay(DELAY_BEFORE_UPDATE_ACTION_ICON)
+            delay(DELAY_BEFORE_SHOW_SHIMMER)
             _state.emit(MessagesScreenState.Loading)
         }
     }
@@ -252,8 +254,8 @@ class MessagesFragmentViewModel(
 
     private companion object {
 
+        const val DELAY_BEFORE_SHOW_SHIMMER = 100L
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
-        const val DELAY_BEFORE_UPDATE_INFO = 1L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
     }
 }

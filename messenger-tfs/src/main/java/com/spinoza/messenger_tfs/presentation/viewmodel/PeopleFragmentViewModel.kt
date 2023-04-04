@@ -161,7 +161,7 @@ class PeopleFragmentViewModel(
     private companion object {
 
         const val DURATION_MILLIS = 300L
-        const val DELAY_BEFORE_SHOW_SHIMMER = 200L
+        const val DELAY_BEFORE_SHOW_SHIMMER = 100L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val INDEX_NOT_FOUND = -1
         const val MILLIS_IN_SECOND = 1000
