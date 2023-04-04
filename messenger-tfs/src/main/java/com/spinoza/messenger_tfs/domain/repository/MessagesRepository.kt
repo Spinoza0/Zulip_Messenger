@@ -14,7 +14,7 @@ interface MessagesRepository {
     suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>>
 
     suspend fun getMessages(
-        messagesFilter: MessagesFilter,
+        filter: MessagesFilter,
         messageId: Long = Message.UNDEFINED_ID,
     ): RepositoryResult<MessagesResult>
 
@@ -22,23 +22,20 @@ interface MessagesRepository {
 
     suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>>
 
-    suspend fun getTopic(messagesFilter: MessagesFilter): RepositoryResult<Topic>
+    suspend fun getTopic(filter: MessagesFilter): RepositoryResult<Topic>
 
     suspend fun sendMessage(
         content: String,
-        messagesFilter: MessagesFilter,
+        filter: MessagesFilter,
     ): RepositoryResult<Long>
 
     suspend fun updateReaction(
         messageId: Long,
         emoji: Emoji,
-        messagesFilter: MessagesFilter,
+        filter: MessagesFilter,
     ): RepositoryResult<MessagesResult>
 
-    suspend fun registerEventQueue(
-        eventTypes: List<EventType>,
-        messagesFilter: MessagesFilter = MessagesFilter(),
-    ): RepositoryResult<EventsQueue>
+    suspend fun registerEventQueue(eventTypes: List<EventType>): RepositoryResult<EventsQueue>
 
     suspend fun deleteEventQueue(queueId: String)
 
@@ -46,10 +43,20 @@ interface MessagesRepository {
 
     suspend fun getChannelEvents(queue: EventsQueue): RepositoryResult<List<ChannelEvent>>
 
-    suspend fun getMessageEvents(
+    suspend fun getMessageEvent(
         queue: EventsQueue,
-        messagesFilter: MessagesFilter,
-    ): RepositoryResult<MessagesEvent>
+        filter: MessagesFilter,
+    ): RepositoryResult<MessageEvent>
+
+    suspend fun getDeleteMessageEvent(
+        queue: EventsQueue,
+        filter: MessagesFilter,
+    ): RepositoryResult<DeleteMessageEvent>
+
+    suspend fun getReactionEvent(
+        queue: EventsQueue,
+        filter: MessagesFilter,
+    ): RepositoryResult<ReactionEvent>
 
     suspend fun setOwnStatusActive()
 }

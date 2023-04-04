@@ -6,12 +6,11 @@ import kotlinx.parcelize.Parcelize
 @Parcelize
 data class Channel(
     val channelId: Long = UNDEFINED_ID,
-    val name: String = NO_NAME,
+    val name: String,
 ) : Parcelable {
 
     companion object {
 
         const val UNDEFINED_ID = -1L
-        const val NO_NAME = ""
     }
 }

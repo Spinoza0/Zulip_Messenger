@@ -15,7 +15,9 @@ class MessagesFragmentViewModelFactory(
     private val updateReactionUseCase: UpdateReactionUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
-    private val getMessageEventsUseCase: GetMessageEventsUseCase,
+    private val getMessageEventUseCase: GetMessageEventUseCase,
+    private val getDeleteMessageEventUseCase: GetDeleteMessageEventUseCase,
+    private val getReactionEventUseCase: GetReactionEventUseCase,
     private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
 ) : ViewModelProvider.Factory {
 
@@ -28,7 +30,9 @@ class MessagesFragmentViewModelFactory(
             updateReactionUseCase,
             registerEventQueueUseCase,
             deleteEventQueueUseCase,
-            getMessageEventsUseCase,
+            getMessageEventUseCase,
+            getDeleteMessageEventUseCase,
+            getReactionEventUseCase,
             setOwnStatusActiveUseCase
         ) as T
     }

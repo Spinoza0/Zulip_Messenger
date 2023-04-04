@@ -21,7 +21,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.ResponseBody
 import retrofit2.Response
 
 
@@ -131,17 +130,17 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
 
     override suspend fun getMessages(
-        messagesFilter: MessagesFilter,
+        filter: MessagesFilter,
         messageId: Long,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
         runCatching {
             val response =
-                apiService.getMessages(narrow = messagesFilter.createNarrow())
+                apiService.getMessages(narrow = filter.createNarrow())
             when (response.isSuccessful) {
                 true ->
-                    handleGetMessagesResult(response.getBodyOrThrow(), messageId, messagesFilter)
+                    handleGetMessagesResult(response.getBodyOrThrow(), messageId, filter)
                 false ->
-                    RepositoryResult.Failure.LoadingMessages(messagesFilter, response.message())
+                    RepositoryResult.Failure.LoadingMessages(filter, response.message())
             }
         }.getOrElse {
             RepositoryResult.Failure.Network(getErrorText(it))
@@ -223,22 +222,22 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
 
     override suspend fun getTopic(
-        messagesFilter: MessagesFilter,
+        filter: MessagesFilter,
     ): RepositoryResult<Topic> = withContext(Dispatchers.IO) {
-        updateMessagesCache(messagesFilter)
+        updateMessagesCache(filter)
         RepositoryResult.Success(
-            Topic(messagesFilter.topic.name, messagesCache.getMessages(messagesFilter).size)
+            Topic(filter.topic.name, messagesCache.getMessages(filter).size)
         )
     }
 
     override suspend fun sendMessage(
         content: String,
-        messagesFilter: MessagesFilter,
+        filter: MessagesFilter,
     ): RepositoryResult<Long> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.sendMessageToStream(
-                messagesFilter.channel.channelId,
-                messagesFilter.topic.name,
+                filter.channel.channelId,
+                filter.topic.name,
                 content
             )
             when (response.isSuccessful) {
@@ -259,7 +258,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun updateReaction(
         messageId: Long,
         emoji: Emoji,
-        messagesFilter: MessagesFilter,
+        filter: MessagesFilter,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.getSingleMessage(messageId)
@@ -271,7 +270,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                             singleMessageResponse.message.reactions,
                             messageId,
                             emoji,
-                            messagesFilter
+                            filter
                         )
                         else -> RepositoryResult.Failure.UpdatingReaction(singleMessageResponse.msg)
                     }
@@ -324,11 +323,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun registerEventQueue(
         eventTypes: List<EventType>,
-        messagesFilter: MessagesFilter,
     ): RepositoryResult<EventsQueue> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.registerEventQueue(
-                narrow = messagesFilter.createNarrow(),
                 eventTypes = Json.encodeToString(eventTypes.toStringsList())
             )
             when (response.isSuccessful) {
@@ -409,28 +406,34 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
-    override suspend fun getMessageEvents(
+    override suspend fun getMessageEvent(
         queue: EventsQueue,
-        messagesFilter: MessagesFilter,
-    ): RepositoryResult<MessagesEvent> = withContext(Dispatchers.IO) {
+        filter: MessagesFilter,
+    ): RepositoryResult<MessageEvent> = withContext(Dispatchers.IO) {
         runCatching {
             val response =
                 apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
             when (response.isSuccessful) {
                 true -> {
-                    val eventBody = response.getBodyOrThrow()
-                    val deleteMessageEventsResult =
-                        getMessagesEvents(eventBody, EventType.DELETE_MESSAGE, messagesFilter)
-                    if (deleteMessageEventsResult is RepositoryResult.Success) {
-                        deleteMessageEventsResult
-                    } else {
-                        val reactionEventsResult =
-                            getMessagesEvents(eventBody, EventType.REACTION, messagesFilter)
-                        if (reactionEventsResult is RepositoryResult.Success) {
-                            reactionEventsResult
-                        } else {
-                            getMessagesEvents(eventBody, EventType.MESSAGE, messagesFilter)
+                    val eventResponse = jsonConverter.decodeFromString(
+                        MessageEventsResponse.serializer(), response.getBodyOrThrow().string()
+                    )
+                    when (eventResponse.result) {
+                        RESULT_SUCCESS -> {
+                            eventResponse.events.forEach { messageEventDto ->
+                                messagesCache.add(messageEventDto.message)
+                            }
+                            RepositoryResult.Success(
+                                MessageEvent(
+                                    eventResponse.events.last().id,
+                                    MessagesResult(
+                                        messagesCache.getMessages(filter).toDomain(ownUser.userId),
+                                        MessagePosition()
+                                    )
+                                )
+                            )
                         }
+                        else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
                     }
                 }
                 false -> RepositoryResult.Failure.GetEvents(response.message())
@@ -440,29 +443,28 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
-    private suspend fun getMessagesEvents(
-        eventBody: ResponseBody,
-        eventType: EventType,
-        messagesFilter: MessagesFilter = MessagesFilter(),
-    ): RepositoryResult<MessagesEvent> = withContext(Dispatchers.IO) {
+    override suspend fun getDeleteMessageEvent(
+        queue: EventsQueue,
+        filter: MessagesFilter,
+    ): RepositoryResult<DeleteMessageEvent> = withContext(Dispatchers.IO) {
         runCatching {
-            val eventString = eventBody.string()
-            when (eventType) {
-                EventType.DELETE_MESSAGE -> {
+            val response =
+                apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
+            when (response.isSuccessful) {
+                true -> {
                     val eventResponse = jsonConverter.decodeFromString(
-                        DeleteMessageEventsResponse.serializer(), eventString
+                        DeleteMessageEventsResponse.serializer(), response.getBodyOrThrow().string()
                     )
                     when (eventResponse.result) {
                         RESULT_SUCCESS -> {
-                            val lastEventId = eventResponse.events.last().id
                             eventResponse.events.forEach { deleteMessageEventDto ->
                                 messagesCache.remove(deleteMessageEventDto.messageId)
                             }
                             RepositoryResult.Success(
-                                MessagesEvent(
-                                    lastEventId, MessagesResult(
-                                        messagesCache.getMessages(messagesFilter)
-                                            .toDomain(ownUser.userId),
+                                DeleteMessageEvent(
+                                    eventResponse.events.last().id,
+                                    MessagesResult(
+                                        messagesCache.getMessages(filter).toDomain(ownUser.userId),
                                         MessagePosition()
                                     )
                                 )
@@ -471,45 +473,35 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
                     }
                 }
-                EventType.REACTION -> {
+                false -> RepositoryResult.Failure.GetEvents(response.message())
+            }
+        }.getOrElse {
+            RepositoryResult.Failure.GetEvents(getErrorText(it))
+        }
+    }
+
+    override suspend fun getReactionEvent(
+        queue: EventsQueue,
+        filter: MessagesFilter,
+    ): RepositoryResult<ReactionEvent> = withContext(Dispatchers.IO) {
+        runCatching {
+            val response =
+                apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
+            when (response.isSuccessful) {
+                true -> {
                     val eventResponse = jsonConverter.decodeFromString(
-                        ReactionEventsResponse.serializer(), eventString
+                        ReactionEventsResponse.serializer(), response.getBodyOrThrow().string()
                     )
                     when (eventResponse.result) {
                         RESULT_SUCCESS -> {
-                            val lastEventId = eventResponse.events.last().id
                             eventResponse.events.forEach { reactionEventDto ->
                                 messagesCache.updateReaction(reactionEventDto)
                             }
                             RepositoryResult.Success(
-                                MessagesEvent(
-                                    lastEventId, MessagesResult(
-                                        messagesCache.getMessages(messagesFilter)
-                                            .toDomain(ownUser.userId),
-                                        MessagePosition()
-                                    )
-                                )
-                            )
-                        }
-                        else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
-                    }
-                }
-                EventType.MESSAGE -> {
-                    val eventResponse = jsonConverter.decodeFromString(
-                        MessageEventsResponse.serializer(), eventString
-                    )
-                    when (eventResponse.result) {
-                        RESULT_SUCCESS -> {
-                            val lastEventId = eventResponse.events.last().id
-                            eventResponse.events.forEach { messageEventDto ->
-                                messagesCache.add(messageEventDto.message)
-                            }
-                            RepositoryResult.Success(
-                                MessagesEvent(
-                                    lastEventId,
+                                ReactionEvent(
+                                    eventResponse.events.last().id,
                                     MessagesResult(
-                                        messagesCache.getMessages(messagesFilter)
-                                            .toDomain(ownUser.userId),
+                                        messagesCache.getMessages(filter).toDomain(ownUser.userId),
                                         MessagePosition()
                                     )
                                 )
@@ -518,7 +510,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         else -> RepositoryResult.Failure.GetEvents(eventResponse.msg)
                     }
                 }
-                else -> throw RuntimeException("Invalid EventType: $eventType")
+                false -> RepositoryResult.Failure.GetEvents(response.message())
             }
         }.getOrElse {
             RepositoryResult.Failure.GetEvents(getErrorText(it))

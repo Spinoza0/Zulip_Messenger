@@ -56,7 +56,7 @@ interface ZulipApiService {
     suspend fun getMessages(
         @Query(QUERY_NUM_BEFORE) numBefore: Int = DEFAULT_NUM_BEFORE,
         @Query(QUERY_NUM_AFTER) numAfter: Int = DEFAULT_NUM_AFTER,
-        @Query(QUERY_ANCHOR) anchor: String = ANCHOR_NEWEST,
+        @Query(QUERY_ANCHOR) anchor: String = ANCHOR_OLDEST,
         @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = false,
     ): Response<MessagesResponse>
