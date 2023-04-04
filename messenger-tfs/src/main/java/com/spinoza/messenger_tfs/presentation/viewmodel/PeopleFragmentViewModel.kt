@@ -13,7 +13,6 @@ import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import java.util.*
 
 class PeopleFragmentViewModel(
     private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
@@ -131,9 +130,10 @@ class PeopleFragmentViewModel(
 
     private suspend fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
-            is RepositoryResult.Failure.LoadingUsers -> {
+            is RepositoryResult.Failure.LoadingUsers ->
                 _state.emit(PeopleScreenState.Failure.LoadingUsers(error.value))
-            }
+            is RepositoryResult.Failure.Network ->
+                _state.emit(PeopleScreenState.Failure.Network(error.value))
             else -> {}
         }
     }

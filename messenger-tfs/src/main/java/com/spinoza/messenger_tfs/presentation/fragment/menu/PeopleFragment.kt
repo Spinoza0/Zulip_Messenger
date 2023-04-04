@@ -21,6 +21,7 @@ import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
+import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
@@ -108,13 +109,17 @@ class PeopleFragment : Fragment() {
             is PeopleScreenState.Loading -> if (peopleListIsEmpty()) {
                 binding.shimmerLarge.on()
             }
+            is PeopleScreenState.Start -> viewModel.setUsersFilter(NO_FILTER)
             is PeopleScreenState.Failure.LoadingUsers -> showError(
                 String.format(
                     getString(R.string.error_loading_users),
                     state.value
                 )
             )
-            is PeopleScreenState.Start -> viewModel.setUsersFilter(NO_FILTER)
+            is PeopleScreenState.Failure.Network ->
+                showCheckInternetConnectionDialog(viewModel::loadUsers) {
+                    globalRouter.navigateTo(Screens.MainMenu())
+                }
         }
     }
 

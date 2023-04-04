@@ -13,5 +13,7 @@ sealed class PeopleScreenState {
     sealed class Failure : PeopleScreenState() {
 
         class LoadingUsers(val value: String) : Failure()
+
+        class Network(val value: String) : Failure()
     }
 }
