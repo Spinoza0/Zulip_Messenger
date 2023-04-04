@@ -66,9 +66,8 @@ class MessagesFragmentViewModel(
             if (result is RepositoryResult.Success) {
                 _state.emit(MessagesScreenState.ReactionSent)
                 when (val userIdResult = getOwnUserIdUseCase()) {
-                    is RepositoryResult.Success -> {
+                    is RepositoryResult.Success ->
                         handleMessagesResult(result.value, userIdResult.value)
-                    }
                     is RepositoryResult.Failure -> handleErrors(userIdResult)
                 }
             }

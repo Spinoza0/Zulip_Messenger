@@ -133,6 +133,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         messageId: Long,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
         runCatching {
+            if (ownUser.userId == UserDto.UNDEFINED_ID) {
+                getOwnUser()
+            }
             val response =
                 apiService.getMessages(narrow = filter.createNarrow())
             when (response.isSuccessful) {
