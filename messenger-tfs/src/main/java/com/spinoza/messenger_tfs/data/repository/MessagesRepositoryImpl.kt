@@ -623,20 +623,15 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
 
+        @Volatile
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit
 
         fun getInstance(): MessagesRepositoryImpl {
-            instance?.let {
-                return it
-            }
+            instance?.let { return it }
             synchronized(LOCK) {
-                instance?.let {
-                    return it
-                }
-                val newInstance = MessagesRepositoryImpl()
-                instance = newInstance
-                return newInstance
+                instance?.let { return it }
+                return MessagesRepositoryImpl().also { instance = it }
             }
         }
     }
