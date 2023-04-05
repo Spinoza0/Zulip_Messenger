@@ -1,15 +1,12 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.data.*
-import com.spinoza.messenger_tfs.data.model.event.*
-import com.spinoza.messenger_tfs.data.model.message.NarrowOperator
-import com.spinoza.messenger_tfs.data.model.message.NarrowOperatorItemDto
-import com.spinoza.messenger_tfs.data.model.message.ReactionDto
-import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
-import com.spinoza.messenger_tfs.data.model.stream.StreamDto
-import com.spinoza.messenger_tfs.data.model.user.AllUsersResponse
-import com.spinoza.messenger_tfs.data.model.user.UserDto
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
+import com.spinoza.messenger_tfs.data.network.model.event.*
+import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
+import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
+import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
+import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
+import com.spinoza.messenger_tfs.data.network.model.user.UserDto
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -20,7 +17,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import retrofit2.Response
 
 
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
@@ -39,7 +35,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun setOwnStatusActive() {
         withContext(Dispatchers.IO) {
-            runCatching { apiService.setOwnStatusActive() }
+            runCatchingNonCancellation { apiService.setOwnStatusActive() }
         }
     }
 
@@ -57,7 +53,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     override suspend fun getOwnUser(): RepositoryResult<User> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             val response = apiService.getOwnUser()
             when (response.isSuccessful) {
                 true -> {
@@ -73,14 +69,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
                 false -> RepositoryResult.Failure.OwnUserNotFound(response.message())
             }
-        }.getOrElse {
-            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
     override suspend fun getUser(userId: Long): RepositoryResult<User> =
         withContext(Dispatchers.IO) {
-            runCatching {
+            runCatchingGetRepositoryResult {
                 val response = apiService.getUser(userId)
                 when (response.isSuccessful) {
                     true -> {
@@ -94,14 +88,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                     }
                     false -> RepositoryResult.Failure.UserNotFound(userId, response.message())
                 }
-            }.getOrElse {
-                RepositoryResult.Failure.Network(getErrorText(it))
             }
         }
 
     override suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>> =
         withContext(Dispatchers.IO) {
-            runCatching {
+            runCatchingGetRepositoryResult {
                 val response = apiService.getAllUsers()
                 when (response.isSuccessful) {
                     true -> {
@@ -123,15 +115,13 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                     }
                     false -> RepositoryResult.Failure.LoadingUsers(response.message())
                 }
-            }.getOrElse {
-                RepositoryResult.Failure.Network(getErrorText(it))
             }
         }
 
     override suspend fun getMessages(
         filter: MessagesFilter,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             if (ownUser.userId == UserDto.UNDEFINED_ID) {
                 getOwnUser()
             }
@@ -159,15 +149,13 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 false ->
                     RepositoryResult.Failure.LoadingMessages(filter, response.message())
             }
-        }.getOrElse {
-            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
     override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
     ): RepositoryResult<List<Channel>> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             var streamsList: List<StreamDto> = emptyList()
             var errorMsg = ""
             if (channelsFilter.isSubscribed) {
@@ -200,14 +188,12 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             } else {
                 RepositoryResult.Failure.LoadingChannels(channelsFilter, errorMsg)
             }
-        }.getOrElse {
-            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
     override suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>> =
         withContext(Dispatchers.IO) {
-            runCatching {
+            runCatchingGetRepositoryResult {
                 val response = apiService.getTopics(channel.channelId)
                 when (response.isSuccessful) {
                     true -> {
@@ -233,8 +219,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         response.message()
                     )
                 }
-            }.getOrElse {
-                RepositoryResult.Failure.Network(getErrorText(it))
             }
         }
 
@@ -251,7 +235,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         content: String,
         filter: MessagesFilter,
     ): RepositoryResult<Long> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             val response = apiService.sendMessageToStream(
                 filter.channel.channelId,
                 filter.topic.name,
@@ -267,8 +251,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
                 false -> RepositoryResult.Failure.SendingMessage(response.message())
             }
-        }.getOrElse {
-            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
@@ -277,7 +259,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         emoji: Emoji,
         filter: MessagesFilter,
     ): RepositoryResult<MessagesResult> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             val response = apiService.getSingleMessage(messageId)
             when (response.isSuccessful) {
                 true -> {
@@ -294,18 +276,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
                 false -> RepositoryResult.Failure.UpdatingReaction(response.message())
             }
-        }.getOrElse {
-            RepositoryResult.Failure.UpdatingReaction(getErrorText(it))
         }
     }
 
-    private suspend fun updateMessagesCache(filter: MessagesFilter) {
-        runCatching {
-            val response =
-                apiService.getMessages(narrow = filter.createNarrowJsonWithOperator())
-            if (response.isSuccessful) {
-                messagesCache.addAll(response.getBodyOrThrow().messages)
-            }
+    private suspend fun updateMessagesCache(filter: MessagesFilter) = runCatchingNonCancellation {
+        val response =
+            apiService.getMessages(narrow = filter.createNarrowJsonWithOperator())
+        if (response.isSuccessful) {
+            messagesCache.addAll(response.getBodyOrThrow().messages)
         }
     }
 
@@ -313,7 +291,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         eventTypes: List<EventType>,
         messagesFilter: MessagesFilter,
     ): RepositoryResult<EventsQueue> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             val response = apiService.registerEventQueue(
                 narrow = messagesFilter.createNarrowJsonForEvents(),
                 eventTypes = Json.encodeToString(eventTypes.toStringsList())
@@ -332,13 +310,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
                 false -> RepositoryResult.Failure.RegisterEventQueue(response.message())
             }
-        }.getOrElse {
-            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
     override suspend fun deleteEventQueue(queueId: String): Unit = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingNonCancellation {
             apiService.deleteEventQueue(queueId)
         }
     }
@@ -346,14 +322,13 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getPresenceEvents(
         queue: EventsQueue,
     ): RepositoryResult<List<PresenceEvent>> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
             when (response.isSuccessful) {
                 true -> {
                     val eventResponseBody = response.getBodyOrThrow()
                     val eventResponse = jsonConverter.decodeFromString(
-                        PresenceEventsResponse.serializer(),
-                        eventResponseBody.string()
+                        PresenceEventsResponse.serializer(), eventResponseBody.string()
                     )
                     when (eventResponse.result) {
                         RESULT_SUCCESS -> RepositoryResult.Success(
@@ -364,22 +339,19 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
                 false -> RepositoryResult.Failure.GetEvents(response.message())
             }
-        }.getOrElse {
-            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
     override suspend fun getChannelEvents(
         queue: EventsQueue,
     ): RepositoryResult<List<ChannelEvent>> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
             when (response.isSuccessful) {
                 true -> {
                     val eventResponseBody = response.getBodyOrThrow()
                     val eventResponse = jsonConverter.decodeFromString(
-                        StreamEventsResponse.serializer(),
-                        eventResponseBody.string()
+                        StreamEventsResponse.serializer(), eventResponseBody.string()
                     )
                     when (eventResponse.result) {
                         RESULT_SUCCESS -> RepositoryResult.Success(
@@ -391,8 +363,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
                 false -> RepositoryResult.Failure.GetEvents(response.message())
             }
-        }.getOrElse {
-            RepositoryResult.Failure.Network(getErrorText(it))
         }
     }
 
@@ -400,7 +370,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         queue: EventsQueue,
         filter: MessagesFilter,
     ): RepositoryResult<MessageEvent> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             val response =
                 apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
             when (response.isSuccessful) {
@@ -428,8 +398,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
                 false -> RepositoryResult.Failure.GetEvents(response.message())
             }
-        }.getOrElse {
-            RepositoryResult.Failure.GetEvents(getErrorText(it))
         }
     }
 
@@ -437,7 +405,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         queue: EventsQueue,
         filter: MessagesFilter,
     ): RepositoryResult<DeleteMessageEvent> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingGetRepositoryResult {
             val response =
                 apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
             when (response.isSuccessful) {
@@ -465,8 +433,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 }
                 false -> RepositoryResult.Failure.GetEvents(response.message())
             }
-        }.getOrElse {
-            RepositoryResult.Failure.GetEvents(getErrorText(it))
         }
     }
 
@@ -474,7 +440,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         queue: EventsQueue,
         filter: MessagesFilter,
     ): RepositoryResult<ReactionEvent> = withContext(Dispatchers.IO) {
-        runCatching {
+        runCatchingNonCancellation {
             val response =
                 apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
             when (response.isSuccessful) {
@@ -503,7 +469,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 false -> RepositoryResult.Failure.GetEvents(response.message())
             }
         }.getOrElse {
-            RepositoryResult.Failure.GetEvents(getErrorText(it))
+            RepositoryResult.Failure.GetEvents(it.getErrorText())
         }
     }
 
@@ -518,7 +484,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
         messagesCache.updateReaction(messageId, emoji.toDto(ownUser.userId), isAddReaction)
         CoroutineScope(Dispatchers.IO).launch {
-            runCatching {
+            runCatchingNonCancellation {
                 if (isAddReaction) {
                     apiService.addReaction(messageId, emoji.name)
                 } else {
@@ -535,7 +501,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         )
     }
 
-    private suspend fun getUserPresence(userId: Long): User.Presence = runCatching {
+    private suspend fun getUserPresence(userId: Long): User.Presence = runCatchingNonCancellation {
         val response = apiService.getUserPresence(userId)
         when (response.isSuccessful) {
             true -> {
@@ -587,35 +553,6 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     } else {
         RepositoryResult.Failure.LoadingUsers(usersResponse.msg)
     }
-
-    private inline fun <reified T> Response<T>?.getBodyOrThrow(): T {
-        return this?.body() ?: throw RuntimeException("Empty response body")
-    }
-
-    private fun MessagesFilter.createNarrowJsonWithOperator(): String {
-        val narrow = mutableListOf<NarrowOperatorItemDto>()
-        if (channel.name.isNotEmpty()) {
-            narrow.add(NarrowOperatorItemDto(NarrowOperator.STREAM.value, channel.name))
-        }
-        if (topic.name.isNotEmpty()) {
-            narrow.add(NarrowOperatorItemDto(NarrowOperator.TOPIC.value, topic.name))
-        }
-        return Json.encodeToString(narrow)
-    }
-
-    private fun MessagesFilter.createNarrowJsonForEvents(): String {
-        val narrow = mutableListOf<List<String>>()
-        if (channel.name.isNotEmpty()) {
-            narrow.add(listOf(NarrowOperator.STREAM.value, channel.name))
-        }
-        if (topic.name.isNotEmpty()) {
-            narrow.add(listOf(NarrowOperator.TOPIC.value, topic.name))
-        }
-        return Json.encodeToString(narrow)
-    }
-
-    private fun getErrorText(e: Throwable): String =
-        e.localizedMessage ?: e.message ?: e.toString()
 
     companion object {
 
