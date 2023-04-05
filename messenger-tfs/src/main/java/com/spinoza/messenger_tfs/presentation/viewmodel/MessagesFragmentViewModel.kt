@@ -144,7 +144,7 @@ class MessagesFragmentViewModel(
 
     private suspend fun registerMessagesQueue() {
         when (val queueResult =
-            registerEventQueueUseCase(listOf(EventType.MESSAGE))) {
+            registerEventQueueUseCase(listOf(EventType.MESSAGE), messagesFilter)) {
             is RepositoryResult.Success -> {
                 messagesQueue = queueResult.value
                 checkMessagesEvents()
@@ -155,7 +155,7 @@ class MessagesFragmentViewModel(
 
     private suspend fun registerDeleteMessagesQueue() {
         when (val queueResult =
-            registerEventQueueUseCase(listOf(EventType.DELETE_MESSAGE))) {
+            registerEventQueueUseCase(listOf(EventType.DELETE_MESSAGE), messagesFilter)) {
             is RepositoryResult.Success -> {
                 deleteMessagesQueue = queueResult.value
                 checkDeleteMessagesEvents()
@@ -166,7 +166,7 @@ class MessagesFragmentViewModel(
 
     private suspend fun registerReactionsQueue() {
         when (val queueResult =
-            registerEventQueueUseCase(listOf(EventType.REACTION))) {
+            registerEventQueueUseCase(listOf(EventType.REACTION), messagesFilter)) {
             is RepositoryResult.Success -> {
                 reactionsQueue = queueResult.value
                 checkReactionsEvents()

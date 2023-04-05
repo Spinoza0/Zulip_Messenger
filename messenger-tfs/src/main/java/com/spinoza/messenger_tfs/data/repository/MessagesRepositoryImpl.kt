@@ -2,8 +2,8 @@ package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.*
 import com.spinoza.messenger_tfs.data.model.event.*
-import com.spinoza.messenger_tfs.data.model.message.NarrowItemDto
 import com.spinoza.messenger_tfs.data.model.message.NarrowOperator
+import com.spinoza.messenger_tfs.data.model.message.NarrowOperatorItemDto
 import com.spinoza.messenger_tfs.data.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.model.stream.StreamDto
@@ -136,7 +136,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 getOwnUser()
             }
             val response =
-                apiService.getMessages(narrow = filter.createNarrow())
+                apiService.getMessages(narrow = filter.createNarrowJsonWithOperator())
             when (response.isSuccessful) {
                 true -> {
                     val messagesResponse = response.getBodyOrThrow()
@@ -302,7 +302,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     private suspend fun updateMessagesCache(filter: MessagesFilter) {
         runCatching {
             val response =
-                apiService.getMessages(narrow = filter.createNarrow())
+                apiService.getMessages(narrow = filter.createNarrowJsonWithOperator())
             if (response.isSuccessful) {
                 messagesCache.addAll(response.getBodyOrThrow().messages)
             }
@@ -311,9 +311,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun registerEventQueue(
         eventTypes: List<EventType>,
+        messagesFilter: MessagesFilter,
     ): RepositoryResult<EventsQueue> = withContext(Dispatchers.IO) {
         runCatching {
             val response = apiService.registerEventQueue(
+                narrow = messagesFilter.createNarrowJsonForEvents(),
                 eventTypes = Json.encodeToString(eventTypes.toStringsList())
             )
             when (response.isSuccessful) {
@@ -590,15 +592,26 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         return this?.body() ?: throw RuntimeException("Empty response body")
     }
 
-    private fun MessagesFilter.createNarrow(): String {
-        val narrowDtoList = mutableListOf<NarrowItemDto>()
+    private fun MessagesFilter.createNarrowJsonWithOperator(): String {
+        val narrow = mutableListOf<NarrowOperatorItemDto>()
         if (channel.name.isNotEmpty()) {
-            narrowDtoList.add(NarrowItemDto(NarrowOperator.STREAM.value, channel.name))
+            narrow.add(NarrowOperatorItemDto(NarrowOperator.STREAM.value, channel.name))
         }
         if (topic.name.isNotEmpty()) {
-            narrowDtoList.add(NarrowItemDto(NarrowOperator.TOPIC.value, topic.name))
+            narrow.add(NarrowOperatorItemDto(NarrowOperator.TOPIC.value, topic.name))
         }
-        return Json.encodeToString(narrowDtoList)
+        return Json.encodeToString(narrow)
+    }
+
+    private fun MessagesFilter.createNarrowJsonForEvents(): String {
+        val narrow = mutableListOf<List<String>>()
+        if (channel.name.isNotEmpty()) {
+            narrow.add(listOf(NarrowOperator.STREAM.value, channel.name))
+        }
+        if (topic.name.isNotEmpty()) {
+            narrow.add(listOf(NarrowOperator.TOPIC.value, topic.name))
+        }
+        return Json.encodeToString(narrow)
     }
 
     private fun getErrorText(e: Throwable): String =

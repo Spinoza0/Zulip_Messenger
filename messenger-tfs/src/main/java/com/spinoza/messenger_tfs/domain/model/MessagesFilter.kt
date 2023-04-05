@@ -5,6 +5,6 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class MessagesFilter(
-    val channel: Channel,
-    val topic: Topic = Topic("", 0),
+    val channel: Channel = Channel(),
+    val topic: Topic = Topic(),
 ) : Parcelable
