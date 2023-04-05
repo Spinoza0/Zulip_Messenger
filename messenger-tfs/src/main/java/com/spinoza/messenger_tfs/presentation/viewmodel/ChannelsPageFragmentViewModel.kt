@@ -18,12 +18,8 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterIt
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 
 class ChannelsPageFragmentViewModel(
     private val isAllChannels: Boolean,
@@ -46,8 +42,25 @@ class ChannelsPageFragmentViewModel(
     private val cache = mutableListOf<DelegateAdapterItem>()
     private val globalRouter = App.router
     private var isReturnFromMessagesScreen = false
-    private var isFirstLoading = true
     private var eventsQueue = EventsQueue()
+    private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
+
+    init {
+        subscribeToChannelsQueryChanges()
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun subscribeToChannelsQueryChanges() {
+        channelsQueryState
+            .distinctUntilChanged()
+            .flatMapLatest { flow { emit(it) } }
+            .onEach {
+                channelsFilter = it
+                loadItems()
+            }
+            .flowOn(Dispatchers.Default)
+            .launchIn(viewModelScope)
+    }
 
     override fun onCleared() {
         super.onCleared()
@@ -58,12 +71,8 @@ class ChannelsPageFragmentViewModel(
     }
 
     fun setChannelsFilter(newFilter: ChannelsFilter) {
-        if (newFilter != channelsFilter) {
-            channelsFilter = newFilter
-            loadItems()
-        } else if (isFirstLoading) {
-            isFirstLoading = false
-            loadItems()
+        viewModelScope.launch {
+            channelsQueryState.emit(newFilter)
         }
     }
 
@@ -175,11 +184,15 @@ class ChannelsPageFragmentViewModel(
                             }
                         }.map { (it.content() as ChannelItem).channel }
                     )
+                    var lastEventId = eventsQueue.lastEventId
                     eventResult.value
                         .filter { it.operation != ChannelEvent.Operation.DELETE }
                         .filter { !channels.contains(it.channel) }
-                        .forEach { channels.add(it.channel) }
-                    eventsQueue = eventsQueue.copy(lastEventId = eventResult.value.last().id)
+                        .forEach {
+                            lastEventId = it.id
+                            channels.add(it.channel)
+                        }
+                    eventsQueue = eventsQueue.copy(lastEventId = lastEventId)
                     updateCacheWithShowedTopicsSaving(channels.toDelegateItem(isAllChannels))
                     _state.emit(ChannelsPageScreenState.Items(cache.toList()))
                 }
