@@ -9,7 +9,6 @@ import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.network.model.presence.PresenceDto
 import com.spinoza.messenger_tfs.data.network.model.presence.PresenceTypeDto
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
-import com.spinoza.messenger_tfs.data.network.model.stream.TopicDto
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
 import com.spinoza.messenger_tfs.domain.model.*
@@ -114,15 +113,6 @@ fun PresenceDto.toDomain(): User.Presence = when (aggregated.status) {
     PresenceTypeDto.IDLE.value -> User.Presence.IDLE
     PresenceTypeDto.OFFLINE.value -> User.Presence.OFFLINE
     else -> throw RuntimeException("Unknown presence status ${aggregated.status}")
-}
-
-fun List<TopicDto>.toDomain(messages: List<MessageDto>): List<Topic> {
-    return map { topicDto ->
-        Topic(
-            topicDto.name,
-            messages.count { topicDto.name.equals(it.subject, ignoreCase = true) }
-        )
-    }
 }
 
 fun List<PresenceEventDto>.toDomain(): List<PresenceEvent> {

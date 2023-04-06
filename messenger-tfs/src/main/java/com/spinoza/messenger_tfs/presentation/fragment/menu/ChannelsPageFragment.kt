@@ -100,10 +100,6 @@ class ChannelsPageFragment : Fragment() {
         }
     }
 
-    private fun channelsListIsEmpty(): Boolean {
-        return (binding.recyclerViewChannels.adapter as MainDelegateAdapter).itemCount == NO_ITEMS
-    }
-
     private fun handleState(state: ChannelsPageScreenState) {
         if (state !is ChannelsPageScreenState.Loading) {
             binding.shimmerLarge.off()
@@ -115,9 +111,7 @@ class ChannelsPageFragment : Fragment() {
             is ChannelsPageScreenState.TopicMessagesCountUpdate ->
                 (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
                     .submitList(state.value)
-            is ChannelsPageScreenState.Loading -> {
-                if (channelsListIsEmpty()) binding.shimmerLarge.on()
-            }
+            is ChannelsPageScreenState.Loading -> binding.shimmerLarge.on()
             is ChannelsPageScreenState.Failure -> handleErrors(state)
         }
     }
@@ -179,7 +173,6 @@ class ChannelsPageFragment : Fragment() {
     companion object {
 
         private const val PARAM_IS_ALL_CHANNELS = "isAllChannels"
-        private const val NO_ITEMS = 0
 
         fun newInstance(isAllChannels: Boolean): ChannelsPageFragment {
             return ChannelsPageFragment().apply {

@@ -4,6 +4,7 @@ import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import java.util.*
 
@@ -74,7 +75,11 @@ class MessagesCache {
         }
     }
 
-    fun getMessages(filter: MessagesFilter): List<MessageDto> {
+    fun getMessages(
+        filter: MessagesFilter,
+        isUseAnchor: Boolean = false,
+        anchor: Long = Message.UNDEFINED_ID,
+    ): List<MessageDto> {
         synchronized(lock) {
             val streamMessages =
                 if (filter.channel.channelId != Channel.UNDEFINED_ID) {
@@ -88,7 +93,13 @@ class MessagesCache {
                 } else {
                     streamMessages
                 }
-            return topicMessages.toList()
+            return if (isUseAnchor) {
+                if (anchor != Message.UNDEFINED_ID)
+                    topicMessages.filter { it.id >= anchor }.toList()
+                else
+                    emptyList()
+            } else
+                topicMessages.toList()
         }
     }
 

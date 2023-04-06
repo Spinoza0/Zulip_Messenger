@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
+import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.model.event.*
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
@@ -125,18 +126,28 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             if (ownUser.userId == UserDto.UNDEFINED_ID) {
                 getOwnUser()
             }
-            val response =
-                apiService.getMessages(narrow = filter.createNarrowJsonWithOperator())
+            val response = apiService.getMessages(
+                anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
+                narrow = filter.createNarrowJsonWithOperator()
+            )
             when (response.isSuccessful) {
                 true -> {
                     val messagesResponse = response.getBodyOrThrow()
                     when (messagesResponse.result) {
                         RESULT_SUCCESS -> {
+                            val position = if (messagesResponse.foundAnchor) {
+                                MessagePosition(
+                                    MessagePosition.Type.EXACTLY,
+                                    messagesResponse.anchor
+                                )
+                            } else {
+                                MessagePosition(MessagePosition.Type.LAST_POSITION)
+                            }
                             messagesCache.addAll(messagesResponse.messages)
                             RepositoryResult.Success(
                                 MessagesResult(
                                     messagesCache.getMessages(filter).toDomain(ownUser.userId),
-                                    MessagePosition()
+                                    position
                                 )
                             )
                         }
@@ -200,13 +211,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                         val topicsResponseDto = response.getBodyOrThrow()
                         when (topicsResponseDto.result) {
                             RESULT_SUCCESS -> {
-                                val filter = MessagesFilter(channel)
-                                updateMessagesCache(filter)
-                                RepositoryResult.Success(
-                                    topicsResponseDto.topics.toDomain(
-                                        messagesCache.getMessages(filter)
-                                    )
-                                )
+                                val topics = mutableListOf<Topic>()
+                                topicsResponseDto.topics.forEach { topicDto ->
+                                    val filter = MessagesFilter(channel, Topic(topicDto.name))
+                                    val anchor = updateMessagesCache(filter)
+                                    val count = messagesCache.getMessages(filter, true, anchor).size
+                                    topics.add(Topic(topicDto.name, count))
+                                }
+                                RepositoryResult.Success(topics)
                             }
                             else -> RepositoryResult.Failure.LoadingChannelTopics(
                                 channel,
@@ -225,9 +237,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getTopic(
         filter: MessagesFilter,
     ): RepositoryResult<Topic> = withContext(Dispatchers.IO) {
-        updateMessagesCache(filter)
+        val anchor = updateMessagesCache(filter)
         RepositoryResult.Success(
-            Topic(filter.topic.name, messagesCache.getMessages(filter).size)
+            Topic(filter.topic.name, messagesCache.getMessages(filter, true, anchor).size)
         )
     }
 
@@ -279,12 +291,22 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
-    private suspend fun updateMessagesCache(filter: MessagesFilter) = runCatchingNonCancellation {
-        val response =
-            apiService.getMessages(narrow = filter.createNarrowJsonWithOperator())
+    private suspend fun updateMessagesCache(
+        filter: MessagesFilter,
+    ): Long = runCatchingNonCancellation {
+        val response = apiService.getMessages(
+            anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
+            narrow = filter.createNarrowJsonWithOperator()
+        )
         if (response.isSuccessful) {
-            messagesCache.addAll(response.getBodyOrThrow().messages)
+            val messagesResponse = response.getBodyOrThrow()
+            messagesCache.addAll(messagesResponse.messages)
+            if (messagesResponse.foundAnchor) messagesResponse.anchor else Message.UNDEFINED_ID
+        } else {
+            Message.UNDEFINED_ID
         }
+    }.getOrElse {
+        Message.UNDEFINED_ID
     }
 
     override suspend fun registerEventQueue(
