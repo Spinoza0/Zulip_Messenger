@@ -104,6 +104,13 @@ interface ZulipApiService {
         @Query(QUERY_LAST_EVENT_ID) lastEventId: Long,
     ): Response<ResponseBody>
 
+    @POST("messages/flags")
+    suspend fun setMessageFlagsToRead(
+        @Query(QUERY_MESSAGE_IDS) messageIds: String,
+        @Query(QUERY_OPERATION) operation: String = QUERY_OPERATION_ADD,
+        @Query(QUERY_FLAG) flag: String = QUERY_FLAG_READ,
+    ): Response<BasicResponse>
+
     companion object {
 
         const val ANCHOR_NEWEST = "newest"
@@ -123,6 +130,15 @@ interface ZulipApiService {
         private const val QUERY_EVENT_TYPES = "event_types"
         private const val QUERY_APPLY_MARKDOWN = "apply_markdown"
         private const val QUERY_TO = "to"
+
+        private const val QUERY_MESSAGE_IDS = "messages"
+        private const val QUERY_OPERATION = "op"
+        private const val QUERY_OPERATION_ADD = "add"
+        private const val QUERY_OPERATION_REMOVE = "remove"
+
+        private const val QUERY_FLAG = "flag"
+        private const val QUERY_FLAG_READ = "read"
+
         private const val QUERY_TOPIC = "topic"
         private const val QUERY_TYPE = "type"
         private const val QUERY_CONTENT = "content"

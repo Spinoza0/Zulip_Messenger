@@ -59,4 +59,6 @@ interface MessagesRepository {
     ): RepositoryResult<ReactionEvent>
 
     suspend fun setOwnStatusActive()
+
+    suspend fun setMessagesFlagToRead(messageIds: List<Long>)
 }

@@ -291,6 +291,13 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         }
     }
 
+    override suspend fun setMessagesFlagToRead(messageIds: List<Long>): Unit =
+        withContext(Dispatchers.IO) {
+            runCatchingNonCancellation {
+                apiService.setMessageFlagsToRead(Json.encodeToString(messageIds))
+            }
+        }
+
     private suspend fun updateMessagesCache(
         filter: MessagesFilter,
     ): Long = runCatchingNonCancellation {

@@ -30,6 +30,7 @@ class MessagesFragmentViewModel(
     private val getDeleteMessageEventUseCase: GetDeleteMessageEventUseCase,
     private val getReactionEventUseCase: GetReactionEventUseCase,
     private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
+    private val setMessagesFlagToReadUserCase: SetMessagesFlagToReadUserCase,
 ) : ViewModel() {
 
     val state: SharedFlow<MessagesScreenState>
@@ -42,11 +43,14 @@ class MessagesFragmentViewModel(
     private var deleteMessagesQueue = EventsQueue()
     private var reactionsQueue = EventsQueue()
     private var isMessageSent = false
+    private val readMessageIds = TreeSet<Long>()
+    private var isReadMessageIdsChanged = false
 
     init {
         loadMessages()
         subscribeToNewMessageFieldChanges()
         setOwnStatusToActive()
+        setReadFlags()
     }
 
     fun sendMessage(messageText: String) {
@@ -57,6 +61,14 @@ class MessagesFragmentViewModel(
                 isMessageSent = true
                 _state.emit(MessagesScreenState.MessageSent(result.value))
             }
+        }
+    }
+
+    fun addToReadMessageIds(messageId: Long) {
+        val oldSize = readMessageIds.size
+        readMessageIds.add(messageId)
+        if(!isReadMessageIdsChanged) {
+            isReadMessageIdsChanged = readMessageIds.size != oldSize
         }
     }
 
@@ -93,6 +105,18 @@ class MessagesFragmentViewModel(
             while (true) {
                 setOwnStatusActiveUseCase()
                 delay(DELAY_BEFORE_UPDATE_OWN_STATUS)
+            }
+        }
+    }
+
+    private fun setReadFlags() {
+        viewModelScope.launch(Dispatchers.Default) {
+            while (true) {
+                delay(DELAY_BEFORE_UPDATE_READ_FLAG)
+                if (isReadMessageIdsChanged) {
+                    isReadMessageIdsChanged = false
+                    setMessagesFlagToReadUserCase(readMessageIds.toList())
+                }
             }
         }
     }
@@ -299,6 +323,7 @@ class MessagesFragmentViewModel(
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
+        const val DELAY_BEFORE_UPDATE_READ_FLAG = 10_000L
         const val DELAY_REACTIONS_EVENTS = 200L
         const val DELAY_DELETE_MESSAGES_EVENTS = 500L
     }

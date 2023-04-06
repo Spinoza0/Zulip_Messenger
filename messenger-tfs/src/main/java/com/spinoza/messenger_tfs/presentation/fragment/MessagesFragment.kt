@@ -24,7 +24,9 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapt
 import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
@@ -58,7 +60,8 @@ class MessagesFragment : Fragment() {
             GetMessageEventUseCase(MessagesRepositoryImpl.getInstance()),
             GetDeleteMessageEventUseCase(MessagesRepositoryImpl.getInstance()),
             GetReactionEventUseCase(MessagesRepositoryImpl.getInstance()),
-            SetOwnStatusActiveUseCase(MessagesRepositoryImpl.getInstance())
+            SetOwnStatusActiveUseCase(MessagesRepositoryImpl.getInstance()),
+            SetMessagesFlagToReadUserCase(MessagesRepositoryImpl.getInstance()),
         )
     }
 
@@ -123,6 +126,16 @@ class MessagesFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 showArrowDown()
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val adapter = binding.recyclerViewMessages.adapter as MainDelegateAdapter
+                val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+                val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+                for (i in firstVisiblePosition..lastVisiblePosition) {
+                    val item = adapter.getItem(i)
+                    if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
+                        viewModel.addToReadMessageIds((item.content() as Message).id)
+                    }
+                }
             }
         })
     }

@@ -45,4 +45,8 @@ class MainDelegateAdapter :
         else
             RecyclerView.NO_POSITION
     }
+
+    public override fun getItem(position: Int): DelegateAdapterItem {
+        return super.getItem(position)
+    }
 }
