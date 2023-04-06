@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.adapter.channels
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.TopicItemBinding
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -77,6 +78,8 @@ class TopicDelegate(
 
         fun bind(messageCount: Int) {
             binding.textViewTopicMessagesCount.text = messageCount.toString()
+            binding.textViewTopicMessagesCount.isVisible = messageCount > 0
+            binding.textViewTopicMessagesCountLabel.isVisible = messageCount > 0
         }
     }
 }

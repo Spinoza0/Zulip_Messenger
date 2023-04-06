@@ -25,6 +25,7 @@
             tools:text="15" />
 
         <TextView
+            android:id="@+id/textViewTopicMessagesCountLabel"
             style="@style/ChannelsTopicStyle"
             android:paddingStart="8dp"
             android:paddingEnd="16dp"

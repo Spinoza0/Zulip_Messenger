@@ -41,25 +41,12 @@ class ChannelsPageFragmentViewModel(
 
     private val cache = mutableListOf<DelegateAdapterItem>()
     private val globalRouter = App.router
-    private var isReturnFromMessagesScreen = false
     private var eventsQueue = EventsQueue()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
 
     init {
         subscribeToChannelsQueryChanges()
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun subscribeToChannelsQueryChanges() {
-        channelsQueryState
-            .distinctUntilChanged()
-            .flatMapLatest { flow { emit(it) } }
-            .onEach {
-                channelsFilter = it
-                loadItems()
-            }
-            .flowOn(Dispatchers.Default)
-            .launchIn(viewModelScope)
+        updateTopicsMessageCount()
     }
 
     override fun onCleared() {
@@ -91,20 +78,17 @@ class ChannelsPageFragmentViewModel(
     }
 
     fun updateMessagesCount() {
-        if (isReturnFromMessagesScreen) {
-            viewModelScope.launch(Dispatchers.Default) {
-                for (i in 0 until cache.size) {
-                    if (cache[i] is TopicDelegateItem) {
-                        val messagesFilter = cache[i].content() as MessagesFilter
-                        val result = getTopicUseCase(messagesFilter)
-                        if (result is RepositoryResult.Success) {
-                            cache[i] = TopicDelegateItem(messagesFilter.copy(topic = result.value))
-                        }
+        viewModelScope.launch(Dispatchers.Default) {
+            for (i in 0 until cache.size) {
+                if (cache[i] is TopicDelegateItem) {
+                    val messagesFilter = cache[i].content() as MessagesFilter
+                    val result = getTopicUseCase(messagesFilter)
+                    if (result is RepositoryResult.Success) {
+                        cache[i] = TopicDelegateItem(messagesFilter.copy(topic = result.value))
                     }
                 }
-                _state.emit(ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList()))
             }
-            isReturnFromMessagesScreen = false
+            _state.emit(ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList()))
         }
     }
 
@@ -144,13 +128,26 @@ class ChannelsPageFragmentViewModel(
                     cache.subList(index + 1, nextIndex).clear()
                 }
                 _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                updateMessagesCount()
             }
         }
     }
 
     fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        isReturnFromMessagesScreen = true
         globalRouter.navigateTo(Screens.Messages(messagesFilter))
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun subscribeToChannelsQueryChanges() {
+        channelsQueryState
+            .distinctUntilChanged()
+            .flatMapLatest { flow { emit(it) } }
+            .onEach {
+                channelsFilter = it
+                loadItems()
+            }
+            .flowOn(Dispatchers.Default)
+            .launchIn(viewModelScope)
     }
 
     private fun registerEventQueue() {
@@ -168,7 +165,7 @@ class ChannelsPageFragmentViewModel(
     private fun handleOnSuccessQueueRegistration() {
         viewModelScope.launch {
             while (true) {
-                delay(DELAY_BEFORE_UPDATE_INFO)
+                delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
                 val eventResult = getChannelEventsUseCase(eventsQueue)
                 if (eventResult is RepositoryResult.Success) {
                     val channels = mutableListOf<Channel>()
@@ -279,6 +276,13 @@ class ChannelsPageFragmentViewModel(
         }
     }
 
+    private fun updateTopicsMessageCount() {
+        viewModelScope.launch {
+            delay(DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO)
+            updateMessagesCount()
+        }
+    }
+
     private fun Channel.toDelegateItem(isAllChannels: Boolean): ChannelDelegateItem {
         return ChannelDelegateItem(ChannelItem(this, isAllChannels, true))
     }
@@ -298,6 +302,7 @@ class ChannelsPageFragmentViewModel(
     private companion object {
 
         const val UNDEFINED_INDEX = -1
-        const val DELAY_BEFORE_UPDATE_INFO = 15_000L
+        const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
+        const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
     }
 }

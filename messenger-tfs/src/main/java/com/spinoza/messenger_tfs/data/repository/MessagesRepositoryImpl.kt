@@ -213,10 +213,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                             RESULT_SUCCESS -> {
                                 val topics = mutableListOf<Topic>()
                                 topicsResponseDto.topics.forEach { topicDto ->
-                                    val filter = MessagesFilter(channel, Topic(topicDto.name))
-                                    val anchor = updateMessagesCache(filter)
-                                    val count = messagesCache.getMessages(filter, true, anchor).size
-                                    topics.add(Topic(topicDto.name, count))
+                                    topics.add(Topic(topicDto.name, 0))
                                 }
                                 RepositoryResult.Success(topics)
                             }
