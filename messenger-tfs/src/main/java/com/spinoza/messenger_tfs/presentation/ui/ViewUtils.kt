@@ -8,8 +8,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 
 private const val MAX_DISTANCE = 5
 
@@ -47,21 +48,17 @@ fun RecyclerView.smoothScrollToTargetPosition(targetPosition: Int) {
     smoothScrollToPosition(targetPosition)
 }
 
-fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Long) {
-    if (changedMessageId == Message.UNDEFINED_ID) return
-
+fun RecyclerView.smoothScrollToMessage(messageId: Long) {
+    if (messageId == Message.UNDEFINED_ID) return
     var position = RecyclerView.NO_POSITION
-    for (i in 0 until this.childCount) {
-        val messageView = this.getChildAt(i)
-        val viewHolder = this.getChildViewHolder(messageView)
-        var messageId = Message.UNDEFINED_ID
-        if (viewHolder is OwnMessageDelegate.ViewHolder)
-            messageId = viewHolder.binding.messageView.messageId
-        else if (viewHolder is UserMessageDelegate.ViewHolder)
-            messageId = viewHolder.binding.messageView.messageId
-        if (messageId == changedMessageId) {
-            position = viewHolder.adapterPosition
-            break
+    val delegateAdapter = adapter as MainDelegateAdapter
+    for (index in 0 until delegateAdapter.itemCount) {
+        val item = delegateAdapter.getItem(index)
+        if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
+            if ((item.content() as Message).id == messageId) {
+                position = index
+                break
+            }
         }
     }
 

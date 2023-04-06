@@ -232,7 +232,7 @@ class MessagesFragment : Fragment() {
                 MessagePosition.Type.LAST_POSITION ->
                     binding.recyclerViewMessages.smoothScrollToLastPosition()
                 MessagePosition.Type.EXACTLY -> {
-                    binding.recyclerViewMessages.smoothScrollToChangedMessage(
+                    binding.recyclerViewMessages.smoothScrollToMessage(
                         result.position.messageId
                     )
                 }
