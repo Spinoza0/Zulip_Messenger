@@ -50,7 +50,6 @@ class MessagesFragmentViewModel(
         loadMessages()
         subscribeToNewMessageFieldChanges()
         setOwnStatusToActive()
-        setReadFlags()
     }
 
     fun sendMessage(messageText: String) {
@@ -67,7 +66,7 @@ class MessagesFragmentViewModel(
     fun addToReadMessageIds(messageId: Long) {
         val oldSize = readMessageIds.size
         readMessageIds.add(messageId)
-        if(!isReadMessageIdsChanged) {
+        if (!isReadMessageIdsChanged) {
             isReadMessageIdsChanged = readMessageIds.size != oldSize
         }
     }
@@ -100,23 +99,21 @@ class MessagesFragmentViewModel(
         }
     }
 
+    fun setMessageReadFlags() {
+        viewModelScope.launch(Dispatchers.Default) {
+            if (isReadMessageIdsChanged) {
+                isReadMessageIdsChanged = false
+                setMessagesFlagToReadUserCase(readMessageIds.toList())
+                readMessageIds.clear()
+            }
+        }
+    }
+
     private fun setOwnStatusToActive() {
         viewModelScope.launch {
             while (true) {
                 setOwnStatusActiveUseCase()
                 delay(DELAY_BEFORE_UPDATE_OWN_STATUS)
-            }
-        }
-    }
-
-    private fun setReadFlags() {
-        viewModelScope.launch(Dispatchers.Default) {
-            while (true) {
-                delay(DELAY_BEFORE_UPDATE_READ_FLAG)
-                if (isReadMessageIdsChanged) {
-                    isReadMessageIdsChanged = false
-                    setMessagesFlagToReadUserCase(readMessageIds.toList())
-                }
             }
         }
     }
@@ -323,7 +320,6 @@ class MessagesFragmentViewModel(
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
-        const val DELAY_BEFORE_UPDATE_READ_FLAG = 10_000L
         const val DELAY_REACTIONS_EVENTS = 200L
         const val DELAY_DELETE_MESSAGES_EVENTS = 500L
     }

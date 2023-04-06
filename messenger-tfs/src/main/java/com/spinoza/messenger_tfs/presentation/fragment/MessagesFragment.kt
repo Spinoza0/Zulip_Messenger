@@ -269,6 +269,7 @@ class MessagesFragment : Fragment() {
     private fun goBack() {
         if (!isGoingBack) {
             isGoingBack = true
+            viewModel.setMessageReadFlags()
             globalRouter.exit()
         }
     }
