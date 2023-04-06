@@ -23,9 +23,7 @@ suspend fun <R> runCatchingGetRepositoryResult(
     block: suspend () -> RepositoryResult<R>,
 ): RepositoryResult<R> {
     return try {
-        Result.success(block()).getOrElse {
-            RepositoryResult.Failure.Network(it.getErrorText())
-        }
+        block()
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
