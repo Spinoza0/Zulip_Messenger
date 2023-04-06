@@ -43,8 +43,6 @@ class MessagesFragmentViewModel(
     private var deleteMessagesQueue = EventsQueue()
     private var reactionsQueue = EventsQueue()
     private var isMessageSent = false
-    private val readMessageIds = TreeSet<Long>()
-    private var isReadMessageIdsChanged = false
 
     init {
         loadMessages()
@@ -60,14 +58,6 @@ class MessagesFragmentViewModel(
                 isMessageSent = true
                 _state.emit(MessagesScreenState.MessageSent(result.value))
             }
-        }
-    }
-
-    fun addToReadMessageIds(messageId: Long) {
-        val oldSize = readMessageIds.size
-        readMessageIds.add(messageId)
-        if (!isReadMessageIdsChanged) {
-            isReadMessageIdsChanged = readMessageIds.size != oldSize
         }
     }
 
@@ -99,13 +89,9 @@ class MessagesFragmentViewModel(
         }
     }
 
-    fun setMessageReadFlags() {
-        viewModelScope.launch(Dispatchers.Default) {
-            if (isReadMessageIdsChanged) {
-                isReadMessageIdsChanged = false
-                setMessagesFlagToReadUserCase(readMessageIds.toList())
-                readMessageIds.clear()
-            }
+    fun setMessageReadFlags(readMessageIds: List<Long>) {
+        viewModelScope.launch {
+            setMessagesFlagToReadUserCase(readMessageIds)
         }
     }
 

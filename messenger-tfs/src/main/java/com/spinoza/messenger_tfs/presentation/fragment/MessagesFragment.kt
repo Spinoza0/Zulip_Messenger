@@ -130,12 +130,14 @@ class MessagesFragment : Fragment() {
                 val adapter = binding.recyclerViewMessages.adapter as MainDelegateAdapter
                 val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
                 val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+                val messageIds = mutableListOf<Long>()
                 for (i in firstVisiblePosition..lastVisiblePosition) {
                     val item = adapter.getItem(i)
                     if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
-                        viewModel.addToReadMessageIds((item.content() as Message).id)
+                        messageIds.add((item.content() as Message).id)
                     }
                 }
+                viewModel.setMessageReadFlags(messageIds)
             }
         })
     }
@@ -269,7 +271,6 @@ class MessagesFragment : Fragment() {
     private fun goBack() {
         if (!isGoingBack) {
             isGoingBack = true
-            viewModel.setMessageReadFlags()
             globalRouter.exit()
         }
     }
