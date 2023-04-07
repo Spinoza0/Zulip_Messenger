@@ -9,7 +9,7 @@
 
 **2. Задание со звездочкой(не обязательно): сделать сохранение состояния**
 
-Репозиторий семинара https://gitlab.com/android-tfs-mentors/tfs-android-spring-2023-architecture-seminar/-/project_members
+Репозиторий семинара https://gitlab.com/android-tfs-mentors/tfs-android-spring-2023-architecture-seminar
 
 **На всякий случай напоминаю**:
 - Чистота оформления build.gradle-файла (не добавляйте лишние зависимости, удаляйте ненужные)
