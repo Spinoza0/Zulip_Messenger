@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.model.channelspage
+package com.spinoza.messenger_tfs.presentation.model.channels
 
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 

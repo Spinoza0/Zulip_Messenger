@@ -16,9 +16,9 @@ import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateIt
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
-import com.spinoza.messenger_tfs.presentation.model.channelspage.ChannelsPageEffect
-import com.spinoza.messenger_tfs.presentation.model.channelspage.ChannelsPageEvent
-import com.spinoza.messenger_tfs.presentation.model.channelspage.ChannelsPageState
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEffect
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEvent
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*

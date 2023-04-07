@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.model.channelspage
+package com.spinoza.messenger_tfs.presentation.model.channels
 
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter

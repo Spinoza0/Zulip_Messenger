@@ -26,10 +26,10 @@ import com.spinoza.messenger_tfs.presentation.fragment.closeApplication
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
-import com.spinoza.messenger_tfs.presentation.model.channelspage.ChannelsPageEffect
-import com.spinoza.messenger_tfs.presentation.model.channelspage.ChannelsPageEvent
-import com.spinoza.messenger_tfs.presentation.model.channelspage.ChannelsPageState
-import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEffect
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEvent
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageState
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
@@ -170,16 +170,12 @@ class ChannelsPageFragment : Fragment() {
         }
     }
 
-    private fun handleSharedScreenState(state: ChannelsScreenState) {
-        when (state) {
-            is ChannelsScreenState.Idle -> {}
-            is ChannelsScreenState.Filter -> {
-                val filterIsAllChannels = state.value.screenPosition % 2 != 0
-                if (filterIsAllChannels != isAllChannels) {
-                    return
-                }
+    private fun handleSharedScreenState(state: ChannelsState) {
+        state.filter?.let { filter ->
+            val filterIsAllChannels = filter.screenPosition % 2 != 0
+            if (filterIsAllChannels == isAllChannels) {
                 viewModel.reduce(
-                    ChannelsPageEvent.Ui.Filter(ChannelsFilter(state.value.text, !isAllChannels))
+                    ChannelsPageEvent.Ui.Filter(ChannelsFilter(filter.text, !isAllChannels))
                 )
             }
         }
