@@ -4,8 +4,8 @@ data class Message(
     val date: MessageDate,
     val user: User,
     val content: String,
-    val reactions: Map<String, ReactionParam>,
-    val isIconAddVisible: Boolean,
+    val subject: String,
+    val reactions: Map<Emoji, ReactionParam>,
     val id: Long = UNDEFINED_ID,
 ) {
     companion object {

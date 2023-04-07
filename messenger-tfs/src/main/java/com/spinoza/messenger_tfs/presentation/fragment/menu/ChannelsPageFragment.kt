@@ -14,12 +14,12 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
-import com.spinoza.messenger_tfs.domain.usecase.GetChannelsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetTopicUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.fragment.closeApplication
+import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
 import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
@@ -45,6 +45,9 @@ class ChannelsPageFragment : Fragment() {
             GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
             GetChannelsUseCase(MessagesRepositoryImpl.getInstance()),
             GetTopicUseCase(MessagesRepositoryImpl.getInstance()),
+            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            GetChannelEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
     private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()
@@ -92,19 +95,14 @@ class ChannelsPageFragment : Fragment() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                sharedViewModel.state.collect(::handleChannelsScreenState)
+                sharedViewModel.state.collect(::handleSharedScreenState)
             }
         }
-    }
-
-    private fun channelsListIsEmpty(): Boolean {
-        return (binding.recyclerViewChannels.adapter as MainDelegateAdapter).itemCount == NO_ITEMS
     }
 
     private fun handleState(state: ChannelsPageScreenState) {
         if (state !is ChannelsPageScreenState.Loading) {
             binding.shimmerLarge.off()
-            binding.shimmerSmall.off()
         }
         when (state) {
             is ChannelsPageScreenState.Items ->
@@ -113,10 +111,7 @@ class ChannelsPageFragment : Fragment() {
             is ChannelsPageScreenState.TopicMessagesCountUpdate ->
                 (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
                     .submitList(state.value)
-            is ChannelsPageScreenState.Loading -> {
-                if (channelsListIsEmpty()) binding.shimmerLarge.on()
-                else binding.shimmerSmall.on()
-            }
+            is ChannelsPageScreenState.Loading -> binding.shimmerLarge.on()
             is ChannelsPageScreenState.Failure -> handleErrors(state)
         }
     }
@@ -126,19 +121,23 @@ class ChannelsPageFragment : Fragment() {
             is ChannelsPageScreenState.Failure.LoadingChannels -> showError(
                 String.format(
                     getString(R.string.error_loading_channels),
-                    error.channelsFilter.name
+                    error.channelsFilter.name,
+                    error.value
                 )
             )
             is ChannelsPageScreenState.Failure.LoadingChannelTopics -> showError(
                 String.format(
                     getString(R.string.error_loading_topics),
-                    error.channel.name
+                    error.channel.name,
+                    error.value
                 )
             )
+            is ChannelsPageScreenState.Failure.Network ->
+                showCheckInternetConnectionDialog(viewModel::loadItems) { closeApplication() }
         }
     }
 
-    private fun handleChannelsScreenState(state: ChannelsScreenState) {
+    private fun handleSharedScreenState(state: ChannelsScreenState) {
         when (state) {
             is ChannelsScreenState.Idle -> {}
             is ChannelsScreenState.Filter -> {
@@ -162,7 +161,6 @@ class ChannelsPageFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
-        binding.shimmerSmall.off()
     }
 
     override fun onDestroyView() {
@@ -175,7 +173,6 @@ class ChannelsPageFragment : Fragment() {
     companion object {
 
         private const val PARAM_IS_ALL_CHANNELS = "isAllChannels"
-        private const val NO_ITEMS = 0
 
         fun newInstance(isAllChannels: Boolean): ChannelsPageFragment {
             return ChannelsPageFragment().apply {

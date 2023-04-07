@@ -5,6 +5,6 @@ data class Emoji(
     val code: String,
 ) {
     override fun toString(): String {
-        return String(Character.toChars(code.toInt(16)))
+        return if (code.isEmpty()) "" else String(Character.toChars(code.toInt(16)))
     }
 }

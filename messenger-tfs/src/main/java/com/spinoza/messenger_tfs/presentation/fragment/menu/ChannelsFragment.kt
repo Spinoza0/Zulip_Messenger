@@ -105,7 +105,6 @@ class ChannelsFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-
         outState.putStringArrayList(PARAM_SEARCH_FILTERS, searchFilters)
     }
 

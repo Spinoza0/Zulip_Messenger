@@ -49,9 +49,6 @@ class MainFragment : Fragment(), OnItemSelectedListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        setupNavigation()
-        setupOnBackPressedCallback()
         setupStatusBar()
     }
 
@@ -59,10 +56,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 when (binding.bottomNavigationView.selectedItemId) {
-                    R.id.menu_channels -> {
-                        requireActivity().moveTaskToBack(true)
-                        requireActivity().finish()
-                    }
+                    R.id.menu_channels -> closeApplication()
                     R.id.menu_people, R.id.menu_profile -> {
                         binding.bottomNavigationView.selectedItemId = R.id.menu_channels
                     }
@@ -92,6 +86,12 @@ class MainFragment : Fragment(), OnItemSelectedListener {
             }
         }
         return true
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setupNavigation()
+        setupOnBackPressedCallback()
     }
 
     override fun onStop() {

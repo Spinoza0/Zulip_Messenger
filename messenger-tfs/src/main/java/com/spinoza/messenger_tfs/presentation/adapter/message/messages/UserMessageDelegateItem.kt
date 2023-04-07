@@ -19,7 +19,7 @@ class UserMessageDelegateItem(private val value: Message) : DelegateAdapterItem 
     }
 
     override fun getChangePayload(newItem: DelegateAdapterItem): Any? {
-        if (newItem !is CompanionMessageDelegateItem && newItem !is UserMessageDelegateItem)
+        if (newItem !is UserMessageDelegateItem && newItem !is OwnMessageDelegateItem)
             return null
         val newReactions = (newItem.content() as Message).reactions
         return if (value.reactions == newReactions) null
@@ -27,6 +27,6 @@ class UserMessageDelegateItem(private val value: Message) : DelegateAdapterItem 
     }
 
     fun getGravity(): FlexBoxGravity {
-        return FlexBoxGravity.END
+        return FlexBoxGravity.START
     }
 }

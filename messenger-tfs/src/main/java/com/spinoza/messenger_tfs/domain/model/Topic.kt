@@ -9,6 +9,13 @@ import kotlinx.parcelize.Parcelize
  * */
 @Parcelize
 data class Topic(
-    val name: String,
-    val messageCount: Int,
-) : Parcelable
+    val name: String = UNDEFINED_NAME,
+    val messageCount: Int = NO_MESSAGES,
+) : Parcelable {
+
+    companion object {
+
+        const val UNDEFINED_NAME = ""
+        const val NO_MESSAGES = 0
+    }
+}

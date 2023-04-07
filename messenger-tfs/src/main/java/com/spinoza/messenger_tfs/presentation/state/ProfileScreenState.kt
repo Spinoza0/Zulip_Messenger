@@ -10,8 +10,12 @@ sealed class ProfileScreenState {
 
     class UserData(val value: User) : ProfileScreenState()
 
+    class Presence(val value: User.Presence) : ProfileScreenState()
+
     sealed class Failure : ProfileScreenState() {
 
-        class UserNotFound(val userId: Long) : Failure()
+        class Network(val value: String) : Failure()
+
+        class UserNotFound(val userId: Long, val value: String) : Failure()
     }
 }

@@ -68,7 +68,8 @@
 
     <!-- Fragment People -->
     <color name="online">#4AB54D</color>
-    <color name="online_night">#4AB54D</color>
+    <color name="idle">#FF9800</color>
+    <color name="offline">#EF2516</color>
 
     <!-- Fragment Profile -->
     <color name="button_logout">#1B1B1B</color>

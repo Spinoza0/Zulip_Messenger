@@ -10,6 +10,7 @@ import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
+import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
@@ -64,7 +65,7 @@ class MessageView @JvmOverloads constructor(
             if (messageTypeIsUser) {
                 val messageBackground = this.getResourceId(
                     R.styleable.message_view_message_background_color,
-                    R.drawable.shape_message_companion_bottom
+                    R.drawable.shape_message_user_bottom
                 )
                 binding.contentTextView.setBackgroundResource(messageBackground)
                 binding.avatarImageView.visibility = View.GONE
@@ -207,25 +208,21 @@ class MessageView @JvmOverloads constructor(
     fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
         messageId = message.id
         userId = message.user.userId
-        name = message.user.full_name
+        name = message.user.fullName
         content = message.content
         this.reactionsGravity = reactionsGravity
-        setIconAddVisibility(message.isIconAddVisible)
         setReactions(message.reactions)
     }
 
-    fun setReactions(reactions: Map<String, ReactionParam>) {
+    fun setReactions(reactions: Map<Emoji, ReactionParam>) {
         binding.reactionsFlexBoxLayout.removeAllViews()
+        binding.reactionsFlexBoxLayout.setIconAddVisibility(reactions.isNotEmpty())
         reactions.forEach {
             addReaction(it.key, it.value)
         }
     }
 
-    private fun setIconAddVisibility(state: Boolean) {
-        binding.reactionsFlexBoxLayout.setIconAddVisibility(state)
-    }
-
-    private fun addReaction(reaction: String, reactionParam: ReactionParam) {
+    private fun addReaction(reaction: Emoji, reactionParam: ReactionParam) {
         val reactionView =
             ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
                 emoji = reaction

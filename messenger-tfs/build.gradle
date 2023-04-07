@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-parcelize'
     id 'kotlin-kapt'
+    id 'kotlinx-serialization'
 }
 
 android {
@@ -49,14 +50,14 @@ dependencies {
 
     implementation navigation.cicerone
 
-    implementation room.runtime
-    kapt(room.compiler)
-    implementation room.ktx
-
     implementation glide.glide
     kapt(glide.compiler)
 
     implementation shimmer
+
+    implementation retrofit.retrofit
+    implementation retrofit.converter
+    implementation kotlinx.serializationJson
 
     debugImplementation leakcanary
 }

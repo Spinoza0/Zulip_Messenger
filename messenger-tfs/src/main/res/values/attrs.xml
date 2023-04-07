@@ -17,8 +17,6 @@
     </declare-styleable>
 
     <declare-styleable name="reaction_view">
-        <attr name="emoji" format="string" />
-        <attr name="count" format="integer" />
         <attr name="size" format="dimension" />
     </declare-styleable>
 
@@ -32,8 +30,8 @@
     </declare-styleable>
 
     <declare-styleable name="message_view">
-        <attr name="message_user_background_start_color" format="color" />
-        <attr name="message_user_background_end_color" format="color" />
+        <attr name="message_own_background_start_color" format="color" />
+        <attr name="message_own_background_end_color" format="color" />
         <attr name="message_name_color" format="color" />
         <attr name="message_background_color" format="reference" />
         <attr name="message_type_is_user" format="boolean" />
@@ -58,10 +56,6 @@
         <attr name="underline_color" format="color" />
         <attr name="even_topic_color" format="color" />
         <attr name="odd_topic_color" format="color" />
-    </declare-styleable>
-
-    <declare-styleable name="fragment_people">
-        <attr name="online_color" format="color" />
     </declare-styleable>
 
     <declare-styleable name="fragment_profile">

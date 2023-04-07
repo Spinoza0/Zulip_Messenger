@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.model.Emoji
 
 class ReactionView @JvmOverloads constructor(
     context: Context,
@@ -16,7 +17,7 @@ class ReactionView @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
-    var emoji = ""
+    var emoji = Emoji("","")
         set(value) {
             field = value
             makeReaction()
@@ -53,8 +54,6 @@ class ReactionView @JvmOverloads constructor(
 
     init {
         context.withStyledAttributes(attrs, R.styleable.reaction_view) {
-            emoji = this.getString(R.styleable.reaction_view_emoji) ?: ""
-            count = this.getInt(R.styleable.reaction_view_count, EMOJI_START_COUNT)
             size = this.getDimension(R.styleable.reaction_view_size, EMOJI_SIZE)
         }
     }
@@ -103,7 +102,7 @@ class ReactionView @JvmOverloads constructor(
     }
 
     private fun makeReaction() {
-        reaction = if (isCountVisible) "$emoji $count" else emoji
+        reaction = if (isCountVisible) "$emoji $count" else emoji.toString()
         reactionPaint.textSize = size.spToPx(this)
     }
 

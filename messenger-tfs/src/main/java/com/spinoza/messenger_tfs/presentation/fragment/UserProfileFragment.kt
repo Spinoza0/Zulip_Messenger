@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
-import androidx.core.view.isGone
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -18,8 +17,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.usecase.GetCurrentUserUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
@@ -41,8 +39,11 @@ class UserProfileFragment : Fragment() {
 
     private val viewModel: ProfileFragmentViewModel by viewModels {
         ProfileFragmentViewModelFactory(
-            GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
-            GetUserUseCase(MessagesRepositoryImpl.getInstance())
+            GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
+            GetUserUseCase(MessagesRepositoryImpl.getInstance()),
+            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            GetPresenceEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
 
@@ -58,7 +59,6 @@ class UserProfileFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         parseParams()
-        setupOnBackPressedCallback()
         setupListeners()
         setupObservers()
         setupScreen()
@@ -96,32 +96,30 @@ class UserProfileFragment : Fragment() {
             is ProfileScreenState.UserData -> showProfileInfo(state.value)
             is ProfileScreenState.Loading -> binding.shimmer.on()
             is ProfileScreenState.Failure.UserNotFound -> showError(
-                String.format(
-                    getString(R.string.error_user_not_found),
-                    state.userId
-                )
+                String.format(getString(R.string.error_user_not_found), state.userId, state.value)
             )
+            is ProfileScreenState.Failure.Network -> showError(
+                String.format(getString(R.string.error_network), state.value)
+            )
+            is ProfileScreenState.Presence -> showPresence(state.value)
             is ProfileScreenState.Idle -> {}
         }
     }
 
     private fun showProfileInfo(user: User) {
-        with(binding) {
-            textViewName.text = user.full_name
-            textViewStatus.text = user.status
-            if (user.status.isEmpty()) {
-                textViewStatus.visibility = View.GONE
-            } else {
-                textViewStatus.text = user.status
-            }
-            textViewStatusOnline.isVisible = user.isActive
-            textViewStatusOffline.isGone = user.isActive
-            com.bumptech.glide.Glide.with(imageViewAvatar)
-                .load(user.avatar_url)
-                .transform(RoundedCorners(20))
-                .error(R.drawable.ic_default_avatar)
-                .into(imageViewAvatar)
-        }
+        binding.textViewName.text = user.fullName
+        showPresence(user.presence)
+        com.bumptech.glide.Glide.with(binding.imageViewAvatar)
+            .load(user.avatarUrl)
+            .transform(RoundedCorners(20))
+            .error(R.drawable.ic_default_avatar)
+            .into(binding.imageViewAvatar)
+    }
+
+    private fun showPresence(presence: User.Presence) {
+        binding.textViewStatusActive.isVisible = presence == User.Presence.ACTIVE
+        binding.textViewStatusIdle.isVisible = presence == User.Presence.IDLE
+        binding.textViewStatusOffline.isVisible = presence == User.Presence.OFFLINE
     }
 
     private fun goBack() {
@@ -145,6 +143,11 @@ class UserProfileFragment : Fragment() {
             requireActivity(),
             onBackPressedCallback
         )
+    }
+
+    override fun onStart() {
+        super.onStart()
+        setupOnBackPressedCallback()
     }
 
     override fun onPause() {

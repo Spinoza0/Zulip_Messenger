@@ -11,6 +11,9 @@ class ChannelsPageFragmentViewModelFactory(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    private val getChannelEventsUseCase: GetChannelEventsUseCase,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -18,7 +21,10 @@ class ChannelsPageFragmentViewModelFactory(
             isAllChannels,
             getTopicsUseCase,
             getChannelsUseCase,
-            getTopicUseCase
+            getTopicUseCase,
+            registerEventQueueUseCase,
+            deleteEventQueueUseCase,
+            getChannelEventsUseCase
         ) as T
     }
 }

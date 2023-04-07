@@ -32,6 +32,7 @@ class StickyDateInHeaderItemDecoration : RecyclerView.ItemDecoration() {
     }
 
     private fun RecyclerView.createHeaderView(position: Int): View? {
+        if (position == RecyclerView.NO_POSITION) return null
         val adapter = adapter ?: return null
         val holder = adapter.onCreateViewHolder(
             this,

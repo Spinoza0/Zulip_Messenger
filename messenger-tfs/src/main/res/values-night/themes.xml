@@ -27,10 +27,10 @@
         <item name="text_900_color">@color/text_900_night</item>
 
         <!-- MessageView -->
-        <item name="message_user_background_start_color">
+        <item name="message_own_background_start_color">
             @color/message_user_background_start_night
         </item>
-        <item name="message_user_background_end_color">@color/message_user_background_end_night
+        <item name="message_own_background_end_color">@color/message_user_background_end_night
         </item>
         <item name="message_name_color">@color/message_name_night</item>
 
@@ -51,9 +51,6 @@
         <item name="underline_color">@color/underline_night</item>
         <item name="even_topic_color">@color/even_topic_night</item>
         <item name="odd_topic_color">@color/odd_topic_night</item>
-
-        <!-- Fragment People -->
-        <item name="online_color">@color/online_night</item>
 
         <!-- Fragment Profile -->
         <item name="button_logout_color">@color/button_logout</item>

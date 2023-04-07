@@ -5,24 +5,28 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.*
-import com.spinoza.messenger_tfs.domain.repository.MessagePosition
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.message.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
@@ -46,11 +50,18 @@ class MessagesFragment : Fragment() {
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
-            GetCurrentUserUseCase(MessagesRepositoryImpl.getInstance()),
+            messagesFilter,
+            GetOwnUserIdUseCase(MessagesRepositoryImpl.getInstance()),
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
             SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
             UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            messagesFilter
+            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
+            GetMessageEventUseCase(MessagesRepositoryImpl.getInstance()),
+            GetDeleteMessageEventUseCase(MessagesRepositoryImpl.getInstance()),
+            GetReactionEventUseCase(MessagesRepositoryImpl.getInstance()),
+            SetOwnStatusActiveUseCase(MessagesRepositoryImpl.getInstance()),
+            SetMessagesFlagToReadUserCase(MessagesRepositoryImpl.getInstance()),
         )
     }
 
@@ -63,11 +74,8 @@ class MessagesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         parseParams()
-
         setupRecyclerView()
-        setupOnBackPressedCallback()
         setupStatusBar()
         setupObservers()
         setupListeners()
@@ -101,28 +109,42 @@ class MessagesFragment : Fragment() {
     private fun setupRecyclerView() {
         val messagesAdapter = MainDelegateAdapter().apply {
             addDelegate(
-                CompanionMessageDelegate(
+                UserMessageDelegate(
                     ::onReactionAddClickListener,
                     ::onReactionClickListener,
                     ::onAvatarClickListener
                 )
             )
             addDelegate(
-                UserMessageDelegate(
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener
-                )
+                OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener)
             )
             addDelegate(DateDelegate())
         }
-
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
+        binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                showArrowDown()
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val adapter = binding.recyclerViewMessages.adapter as MainDelegateAdapter
+                val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+                val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+                val messageIds = mutableListOf<Long>()
+                for (i in firstVisiblePosition..lastVisiblePosition) {
+                    val item = adapter.getItem(i)
+                    if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
+                        messageIds.add((item.content() as Message).id)
+                    }
+                }
+                viewModel.setMessageReadFlags(messageIds)
+            }
+        })
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::handleState)
             }
         }
@@ -132,24 +154,26 @@ class MessagesFragment : Fragment() {
         binding.toolbar.setNavigationOnClickListener {
             goBack()
         }
-
         binding.imageViewAction.setOnClickListener {
             viewModel.sendMessage(binding.editTextMessage.text.toString())
         }
-
         binding.editTextMessage.doOnTextChanged { text, _, _, _ ->
             viewModel.doOnTextChanged(text)
+        }
+        binding.imageViewArrow.setOnClickListener {
+            binding.recyclerViewMessages.smoothScrollToLastPosition()
         }
     }
 
     private fun handleState(state: MessagesScreenState) {
         if (state !is MessagesScreenState.Loading) {
             binding.shimmerLarge.off()
-            binding.shimmerSmall.off()
+        }
+        if (state !is MessagesScreenState.SendingMessage) {
+            binding.shimmerSending.off()
         }
         when (state) {
             is MessagesScreenState.Messages -> {
-                binding.shimmerSent.off()
                 submitMessages(state.value)
             }
             is MessagesScreenState.UpdateIconImage -> {
@@ -157,56 +181,48 @@ class MessagesFragment : Fragment() {
             }
             is MessagesScreenState.MessageSent -> {
                 binding.editTextMessage.text?.clear()
-                binding.shimmerSent.on()
             }
-            is MessagesScreenState.ReactionSent -> binding.shimmerSent.on()
+            is MessagesScreenState.ReactionSent -> {}
             is MessagesScreenState.Loading -> {
-                binding.shimmerSent.off()
                 if (messagesListIsEmpty()) binding.shimmerLarge.on()
-                else binding.shimmerSmall.on()
             }
             is MessagesScreenState.Failure -> {
-                binding.shimmerSent.off()
                 handleErrors(state)
             }
+            is MessagesScreenState.SendingMessage -> binding.shimmerSending.on()
         }
     }
 
     private fun handleErrors(error: MessagesScreenState.Failure) {
         when (error) {
             is MessagesScreenState.Failure.MessageNotFound -> showError(
-                String.format(
-                    getString(R.string.error_message_not_found),
-                    error.messageId
-                )
+                String.format(getString(R.string.error_message_not_found), error.messageId)
             )
             is MessagesScreenState.Failure.UserNotFound -> showError(
-                String.format(
-                    getString(R.string.error_user_not_found),
-                    error.userId
-                )
+                String.format(getString(R.string.error_user_not_found), error.userId)
             )
             is MessagesScreenState.Failure.SendingMessage -> showError(
-                String.format(
-                    getString(R.string.error_sending_message),
-                    error.value
-                )
+                String.format(getString(R.string.error_sending_message), error.value)
             )
             is MessagesScreenState.Failure.UpdatingReaction -> showError(
+                String.format(getString(R.string.error_updating_reaction), error.value)
+            )
+            is MessagesScreenState.Failure.OwnUserNotFound -> {
+                showError(String.format(getString(R.string.error_loading_user), error.value))
+                goBack()
+            }
+            is MessagesScreenState.Failure.Network -> {
+                showError(String.format(getString(R.string.error_network), error.value))
+                showCheckInternetConnectionDialog(viewModel::loadMessages) { goBack() }
+            }
+            is MessagesScreenState.Failure.LoadingMessages -> showError(
                 String.format(
-                    getString(R.string.error_updating_reaction),
+                    getString(R.string.error_loading_messages),
+                    error.messagesFilter.channel.name,
+                    error.messagesFilter.topic.name,
                     error.value
                 )
             )
-            is MessagesScreenState.Failure.CurrentUserNotFound -> {
-                showError(
-                    String.format(
-                        getString(R.string.error_loading_current_user),
-                        error.value
-                    )
-                )
-                goBack()
-            }
         }
     }
 
@@ -215,18 +231,25 @@ class MessagesFragment : Fragment() {
             binding.recyclerViewMessages.adapter as MainDelegateAdapter
         messagesAdapter.submitList(result.messages) {
             when (result.position.type) {
-                MessagePosition.Type.LAST_POSITION -> {
-                    val lastItemPosition = messagesAdapter.itemCount - 1
-                    binding.recyclerViewMessages.smoothScrollToPosition(lastItemPosition)
-                }
+                MessagePosition.Type.LAST_POSITION ->
+                    binding.recyclerViewMessages.smoothScrollToLastPosition()
                 MessagePosition.Type.EXACTLY -> {
-                    binding.recyclerViewMessages.smoothScrollToChangedMessage(
+                    binding.recyclerViewMessages.smoothScrollToMessage(
                         result.position.messageId
                     )
                 }
                 MessagePosition.Type.UNDEFINED -> {}
             }
+            showArrowDown()
         }
+    }
+
+    private fun showArrowDown() {
+        val layoutManager = binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+        val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+        val lastItemPosition = binding.recyclerViewMessages.adapter?.itemCount?.minus(1)
+        binding.imageViewArrow.isVisible =
+            lastItemPosition != null && lastVisibleItemPosition < lastItemPosition
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
@@ -269,16 +292,15 @@ class MessagesFragment : Fragment() {
         return (binding.recyclerViewMessages.adapter as MainDelegateAdapter).itemCount == NO_ITEMS
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.onResume(messagesListIsEmpty())
+    override fun onStart() {
+        super.onStart()
+        setupOnBackPressedCallback()
     }
 
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
-        binding.shimmerSmall.off()
-        binding.shimmerSent.off()
+        binding.shimmerSending.off()
     }
 
     override fun onStop() {

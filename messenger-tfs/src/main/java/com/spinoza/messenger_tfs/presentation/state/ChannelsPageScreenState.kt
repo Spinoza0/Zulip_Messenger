@@ -14,8 +14,10 @@ sealed class ChannelsPageScreenState {
 
     sealed class Failure : ChannelsPageScreenState() {
 
-        class LoadingChannels(val channelsFilter: ChannelsFilter) : Failure()
+        class Network(val value: String) : Failure()
 
-        class LoadingChannelTopics(val channel: Channel) : Failure()
+        class LoadingChannels(val channelsFilter: ChannelsFilter, val value: String) : Failure()
+
+        class LoadingChannelTopics(val channel: Channel, val value: String) : Failure()
     }
 }

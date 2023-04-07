@@ -38,13 +38,24 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginHorizontal="12dp"
+        android:layout_marginBottom="20dp"
         android:orientation="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@id/textInput"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textViewTopic"
-        tools:listitem="@layout/companion_message_item" />
+        tools:listitem="@layout/user_message_item" />
+
+    <ImageView
+        android:id="@+id/imageViewArrow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/arrow"
+        android:src="@drawable/ic_wide_arrow_down"
+        app:layout_constraintBottom_toTopOf="@id/textInput"
+        app:layout_constraintEnd_toEndOf="@id/recyclerViewMessages"
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewMessages" />
 
     <LinearLayout
         android:id="@+id/textInput"
@@ -113,40 +124,39 @@
 
             <include layout="@layout/message_placeholder" />
 
+            <include layout="@layout/message_placeholder" />
+
+            <include layout="@layout/message_placeholder" />
+
+            <include layout="@layout/message_placeholder" />
+
+            <include layout="@layout/message_placeholder" />
+
+            <include layout="@layout/message_placeholder" />
+
+            <include layout="@layout/message_placeholder" />
+
+            <include layout="@layout/message_placeholder" />
+
         </LinearLayout>
     </com.facebook.shimmer.ShimmerFrameLayout>
 
-    <include
-        android:id="@+id/shimmerSmall"
-        layout="@layout/shimmer"
-        android:visibility="gone"
-        tools:visibility="visible" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.8" />
-
     <com.facebook.shimmer.ShimmerFrameLayout
-        android:id="@+id/shimmerSent"
+        android:id="@+id/shimmerSending"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/guideline"
-        app:shimmer_duration="1000"
+        app:layout_constraintBottom_toTopOf="@id/textInput"
+        app:layout_constraintStart_toStartOf="@id/recyclerViewMessages"
+        app:layout_constraintTop_toBottomOf="@id/recyclerViewMessages"
+        app:shimmer_duration="500"
         tools:visibility="visible">
 
-        <TextView
+        <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="@string/sent"
-            android:textColor="?attr/text_300_color"
-            android:textSize="24sp" />
+            android:contentDescription="@string/arrow"
+            android:src="@drawable/ic_wide_arrow_up" />
 
     </com.facebook.shimmer.ShimmerFrameLayout>
 

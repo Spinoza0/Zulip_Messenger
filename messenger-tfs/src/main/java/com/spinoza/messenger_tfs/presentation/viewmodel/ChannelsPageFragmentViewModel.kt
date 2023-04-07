@@ -7,29 +7,28 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
-import com.spinoza.messenger_tfs.domain.usecase.GetChannelsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetTopicUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetTopicsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 
 class ChannelsPageFragmentViewModel(
     private val isAllChannels: Boolean,
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    private val getChannelEventsUseCase: GetChannelEventsUseCase,
 ) : ViewModel() {
 
     val state: SharedFlow<ChannelsPageScreenState>
@@ -42,62 +41,60 @@ class ChannelsPageFragmentViewModel(
 
     private val cache = mutableListOf<DelegateAdapterItem>()
     private val globalRouter = App.router
-    private var isReturnFromMessagesScreen = false
-    private var isFirstLoading = true
+    private var eventsQueue = EventsQueue()
+    private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
+
+    init {
+        subscribeToChannelsQueryChanges()
+        updateTopicsMessageCount()
+    }
 
     override fun onCleared() {
         super.onCleared()
         cache.clear()
-    }
-
-    fun setChannelsFilter(newFilter: ChannelsFilter) {
-        if (newFilter != channelsFilter) {
-            channelsFilter = newFilter
-            loadItems()
-        } else if (isFirstLoading) {
-            isFirstLoading = false
-            loadItems()
+        viewModelScope.launch {
+            deleteEventQueueUseCase(eventsQueue.queueId)
         }
     }
 
-    private fun loadItems() {
+    fun setChannelsFilter(newFilter: ChannelsFilter) {
+        viewModelScope.launch {
+            channelsQueryState.emit(newFilter)
+        }
+    }
+
+    fun loadItems() {
         viewModelScope.launch(Dispatchers.Default) {
-            val setLoadingState = setLoadingStateWithDelay()
+            _state.emit(ChannelsPageScreenState.Loading)
             when (val result = getChannelsUseCase(channelsFilter)) {
                 is RepositoryResult.Success -> {
                     updateCacheWithShowedTopicsSaving(result.value.toDelegateItem(isAllChannels))
                     _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                    registerEventQueue()
                 }
                 is RepositoryResult.Failure -> handleErrors(result)
             }
-            setLoadingState.cancel()
         }
     }
 
     fun updateMessagesCount() {
-        if (isReturnFromMessagesScreen) {
-            viewModelScope.launch(Dispatchers.Default) {
-                val setLoadingState = setLoadingStateWithDelay()
-                for (i in 0 until cache.size) {
-                    if (cache[i] is TopicDelegateItem) {
-                        val messagesFilter = cache[i].content() as MessagesFilter
-                        val result = getTopicUseCase(messagesFilter)
-                        if (result is RepositoryResult.Success) {
-                            cache[i] = TopicDelegateItem(messagesFilter.copy(topic = result.value))
-                        }
-                        // TODO: process errors
+        viewModelScope.launch(Dispatchers.Default) {
+            for (i in 0 until cache.size) {
+                if (cache[i] is TopicDelegateItem) {
+                    val messagesFilter = cache[i].content() as MessagesFilter
+                    val result = getTopicUseCase(messagesFilter)
+                    if (result is RepositoryResult.Success) {
+                        cache[i] = TopicDelegateItem(messagesFilter.copy(topic = result.value))
                     }
                 }
-                _state.emit(ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList()))
-                setLoadingState.cancel()
             }
-            isReturnFromMessagesScreen = false
+            _state.emit(ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList()))
         }
     }
 
     fun onChannelClickListener(channelItem: ChannelItem) {
         viewModelScope.launch(Dispatchers.Default) {
-            val setLoadingState = setLoadingStateWithDelay()
+            _state.emit(ChannelsPageScreenState.Loading)
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -131,14 +128,73 @@ class ChannelsPageFragmentViewModel(
                     cache.subList(index + 1, nextIndex).clear()
                 }
                 _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                updateMessagesCount()
             }
-            setLoadingState.cancel()
         }
     }
 
     fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        isReturnFromMessagesScreen = true
         globalRouter.navigateTo(Screens.Messages(messagesFilter))
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private fun subscribeToChannelsQueryChanges() {
+        channelsQueryState
+            .distinctUntilChanged()
+            .flatMapLatest { flow { emit(it) } }
+            .onEach {
+                channelsFilter = it
+                loadItems()
+            }
+            .flowOn(Dispatchers.Default)
+            .launchIn(viewModelScope)
+    }
+
+    private fun registerEventQueue() {
+        viewModelScope.launch {
+            when (val queueResult = registerEventQueueUseCase(listOf(EventType.CHANNEL))) {
+                is RepositoryResult.Success -> {
+                    eventsQueue = queueResult.value
+                    handleOnSuccessQueueRegistration()
+                }
+                is RepositoryResult.Failure -> handleErrors(queueResult)
+            }
+        }
+    }
+
+    private fun handleOnSuccessQueueRegistration() {
+        viewModelScope.launch {
+            while (true) {
+                delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
+                val eventResult = getChannelEventsUseCase(eventsQueue)
+                if (eventResult is RepositoryResult.Success) {
+                    val channels = mutableListOf<Channel>()
+                    channels.addAll(cache
+                        .filterIsInstance<ChannelDelegateItem>()
+                        .filter { channelDelegateItem ->
+                            val event = eventResult.value.find { channelEvent ->
+                                channelEvent.channel.channelId == channelDelegateItem.id()
+                            }
+                            if (event == null) true
+                            else {
+                                event.operation != ChannelEvent.Operation.DELETE
+                            }
+                        }.map { (it.content() as ChannelItem).channel }
+                    )
+                    var lastEventId = eventsQueue.lastEventId
+                    eventResult.value
+                        .filter { it.operation != ChannelEvent.Operation.DELETE }
+                        .filter { !channels.contains(it.channel) }
+                        .forEach {
+                            lastEventId = it.id
+                            channels.add(it.channel)
+                        }
+                    eventsQueue = eventsQueue.copy(lastEventId = lastEventId)
+                    updateCacheWithShowedTopicsSaving(channels.toDelegateItem(isAllChannels))
+                    _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                }
+            }
+        }
     }
 
     private fun updateCacheWithShowedTopicsSaving(newItems: List<DelegateAdapterItem>) {
@@ -200,22 +256,30 @@ class ChannelsPageFragmentViewModel(
         }
     }
 
-    private fun setLoadingStateWithDelay(): Job {
-        return viewModelScope.launch {
-            delay(DELAY_BEFORE_SET_STATE)
-            _state.emit(ChannelsPageScreenState.Loading)
+    private suspend fun handleErrors(error: RepositoryResult.Failure) {
+        when (error) {
+            is RepositoryResult.Failure.LoadingChannels -> _state.emit(
+                ChannelsPageScreenState.Failure.LoadingChannels(
+                    error.channelsFilter,
+                    error.value
+                )
+            )
+            is RepositoryResult.Failure.LoadingChannelTopics -> _state.emit(
+                ChannelsPageScreenState.Failure.LoadingChannelTopics(
+                    error.channel,
+                    error.value
+                )
+            )
+            is RepositoryResult.Failure.Network ->
+                _state.emit(ChannelsPageScreenState.Failure.Network(error.value))
+            else -> {}
         }
     }
 
-    private suspend fun handleErrors(error: RepositoryResult.Failure) {
-        when (error) {
-            is RepositoryResult.Failure.LoadingChannels -> {
-                _state.emit(ChannelsPageScreenState.Failure.LoadingChannels(error.channelsFilter))
-            }
-            is RepositoryResult.Failure.LoadingChannelTopics -> {
-                _state.emit(ChannelsPageScreenState.Failure.LoadingChannelTopics(error.channel))
-            }
-            else -> {}
+    private fun updateTopicsMessageCount() {
+        viewModelScope.launch {
+            delay(DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO)
+            updateMessagesCount()
         }
     }
 
@@ -238,6 +302,7 @@ class ChannelsPageFragmentViewModel(
     private companion object {
 
         const val UNDEFINED_INDEX = -1
-        const val DELAY_BEFORE_SET_STATE = 200L
+        const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
+        const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
     }
 }

@@ -7,12 +7,12 @@ import androidx.core.view.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
-import com.spinoza.messenger_tfs.databinding.ShimmerBinding
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.CompanionMessageDelegate
-import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 
-private const val MAX_DISTANCE = 10
+private const val MAX_DISTANCE = 5
 
 fun Float.spToPx(view: View) = TypedValue.applyDimension(
     TypedValue.COMPLEX_UNIT_SP,
@@ -41,37 +41,29 @@ fun View.layoutWithMargins(offsetX: Int, offsetY: Int, minWidth: Int = this.meas
 }
 
 fun RecyclerView.smoothScrollToTargetPosition(targetPosition: Int) {
-    val lastVisiblePosition =
-        (this.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
-
-    if (lastVisiblePosition != RecyclerView.NO_POSITION &&
-        (targetPosition - lastVisiblePosition) > MAX_DISTANCE
-    ) {
-        this.scrollToPosition(targetPosition - MAX_DISTANCE)
+    val lastVisiblePosition = (layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+    if ((targetPosition - lastVisiblePosition) > MAX_DISTANCE) {
+        scrollToPosition(targetPosition - MAX_DISTANCE)
     }
-    this.smoothScrollToPosition(targetPosition)
+    smoothScrollToPosition(targetPosition)
 }
 
-fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Long) {
-    if (changedMessageId == Message.UNDEFINED_ID) return
-
+fun RecyclerView.smoothScrollToMessage(messageId: Long) {
+    if (messageId == Message.UNDEFINED_ID) return
     var position = RecyclerView.NO_POSITION
-    for (i in 0 until this.childCount) {
-        val messageView = this.getChildAt(i)
-        val viewHolder = this.getChildViewHolder(messageView)
-        var messageId = Message.UNDEFINED_ID
-        if (viewHolder is UserMessageDelegate.ViewHolder)
-            messageId = viewHolder.binding.messageView.messageId
-        else if (viewHolder is CompanionMessageDelegate.ViewHolder)
-            messageId = viewHolder.binding.messageView.messageId
-        if (messageId == changedMessageId) {
-            position = viewHolder.adapterPosition
-            break
+    val delegateAdapter = adapter as MainDelegateAdapter
+    for (index in 0 until delegateAdapter.itemCount) {
+        val item = delegateAdapter.getItem(index)
+        if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
+            if ((item.content() as Message).id == messageId) {
+                position = index
+                break
+            }
         }
     }
 
     if (position != RecyclerView.NO_POSITION) {
-        val layoutManager = (this.layoutManager as LinearLayoutManager)
+        val layoutManager = layoutManager as LinearLayoutManager
         val firstCompletelyVisiblePosition =
             layoutManager.findFirstCompletelyVisibleItemPosition()
         val lastCompletelyVisiblePosition =
@@ -79,8 +71,15 @@ fun RecyclerView.smoothScrollToChangedMessage(changedMessageId: Long) {
         if (position < firstCompletelyVisiblePosition ||
             position >= lastCompletelyVisiblePosition
         ) {
-            this.smoothScrollToTargetPosition(position)
+            smoothScrollToTargetPosition(position)
         }
+    }
+}
+
+fun RecyclerView.smoothScrollToLastPosition() {
+    val lastItemPosition = adapter?.itemCount?.minus(1)
+    if (lastItemPosition != null) {
+        smoothScrollToTargetPosition(lastItemPosition)
     }
 }
 
@@ -88,14 +87,6 @@ fun Context.getThemeColor(attr: Int): Int {
     val typedValue = TypedValue()
     this.theme.resolveAttribute(attr, typedValue, true)
     return typedValue.data
-}
-
-fun ShimmerBinding.on() {
-    shimmer.on()
-}
-
-fun ShimmerBinding.off() {
-    shimmer.off()
 }
 
 fun ShimmerFrameLayout.on() {

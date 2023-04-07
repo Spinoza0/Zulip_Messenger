@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.adapter.channels
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.TopicItemBinding
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -69,14 +70,16 @@ class TopicDelegate(
             val messagesFilter = (item.content() as MessagesFilter)
             binding.textViewTopicLayout.setBackgroundColor(color)
             binding.textViewTopicName.text = messagesFilter.topic.name
-            binding.textViewTopicMessagesCount.text = messagesFilter.topic.messageCount.toString()
             binding.root.setOnClickListener {
                 onClickListener(messagesFilter)
             }
+            bind(messagesFilter.topic.messageCount)
         }
 
         fun bind(messageCount: Int) {
             binding.textViewTopicMessagesCount.text = messageCount.toString()
+            binding.textViewTopicMessagesCount.isVisible = messageCount > 0
+            binding.textViewTopicMessagesCountLabel.isVisible = messageCount > 0
         }
     }
 }

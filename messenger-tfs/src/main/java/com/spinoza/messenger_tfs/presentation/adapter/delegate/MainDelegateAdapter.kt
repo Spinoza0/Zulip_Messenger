@@ -22,11 +22,10 @@ class MainDelegateAdapter :
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        return delegates[getItemViewType(position)].onBindViewHolder(
-            holder,
-            getItem(position),
-            position
-        )
+        if (position != RecyclerView.NO_POSITION)
+            delegates[getItemViewType(position)].onBindViewHolder(
+                holder, getItem(position), position
+            )
     }
 
     override fun onBindViewHolder(
@@ -34,17 +33,20 @@ class MainDelegateAdapter :
         position: Int,
         payloads: MutableList<Any>,
     ) {
-        return delegates[getItemViewType(position)].onBindViewHolder(
-            holder,
-            getItem(position),
-            position,
-            payloads
-        )
+        if (position != RecyclerView.NO_POSITION)
+            delegates[getItemViewType(position)].onBindViewHolder(
+                holder, getItem(position), position, payloads
+            )
     }
 
     override fun getItemViewType(position: Int): Int {
-        return delegates.indexOfFirst {
-            it.isOfViewType(currentList[position])
-        }
+        return if (position != RecyclerView.NO_POSITION)
+            delegates.indexOfFirst { it.isOfViewType(currentList[position]) }
+        else
+            RecyclerView.NO_POSITION
+    }
+
+    public override fun getItem(position: Int): DelegateAdapterItem {
+        return super.getItem(position)
     }
 }
