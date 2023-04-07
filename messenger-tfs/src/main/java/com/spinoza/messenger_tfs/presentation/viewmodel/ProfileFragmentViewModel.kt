@@ -2,19 +2,21 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spinoza.messenger_tfs.domain.model.User
+import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
+import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.*
-import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class ProfileFragmentViewModel(
+    private val router: Router,
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
@@ -22,33 +24,36 @@ class ProfileFragmentViewModel(
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModel() {
 
-    val state: StateFlow<ProfileScreenState>
+    val state: StateFlow<ProfileState>
         get() = _state.asStateFlow()
 
-    private val _state =
-        MutableStateFlow<ProfileScreenState>(ProfileScreenState.Idle)
+    val effects: SharedFlow<ProfileEffect>
+        get() = _effects.asSharedFlow()
 
-    private lateinit var user: User
+    private val _state = MutableStateFlow(ProfileState())
+    private val _effects = MutableSharedFlow<ProfileEffect>()
     private var eventsQueue = EventsQueue()
 
-    fun loadCurrentUser() {
-        loadUser(CURRENT_USER)
+    fun reduce(event: ProfileEvent) {
+        when (event) {
+            is ProfileEvent.Ui.LoadCurrentUser -> loadUser(CURRENT_USER)
+            is ProfileEvent.Ui.LoadUser -> loadUser(event.userId)
+            is ProfileEvent.Ui.GoBack -> router.exit()
+        }
     }
 
-    fun loadUser(userId: Long) {
+    private fun loadUser(userId: Long) {
         viewModelScope.launch {
-            _state.value = ProfileScreenState.Loading
+            _state.value = _state.value.copy(isLoading = true)
             val result =
                 if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
             when (result) {
                 is RepositoryResult.Success -> {
-                    user = result.value
-                    _state.value = ProfileScreenState.UserData(result.value)
+                    _state.value =
+                        state.value.copy(isLoading = false, user = result.value)
                     registerEventQueue()
                 }
-                is RepositoryResult.Failure -> {
-                    handleErrors(result)
-                }
+                is RepositoryResult.Failure -> handleErrors(result)
             }
         }
     }
@@ -71,23 +76,30 @@ class ProfileFragmentViewModel(
                 delay(DELAY_BEFORE_UPDATE_INFO)
                 val eventResult = getPresenceEventsUseCase(eventsQueue)
                 if (eventResult is RepositoryResult.Success) {
-                    eventResult.value.forEach { event ->
-                        eventsQueue = eventsQueue.copy(lastEventId = event.id)
-                        if (user.userId == event.userId) {
-                            _state.emit(ProfileScreenState.Presence(event.presence))
-                        }
-                    }
+                    handlePresenceEvents(eventResult.value)
                 }
             }
         }
     }
 
-    private fun handleErrors(error: RepositoryResult.Failure) {
+    private fun handlePresenceEvents(presenceEvents: List<PresenceEvent>) {
+        presenceEvents.forEach { presenceEvent ->
+            eventsQueue = eventsQueue.copy(lastEventId = presenceEvent.id)
+            state.value.user?.let { user ->
+                if (user.userId == presenceEvent.userId) {
+                    _state.value =
+                        state.value.copy(user = user.copy(presence = presenceEvent.presence))
+                }
+            }
+        }
+    }
+
+    private suspend fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
             is RepositoryResult.Failure.UserNotFound ->
-                _state.value = ProfileScreenState.Failure.UserNotFound(error.userId, error.value)
+                _effects.emit(ProfileEffect.Failure.UserNotFound("${error.userId}", error.value))
             is RepositoryResult.Failure.Network ->
-                _state.value = ProfileScreenState.Failure.Network(error.value)
+                _effects.emit(ProfileEffect.Failure.Network(error.value))
             is RepositoryResult.Failure.RegisterEventQueue -> {}
             else -> {}
         }

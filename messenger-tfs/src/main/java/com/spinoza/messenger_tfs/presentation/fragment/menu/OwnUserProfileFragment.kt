@@ -10,14 +10,18 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.fragment.showError
-import com.spinoza.messenger_tfs.presentation.state.ProfileScreenState
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
@@ -30,9 +34,9 @@ class OwnUserProfileFragment : Fragment() {
     private val binding: FragmentProfileBinding
         get() = _binding ?: throw RuntimeException("FragmentProfileBinding == null")
 
-
     private val viewModel: ProfileFragmentViewModel by viewModels {
         ProfileFragmentViewModelFactory(
+            App.router,
             GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
             GetUserUseCase(MessagesRepositoryImpl.getInstance()),
             RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
@@ -51,11 +55,9 @@ class OwnUserProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupObservers()
-
         if (savedInstanceState == null) {
-            viewModel.loadCurrentUser()
+            viewModel.reduce(ProfileEvent.Ui.LoadCurrentUser)
         }
     }
 
@@ -65,40 +67,48 @@ class OwnUserProfileFragment : Fragment() {
                 viewModel.state.collect(::handleState)
             }
         }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.effects.collect(::handleEffect)
+            }
+        }
     }
 
-    private fun handleState(state: ProfileScreenState) {
-        if (state !is ProfileScreenState.Loading) {
+    private fun handleState(state: ProfileState) {
+        if (state.isLoading) {
+            binding.shimmer.on()
+        } else {
             binding.shimmer.off()
         }
-        when (state) {
-            is ProfileScreenState.UserData -> showProfileInfo(state.value)
-            is ProfileScreenState.Loading -> binding.shimmer.on()
-            is ProfileScreenState.Failure.UserNotFound -> showError(
-                String.format(getString(R.string.error_user_not_found), state.userId, state.value)
+        if (state.user != null) {
+            showProfileInfo(state.user)
+        }
+    }
+
+    private fun handleEffect(effect: ProfileEffect) {
+        when (effect) {
+            is ProfileEffect.Failure.UserNotFound -> showError(
+                String.format(getString(R.string.error_user_not_found), effect.userId, effect.value)
             )
-            is ProfileScreenState.Failure.Network -> showError(
-                String.format(getString(R.string.error_network), state.value)
+            is ProfileEffect.Failure.Network -> showError(
+                String.format(getString(R.string.error_network), effect.value)
             )
-            is ProfileScreenState.Presence -> showPresence(state.value)
-            is ProfileScreenState.Idle -> {}
         }
     }
 
     private fun showProfileInfo(user: User) {
-        binding.textViewName.text = user.fullName
-        showPresence(user.presence)
-        com.bumptech.glide.Glide.with(binding.imageViewAvatar)
-            .load(user.avatarUrl)
-            .transform(RoundedCorners(20))
-            .error(R.drawable.ic_default_avatar)
-            .into(binding.imageViewAvatar)
-    }
-
-    private fun showPresence(presence: User.Presence) {
-        binding.textViewStatusActive.isVisible = presence == User.Presence.ACTIVE
-        binding.textViewStatusIdle.isVisible = presence == User.Presence.IDLE
-        binding.textViewStatusOffline.isVisible = presence == User.Presence.OFFLINE
+        with(binding) {
+            textViewName.text = user.fullName
+            textViewStatusActive.isVisible = user.presence == User.Presence.ACTIVE
+            textViewStatusIdle.isVisible = user.presence == User.Presence.IDLE
+            textViewStatusOffline.isVisible = user.presence == User.Presence.OFFLINE
+            Glide.with(imageViewAvatar)
+                .load(user.avatarUrl)
+                .transform(RoundedCorners(20))
+                .error(R.drawable.ic_default_avatar)
+                .into(imageViewAvatar)
+        }
     }
 
     override fun onPause() {

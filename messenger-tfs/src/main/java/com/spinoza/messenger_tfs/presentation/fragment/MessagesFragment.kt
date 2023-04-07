@@ -93,10 +93,7 @@ class MessagesFragment : Fragment() {
                 goBack()
             }
         }
-        requireActivity().onBackPressedDispatcher.addCallback(
-            requireActivity(),
-            onBackPressedCallback
-        )
+        requireActivity().onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
     }
 
     private fun setupStatusBar() {
