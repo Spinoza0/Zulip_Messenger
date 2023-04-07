@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
@@ -10,11 +11,15 @@ import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
-import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
+import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleEffect
+import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleEvent
+import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleState
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 class PeopleFragmentViewModel(
+    private val router: Router,
     private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
@@ -22,39 +27,42 @@ class PeopleFragmentViewModel(
 ) :
     ViewModel() {
 
-    val state: StateFlow<PeopleScreenState>
+    val state: StateFlow<PeopleState>
         get() = _state.asStateFlow()
+    val effects: SharedFlow<PeopleEffect>
+        get() = _effects.asSharedFlow()
 
-    private var usersFilter = ""
-    private val _state =
-        MutableStateFlow<PeopleScreenState>(PeopleScreenState.Start)
+    private val _state = MutableStateFlow(PeopleState())
+    private val _effects = MutableSharedFlow<PeopleEffect>()
     private val searchQueryState = MutableSharedFlow<String>()
-    private var isFirstLoading = true
     private var eventsQueue = EventsQueue()
     private var usersCache = mutableListOf<User>()
 
     init {
         subscribeToSearchQueryChanges()
+        setFilter(state.value.filter)
+        loadUsers(state.value.filter)
     }
 
-    fun setUsersFilter(newFilter: String) {
-        if (usersFilter != newFilter) {
-            usersFilter = newFilter
-            loadUsers()
-        } else if (isFirstLoading) {
-            isFirstLoading = false
-            loadUsers()
+    fun reduce(event: PeopleEvent) {
+        when (event) {
+            is PeopleEvent.Ui.Filter -> setFilter(event.value)
+            is PeopleEvent.Ui.Load -> loadUsers(state.value.filter)
+            is PeopleEvent.Ui.OpenMainMenu -> router.navigateTo(Screens.MainMenu())
+            is PeopleEvent.Ui.ShowUserInfo -> router.navigateTo(Screens.UserProfile(event.userId))
         }
     }
 
-    fun loadUsers() {
-        viewModelScope.launch {
-            _state.emit(PeopleScreenState.Loading)
-            when (val result = getUsersByFilterUseCase(usersFilter)) {
+    private fun loadUsers(filter: String) {
+        viewModelScope.launch(Dispatchers.Default) {
+            _state.emit(state.value.copy(isLoading = true, filter = filter))
+            val result = getUsersByFilterUseCase(filter)
+            _state.emit(state.value.copy(isLoading = false))
+            when (result) {
                 is RepositoryResult.Success -> {
                     usersCache.clear()
                     usersCache.addAll(result.value)
-                    _state.value = PeopleScreenState.Users(usersCache.toSortedList())
+                    _state.emit(state.value.copy(users = usersCache.toSortedList()))
                     registerEventQueue()
                 }
                 is RepositoryResult.Failure -> handleErrors(result)
@@ -62,9 +70,9 @@ class PeopleFragmentViewModel(
         }
     }
 
-    fun doOnTextChanged(searchQuery: CharSequence?) {
+    private fun setFilter(filter: String) {
         viewModelScope.launch {
-            searchQueryState.emit(searchQuery.toString())
+            searchQueryState.emit(filter.trim())
         }
     }
 
@@ -74,7 +82,7 @@ class PeopleFragmentViewModel(
             .distinctUntilChanged()
             .debounce(DURATION_MILLIS)
             .flatMapLatest { flow { emit(it) } }
-            .onEach { setUsersFilter(it) }
+            .onEach { loadUsers(it) }
             .flowOn(Dispatchers.Default)
             .launchIn(viewModelScope)
     }
@@ -92,7 +100,7 @@ class PeopleFragmentViewModel(
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             var lastUpdatingTimeStamp = 0L
             while (true) {
                 delay(DELAY_BEFORE_UPDATE_INFO)
@@ -109,7 +117,7 @@ class PeopleFragmentViewModel(
                     }
                     if (isListChanged) {
                         lastUpdatingTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
-                        _state.emit(PeopleScreenState.Users(usersCache.toSortedList()))
+                        _state.emit(state.value.copy(users = usersCache.toSortedList()))
                     }
                 } else {
                     val currentTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
@@ -119,7 +127,7 @@ class PeopleFragmentViewModel(
                                 usersCache[index].copy(presence = User.Presence.OFFLINE)
                         }
                         lastUpdatingTimeStamp = currentTimeStamp
-                        _state.emit(PeopleScreenState.Users(usersCache.toSortedList()))
+                        _state.emit(state.value.copy(users = usersCache.toSortedList()))
                     }
                 }
             }
@@ -129,9 +137,9 @@ class PeopleFragmentViewModel(
     private suspend fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
             is RepositoryResult.Failure.LoadingUsers ->
-                _state.emit(PeopleScreenState.Failure.LoadingUsers(error.value))
+                _effects.emit(PeopleEffect.Failure.LoadingUsers(error.value))
             is RepositoryResult.Failure.Network ->
-                _state.emit(PeopleScreenState.Failure.Network(error.value))
+                _effects.emit(PeopleEffect.Failure.Network(error.value))
             else -> {}
         }
     }

@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.model.profile
+package com.spinoza.messenger_tfs.presentation.model.profilescreen
 
 import com.spinoza.messenger_tfs.domain.model.User
 

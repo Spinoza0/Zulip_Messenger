@@ -19,9 +19,9 @@ import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.fragment.showError
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
+import com.spinoza.messenger_tfs.presentation.model.profilescreen.ProfileEffect
+import com.spinoza.messenger_tfs.presentation.model.profilescreen.ProfileEvent
+import com.spinoza.messenger_tfs.presentation.model.profilescreen.ProfileState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel

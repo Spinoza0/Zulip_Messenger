@@ -23,8 +23,9 @@ import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
-import com.spinoza.messenger_tfs.presentation.navigation.Screens
-import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
+import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleEffect
+import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleEvent
+import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.PeopleFragmentViewModel
@@ -33,14 +34,13 @@ import kotlinx.coroutines.launch
 
 class PeopleFragment : Fragment() {
 
-    private val globalRouter = App.router
-
     private var _binding: FragmentPeopleBinding? = null
     private val binding: FragmentPeopleBinding
         get() = _binding ?: throw RuntimeException("FragmentPeopleBinding == null")
 
     private val viewModel: PeopleFragmentViewModel by viewModels {
         PeopleFragmentViewModelFactory(
+            App.router,
             GetUsersByFilterUseCase(MessagesRepositoryImpl.getInstance()),
             RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
             DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
@@ -58,7 +58,6 @@ class PeopleFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
         setupListeners()
         setupObservers()
@@ -78,7 +77,7 @@ class PeopleFragment : Fragment() {
                     if (lastVisibleItemPosition == lastItem ||
                         firstVisibleItemPosition == firstItem
                     ) {
-                        viewModel.loadUsers()
+                        viewModel.reduce(PeopleEvent.Ui.Load)
                     }
                 }
             }
@@ -87,7 +86,7 @@ class PeopleFragment : Fragment() {
 
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
-            viewModel.doOnTextChanged(text)
+            viewModel.reduce(PeopleEvent.Ui.Filter(text.toString()))
         }
     }
 
@@ -97,38 +96,38 @@ class PeopleFragment : Fragment() {
                 viewModel.state.collect(::handleState)
             }
         }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.effects.collect(::handleEffect)
+            }
+        }
     }
 
-    private fun handleState(state: PeopleScreenState) {
-        if (state !is PeopleScreenState.Loading) {
+    private fun handleState(state: PeopleState) {
+        if (state.isLoading) {
+            binding.shimmerLarge.on()
+        } else {
             binding.shimmerLarge.off()
         }
-        when (state) {
-            is PeopleScreenState.Users ->
-                (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(state.value)
-            is PeopleScreenState.Loading -> if (peopleListIsEmpty()) {
-                binding.shimmerLarge.on()
-            }
-            is PeopleScreenState.Start -> viewModel.setUsersFilter(NO_FILTER)
-            is PeopleScreenState.Failure.LoadingUsers -> showError(
-                String.format(
-                    getString(R.string.error_loading_users),
-                    state.value
-                )
-            )
-            is PeopleScreenState.Failure.Network ->
-                showCheckInternetConnectionDialog(viewModel::loadUsers) {
-                    globalRouter.navigateTo(Screens.MainMenu())
+        state.users?.let {
+            (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(it)
+        }
+    }
+
+    private fun handleEffect(effect: PeopleEffect) {
+        when (effect) {
+            is PeopleEffect.Failure.LoadingUsers ->
+                showError(String.format(getString(R.string.error_loading_users), effect.value))
+            is PeopleEffect.Failure.Network ->
+                showCheckInternetConnectionDialog({ viewModel.reduce(PeopleEvent.Ui.Load) }) {
+                    viewModel.reduce(PeopleEvent.Ui.OpenMainMenu)
                 }
         }
     }
 
-    private fun peopleListIsEmpty(): Boolean {
-        return (binding.recyclerViewUsers.adapter as PeopleAdapter).itemCount == NO_ITEMS
-    }
-
     private fun onUserClickListener(userId: Long) {
-        globalRouter.navigateTo(Screens.UserProfile(userId))
+        viewModel.reduce(PeopleEvent.Ui.ShowUserInfo(userId))
     }
 
     override fun onPause() {
@@ -142,9 +141,6 @@ class PeopleFragment : Fragment() {
     }
 
     companion object {
-
-        private const val NO_ITEMS = 0
-        private const val NO_FILTER = ""
 
         fun newInstance(): PeopleFragment {
             return PeopleFragment()

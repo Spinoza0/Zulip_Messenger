@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.model.profile
+package com.spinoza.messenger_tfs.presentation.model.profilescreen
 
 sealed class ProfileEvent {
 
