@@ -83,9 +83,9 @@ class ProfileFragmentViewModel(
     }
 
     private fun handlePresenceEvents(presenceEvents: List<PresenceEvent>) {
-        presenceEvents.forEach { presenceEvent ->
-            eventsQueue = eventsQueue.copy(lastEventId = presenceEvent.id)
-            state.value.user?.let { user ->
+        state.value.user?.let { user ->
+            presenceEvents.forEach { presenceEvent ->
+                eventsQueue = eventsQueue.copy(lastEventId = presenceEvent.id)
                 if (user.userId == presenceEvent.userId) {
                     _state.value =
                         state.value.copy(user = user.copy(presence = presenceEvent.presence))

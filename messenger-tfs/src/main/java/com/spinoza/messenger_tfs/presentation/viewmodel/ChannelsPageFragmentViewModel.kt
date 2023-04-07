@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spinoza.messenger_tfs.App
+import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -16,12 +16,15 @@ import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateIt
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.ChannelItem
+import com.spinoza.messenger_tfs.presentation.model.channelspage.ChannelsPageEffect
+import com.spinoza.messenger_tfs.presentation.model.channelspage.ChannelsPageEvent
+import com.spinoza.messenger_tfs.presentation.model.channelspage.ChannelsPageState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
-import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
 class ChannelsPageFragmentViewModel(
+    private val router: Router,
     private val isAllChannels: Boolean,
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
@@ -31,22 +34,33 @@ class ChannelsPageFragmentViewModel(
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
 ) : ViewModel() {
 
-    val state: SharedFlow<ChannelsPageScreenState>
-        get() = _state.asSharedFlow()
+    val state: StateFlow<ChannelsPageState>
+        get() = _state.asStateFlow()
+
+    val effects: SharedFlow<ChannelsPageEffect>
+        get() = _effects.asSharedFlow()
 
     private var channelsFilter = ChannelsFilter(ChannelsFilter.NO_FILTER, !isAllChannels)
-
-    private val _state =
-        MutableSharedFlow<ChannelsPageScreenState>(replay = 1)
-
+    private val _state = MutableStateFlow(ChannelsPageState())
+    private val _effects = MutableSharedFlow<ChannelsPageEffect>()
     private val cache = mutableListOf<DelegateAdapterItem>()
-    private val globalRouter = App.router
     private var eventsQueue = EventsQueue()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
 
     init {
         subscribeToChannelsQueryChanges()
         updateTopicsMessageCount()
+    }
+
+    fun reduce(event: ChannelsPageEvent) {
+        when (event) {
+            is ChannelsPageEvent.Ui.Filter -> setChannelsFilter(event.filter)
+            is ChannelsPageEvent.Ui.Load -> loadItems()
+            is ChannelsPageEvent.Ui.UpdateMessageCount -> updateMessagesCount()
+            is ChannelsPageEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
+            is ChannelsPageEvent.Ui.OnTopicClick ->
+                router.navigateTo(Screens.Messages(event.messagesFilter))
+        }
     }
 
     override fun onCleared() {
@@ -57,19 +71,21 @@ class ChannelsPageFragmentViewModel(
         }
     }
 
-    fun setChannelsFilter(newFilter: ChannelsFilter) {
+    private fun setChannelsFilter(newFilter: ChannelsFilter) {
         viewModelScope.launch {
             channelsQueryState.emit(newFilter)
         }
     }
 
-    fun loadItems() {
+    private fun loadItems() {
         viewModelScope.launch(Dispatchers.Default) {
-            _state.emit(ChannelsPageScreenState.Loading)
-            when (val result = getChannelsUseCase(channelsFilter)) {
+            _state.emit(state.value.copy(isLoading = true))
+            val result = getChannelsUseCase(channelsFilter)
+            _state.emit(state.value.copy(isLoading = false))
+            when (result) {
                 is RepositoryResult.Success -> {
                     updateCacheWithShowedTopicsSaving(result.value.toDelegateItem(isAllChannels))
-                    _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                    _state.emit(state.value.copy(items = cache.toList()))
                     registerEventQueue()
                 }
                 is RepositoryResult.Failure -> handleErrors(result)
@@ -77,7 +93,7 @@ class ChannelsPageFragmentViewModel(
         }
     }
 
-    fun updateMessagesCount() {
+    private fun updateMessagesCount() {
         viewModelScope.launch(Dispatchers.Default) {
             for (i in 0 until cache.size) {
                 if (cache[i] is TopicDelegateItem) {
@@ -88,13 +104,12 @@ class ChannelsPageFragmentViewModel(
                     }
                 }
             }
-            _state.emit(ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList()))
+            _state.emit(state.value.copy(items = cache.toList()))
         }
     }
 
-    fun onChannelClickListener(channelItem: ChannelItem) {
+    private fun onChannelClickListener(channelItem: ChannelItem) {
         viewModelScope.launch(Dispatchers.Default) {
-            _state.emit(ChannelsPageScreenState.Loading)
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -127,14 +142,10 @@ class ChannelsPageFragmentViewModel(
                     }
                     cache.subList(index + 1, nextIndex).clear()
                 }
-                _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                _state.emit(state.value.copy(items = cache.toList()))
                 updateMessagesCount()
             }
         }
-    }
-
-    fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        globalRouter.navigateTo(Screens.Messages(messagesFilter))
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -191,7 +202,7 @@ class ChannelsPageFragmentViewModel(
                         }
                     eventsQueue = eventsQueue.copy(lastEventId = lastEventId)
                     updateCacheWithShowedTopicsSaving(channels.toDelegateItem(isAllChannels))
-                    _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                    _state.emit(state.value.copy(items = cache.toList()))
                 }
             }
         }
@@ -244,7 +255,10 @@ class ChannelsPageFragmentViewModel(
     }
 
     private suspend fun addTopicsToCache(channelItem: ChannelItem, index: Int = UNDEFINED_INDEX) {
-        when (val topicsResult = getTopicsUseCase(channelItem.channel)) {
+        _state.emit(state.value.copy(isLoading = true))
+        val topicsResult = getTopicsUseCase(channelItem.channel)
+        _state.emit(state.value.copy(isLoading = false))
+        when (topicsResult) {
             is RepositoryResult.Success -> {
                 val topics = topicsResult.value.toDelegateItem(channelItem.channel)
                 if (index != UNDEFINED_INDEX)
@@ -258,20 +272,14 @@ class ChannelsPageFragmentViewModel(
 
     private suspend fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
-            is RepositoryResult.Failure.LoadingChannels -> _state.emit(
-                ChannelsPageScreenState.Failure.LoadingChannels(
-                    error.channelsFilter,
-                    error.value
-                )
+            is RepositoryResult.Failure.LoadingChannels -> _effects.emit(
+                ChannelsPageEffect.Failure.LoadingChannels(error.channelsFilter, error.value)
             )
-            is RepositoryResult.Failure.LoadingChannelTopics -> _state.emit(
-                ChannelsPageScreenState.Failure.LoadingChannelTopics(
-                    error.channel,
-                    error.value
-                )
+            is RepositoryResult.Failure.LoadingChannelTopics -> _effects.emit(
+                ChannelsPageEffect.Failure.LoadingChannelTopics(error.channel, error.value)
             )
             is RepositoryResult.Failure.Network ->
-                _state.emit(ChannelsPageScreenState.Failure.Network(error.value))
+                _effects.emit(ChannelsPageEffect.Failure.Network(error.value))
             else -> {}
         }
     }
