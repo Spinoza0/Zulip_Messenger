@@ -6,8 +6,6 @@ sealed class MessagesEffect {
 
     object MessageSent : MessagesEffect()
 
-    class UpdateIconImage(val resId: Int) : MessagesEffect()
-
     sealed class Failure : MessagesEffect() {
 
         class Network(val value: String) : Failure()

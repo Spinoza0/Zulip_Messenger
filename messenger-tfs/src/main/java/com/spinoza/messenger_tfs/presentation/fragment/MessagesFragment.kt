@@ -179,12 +179,11 @@ class MessagesFragment : Fragment() {
         state.messages?.let {
             submitMessages(it)
         }
+        binding.imageViewAction.setImageResource(state.iconActionResId)
     }
 
     private fun handleEffect(effect: MessagesEffect) {
         when (effect) {
-            is MessagesEffect.UpdateIconImage ->
-                binding.imageViewAction.setImageResource(effect.resId)
             is MessagesEffect.MessageSent -> binding.editTextMessage.text?.clear()
             is MessagesEffect.Failure.MessageNotFound -> showError(
                 String.format(getString(R.string.error_message_not_found), effect.messageId)

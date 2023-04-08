@@ -154,7 +154,7 @@ class MessagesFragmentViewModel(
             }
             .distinctUntilChanged()
             .onEach { resId ->
-                _effects.emit(MessagesEffect.UpdateIconImage(resId))
+                _state.emit(state.value.copy(iconActionResId = resId))
             }
             .flowOn(Dispatchers.Default)
             .launchIn(viewModelScope)
