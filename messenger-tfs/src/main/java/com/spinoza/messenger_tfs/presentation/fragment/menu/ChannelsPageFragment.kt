@@ -25,7 +25,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapt
 import com.spinoza.messenger_tfs.presentation.fragment.closeApplication
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
-import com.spinoza.messenger_tfs.presentation.model.ChannelItem
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEffect
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEvent
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageState

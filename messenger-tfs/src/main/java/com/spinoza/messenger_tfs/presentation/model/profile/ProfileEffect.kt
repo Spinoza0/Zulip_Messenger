@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.model.profilescreen
+package com.spinoza.messenger_tfs.presentation.model.profile
 
 sealed class ProfileEffect {
 

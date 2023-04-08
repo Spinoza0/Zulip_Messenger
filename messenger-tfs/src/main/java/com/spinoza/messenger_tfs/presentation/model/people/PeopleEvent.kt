@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.model.peoplescreen
+package com.spinoza.messenger_tfs.presentation.model.people
 
 sealed class PeopleEvent {
 

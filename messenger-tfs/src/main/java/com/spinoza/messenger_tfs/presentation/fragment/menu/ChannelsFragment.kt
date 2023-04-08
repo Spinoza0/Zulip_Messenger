@@ -15,7 +15,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelsPagerAdapter
-import com.spinoza.messenger_tfs.presentation.model.SearchQuery
+import com.spinoza.messenger_tfs.presentation.model.channels.SearchQuery
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsEvent
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsState
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentSharedViewModel

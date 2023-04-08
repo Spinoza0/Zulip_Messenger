@@ -5,7 +5,7 @@ import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.presentation.model.profilescreen.ProfileEvent
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 
 class UserProfileFragment : ProfileFragment() {

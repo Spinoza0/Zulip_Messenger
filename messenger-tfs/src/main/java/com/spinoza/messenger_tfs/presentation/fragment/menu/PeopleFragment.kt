@@ -23,9 +23,9 @@ import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
-import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleEffect
-import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleEvent
-import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleState
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleEffect
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleEvent
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import com.spinoza.messenger_tfs.presentation.viewmodel.PeopleFragmentViewModel

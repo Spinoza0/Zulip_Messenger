@@ -2,9 +2,9 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spinoza.messenger_tfs.presentation.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsEvent
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsState
+import com.spinoza.messenger_tfs.presentation.model.channels.SearchQuery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -41,7 +41,7 @@ class ChannelsFragmentSharedViewModel : ViewModel() {
             .distinctUntilChanged()
             .debounce(DURATION_MILLIS)
             .flatMapLatest { flow { emit(it) } }
-            .onEach { _state.value = state.value.copy(filter = it) }
+            .onEach { _state.emit(state.value.copy(filter = it)) }
             .flowOn(Dispatchers.Default)
             .launchIn(viewModelScope)
     }

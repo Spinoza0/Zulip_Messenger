@@ -8,9 +8,10 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import com.spinoza.messenger_tfs.domain.usecase.*
-import com.spinoza.messenger_tfs.presentation.model.profilescreen.ProfileEffect
-import com.spinoza.messenger_tfs.presentation.model.profilescreen.ProfileEvent
-import com.spinoza.messenger_tfs.presentation.model.profilescreen.ProfileState
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -44,13 +45,13 @@ class ProfileFragmentViewModel(
 
     private fun loadUser(userId: Long) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.emit(_state.value.copy(isLoading = true))
             val result =
                 if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
-            _state.value = _state.value.copy(isLoading = false)
+            _state.emit(_state.value.copy(isLoading = false))
             when (result) {
                 is RepositoryResult.Success -> {
-                    _state.value = state.value.copy(user = result.value)
+                    _state.emit(state.value.copy(user = result.value))
                     registerEventQueue()
                 }
                 is RepositoryResult.Failure -> handleErrors(result)
@@ -71,7 +72,7 @@ class ProfileFragmentViewModel(
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             while (true) {
                 delay(DELAY_BEFORE_UPDATE_INFO)
                 val eventResult = getPresenceEventsUseCase(eventsQueue)

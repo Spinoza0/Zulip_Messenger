@@ -2,7 +2,6 @@ package com.spinoza.messenger_tfs.presentation.model.channels
 
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.presentation.model.ChannelItem
 
 sealed class ChannelsPageEvent {
 

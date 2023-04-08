@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.adapter.channels
 
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.model.ChannelItem
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelItem
 
 class ChannelDelegateItem(private val value: ChannelItem) : DelegateAdapterItem {
 

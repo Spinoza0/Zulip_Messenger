@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.EventType
@@ -12,13 +13,17 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterIt
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
-import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesState
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
 
 class MessagesFragmentViewModel(
+    private val router: Router,
     private val messagesFilter: MessagesFilter,
     private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
@@ -33,16 +38,19 @@ class MessagesFragmentViewModel(
     private val setMessagesFlagToReadUserCase: SetMessagesFlagToReadUserCase,
 ) : ViewModel() {
 
-    val state: SharedFlow<MessagesScreenState>
-        get() = _state.asSharedFlow()
+    val state: StateFlow<MessagesState>
+        get() = _state.asStateFlow()
+    val effects: SharedFlow<MessagesEffect>
+        get() = _effects.asSharedFlow()
 
-    private val _state =
-        MutableSharedFlow<MessagesScreenState>(replay = 10)
+    private val _state = MutableStateFlow(MessagesState())
+    private val _effects = MutableSharedFlow<MessagesEffect>()
     private val newMessageFieldState = MutableSharedFlow<String>()
     private var messagesQueue = EventsQueue()
     private var deleteMessagesQueue = EventsQueue()
     private var reactionsQueue = EventsQueue()
     private var isMessageSent = false
+    private var isGoingBack = false
 
     init {
         loadMessages()
@@ -50,22 +58,49 @@ class MessagesFragmentViewModel(
         setOwnStatusToActive()
     }
 
-    fun sendMessage(messageText: String) {
-        if (messageText.isNotEmpty()) viewModelScope.launch {
-            _state.emit(MessagesScreenState.SendingMessage)
-            val result = sendMessageUseCase(messageText, messagesFilter)
-            if (result is RepositoryResult.Success) {
-                isMessageSent = true
-                _state.emit(MessagesScreenState.MessageSent(result.value))
+    fun reduce(event: MessagesEvent) {
+        when (event) {
+            is MessagesEvent.Ui.SendMessage -> sendMessage(event.value.toString())
+            is MessagesEvent.Ui.UpdateReaction -> updateReaction(event.messageId, event.emoji)
+            is MessagesEvent.Ui.NewMessageText -> doOnTextChanged(event.value)
+            is MessagesEvent.Ui.SetMessagesRead -> setMessageReadFlags(event.messageIds)
+            is MessagesEvent.Ui.Load -> loadMessages()
+            is MessagesEvent.Ui.Exit -> goBack()
+            is MessagesEvent.Ui.ShowUserInfo ->
+                router.navigateTo(Screens.UserProfile(event.message.userId))
+            is MessagesEvent.Ui.AfterSubmitMessages -> state.value.messages?.let { messages ->
+                _state.value = (state.value.copy(
+                    messages = messages.copy(
+                        position = messages.position.copy(type = MessagePosition.Type.UNDEFINED)
+                    )
+                ))
             }
         }
     }
 
-    fun updateReaction(messageId: Long, emoji: Emoji) {
+    private fun goBack() {
+        if (!isGoingBack) {
+            isGoingBack = true
+            router.exit()
+        }
+    }
+
+    private fun sendMessage(value: String) {
+        if (value.isNotEmpty()) viewModelScope.launch {
+            _state.emit(state.value.copy(isSendingMessage = true))
+            val result = sendMessageUseCase(value, messagesFilter)
+            _state.emit(state.value.copy(isSendingMessage = false))
+            if (result is RepositoryResult.Success) {
+                isMessageSent = true
+                _effects.emit(MessagesEffect.MessageSent)
+            }
+        }
+    }
+
+    private fun updateReaction(messageId: Long, emoji: Emoji) {
         viewModelScope.launch {
             val result = updateReactionUseCase(messageId, emoji, messagesFilter)
             if (result is RepositoryResult.Success) {
-                _state.emit(MessagesScreenState.ReactionSent)
                 when (val userIdResult = getOwnUserIdUseCase()) {
                     is RepositoryResult.Success ->
                         handleMessagesResult(result.value, userIdResult.value)
@@ -75,23 +110,24 @@ class MessagesFragmentViewModel(
         }
     }
 
-    fun doOnTextChanged(text: CharSequence?) {
+    private fun doOnTextChanged(text: CharSequence?) {
         viewModelScope.launch {
             newMessageFieldState.emit(text.toString())
         }
     }
 
-    fun loadMessages() {
+    private fun loadMessages() {
         viewModelScope.launch {
-            _state.emit(MessagesScreenState.Loading)
+            _state.emit(state.value.copy(isLoading = true))
             val result = getMessagesUseCase(messagesFilter)
+            _state.emit(state.value.copy(isLoading = false))
             handleRepositoryResult(result)
         }
     }
 
-    fun setMessageReadFlags(readMessageIds: List<Long>) {
+    private fun setMessageReadFlags(messageIds: List<Long>) {
         viewModelScope.launch {
-            setMessagesFlagToReadUserCase(readMessageIds)
+            setMessagesFlagToReadUserCase(messageIds)
         }
     }
 
@@ -118,7 +154,7 @@ class MessagesFragmentViewModel(
             }
             .distinctUntilChanged()
             .onEach { resId ->
-                _state.emit(MessagesScreenState.UpdateIconImage(resId))
+                _effects.emit(MessagesEffect.UpdateIconImage(resId))
             }
             .flowOn(Dispatchers.Default)
             .launchIn(viewModelScope)
@@ -143,7 +179,8 @@ class MessagesFragmentViewModel(
 
     private suspend fun handleMessagesResult(result: MessagesResult, userId: Long) {
         _state.emit(
-            MessagesScreenState.Messages(
+            state.value.copy(
+                messages =
                 MessagesResultDelegate(result.messages.groupByDate(userId), result.position)
             )
         )
@@ -246,22 +283,19 @@ class MessagesFragmentViewModel(
     private suspend fun handleErrors(error: RepositoryResult.Failure) {
         when (error) {
             is RepositoryResult.Failure.OwnUserNotFound ->
-                _state.emit(MessagesScreenState.Failure.OwnUserNotFound(error.value))
+                _effects.emit(MessagesEffect.Failure.OwnUserNotFound(error.value))
             is RepositoryResult.Failure.MessageNotFound ->
-                _state.emit(MessagesScreenState.Failure.MessageNotFound(error.messageId))
+                _effects.emit(MessagesEffect.Failure.MessageNotFound(error.messageId))
             is RepositoryResult.Failure.UserNotFound ->
-                _state.emit(MessagesScreenState.Failure.UserNotFound(error.userId, error.value))
+                _effects.emit(MessagesEffect.Failure.UserNotFound(error.userId, error.value))
             is RepositoryResult.Failure.SendingMessage ->
-                _state.emit(MessagesScreenState.Failure.SendingMessage(error.value))
+                _effects.emit(MessagesEffect.Failure.SendingMessage(error.value))
             is RepositoryResult.Failure.UpdatingReaction ->
-                _state.emit(MessagesScreenState.Failure.UpdatingReaction(error.value))
+                _effects.emit(MessagesEffect.Failure.UpdatingReaction(error.value))
             is RepositoryResult.Failure.Network ->
-                _state.emit(MessagesScreenState.Failure.Network(error.value))
-            is RepositoryResult.Failure.LoadingMessages -> _state.emit(
-                MessagesScreenState.Failure.LoadingMessages(
-                    error.messagesFilter,
-                    error.value
-                )
+                _effects.emit(MessagesEffect.Failure.Network(error.value))
+            is RepositoryResult.Failure.LoadingMessages -> _effects.emit(
+                MessagesEffect.Failure.LoadingMessages(error.messagesFilter, error.value)
             )
             else -> {}
         }

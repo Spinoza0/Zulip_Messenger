@@ -27,9 +27,10 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessag
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
-import com.spinoza.messenger_tfs.presentation.navigation.Screens
-import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesState
 import com.spinoza.messenger_tfs.presentation.ui.*
 import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
@@ -38,18 +39,16 @@ import java.util.*
 
 class MessagesFragment : Fragment() {
 
-    private val globalRouter = App.router
-
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
-    private var isGoingBack = false
 
     private val viewModel: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
+            App.router,
             messagesFilter,
             GetOwnUserIdUseCase(MessagesRepositoryImpl.getInstance()),
             GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
@@ -107,14 +106,10 @@ class MessagesFragment : Fragment() {
         val messagesAdapter = MainDelegateAdapter().apply {
             addDelegate(
                 UserMessageDelegate(
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener,
-                    ::onAvatarClickListener
+                    ::onReactionAddClickListener, ::onReactionClickListener, ::onAvatarClickListener
                 )
             )
-            addDelegate(
-                OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener)
-            )
+            addDelegate(OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener))
             addDelegate(DateDelegate())
         }
         binding.recyclerViewMessages.adapter = messagesAdapter
@@ -134,7 +129,7 @@ class MessagesFragment : Fragment() {
                         messageIds.add((item.content() as Message).id)
                     }
                 }
-                viewModel.setMessageReadFlags(messageIds)
+                viewModel.reduce(MessagesEvent.Ui.SetMessagesRead(messageIds))
             }
         })
     }
@@ -145,99 +140,99 @@ class MessagesFragment : Fragment() {
                 viewModel.state.collect(::handleState)
             }
         }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.effects.collect(::handleEffect)
+            }
+        }
     }
 
     private fun setupListeners() {
-        binding.toolbar.setNavigationOnClickListener {
-            goBack()
-        }
-        binding.imageViewAction.setOnClickListener {
-            viewModel.sendMessage(binding.editTextMessage.text.toString())
-        }
-        binding.editTextMessage.doOnTextChanged { text, _, _, _ ->
-            viewModel.doOnTextChanged(text)
-        }
-        binding.imageViewArrow.setOnClickListener {
-            binding.recyclerViewMessages.smoothScrollToLastPosition()
-        }
-    }
-
-    private fun handleState(state: MessagesScreenState) {
-        if (state !is MessagesScreenState.Loading) {
-            binding.shimmerLarge.off()
-        }
-        if (state !is MessagesScreenState.SendingMessage) {
-            binding.shimmerSending.off()
-        }
-        when (state) {
-            is MessagesScreenState.Messages -> {
-                submitMessages(state.value)
-            }
-            is MessagesScreenState.UpdateIconImage -> {
-                binding.imageViewAction.setImageResource(state.resId)
-            }
-            is MessagesScreenState.MessageSent -> {
-                binding.editTextMessage.text?.clear()
-            }
-            is MessagesScreenState.ReactionSent -> {}
-            is MessagesScreenState.Loading -> {
-                if (messagesListIsEmpty()) binding.shimmerLarge.on()
-            }
-            is MessagesScreenState.Failure -> {
-                handleErrors(state)
-            }
-            is MessagesScreenState.SendingMessage -> binding.shimmerSending.on()
-        }
-    }
-
-    private fun handleErrors(error: MessagesScreenState.Failure) {
-        when (error) {
-            is MessagesScreenState.Failure.MessageNotFound -> showError(
-                String.format(getString(R.string.error_message_not_found), error.messageId)
-            )
-            is MessagesScreenState.Failure.UserNotFound -> showError(
-                String.format(getString(R.string.error_user_not_found), error.userId)
-            )
-            is MessagesScreenState.Failure.SendingMessage -> showError(
-                String.format(getString(R.string.error_sending_message), error.value)
-            )
-            is MessagesScreenState.Failure.UpdatingReaction -> showError(
-                String.format(getString(R.string.error_updating_reaction), error.value)
-            )
-            is MessagesScreenState.Failure.OwnUserNotFound -> {
-                showError(String.format(getString(R.string.error_loading_user), error.value))
+        with(binding) {
+            toolbar.setNavigationOnClickListener {
                 goBack()
             }
-            is MessagesScreenState.Failure.Network -> {
-                showError(String.format(getString(R.string.error_network), error.value))
-                showCheckInternetConnectionDialog(viewModel::loadMessages) { goBack() }
+            imageViewAction.setOnClickListener {
+                viewModel.reduce(MessagesEvent.Ui.SendMessage(editTextMessage.text))
             }
-            is MessagesScreenState.Failure.LoadingMessages -> showError(
+            editTextMessage.doOnTextChanged { text, _, _, _ ->
+                viewModel.reduce(MessagesEvent.Ui.NewMessageText(text))
+            }
+            imageViewArrow.setOnClickListener {
+                binding.recyclerViewMessages.smoothScrollToLastPosition()
+            }
+        }
+    }
+
+    private fun handleState(state: MessagesState) {
+        if (state.isLoading) {
+            if (messagesListIsEmpty()) binding.shimmerLarge.on()
+        } else {
+            binding.shimmerLarge.off()
+        }
+        if (state.isSendingMessage) {
+            binding.shimmerSending.on()
+        } else {
+            binding.shimmerSending.off()
+        }
+        state.messages?.let {
+            submitMessages(it)
+        }
+    }
+
+    private fun handleEffect(effect: MessagesEffect) {
+        when (effect) {
+            is MessagesEffect.UpdateIconImage ->
+                binding.imageViewAction.setImageResource(effect.resId)
+            is MessagesEffect.MessageSent -> binding.editTextMessage.text?.clear()
+            is MessagesEffect.Failure.MessageNotFound -> showError(
+                String.format(getString(R.string.error_message_not_found), effect.messageId)
+            )
+            is MessagesEffect.Failure.UserNotFound -> showError(
+                String.format(getString(R.string.error_user_not_found), effect.userId)
+            )
+            is MessagesEffect.Failure.SendingMessage -> showError(
+                String.format(getString(R.string.error_sending_message), effect.value)
+            )
+            is MessagesEffect.Failure.UpdatingReaction -> showError(
+                String.format(getString(R.string.error_updating_reaction), effect.value)
+            )
+            is MessagesEffect.Failure.OwnUserNotFound -> {
+                showError(String.format(getString(R.string.error_loading_user), effect.value))
+                goBack()
+            }
+            is MessagesEffect.Failure.Network -> {
+                showError(String.format(getString(R.string.error_network), effect.value))
+                showCheckInternetConnectionDialog({ viewModel.reduce(MessagesEvent.Ui.Load) }) {
+                    goBack()
+                }
+            }
+            is MessagesEffect.Failure.LoadingMessages -> showError(
                 String.format(
                     getString(R.string.error_loading_messages),
-                    error.messagesFilter.channel.name,
-                    error.messagesFilter.topic.name,
-                    error.value
+                    effect.messagesFilter.channel.name,
+                    effect.messagesFilter.topic.name,
+                    effect.value
                 )
             )
         }
     }
 
     private fun submitMessages(result: MessagesResultDelegate) {
-        val messagesAdapter =
-            binding.recyclerViewMessages.adapter as MainDelegateAdapter
-        messagesAdapter.submitList(result.messages) {
-            when (result.position.type) {
-                MessagePosition.Type.LAST_POSITION ->
-                    binding.recyclerViewMessages.smoothScrollToLastPosition()
-                MessagePosition.Type.EXACTLY -> {
-                    binding.recyclerViewMessages.smoothScrollToMessage(
-                        result.position.messageId
-                    )
+        with(binding) {
+            val messagesAdapter = recyclerViewMessages.adapter as MainDelegateAdapter
+            messagesAdapter.submitList(result.messages) {
+                when (result.position.type) {
+                    MessagePosition.Type.LAST_POSITION ->
+                        recyclerViewMessages.smoothScrollToLastPosition()
+                    MessagePosition.Type.EXACTLY -> {
+                        recyclerViewMessages.smoothScrollToMessage(result.position.messageId)
+                    }
+                    MessagePosition.Type.UNDEFINED -> {}
                 }
-                MessagePosition.Type.UNDEFINED -> {}
+                viewModel.reduce(MessagesEvent.Ui.AfterSubmitMessages)
             }
-            showArrowDown()
         }
     }
 
@@ -250,26 +245,27 @@ class MessagesFragment : Fragment() {
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
-        globalRouter.navigateTo(Screens.UserProfile(messageView.userId))
+        viewModel.reduce(MessagesEvent.Ui.ShowUserInfo(messageView))
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
         val dialog = ChooseReactionDialogFragment.newInstance(
             messageView.messageId,
         )
-        dialog.listener = viewModel::updateReaction
+        dialog.listener = ::updateReaction
         dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
     }
 
     private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
-        viewModel.updateReaction(messageView.messageId, reactionView.emoji)
+        updateReaction(messageView.messageId, reactionView.emoji)
+    }
+
+    private fun updateReaction(messageId: Long, emoji: Emoji) {
+        viewModel.reduce(MessagesEvent.Ui.UpdateReaction(messageId, emoji))
     }
 
     private fun goBack() {
-        if (!isGoingBack) {
-            isGoingBack = true
-            globalRouter.exit()
-        }
+        viewModel.reduce(MessagesEvent.Ui.Exit)
     }
 
     @Suppress("deprecation")

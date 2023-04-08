@@ -11,9 +11,9 @@ import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
-import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleEffect
-import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleEvent
-import com.spinoza.messenger_tfs.presentation.model.peoplescreen.PeopleState
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleEffect
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleEvent
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
