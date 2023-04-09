@@ -6,6 +6,6 @@ sealed class ProfileEffect {
 
         class Network(val value: String) : Failure()
 
-        class UserNotFound(val userId: String, val value: String) : Failure()
+        class UserNotFound(val value: String) : Failure()
     }
 }

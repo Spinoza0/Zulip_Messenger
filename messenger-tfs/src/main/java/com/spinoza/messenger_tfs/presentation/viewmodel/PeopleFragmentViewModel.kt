@@ -6,11 +6,12 @@ import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
+import com.spinoza.messenger_tfs.presentation.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleEffect
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleEvent
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleState
@@ -58,14 +59,18 @@ class PeopleFragmentViewModel(
             _state.emit(state.value.copy(isLoading = true, filter = filter))
             val result = getUsersByFilterUseCase(filter)
             _state.emit(state.value.copy(isLoading = false))
-            when (result) {
-                is RepositoryResult.Success -> {
-                    usersCache.clear()
-                    usersCache.addAll(result.value)
-                    _state.emit(state.value.copy(users = usersCache.toSortedList()))
-                    registerEventQueue()
+            result.onSuccess {
+                usersCache.clear()
+                usersCache.addAll(it)
+                _state.emit(state.value.copy(users = usersCache.toSortedList()))
+                registerEventQueue()
+            }.onFailure { error ->
+                val peopleEffect = if (error is RepositoryError) {
+                    PeopleEffect.Failure.LoadingUsers(error.value)
+                } else {
+                    PeopleEffect.Failure.Network(error.getErrorText())
                 }
-                is RepositoryResult.Failure -> handleErrors(result)
+                _effects.emit(peopleEffect)
             }
         }
     }
@@ -89,12 +94,15 @@ class PeopleFragmentViewModel(
 
     private fun registerEventQueue() {
         viewModelScope.launch {
-            when (val queueResult = registerEventQueueUseCase(listOf(EventType.PRESENCE))) {
-                is RepositoryResult.Success -> {
-                    eventsQueue = queueResult.value
+            var isRegistrationSuccess = false
+            while (!isRegistrationSuccess) {
+                registerEventQueueUseCase(listOf(EventType.PRESENCE)).onSuccess {
+                    eventsQueue = it
                     handleOnSuccessQueueRegistration()
+                    isRegistrationSuccess = true
+                }.onFailure {
+                    delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
                 }
-                is RepositoryResult.Failure -> handleErrors(queueResult)
             }
         }
     }
@@ -103,11 +111,9 @@ class PeopleFragmentViewModel(
         viewModelScope.launch(Dispatchers.Default) {
             var lastUpdatingTimeStamp = 0L
             while (true) {
-                delay(DELAY_BEFORE_UPDATE_INFO)
-                val eventResult = getPresenceEventsUseCase(eventsQueue)
-                if (eventResult is RepositoryResult.Success) {
+                getPresenceEventsUseCase(eventsQueue).onSuccess { events ->
                     var isListChanged = false
-                    eventResult.value.forEach { event ->
+                    events.forEach { event ->
                         eventsQueue = eventsQueue.copy(lastEventId = event.id)
                         val index = usersCache.indexOfFirst { it.userId == event.userId }
                         if (index != INDEX_NOT_FOUND) {
@@ -119,7 +125,7 @@ class PeopleFragmentViewModel(
                         lastUpdatingTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
                         _state.emit(state.value.copy(users = usersCache.toSortedList()))
                     }
-                } else {
+                }.onFailure {
                     val currentTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
                     if (currentTimeStamp - lastUpdatingTimeStamp > OFFLINE_TIME) {
                         for (index in 0 until usersCache.size) {
@@ -130,17 +136,8 @@ class PeopleFragmentViewModel(
                         _state.emit(state.value.copy(users = usersCache.toSortedList()))
                     }
                 }
+                delay(DELAY_BEFORE_UPDATE_INFO)
             }
-        }
-    }
-
-    private suspend fun handleErrors(error: RepositoryResult.Failure) {
-        when (error) {
-            is RepositoryResult.Failure.LoadingUsers ->
-                _effects.emit(PeopleEffect.Failure.LoadingUsers(error.value))
-            is RepositoryResult.Failure.Network ->
-                _effects.emit(PeopleEffect.Failure.Network(error.value))
-            else -> {}
         }
     }
 
@@ -161,6 +158,7 @@ class PeopleFragmentViewModel(
 
         const val DURATION_MILLIS = 300L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
+        const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 10_000L
         const val INDEX_NOT_FOUND = -1
         const val MILLIS_IN_SECOND = 1000
         const val OFFLINE_TIME = 180

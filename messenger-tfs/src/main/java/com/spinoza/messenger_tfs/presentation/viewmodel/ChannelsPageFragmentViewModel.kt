@@ -10,11 +10,12 @@ import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEffect
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEvent
@@ -82,13 +83,12 @@ class ChannelsPageFragmentViewModel(
             _state.emit(state.value.copy(isLoading = true))
             val result = getChannelsUseCase(channelsFilter)
             _state.emit(state.value.copy(isLoading = false))
-            when (result) {
-                is RepositoryResult.Success -> {
-                    updateCacheWithShowedTopicsSaving(result.value.toDelegateItem(isAllChannels))
-                    _state.emit(state.value.copy(items = cache.toList()))
-                    registerEventQueue()
-                }
-                is RepositoryResult.Failure -> handleErrors(result)
+            result.onSuccess {
+                updateCacheWithShowedTopicsSaving(it.toDelegateItem(isAllChannels))
+                _state.emit(state.value.copy(items = cache.toList()))
+                registerEventQueue()
+            }.onFailure {
+                handleErrors(it)
             }
         }
     }
@@ -98,9 +98,8 @@ class ChannelsPageFragmentViewModel(
             for (i in 0 until cache.size) {
                 if (cache[i] is TopicDelegateItem) {
                     val messagesFilter = cache[i].content() as MessagesFilter
-                    val result = getTopicUseCase(messagesFilter)
-                    if (result is RepositoryResult.Success) {
-                        cache[i] = TopicDelegateItem(messagesFilter.copy(topic = result.value))
+                    getTopicUseCase(messagesFilter).onSuccess {
+                        cache[i] = TopicDelegateItem(messagesFilter.copy(topic = it))
                     }
                 }
             }
@@ -163,27 +162,29 @@ class ChannelsPageFragmentViewModel(
 
     private fun registerEventQueue() {
         viewModelScope.launch {
-            when (val queueResult = registerEventQueueUseCase(listOf(EventType.CHANNEL))) {
-                is RepositoryResult.Success -> {
-                    eventsQueue = queueResult.value
+            var isRegistrationSuccess = false
+            while (!isRegistrationSuccess) {
+                registerEventQueueUseCase(listOf(EventType.CHANNEL)).onSuccess {
+                    eventsQueue = it
                     handleOnSuccessQueueRegistration()
+                    isRegistrationSuccess = true
+                }.onFailure {
+                    delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
                 }
-                is RepositoryResult.Failure -> handleErrors(queueResult)
             }
         }
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Default) {
             while (true) {
                 delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
-                val eventResult = getChannelEventsUseCase(eventsQueue)
-                if (eventResult is RepositoryResult.Success) {
+                getChannelEventsUseCase(eventsQueue).onSuccess { events ->
                     val channels = mutableListOf<Channel>()
                     channels.addAll(cache
                         .filterIsInstance<ChannelDelegateItem>()
                         .filter { channelDelegateItem ->
-                            val event = eventResult.value.find { channelEvent ->
+                            val event = events.find { channelEvent ->
                                 channelEvent.channel.channelId == channelDelegateItem.id()
                             }
                             if (event == null) true
@@ -193,7 +194,7 @@ class ChannelsPageFragmentViewModel(
                         }.map { (it.content() as ChannelItem).channel }
                     )
                     var lastEventId = eventsQueue.lastEventId
-                    eventResult.value
+                    events
                         .filter { it.operation != ChannelEvent.Operation.DELETE }
                         .filter { !channels.contains(it.channel) }
                         .forEach {
@@ -258,30 +259,24 @@ class ChannelsPageFragmentViewModel(
         _state.emit(state.value.copy(isLoading = true))
         val topicsResult = getTopicsUseCase(channelItem.channel)
         _state.emit(state.value.copy(isLoading = false))
-        when (topicsResult) {
-            is RepositoryResult.Success -> {
-                val topics = topicsResult.value.toDelegateItem(channelItem.channel)
-                if (index != UNDEFINED_INDEX)
-                    cache.addAll(index, topics)
-                else
-                    cache.addAll(topics)
-            }
-            is RepositoryResult.Failure -> handleErrors(topicsResult)
+        topicsResult.onSuccess {
+            val topics = it.toDelegateItem(channelItem.channel)
+            if (index != UNDEFINED_INDEX)
+                cache.addAll(index, topics)
+            else
+                cache.addAll(topics)
+        }.onFailure {
+            handleErrors(it)
         }
     }
 
-    private suspend fun handleErrors(error: RepositoryResult.Failure) {
-        when (error) {
-            is RepositoryResult.Failure.LoadingChannels -> _effects.emit(
-                ChannelsPageEffect.Failure.LoadingChannels(error.channelsFilter, error.value)
-            )
-            is RepositoryResult.Failure.LoadingChannelTopics -> _effects.emit(
-                ChannelsPageEffect.Failure.LoadingChannelTopics(error.channel, error.value)
-            )
-            is RepositoryResult.Failure.Network ->
-                _effects.emit(ChannelsPageEffect.Failure.Network(error.value))
-            else -> {}
+    private suspend fun handleErrors(error: Throwable) {
+        val channelsPageEffect = if (error is RepositoryError) {
+            ChannelsPageEffect.Failure.Error(error.value)
+        } else {
+            ChannelsPageEffect.Failure.Network(error.getErrorText())
         }
+        _effects.emit(channelsPageEffect)
     }
 
     private fun updateTopicsMessageCount() {
@@ -312,5 +307,6 @@ class ChannelsPageFragmentViewModel(
         const val UNDEFINED_INDEX = -1
         const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
         const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
+        const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 10_000L
     }
 }

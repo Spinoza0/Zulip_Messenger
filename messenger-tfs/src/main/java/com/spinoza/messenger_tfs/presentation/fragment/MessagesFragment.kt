@@ -185,36 +185,15 @@ class MessagesFragment : Fragment() {
     private fun handleEffect(effect: MessagesEffect) {
         when (effect) {
             is MessagesEffect.MessageSent -> binding.editTextMessage.text?.clear()
-            is MessagesEffect.Failure.MessageNotFound -> showError(
-                String.format(getString(R.string.error_message_not_found), effect.messageId)
+            is MessagesEffect.Failure.Error -> showError(
+                String.format(getString(R.string.error_messages), effect.value)
             )
-            is MessagesEffect.Failure.UserNotFound -> showError(
-                String.format(getString(R.string.error_user_not_found), effect.userId)
-            )
-            is MessagesEffect.Failure.SendingMessage -> showError(
-                String.format(getString(R.string.error_sending_message), effect.value)
-            )
-            is MessagesEffect.Failure.UpdatingReaction -> showError(
-                String.format(getString(R.string.error_updating_reaction), effect.value)
-            )
-            is MessagesEffect.Failure.OwnUserNotFound -> {
-                showError(String.format(getString(R.string.error_loading_user), effect.value))
-                goBack()
-            }
             is MessagesEffect.Failure.Network -> {
                 showError(String.format(getString(R.string.error_network), effect.value))
                 showCheckInternetConnectionDialog({ viewModel.reduce(MessagesEvent.Ui.Load) }) {
                     goBack()
                 }
             }
-            is MessagesEffect.Failure.LoadingMessages -> showError(
-                String.format(
-                    getString(R.string.error_loading_messages),
-                    effect.messagesFilter.channel.name,
-                    effect.messagesFilter.topic.name,
-                    effect.value
-                )
-            )
         }
     }
 

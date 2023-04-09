@@ -80,7 +80,7 @@ open class ProfileFragment : Fragment() {
     private fun handleEffect(effect: ProfileEffect) {
         when (effect) {
             is ProfileEffect.Failure.UserNotFound -> showError(
-                String.format(getString(R.string.error_user_not_found), effect.userId, effect.value)
+                String.format(getString(R.string.error_user_not_found), effect.value)
             )
             is ProfileEffect.Failure.Network -> showError(
                 String.format(getString(R.string.error_network), effect.value)

@@ -7,12 +7,13 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
@@ -90,7 +91,7 @@ class MessagesFragmentViewModel(
             _state.emit(state.value.copy(isSendingMessage = true))
             val result = sendMessageUseCase(value, messagesFilter)
             _state.emit(state.value.copy(isSendingMessage = false))
-            if (result is RepositoryResult.Success) {
+            result.onSuccess {
                 isMessageSent = true
                 _effects.emit(MessagesEffect.MessageSent)
             }
@@ -99,12 +100,11 @@ class MessagesFragmentViewModel(
 
     private fun updateReaction(messageId: Long, emoji: Emoji) {
         viewModelScope.launch {
-            val result = updateReactionUseCase(messageId, emoji, messagesFilter)
-            if (result is RepositoryResult.Success) {
-                when (val userIdResult = getOwnUserIdUseCase()) {
-                    is RepositoryResult.Success ->
-                        handleMessagesResult(result.value, userIdResult.value)
-                    is RepositoryResult.Failure -> handleErrors(userIdResult)
+            updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
+                getOwnUserIdUseCase().onSuccess {
+                    handleMessagesResult(messagesResult, it)
+                }.onFailure {
+                    handleErrors(it)
                 }
             }
         }
@@ -121,7 +121,18 @@ class MessagesFragmentViewModel(
             _state.emit(state.value.copy(isLoading = true))
             val result = getMessagesUseCase(messagesFilter)
             _state.emit(state.value.copy(isLoading = false))
-            handleRepositoryResult(result)
+            result.onSuccess { messagesResult ->
+                getOwnUserIdUseCase().onSuccess {
+                    handleMessagesResult(messagesResult, it)
+                    registerMessagesQueue()
+                    registerDeleteMessagesQueue()
+                    registerReactionsQueue()
+                }.onFailure {
+                    handleErrors(it)
+                }
+            }.onFailure {
+                handleErrors(it)
+            }
         }
     }
 
@@ -160,84 +171,70 @@ class MessagesFragmentViewModel(
             .launchIn(viewModelScope)
     }
 
-    private suspend fun handleRepositoryResult(result: RepositoryResult<MessagesResult>) {
-        when (result) {
-            is RepositoryResult.Success -> withContext(Dispatchers.Default) {
-                when (val userIdResult = getOwnUserIdUseCase()) {
-                    is RepositoryResult.Success -> {
-                        handleMessagesResult(result.value, userIdResult.value)
-                        registerMessagesQueue()
-                        registerDeleteMessagesQueue()
-                        registerReactionsQueue()
-                    }
-                    is RepositoryResult.Failure -> handleErrors(userIdResult)
-                }
-            }
-            is RepositoryResult.Failure -> handleErrors(result)
-        }
-    }
-
-    private suspend fun handleMessagesResult(result: MessagesResult, userId: Long) {
-        _state.emit(
-            state.value.copy(
-                messages =
-                MessagesResultDelegate(result.messages.groupByDate(userId), result.position)
+    private suspend fun handleMessagesResult(result: MessagesResult, userId: Long) =
+        withContext(Dispatchers.Default) {
+            _state.emit(
+                state.value.copy(
+                    messages =
+                    MessagesResultDelegate(result.messages.groupByDate(userId), result.position)
+                )
             )
-        )
-    }
+        }
 
     private suspend fun registerMessagesQueue() {
-        when (val queueResult =
-            registerEventQueueUseCase(listOf(EventType.MESSAGE), messagesFilter)) {
-            is RepositoryResult.Success -> {
-                messagesQueue = queueResult.value
+        var isRegistrationSuccess = false
+        while (!isRegistrationSuccess) {
+            registerEventQueueUseCase(listOf(EventType.MESSAGE), messagesFilter).onSuccess {
+                messagesQueue = it
                 checkMessagesEvents()
+                isRegistrationSuccess = true
+            }.onFailure {
+                delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
             }
-            is RepositoryResult.Failure -> handleErrors(queueResult)
         }
     }
 
     private suspend fun registerDeleteMessagesQueue() {
-        when (val queueResult =
-            registerEventQueueUseCase(listOf(EventType.DELETE_MESSAGE), messagesFilter)) {
-            is RepositoryResult.Success -> {
-                deleteMessagesQueue = queueResult.value
+        var isRegistrationSuccess = false
+        while (!isRegistrationSuccess) {
+            registerEventQueueUseCase(listOf(EventType.DELETE_MESSAGE), messagesFilter).onSuccess {
+                deleteMessagesQueue = it
                 checkDeleteMessagesEvents()
+                isRegistrationSuccess = true
+            }.onFailure {
+                delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
             }
-            is RepositoryResult.Failure -> handleErrors(queueResult)
         }
     }
 
     private suspend fun registerReactionsQueue() {
-        when (val queueResult =
-            registerEventQueueUseCase(listOf(EventType.REACTION), messagesFilter)) {
-            is RepositoryResult.Success -> {
-                reactionsQueue = queueResult.value
+        var isRegistrationSuccess = false
+        while (!isRegistrationSuccess) {
+            registerEventQueueUseCase(listOf(EventType.REACTION), messagesFilter).onSuccess {
+                reactionsQueue = it
                 checkReactionsEvents()
+                isRegistrationSuccess = true
+            }.onFailure {
+                delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
             }
-            is RepositoryResult.Failure -> handleErrors(queueResult)
         }
     }
 
     private fun checkMessagesEvents() {
         viewModelScope.launch {
             while (true) {
-                val eventResult =
-                    getMessageEventUseCase(messagesQueue, messagesFilter)
-                if (eventResult is RepositoryResult.Success) {
-                    val userIdResult = getOwnUserIdUseCase()
-                    if (userIdResult is RepositoryResult.Success) {
-                        messagesQueue =
-                            messagesQueue.copy(lastEventId = eventResult.value.lastEventId)
+                getMessageEventUseCase(messagesQueue, messagesFilter).onSuccess { event ->
+                    getOwnUserIdUseCase().onSuccess { userId ->
+                        messagesQueue = messagesQueue.copy(lastEventId = event.lastEventId)
                         val messagesResult = if (isMessageSent) {
                             isMessageSent = false
-                            eventResult.value.messagesResult.copy(
+                            event.messagesResult.copy(
                                 position = MessagePosition(MessagePosition.Type.LAST_POSITION)
                             )
                         } else {
-                            eventResult.value.messagesResult
+                            event.messagesResult
                         }
-                        handleMessagesResult(messagesResult, userIdResult.value)
+                        handleMessagesResult(messagesResult, userId)
                     }
                 }
             }
@@ -247,16 +244,14 @@ class MessagesFragmentViewModel(
     private fun checkDeleteMessagesEvents() {
         viewModelScope.launch {
             while (true) {
-                val eventResult =
-                    getDeleteMessageEventUseCase(deleteMessagesQueue, messagesFilter)
-                if (eventResult is RepositoryResult.Success) {
-                    val userIdResult = getOwnUserIdUseCase()
-                    if (userIdResult is RepositoryResult.Success) {
-                        deleteMessagesQueue =
-                            deleteMessagesQueue.copy(lastEventId = eventResult.value.lastEventId)
-                        handleMessagesResult(eventResult.value.messagesResult, userIdResult.value)
+                getDeleteMessageEventUseCase(deleteMessagesQueue, messagesFilter)
+                    .onSuccess { event ->
+                        getOwnUserIdUseCase().onSuccess { userId ->
+                            deleteMessagesQueue =
+                                deleteMessagesQueue.copy(lastEventId = event.lastEventId)
+                            handleMessagesResult(event.messagesResult, userId)
+                        }
                     }
-                }
                 delay(DELAY_DELETE_MESSAGES_EVENTS)
             }
         }
@@ -265,14 +260,10 @@ class MessagesFragmentViewModel(
     private fun checkReactionsEvents() {
         viewModelScope.launch {
             while (true) {
-                val eventResult =
-                    getReactionEventUseCase(reactionsQueue, messagesFilter)
-                if (eventResult is RepositoryResult.Success) {
-                    val userIdResult = getOwnUserIdUseCase()
-                    if (userIdResult is RepositoryResult.Success) {
-                        reactionsQueue =
-                            reactionsQueue.copy(lastEventId = eventResult.value.lastEventId)
-                        handleMessagesResult(eventResult.value.messagesResult, userIdResult.value)
+                getReactionEventUseCase(reactionsQueue, messagesFilter).onSuccess { event ->
+                    getOwnUserIdUseCase().onSuccess { userId ->
+                        reactionsQueue = reactionsQueue.copy(lastEventId = event.lastEventId)
+                        handleMessagesResult(event.messagesResult, userId)
                     }
                 }
                 delay(DELAY_REACTIONS_EVENTS)
@@ -280,25 +271,13 @@ class MessagesFragmentViewModel(
         }
     }
 
-    private suspend fun handleErrors(error: RepositoryResult.Failure) {
-        when (error) {
-            is RepositoryResult.Failure.OwnUserNotFound ->
-                _effects.emit(MessagesEffect.Failure.OwnUserNotFound(error.value))
-            is RepositoryResult.Failure.MessageNotFound ->
-                _effects.emit(MessagesEffect.Failure.MessageNotFound(error.messageId))
-            is RepositoryResult.Failure.UserNotFound ->
-                _effects.emit(MessagesEffect.Failure.UserNotFound(error.userId, error.value))
-            is RepositoryResult.Failure.SendingMessage ->
-                _effects.emit(MessagesEffect.Failure.SendingMessage(error.value))
-            is RepositoryResult.Failure.UpdatingReaction ->
-                _effects.emit(MessagesEffect.Failure.UpdatingReaction(error.value))
-            is RepositoryResult.Failure.Network ->
-                _effects.emit(MessagesEffect.Failure.Network(error.value))
-            is RepositoryResult.Failure.LoadingMessages -> _effects.emit(
-                MessagesEffect.Failure.LoadingMessages(error.messagesFilter, error.value)
-            )
-            else -> {}
+    private suspend fun handleErrors(error: Throwable) {
+        val messagesEffect = if (error is RepositoryError) {
+            MessagesEffect.Failure.Error(error.value)
+        } else {
+            MessagesEffect.Failure.Network(error.getErrorText())
         }
+        _effects.emit(messagesEffect)
     }
 
     private fun List<Message>.groupByDate(userId: Long): List<DelegateAdapterItem> {
@@ -340,6 +319,7 @@ class MessagesFragmentViewModel(
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
+        const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 10_000L
         const val DELAY_REACTIONS_EVENTS = 200L
         const val DELAY_DELETE_MESSAGES_EVENTS = 500L
     }

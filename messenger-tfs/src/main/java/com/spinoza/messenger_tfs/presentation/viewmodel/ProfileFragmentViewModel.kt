@@ -6,8 +6,9 @@ import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
+import com.spinoza.messenger_tfs.presentation.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
@@ -49,24 +50,31 @@ class ProfileFragmentViewModel(
             val result =
                 if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
             _state.emit(_state.value.copy(isLoading = false))
-            when (result) {
-                is RepositoryResult.Success -> {
-                    _state.emit(state.value.copy(user = result.value))
-                    registerEventQueue()
+            result.onSuccess {
+                _state.emit(state.value.copy(user = it))
+                registerEventQueue()
+            }.onFailure {
+                val profileEffect = if (it is RepositoryError) {
+                    ProfileEffect.Failure.UserNotFound(it.value)
+                } else {
+                    ProfileEffect.Failure.Network(it.getErrorText())
                 }
-                is RepositoryResult.Failure -> handleErrors(result)
+                _effects.emit(profileEffect)
             }
         }
     }
 
     private fun registerEventQueue() {
         viewModelScope.launch {
-            when (val queueResult = registerEventQueueUseCase(listOf(EventType.PRESENCE))) {
-                is RepositoryResult.Success -> {
-                    eventsQueue = queueResult.value
+            var isRegistrationSuccess = false
+            while (!isRegistrationSuccess) {
+                registerEventQueueUseCase(listOf(EventType.PRESENCE)).onSuccess {
+                    eventsQueue = it
                     handleOnSuccessQueueRegistration()
+                    isRegistrationSuccess = true
+                }.onFailure {
+                    delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
                 }
-                is RepositoryResult.Failure -> handleErrors(queueResult)
             }
         }
     }
@@ -74,11 +82,10 @@ class ProfileFragmentViewModel(
     private fun handleOnSuccessQueueRegistration() {
         viewModelScope.launch(Dispatchers.Default) {
             while (true) {
-                delay(DELAY_BEFORE_UPDATE_INFO)
-                val eventResult = getPresenceEventsUseCase(eventsQueue)
-                if (eventResult is RepositoryResult.Success) {
-                    handlePresenceEvents(eventResult.value)
+                getPresenceEventsUseCase(eventsQueue).onSuccess {
+                    handlePresenceEvents(it)
                 }
+                delay(DELAY_BEFORE_UPDATE_INFO)
             }
         }
     }
@@ -95,17 +102,6 @@ class ProfileFragmentViewModel(
         }
     }
 
-    private suspend fun handleErrors(error: RepositoryResult.Failure) {
-        when (error) {
-            is RepositoryResult.Failure.UserNotFound ->
-                _effects.emit(ProfileEffect.Failure.UserNotFound("${error.userId}", error.value))
-            is RepositoryResult.Failure.Network ->
-                _effects.emit(ProfileEffect.Failure.Network(error.value))
-            is RepositoryResult.Failure.RegisterEventQueue -> {}
-            else -> {}
-        }
-    }
-
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
@@ -116,6 +112,7 @@ class ProfileFragmentViewModel(
     private companion object {
 
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
+        const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 10_000L
         const val CURRENT_USER = -1L
     }
 }

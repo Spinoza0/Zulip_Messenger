@@ -149,19 +149,8 @@ class ChannelsPageFragment : Fragment() {
 
     private fun handleEffect(effect: ChannelsPageEffect) {
         when (effect) {
-            is ChannelsPageEffect.Failure.LoadingChannels -> showError(
-                String.format(
-                    getString(R.string.error_loading_channels),
-                    effect.channelsFilter.name,
-                    effect.value
-                )
-            )
-            is ChannelsPageEffect.Failure.LoadingChannelTopics -> showError(
-                String.format(
-                    getString(R.string.error_loading_topics),
-                    effect.channel.name,
-                    effect.value
-                )
+            is ChannelsPageEffect.Failure.Error -> showError(
+                String.format(getString(R.string.error_channels), effect.value)
             )
             is ChannelsPageEffect.Failure.Network ->
                 showCheckInternetConnectionDialog({ viewModel.reduce(ChannelsPageEvent.Ui.Load) }) {
