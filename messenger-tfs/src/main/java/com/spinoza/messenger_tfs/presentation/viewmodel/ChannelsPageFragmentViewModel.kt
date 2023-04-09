@@ -9,7 +9,6 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
@@ -30,8 +29,8 @@ class ChannelsPageFragmentViewModel(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
-    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    registerEventQueueUseCase: RegisterEventQueueUseCase,
+    deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
 ) : ViewModel() {
 
@@ -45,7 +44,8 @@ class ChannelsPageFragmentViewModel(
     private val _state = MutableStateFlow(ChannelsPageState())
     private val _effects = MutableSharedFlow<ChannelsPageEffect>()
     private val cache = mutableListOf<DelegateAdapterItem>()
-    private var eventsQueue = EventsQueue()
+    private var eventsQueue =
+        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase)
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
 
     init {
@@ -68,7 +68,7 @@ class ChannelsPageFragmentViewModel(
         super.onCleared()
         cache.clear()
         viewModelScope.launch {
-            deleteEventQueueUseCase(eventsQueue.queueId)
+            eventsQueue.deleteQueue()
         }
     }
 
@@ -86,7 +86,7 @@ class ChannelsPageFragmentViewModel(
             result.onSuccess {
                 updateCacheWithShowedTopicsSaving(it.toDelegateItem(isAllChannels))
                 _state.emit(state.value.copy(items = cache.toList()))
-                registerEventQueue()
+                eventsQueue.registerQueue(EventType.CHANNEL, ::handleOnSuccessQueueRegistration)
             }.onFailure {
                 handleErrors(it)
             }
@@ -160,26 +160,11 @@ class ChannelsPageFragmentViewModel(
             .launchIn(viewModelScope)
     }
 
-    private fun registerEventQueue() {
-        viewModelScope.launch {
-            var isRegistrationSuccess = false
-            while (!isRegistrationSuccess) {
-                registerEventQueueUseCase(listOf(EventType.CHANNEL)).onSuccess {
-                    eventsQueue = it
-                    handleOnSuccessQueueRegistration()
-                    isRegistrationSuccess = true
-                }.onFailure {
-                    delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
-                }
-            }
-        }
-    }
-
     private fun handleOnSuccessQueueRegistration() {
         viewModelScope.launch(Dispatchers.Default) {
             while (true) {
                 delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
-                getChannelEventsUseCase(eventsQueue).onSuccess { events ->
+                getChannelEventsUseCase(eventsQueue.queue).onSuccess { events ->
                     val channels = mutableListOf<Channel>()
                     channels.addAll(cache
                         .filterIsInstance<ChannelDelegateItem>()
@@ -193,7 +178,7 @@ class ChannelsPageFragmentViewModel(
                             }
                         }.map { (it.content() as ChannelItem).channel }
                     )
-                    var lastEventId = eventsQueue.lastEventId
+                    var lastEventId = eventsQueue.queue.lastEventId
                     events
                         .filter { it.operation != ChannelEvent.Operation.DELETE }
                         .filter { !channels.contains(it.channel) }
@@ -201,7 +186,7 @@ class ChannelsPageFragmentViewModel(
                             lastEventId = it.id
                             channels.add(it.channel)
                         }
-                    eventsQueue = eventsQueue.copy(lastEventId = lastEventId)
+                    eventsQueue.queue = eventsQueue.queue.copy(lastEventId = lastEventId)
                     updateCacheWithShowedTopicsSaving(channels.toDelegateItem(isAllChannels))
                     _state.emit(state.value.copy(items = cache.toList()))
                 }
@@ -307,6 +292,5 @@ class ChannelsPageFragmentViewModel(
         const val UNDEFINED_INDEX = -1
         const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
         const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
-        const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 10_000L
     }
 }

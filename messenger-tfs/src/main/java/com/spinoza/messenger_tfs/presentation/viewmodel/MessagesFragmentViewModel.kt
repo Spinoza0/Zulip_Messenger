@@ -6,7 +6,6 @@ import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
@@ -30,8 +29,8 @@ class MessagesFragmentViewModel(
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
-    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    registerEventQueueUseCase: RegisterEventQueueUseCase,
+    deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getMessageEventUseCase: GetMessageEventUseCase,
     private val getDeleteMessageEventUseCase: GetDeleteMessageEventUseCase,
     private val getReactionEventUseCase: GetReactionEventUseCase,
@@ -47,9 +46,12 @@ class MessagesFragmentViewModel(
     private val _state = MutableStateFlow(MessagesState())
     private val _effects = MutableSharedFlow<MessagesEffect>()
     private val newMessageFieldState = MutableSharedFlow<String>()
-    private var messagesQueue = EventsQueue()
-    private var deleteMessagesQueue = EventsQueue()
-    private var reactionsQueue = EventsQueue()
+    private var messagesQueue =
+        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase, messagesFilter)
+    private var deleteMessagesQueue =
+        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase, messagesFilter)
+    private var reactionsQueue =
+        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase, messagesFilter)
     private var isMessageSent = false
     private var isGoingBack = false
 
@@ -124,9 +126,12 @@ class MessagesFragmentViewModel(
             result.onSuccess { messagesResult ->
                 getOwnUserIdUseCase().onSuccess {
                     handleMessagesResult(messagesResult, it)
-                    registerMessagesQueue()
-                    registerDeleteMessagesQueue()
-                    registerReactionsQueue()
+                    messagesQueue.registerQueue(EventType.MESSAGE, ::checkMessagesEvents)
+                    deleteMessagesQueue.registerQueue(
+                        EventType.DELETE_MESSAGE,
+                        ::checkDeleteMessagesEvents
+                    )
+                    reactionsQueue.registerQueue(EventType.REACTION, ::checkReactionsEvents)
                 }.onFailure {
                     handleErrors(it)
                 }
@@ -181,51 +186,13 @@ class MessagesFragmentViewModel(
             )
         }
 
-    private suspend fun registerMessagesQueue() {
-        var isRegistrationSuccess = false
-        while (!isRegistrationSuccess) {
-            registerEventQueueUseCase(listOf(EventType.MESSAGE), messagesFilter).onSuccess {
-                messagesQueue = it
-                checkMessagesEvents()
-                isRegistrationSuccess = true
-            }.onFailure {
-                delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
-            }
-        }
-    }
-
-    private suspend fun registerDeleteMessagesQueue() {
-        var isRegistrationSuccess = false
-        while (!isRegistrationSuccess) {
-            registerEventQueueUseCase(listOf(EventType.DELETE_MESSAGE), messagesFilter).onSuccess {
-                deleteMessagesQueue = it
-                checkDeleteMessagesEvents()
-                isRegistrationSuccess = true
-            }.onFailure {
-                delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
-            }
-        }
-    }
-
-    private suspend fun registerReactionsQueue() {
-        var isRegistrationSuccess = false
-        while (!isRegistrationSuccess) {
-            registerEventQueueUseCase(listOf(EventType.REACTION), messagesFilter).onSuccess {
-                reactionsQueue = it
-                checkReactionsEvents()
-                isRegistrationSuccess = true
-            }.onFailure {
-                delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
-            }
-        }
-    }
-
     private fun checkMessagesEvents() {
         viewModelScope.launch {
             while (true) {
-                getMessageEventUseCase(messagesQueue, messagesFilter).onSuccess { event ->
+                getMessageEventUseCase(messagesQueue.queue, messagesFilter).onSuccess { event ->
                     getOwnUserIdUseCase().onSuccess { userId ->
-                        messagesQueue = messagesQueue.copy(lastEventId = event.lastEventId)
+                        messagesQueue.queue =
+                            messagesQueue.queue.copy(lastEventId = event.lastEventId)
                         val messagesResult = if (isMessageSent) {
                             isMessageSent = false
                             event.messagesResult.copy(
@@ -244,11 +211,11 @@ class MessagesFragmentViewModel(
     private fun checkDeleteMessagesEvents() {
         viewModelScope.launch {
             while (true) {
-                getDeleteMessageEventUseCase(deleteMessagesQueue, messagesFilter)
+                getDeleteMessageEventUseCase(deleteMessagesQueue.queue, messagesFilter)
                     .onSuccess { event ->
                         getOwnUserIdUseCase().onSuccess { userId ->
-                            deleteMessagesQueue =
-                                deleteMessagesQueue.copy(lastEventId = event.lastEventId)
+                            deleteMessagesQueue.queue =
+                                deleteMessagesQueue.queue.copy(lastEventId = event.lastEventId)
                             handleMessagesResult(event.messagesResult, userId)
                         }
                     }
@@ -260,9 +227,10 @@ class MessagesFragmentViewModel(
     private fun checkReactionsEvents() {
         viewModelScope.launch {
             while (true) {
-                getReactionEventUseCase(reactionsQueue, messagesFilter).onSuccess { event ->
+                getReactionEventUseCase(reactionsQueue.queue, messagesFilter).onSuccess { event ->
                     getOwnUserIdUseCase().onSuccess { userId ->
-                        reactionsQueue = reactionsQueue.copy(lastEventId = event.lastEventId)
+                        reactionsQueue.queue =
+                            reactionsQueue.queue.copy(lastEventId = event.lastEventId)
                         handleMessagesResult(event.messagesResult, userId)
                     }
                 }
@@ -309,9 +277,9 @@ class MessagesFragmentViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
-            deleteEventQueueUseCase(messagesQueue.queueId)
-            deleteEventQueueUseCase(deleteMessagesQueue.queueId)
-            deleteEventQueueUseCase(reactionsQueue.queueId)
+            messagesQueue.deleteQueue()
+            deleteMessagesQueue.deleteQueue()
+            reactionsQueue.deleteQueue()
         }
     }
 
@@ -319,7 +287,6 @@ class MessagesFragmentViewModel(
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
-        const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 10_000L
         const val DELAY_REACTIONS_EVENTS = 200L
         const val DELAY_DELETE_MESSAGES_EVENTS = 500L
     }

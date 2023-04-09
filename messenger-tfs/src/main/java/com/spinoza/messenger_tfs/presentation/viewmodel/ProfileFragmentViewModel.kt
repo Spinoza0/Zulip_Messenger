@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
@@ -21,8 +20,8 @@ class ProfileFragmentViewModel(
     private val router: Router,
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
-    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    registerEventQueueUseCase: RegisterEventQueueUseCase,
+    deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : ViewModel() {
 
@@ -34,7 +33,8 @@ class ProfileFragmentViewModel(
 
     private val _state = MutableStateFlow(ProfileState())
     private val _effects = MutableSharedFlow<ProfileEffect>()
-    private var eventsQueue = EventsQueue()
+    private var eventsQueue =
+        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase)
 
     fun reduce(event: ProfileEvent) {
         when (event) {
@@ -52,7 +52,7 @@ class ProfileFragmentViewModel(
             _state.emit(_state.value.copy(isLoading = false))
             result.onSuccess {
                 _state.emit(state.value.copy(user = it))
-                registerEventQueue()
+                eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
             }.onFailure {
                 val profileEffect = if (it is RepositoryError) {
                     ProfileEffect.Failure.UserNotFound(it.value)
@@ -64,25 +64,10 @@ class ProfileFragmentViewModel(
         }
     }
 
-    private fun registerEventQueue() {
-        viewModelScope.launch {
-            var isRegistrationSuccess = false
-            while (!isRegistrationSuccess) {
-                registerEventQueueUseCase(listOf(EventType.PRESENCE)).onSuccess {
-                    eventsQueue = it
-                    handleOnSuccessQueueRegistration()
-                    isRegistrationSuccess = true
-                }.onFailure {
-                    delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
-                }
-            }
-        }
-    }
-
     private fun handleOnSuccessQueueRegistration() {
         viewModelScope.launch(Dispatchers.Default) {
             while (true) {
-                getPresenceEventsUseCase(eventsQueue).onSuccess {
+                getPresenceEventsUseCase(eventsQueue.queue).onSuccess {
                     handlePresenceEvents(it)
                 }
                 delay(DELAY_BEFORE_UPDATE_INFO)
@@ -93,7 +78,7 @@ class ProfileFragmentViewModel(
     private fun handlePresenceEvents(presenceEvents: List<PresenceEvent>) {
         state.value.user?.let { user ->
             presenceEvents.forEach { presenceEvent ->
-                eventsQueue = eventsQueue.copy(lastEventId = presenceEvent.id)
+                eventsQueue.queue = eventsQueue.queue.copy(lastEventId = presenceEvent.id)
                 if (user.userId == presenceEvent.userId) {
                     _state.value =
                         state.value.copy(user = user.copy(presence = presenceEvent.presence))
@@ -105,14 +90,13 @@ class ProfileFragmentViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
-            deleteEventQueueUseCase(eventsQueue.queueId)
+            eventsQueue.deleteQueue()
         }
     }
 
     private companion object {
 
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
-        const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 10_000L
         const val CURRENT_USER = -1L
     }
 }

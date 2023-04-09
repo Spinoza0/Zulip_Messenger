@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
@@ -22,8 +21,8 @@ import kotlinx.coroutines.flow.*
 class PeopleFragmentViewModel(
     private val router: Router,
     private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
-    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    registerEventQueueUseCase: RegisterEventQueueUseCase,
+    deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) :
     ViewModel() {
@@ -36,7 +35,8 @@ class PeopleFragmentViewModel(
     private val _state = MutableStateFlow(PeopleState())
     private val _effects = MutableSharedFlow<PeopleEffect>()
     private val searchQueryState = MutableSharedFlow<String>()
-    private var eventsQueue = EventsQueue()
+    private var eventsQueue =
+        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase)
     private var usersCache = mutableListOf<User>()
 
     init {
@@ -63,7 +63,7 @@ class PeopleFragmentViewModel(
                 usersCache.clear()
                 usersCache.addAll(it)
                 _state.emit(state.value.copy(users = usersCache.toSortedList()))
-                registerEventQueue()
+                eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
             }.onFailure { error ->
                 val peopleEffect = if (error is RepositoryError) {
                     PeopleEffect.Failure.LoadingUsers(error.value)
@@ -92,29 +92,14 @@ class PeopleFragmentViewModel(
             .launchIn(viewModelScope)
     }
 
-    private fun registerEventQueue() {
-        viewModelScope.launch {
-            var isRegistrationSuccess = false
-            while (!isRegistrationSuccess) {
-                registerEventQueueUseCase(listOf(EventType.PRESENCE)).onSuccess {
-                    eventsQueue = it
-                    handleOnSuccessQueueRegistration()
-                    isRegistrationSuccess = true
-                }.onFailure {
-                    delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
-                }
-            }
-        }
-    }
-
     private fun handleOnSuccessQueueRegistration() {
         viewModelScope.launch(Dispatchers.Default) {
             var lastUpdatingTimeStamp = 0L
             while (true) {
-                getPresenceEventsUseCase(eventsQueue).onSuccess { events ->
+                getPresenceEventsUseCase(eventsQueue.queue).onSuccess { events ->
                     var isListChanged = false
                     events.forEach { event ->
-                        eventsQueue = eventsQueue.copy(lastEventId = event.id)
+                        eventsQueue.queue = eventsQueue.queue.copy(lastEventId = event.id)
                         val index = usersCache.indexOfFirst { it.userId == event.userId }
                         if (index != INDEX_NOT_FOUND) {
                             usersCache[index] = usersCache[index].copy(presence = event.presence)
@@ -150,7 +135,7 @@ class PeopleFragmentViewModel(
     override fun onCleared() {
         super.onCleared()
         viewModelScope.launch {
-            deleteEventQueueUseCase(eventsQueue.queueId)
+            eventsQueue.deleteQueue()
         }
     }
 
@@ -158,7 +143,6 @@ class PeopleFragmentViewModel(
 
         const val DURATION_MILLIS = 300L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
-        const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 10_000L
         const val INDEX_NOT_FOUND = -1
         const val MILLIS_IN_SECOND = 1000
         const val OFFLINE_TIME = 180
