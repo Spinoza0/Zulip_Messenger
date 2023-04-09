@@ -1,2 +1,10 @@
+dependencyResolutionManagement {
+    repositories {
+        maven { url "https://jitpack.io" }
+        google()
+        mavenCentral()
+    }
+}
+
 rootProject.name = "tfs-android-spring-2023"
 include ':messenger-tfs'
