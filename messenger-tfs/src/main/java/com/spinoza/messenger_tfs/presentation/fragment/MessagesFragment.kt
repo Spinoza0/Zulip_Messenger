@@ -209,6 +209,7 @@ class MessagesFragment : Fragment() {
                     }
                     MessagePosition.Type.UNDEFINED -> {}
                 }
+                showArrowDown()
                 viewModel.reduce(MessagesEvent.Ui.AfterSubmitMessages)
             }
         }

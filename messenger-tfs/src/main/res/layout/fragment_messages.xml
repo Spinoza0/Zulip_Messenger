@@ -38,7 +38,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginHorizontal="12dp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="16dp"
         android:orientation="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toTopOf="@id/textInput"
@@ -56,7 +56,7 @@
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@id/textInput"
         app:layout_constraintEnd_toEndOf="@id/recyclerViewMessages"
-        app:layout_constraintTop_toBottomOf="@id/recyclerViewMessages" />
+        tools:visibility="visible" />
 
     <LinearLayout
         android:id="@+id/textInput"
@@ -149,7 +149,6 @@
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/textInput"
         app:layout_constraintStart_toStartOf="@id/recyclerViewMessages"
-        app:layout_constraintTop_toBottomOf="@id/recyclerViewMessages"
         app:shimmer_duration="500"
         tools:visibility="visible">
 
