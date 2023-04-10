@@ -33,7 +33,13 @@ open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileSta
         get() = ProfileEvent.Ui.Init
 
     override val storeHolder: StoreHolder<ProfileEvent, ProfileEffect, ProfileState> by lazy {
-        LifecycleAwareStoreHolder(lifecycle) { provideProfileStore(ProfileActor(lifecycleScope)) }
+        LifecycleAwareStoreHolder(lifecycle) {
+            val initialState =
+                savedStateRegistry.consumeRestoredStateForKey(PARAM_STATE)?.getParam<ProfileState>(
+                    PARAM_STATE
+                ) ?: ProfileState()
+            provideProfileStore(initialState, ProfileActor(lifecycleScope))
+        }
     }
 
     override fun onCreateView(
@@ -88,5 +94,17 @@ open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileSta
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        savedStateRegistry.registerSavedStateProvider(PARAM_STATE) {
+            Bundle().apply { putParcelable(PARAM_STATE, store.currentState) }
+        }
+    }
+
+    private companion object {
+
+        const val PARAM_STATE = "state"
     }
 }

@@ -38,6 +38,10 @@ class ProfileActor(
         when (command) {
             is ProfileCommand.LoadUser -> loadUser(command.userId)
             is ProfileCommand.LoadCurrentUser -> loadUser(CURRENT_USER)
+            is ProfileCommand.SubscribePresence -> {
+                user = command.user
+                subscribePresence()
+            }
         }
         return actorFlow.asSharedFlow()
     }
@@ -49,7 +53,7 @@ class ProfileActor(
             result.onSuccess {
                 user = it
                 actorFlow.emit(ProfileEvent.Internal.UserLoaded(it))
-                eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
+                subscribePresence()
             }.onFailure {
                 val event = if (it is RepositoryError) {
                     ProfileEvent.Internal.ErrorUserLoading(it.value)
@@ -58,6 +62,12 @@ class ProfileActor(
                 }
                 actorFlow.emit(event)
             }
+        }
+    }
+
+    private fun subscribePresence() {
+        lifecycleScope.launch {
+            eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
         }
     }
 
@@ -124,6 +134,9 @@ class ProfileReducer :
             commands { +ProfileCommand.LoadUser(event.userId) }
         }
         is ProfileEvent.Ui.GoBack -> router.exit()
+        is ProfileEvent.Ui.SubscribePresence -> event.user?.let {
+            commands { +ProfileCommand.SubscribePresence(event.user) }
+        }
         is ProfileEvent.Ui.Init -> {}
     }
 }
@@ -131,6 +144,8 @@ class ProfileReducer :
 sealed class ProfileCommand {
 
     object LoadCurrentUser : ProfileCommand()
+
+    class SubscribePresence(val user: User) : ProfileCommand()
 
     class LoadUser(val userId: Long) : ProfileCommand()
 }

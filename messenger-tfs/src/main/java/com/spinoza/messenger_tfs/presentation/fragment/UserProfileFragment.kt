@@ -18,7 +18,11 @@ class UserProfileFragment : ProfileFragment() {
         parseParams()
         setupListeners()
         setupScreen()
-        store.accept(ProfileEvent.Ui.LoadUser(userId))
+        if (savedInstanceState == null) {
+            store.accept(ProfileEvent.Ui.LoadUser(userId))
+        } else {
+            store.accept(ProfileEvent.Ui.SubscribePresence(store.currentState.user))
+        }
     }
 
     private fun setupListeners() {

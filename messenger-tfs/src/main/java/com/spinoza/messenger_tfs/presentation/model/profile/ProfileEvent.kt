@@ -13,6 +13,8 @@ sealed class ProfileEvent {
         object LoadCurrentUser : Ui()
 
         class LoadUser(val userId: Long) : Ui()
+
+        class SubscribePresence(val user: User?) : Ui()
     }
 
     sealed class Internal : ProfileEvent() {

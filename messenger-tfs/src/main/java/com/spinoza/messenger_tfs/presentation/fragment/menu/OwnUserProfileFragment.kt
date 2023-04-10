@@ -9,7 +9,11 @@ class OwnUserProfileFragment : ProfileFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        store.accept(ProfileEvent.Ui.LoadCurrentUser)
+        if (savedInstanceState == null) {
+            store.accept(ProfileEvent.Ui.LoadCurrentUser)
+        } else {
+            store.accept(ProfileEvent.Ui.SubscribePresence(store.currentState.user))
+        }
     }
 
     companion object {
