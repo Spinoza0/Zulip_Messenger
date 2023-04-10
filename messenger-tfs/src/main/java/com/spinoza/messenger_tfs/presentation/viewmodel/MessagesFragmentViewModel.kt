@@ -12,12 +12,13 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterIt
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.getErrorText
+import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*

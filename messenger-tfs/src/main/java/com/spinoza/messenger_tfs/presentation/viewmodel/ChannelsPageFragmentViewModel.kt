@@ -14,12 +14,13 @@ import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.getErrorText
+import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEffect
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEvent
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
