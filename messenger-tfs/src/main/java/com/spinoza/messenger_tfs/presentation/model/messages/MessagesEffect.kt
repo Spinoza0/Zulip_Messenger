@@ -6,8 +6,8 @@ sealed class MessagesEffect {
 
     sealed class Failure : MessagesEffect() {
 
-        class Network(val value: String) : Failure()
+        class ErrorNetwork(val value: String) : Failure()
 
-        class Error(val value: String) : Failure()
+        class ErrorMessages(val value: String) : Failure()
     }
 }

@@ -6,8 +6,6 @@ sealed class PeopleEvent {
 
     sealed class Ui : PeopleEvent() {
 
-        object Init : Ui()
-
         object Load : Ui()
 
         class Filter(val value: String) : Ui()

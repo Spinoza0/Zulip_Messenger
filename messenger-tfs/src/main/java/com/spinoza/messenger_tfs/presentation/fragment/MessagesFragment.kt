@@ -7,16 +7,9 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.usecase.*
@@ -27,17 +20,19 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessag
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.elm.MessagesActor
+import com.spinoza.messenger_tfs.presentation.elm.provideMessagesStore
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesState
 import com.spinoza.messenger_tfs.presentation.ui.*
-import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
-import kotlinx.coroutines.launch
+import vivid.money.elmslie.android.base.ElmFragment
+import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
+import vivid.money.elmslie.android.storeholder.StoreHolder
 import java.util.*
 
-class MessagesFragment : Fragment() {
+class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesState>() {
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
@@ -46,23 +41,12 @@ class MessagesFragment : Fragment() {
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
 
-    private val store: MessagesFragmentViewModel by viewModels {
-        MessagesFragmentViewModelFactory(
-            App.router,
-            messagesFilter,
-            GetOwnUserIdUseCase(MessagesRepositoryImpl.getInstance()),
-            GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
-            SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
-            UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            GetMessageEventUseCase(MessagesRepositoryImpl.getInstance()),
-            GetDeleteMessageEventUseCase(MessagesRepositoryImpl.getInstance()),
-            GetReactionEventUseCase(MessagesRepositoryImpl.getInstance()),
-            SetOwnStatusActiveUseCase(MessagesRepositoryImpl.getInstance()),
-            SetMessagesFlagToReadUserCase(MessagesRepositoryImpl.getInstance()),
-        )
+    override val storeHolder: StoreHolder<MessagesEvent, MessagesEffect, MessagesState> by lazy {
+        LifecycleAwareStoreHolder(lifecycle) { provideMessagesStore(MessagesActor(lifecycle)) }
     }
+
+    override val initEvent: MessagesEvent
+        get() = MessagesEvent.Ui.Init
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -76,9 +60,9 @@ class MessagesFragment : Fragment() {
         parseParams()
         setupRecyclerView()
         setupStatusBar()
-        setupObservers()
         setupListeners()
         setupScreen()
+        store.accept(MessagesEvent.Ui.Load(messagesFilter))
     }
 
     private fun setupScreen() {
@@ -134,20 +118,6 @@ class MessagesFragment : Fragment() {
         })
     }
 
-    private fun setupObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                store.state.collect(::handleState)
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                store.effects.collect(::handleEffect)
-            }
-        }
-    }
-
     private fun setupListeners() {
         with(binding) {
             toolbar.setNavigationOnClickListener {
@@ -165,7 +135,7 @@ class MessagesFragment : Fragment() {
         }
     }
 
-    private fun handleState(state: MessagesState) {
+    override fun render(state: MessagesState) {
         if (state.isLoading) {
             if (messagesListIsEmpty()) binding.shimmerLarge.on()
         } else {
@@ -182,15 +152,17 @@ class MessagesFragment : Fragment() {
         binding.imageViewAction.setImageResource(state.iconActionResId)
     }
 
-    private fun handleEffect(effect: MessagesEffect) {
+    override fun handleEffect(effect: MessagesEffect) {
         when (effect) {
             is MessagesEffect.MessageSent -> binding.editTextMessage.text?.clear()
-            is MessagesEffect.Failure.Error -> showError(
+            is MessagesEffect.Failure.ErrorMessages -> showError(
                 String.format(getString(R.string.error_messages), effect.value)
             )
-            is MessagesEffect.Failure.Network -> {
+            is MessagesEffect.Failure.ErrorNetwork -> {
                 showError(String.format(getString(R.string.error_network), effect.value))
-                showCheckInternetConnectionDialog({ store.accept(MessagesEvent.Ui.Load) }) {
+                showCheckInternetConnectionDialog({
+                    store.accept(MessagesEvent.Ui.Load(messagesFilter))
+                }) {
                     goBack()
                 }
             }

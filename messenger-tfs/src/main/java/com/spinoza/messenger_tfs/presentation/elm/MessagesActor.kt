@@ -1,111 +1,117 @@
-package com.spinoza.messenger_tfs.presentation.viewmodel
+package com.spinoza.messenger_tfs.presentation.elm
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.github.terrakok.cicerone.Router
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.coroutineScope
+import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.utils.getErrorText
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesCommand
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesState
-import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import vivid.money.elmslie.coroutines.Actor
 import java.util.*
 
-class MessagesFragmentViewModel(
-    private val router: Router,
-    private val messagesFilter: MessagesFilter,
-    private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
-    private val getMessagesUseCase: GetMessagesUseCase,
-    private val sendMessageUseCase: SendMessageUseCase,
-    private val updateReactionUseCase: UpdateReactionUseCase,
-    registerEventQueueUseCase: RegisterEventQueueUseCase,
-    deleteEventQueueUseCase: DeleteEventQueueUseCase,
-    private val getMessageEventUseCase: GetMessageEventUseCase,
-    private val getDeleteMessageEventUseCase: GetDeleteMessageEventUseCase,
-    private val getReactionEventUseCase: GetReactionEventUseCase,
-    private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
-    private val setMessagesFlagToReadUserCase: SetMessagesFlagToReadUserCase,
-) : ViewModel() {
+class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent.Internal> {
 
-    val state: StateFlow<MessagesState>
-        get() = _state.asStateFlow()
-    val effects: SharedFlow<MessagesEffect>
-        get() = _effects.asSharedFlow()
+    private val lifecycleScope = lifecycle.coroutineScope
+    private val getOwnUserIdUseCase = GlobalDI.INSTANCE.getOwnUserIdUseCase
+    private val getMessagesUseCase = GlobalDI.INSTANCE.getMessagesUseCase
+    private val sendMessageUseCase = GlobalDI.INSTANCE.sendMessageUseCase
+    private val updateReactionUseCase = GlobalDI.INSTANCE.updateReactionUseCase
+    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
+    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
+    private val getMessageEventUseCase = GlobalDI.INSTANCE.getMessageEventUseCase
+    private val getDeleteMessageEventUseCase = GlobalDI.INSTANCE.getDeleteMessageEventUseCase
+    private val getReactionEventUseCase = GlobalDI.INSTANCE.getReactionEventUseCase
+    private val setOwnStatusActiveUseCase = GlobalDI.INSTANCE.setOwnStatusActiveUseCase
+    private val setMessagesFlagToReadUserCase = GlobalDI.INSTANCE.setMessagesFlagToReadUserCase
 
-    private val _state = MutableStateFlow(MessagesState())
-    private val _effects = MutableSharedFlow<MessagesEffect>()
+    private val actorFlow = MutableSharedFlow<MessagesEvent.Internal>()
+
     private val newMessageFieldState = MutableSharedFlow<String>()
-    private var messagesQueue =
-        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase, messagesFilter)
-    private var deleteMessagesQueue =
-        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase, messagesFilter)
-    private var reactionsQueue =
-        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase, messagesFilter)
+    private lateinit var messagesFilter: MessagesFilter
+    private lateinit var messagesQueue: EventsQueueProcessor
+    private lateinit var deleteMessagesQueue: EventsQueueProcessor
+    private lateinit var reactionsQueue: EventsQueueProcessor
     private var isMessageSent = false
-    private var isGoingBack = false
+
+    private val lifecycleObserver = object : DefaultLifecycleObserver {
+        override fun onDestroy(owner: LifecycleOwner) {
+            messagesQueue.deleteQueue()
+            deleteMessagesQueue.deleteQueue()
+            reactionsQueue.deleteQueue()
+        }
+    }
 
     init {
-        loadMessages()
+        lifecycle.addObserver(lifecycleObserver)
         subscribeToNewMessageFieldChanges()
         setOwnStatusToActive()
     }
 
-    fun accept(event: MessagesEvent) {
-        when (event) {
-            is MessagesEvent.Ui.SendMessage -> sendMessage(event.value.toString())
-            is MessagesEvent.Ui.UpdateReaction -> updateReaction(event.messageId, event.emoji)
-            is MessagesEvent.Ui.NewMessageText -> doOnTextChanged(event.value)
-            is MessagesEvent.Ui.SetMessagesRead -> setMessageReadFlags(event.messageIds)
-            is MessagesEvent.Ui.Load -> loadMessages()
-            is MessagesEvent.Ui.Exit -> goBack()
-            is MessagesEvent.Ui.ShowUserInfo ->
-                router.navigateTo(Screens.UserProfile(event.message.userId))
-            is MessagesEvent.Ui.AfterSubmitMessages -> state.value.messages?.let { messages ->
-                _state.value = (state.value.copy(
-                    messages = messages.copy(
-                        position = messages.position.copy(type = MessagePosition.Type.UNDEFINED)
-                    )
-                ))
+    override fun execute(command: MessagesCommand): Flow<MessagesEvent.Internal> {
+        when (command) {
+            is MessagesCommand.Load -> {
+                messagesFilter = command.filter
+                messagesQueue = EventsQueueProcessor(
+                    registerEventQueueUseCase,
+                    deleteEventQueueUseCase,
+                    messagesFilter
+                )
+                deleteMessagesQueue = EventsQueueProcessor(
+                    registerEventQueueUseCase,
+                    deleteEventQueueUseCase,
+                    messagesFilter
+                )
+                reactionsQueue = EventsQueueProcessor(
+                    registerEventQueueUseCase,
+                    deleteEventQueueUseCase,
+                    messagesFilter
+                )
+                loadMessages()
             }
+            is MessagesCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
+            is MessagesCommand.NewMessageText -> newMessageText(command.value)
+            is MessagesCommand.UpdateReaction -> updateReaction(command.messageId, command.emoji)
+            is MessagesCommand.SendMessage -> sendMessage(command.value.toString())
+
         }
+        return actorFlow.asSharedFlow()
     }
 
-    private fun goBack() {
-        if (!isGoingBack) {
-            isGoingBack = true
-            router.exit()
+    private fun newMessageText(text: CharSequence?) {
+        lifecycleScope.launch {
+            newMessageFieldState.emit(text.toString())
         }
     }
 
     private fun sendMessage(value: String) {
-        if (value.isNotEmpty()) viewModelScope.launch {
-            _state.emit(state.value.copy(isSendingMessage = true))
+        if (value.isNotEmpty()) lifecycleScope.launch {
             val result = sendMessageUseCase(value, messagesFilter)
-            _state.emit(state.value.copy(isSendingMessage = false))
             result.onSuccess {
                 isMessageSent = true
-                _effects.emit(MessagesEffect.MessageSent)
+                actorFlow.emit(MessagesEvent.Internal.MessageSent)
             }
         }
     }
 
     private fun updateReaction(messageId: Long, emoji: Emoji) {
-        viewModelScope.launch {
+        lifecycleScope.launch {
             updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
-                getOwnUserIdUseCase().onSuccess {
-                    handleMessagesResult(messagesResult, it)
+                getOwnUserIdUseCase().onSuccess { userId ->
+                    handleMessagesResult(messagesResult, userId)
                 }.onFailure {
                     handleErrors(it)
                 }
@@ -113,20 +119,11 @@ class MessagesFragmentViewModel(
         }
     }
 
-    private fun doOnTextChanged(text: CharSequence?) {
-        viewModelScope.launch {
-            newMessageFieldState.emit(text.toString())
-        }
-    }
-
     private fun loadMessages() {
-        viewModelScope.launch {
-            _state.emit(state.value.copy(isLoading = true))
-            val result = getMessagesUseCase(messagesFilter)
-            _state.emit(state.value.copy(isLoading = false))
-            result.onSuccess { messagesResult ->
-                getOwnUserIdUseCase().onSuccess {
-                    handleMessagesResult(messagesResult, it)
+        lifecycleScope.launch {
+            getMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
+                getOwnUserIdUseCase().onSuccess { userId ->
+                    handleMessagesResult(messagesResult, userId)
                     messagesQueue.registerQueue(EventType.MESSAGE, ::checkMessagesEvents)
                     deleteMessagesQueue.registerQueue(
                         EventType.DELETE_MESSAGE,
@@ -143,13 +140,13 @@ class MessagesFragmentViewModel(
     }
 
     private fun setMessageReadFlags(messageIds: List<Long>) {
-        viewModelScope.launch {
+        lifecycleScope.launch {
             setMessagesFlagToReadUserCase(messageIds)
         }
     }
 
     private fun setOwnStatusToActive() {
-        viewModelScope.launch {
+        lifecycleScope.launch {
             while (true) {
                 setOwnStatusActiveUseCase()
                 delay(DELAY_BEFORE_UPDATE_OWN_STATUS)
@@ -171,24 +168,25 @@ class MessagesFragmentViewModel(
             }
             .distinctUntilChanged()
             .onEach { resId ->
-                _state.emit(state.value.copy(iconActionResId = resId))
+                actorFlow.emit(MessagesEvent.Internal.IconActionResId(resId))
             }
             .flowOn(Dispatchers.Default)
-            .launchIn(viewModelScope)
+            .launchIn(lifecycleScope)
     }
 
     private suspend fun handleMessagesResult(result: MessagesResult, userId: Long) =
         withContext(Dispatchers.Default) {
-            _state.emit(
-                state.value.copy(
-                    messages =
-                    MessagesResultDelegate(result.messages.groupByDate(userId), result.position)
+            actorFlow.emit(
+                MessagesEvent.Internal.Messages(
+                    MessagesResultDelegate(
+                        result.messages.groupByDate(userId), result.position
+                    )
                 )
             )
         }
 
     private fun checkMessagesEvents() {
-        viewModelScope.launch {
+        lifecycleScope.launch {
             while (true) {
                 getMessageEventUseCase(messagesQueue.queue, messagesFilter).onSuccess { event ->
                     getOwnUserIdUseCase().onSuccess { userId ->
@@ -210,7 +208,7 @@ class MessagesFragmentViewModel(
     }
 
     private fun checkDeleteMessagesEvents() {
-        viewModelScope.launch {
+        lifecycleScope.launch {
             while (true) {
                 getDeleteMessageEventUseCase(deleteMessagesQueue.queue, messagesFilter)
                     .onSuccess { event ->
@@ -226,7 +224,7 @@ class MessagesFragmentViewModel(
     }
 
     private fun checkReactionsEvents() {
-        viewModelScope.launch {
+        lifecycleScope.launch {
             while (true) {
                 getReactionEventUseCase(reactionsQueue.queue, messagesFilter).onSuccess { event ->
                     getOwnUserIdUseCase().onSuccess { userId ->
@@ -241,12 +239,12 @@ class MessagesFragmentViewModel(
     }
 
     private suspend fun handleErrors(error: Throwable) {
-        val messagesEffect = if (error is RepositoryError) {
-            MessagesEffect.Failure.Error(error.value)
+        val messagesEvent = if (error is RepositoryError) {
+            MessagesEvent.Internal.ErrorMessages(error.value)
         } else {
-            MessagesEffect.Failure.Network(error.getErrorText())
+            MessagesEvent.Internal.ErrorNetwork(error.getErrorText())
         }
-        _effects.emit(messagesEffect)
+        actorFlow.emit(messagesEvent)
     }
 
     private fun List<Message>.groupByDate(userId: Long): List<DelegateAdapterItem> {
@@ -273,15 +271,6 @@ class MessagesFragmentViewModel(
         }
 
         return messageAdapterItemList
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        viewModelScope.launch {
-            messagesQueue.deleteQueue()
-            deleteMessagesQueue.deleteQueue()
-            reactionsQueue.deleteQueue()
-        }
     }
 
     private companion object {

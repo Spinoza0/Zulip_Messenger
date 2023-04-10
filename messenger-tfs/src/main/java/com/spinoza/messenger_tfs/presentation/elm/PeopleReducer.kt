@@ -13,7 +13,7 @@ class PeopleReducer :
         PeopleEvent.Ui::class, PeopleEvent.Internal::class
     ) {
 
-    val router = GlobalDI.INSTANCE.globalRouter
+    private val router = GlobalDI.INSTANCE.globalRouter
 
     override fun Result.internal(event: PeopleEvent.Internal) = when (event) {
         is PeopleEvent.Internal.UsersLoaded ->
@@ -34,10 +34,6 @@ class PeopleReducer :
     }
 
     override fun Result.ui(event: PeopleEvent.Ui) = when (event) {
-        is PeopleEvent.Ui.Init -> {
-            state { copy(isLoading = true) }
-            commands { +PeopleCommand.Load(state.filter) }
-        }
         is PeopleEvent.Ui.Load -> {
             state { copy(isLoading = true) }
             commands { +PeopleCommand.Load(state.filter) }

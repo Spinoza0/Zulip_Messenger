@@ -1,13 +1,16 @@
 package com.spinoza.messenger_tfs.presentation.model.messages
 
 import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 
 sealed class MessagesEvent {
 
     sealed class Ui : MessagesEvent() {
 
-        object Load : Ui()
+        object Init : Ui()
+
+        class Load(val filter: MessagesFilter) : Ui()
 
         object Exit : Ui()
 
@@ -22,5 +25,18 @@ sealed class MessagesEvent {
         class SetMessagesRead(val messageIds: List<Long>) : Ui()
 
         class ShowUserInfo(val message: MessageView) : Ui()
+    }
+
+    sealed class Internal : MessagesEvent() {
+
+        object MessageSent : Internal()
+
+        class IconActionResId(val value: Int) : Internal()
+
+        class Messages(val value: MessagesResultDelegate) : Internal()
+
+        class ErrorNetwork(val value: String) : Internal()
+
+        class ErrorMessages(val value: String) : Internal()
     }
 }

@@ -12,7 +12,7 @@ class ProfileReducer :
         ProfileEvent.Ui::class, ProfileEvent.Internal::class
     ) {
 
-    val router = GlobalDI.INSTANCE.globalRouter
+    private val router = GlobalDI.INSTANCE.globalRouter
 
     override fun Result.internal(event: ProfileEvent.Internal) = when (event) {
         is ProfileEvent.Internal.UserLoaded ->

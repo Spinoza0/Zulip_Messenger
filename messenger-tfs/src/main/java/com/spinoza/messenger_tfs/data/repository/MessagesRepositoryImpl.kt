@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
+import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.model.event.*
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
@@ -28,7 +28,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     private val messagesCache = MessagesCache()
     private var ownUser: UserDto = UserDto()
     private var isOwnUserLoaded = false
-    private val apiService = ZulipApiFactory.apiService
+    private val apiService = GlobalDI.INSTANCE.apiService
     private val jsonConverter = Json {
         ignoreUnknownKeys = true
         coerceInputValues = true

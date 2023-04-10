@@ -30,12 +30,10 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         get() = _binding ?: throw RuntimeException("FragmentPeopleBinding == null")
 
     override val initEvent: PeopleEvent
-        get() = PeopleEvent.Ui.Init
+        get() = PeopleEvent.Ui.Load
 
     override val storeHolder: StoreHolder<PeopleEvent, PeopleEffect, PeopleState> by lazy {
-        LifecycleAwareStoreHolder(lifecycle) {
-            providePeopleStore(PeopleActor(lifecycle))
-        }
+        LifecycleAwareStoreHolder(lifecycle) { providePeopleStore(PeopleActor(lifecycle)) }
     }
 
     override fun onCreateView(
