@@ -1,13 +1,26 @@
 package com.spinoza.messenger_tfs.presentation.model.profile
 
+import com.spinoza.messenger_tfs.domain.model.User
+
 sealed class ProfileEvent {
 
     sealed class Ui : ProfileEvent() {
 
-        object LoadCurrentUser : Ui()
+        object Init : Ui()
 
         object GoBack : Ui()
 
+        object LoadCurrentUser : Ui()
+
         class LoadUser(val userId: Long) : Ui()
+    }
+
+    sealed class Internal : ProfileEvent() {
+
+        class UserLoaded(val user: User) : Internal()
+
+        class ErrorNetwork(val value: String) : Internal()
+
+        class ErrorUserLoading(val value: String) : Internal()
     }
 }

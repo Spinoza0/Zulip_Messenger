@@ -36,7 +36,7 @@
     <string name="loading">Loading...</string>
 
     <!-- Errors -->
-    <string name="error_user_not_found">User not found. %s</string>
+    <string name="error_user_loading">User loading error. %s</string>
     <string name="error_messages">Error while working with messages. %s</string>
     <string name="error_channels">Error while working with channels. %s</string>
     <string name="error_loading_users">Error loading users list. %s</string>

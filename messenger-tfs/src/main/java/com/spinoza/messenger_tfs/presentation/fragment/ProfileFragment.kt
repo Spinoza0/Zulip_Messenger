@@ -5,11 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.spinoza.messenger_tfs.App
@@ -18,24 +14,29 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.usecase.*
+import com.spinoza.messenger_tfs.presentation.elm.profileStoreFactory
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
-import com.spinoza.messenger_tfs.presentation.viewmodel.ProfileFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.ProfileFragmentViewModelFactory
-import kotlinx.coroutines.launch
+import vivid.money.elmslie.android.base.ElmFragment
+import vivid.money.elmslie.core.store.Store
 
-open class ProfileFragment : Fragment() {
+open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>() {
 
     protected val binding: FragmentProfileBinding
         get() = _binding ?: throw RuntimeException("FragmentProfileBinding == null")
 
     private var _binding: FragmentProfileBinding? = null
 
-    protected val store: ProfileFragmentViewModel by viewModels {
-        ProfileFragmentViewModelFactory(
+    override val initEvent: ProfileEvent
+        get() = ProfileEvent.Ui.Init
+
+    override fun createStore(): Store<ProfileEvent, ProfileEffect, ProfileState>? {
+        return profileStoreFactory(
             App.router,
+            lifecycleScope,
             GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
             GetUserUseCase(MessagesRepositoryImpl.getInstance()),
             RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
@@ -52,21 +53,7 @@ open class ProfileFragment : Fragment() {
         return binding.root
     }
 
-    protected fun setupObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                store.state.collect(::handleState)
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                store.effects.collect(::handleEffect)
-            }
-        }
-    }
-
-    private fun handleState(state: ProfileState) {
+    override fun render(state: ProfileState) {
         if (state.isLoading) {
             binding.shimmer.on()
         } else {
@@ -77,12 +64,12 @@ open class ProfileFragment : Fragment() {
         }
     }
 
-    private fun handleEffect(effect: ProfileEffect) {
+    override fun handleEffect(effect: ProfileEffect) {
         when (effect) {
-            is ProfileEffect.Failure.UserNotFound -> showError(
-                String.format(getString(R.string.error_user_not_found), effect.value)
+            is ProfileEffect.Failure.ErrorUserLoading -> showError(
+                String.format(getString(R.string.error_user_loading), effect.value)
             )
-            is ProfileEffect.Failure.Network -> showError(
+            is ProfileEffect.Failure.ErrorNetwork -> showError(
                 String.format(getString(R.string.error_network), effect.value)
             )
         }

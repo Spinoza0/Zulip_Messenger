@@ -17,11 +17,8 @@ class UserProfileFragment : ProfileFragment() {
         super.onViewCreated(view, savedInstanceState)
         parseParams()
         setupListeners()
-        setupObservers()
         setupScreen()
-        if (savedInstanceState == null) {
-            store.accept(ProfileEvent.Ui.LoadUser(userId))
-        }
+        store.accept(ProfileEvent.Ui.LoadUser(userId))
     }
 
     private fun setupListeners() {

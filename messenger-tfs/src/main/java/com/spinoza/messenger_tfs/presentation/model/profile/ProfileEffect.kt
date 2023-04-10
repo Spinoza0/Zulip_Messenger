@@ -4,8 +4,8 @@ sealed class ProfileEffect {
 
     sealed class Failure : ProfileEffect() {
 
-        class Network(val value: String) : Failure()
+        class ErrorNetwork(val value: String) : Failure()
 
-        class UserNotFound(val value: String) : Failure()
+        class ErrorUserLoading(val value: String) : Failure()
     }
 }
