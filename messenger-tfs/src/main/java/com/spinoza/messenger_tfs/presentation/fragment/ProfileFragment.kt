@@ -8,13 +8,11 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.usecase.*
-import com.spinoza.messenger_tfs.presentation.elm.profileStoreFactory
+import com.spinoza.messenger_tfs.presentation.elm.ProfileActor
+import com.spinoza.messenger_tfs.presentation.elm.provideProfileStore
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
@@ -34,15 +32,7 @@ open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileSta
         get() = ProfileEvent.Ui.Init
 
     override fun createStore(): Store<ProfileEvent, ProfileEffect, ProfileState>? {
-        return profileStoreFactory(
-            App.router,
-            lifecycleScope,
-            GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
-            GetUserUseCase(MessagesRepositoryImpl.getInstance()),
-            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            GetPresenceEventsUseCase(MessagesRepositoryImpl.getInstance()),
-        )
+        return provideProfileStore(ProfileActor(lifecycleScope))
     }
 
     override fun onCreateView(

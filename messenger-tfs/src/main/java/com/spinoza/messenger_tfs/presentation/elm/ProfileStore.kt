@@ -1,12 +1,11 @@
 package com.spinoza.messenger_tfs.presentation.elm
 
 import androidx.lifecycle.LifecycleCoroutineScope
-import com.github.terrakok.cicerone.Router
+import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
@@ -19,16 +18,16 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 import vivid.money.elmslie.coroutines.Actor
-import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 class ProfileActor(
     private val lifecycleScope: LifecycleCoroutineScope,
-    private val getOwnUserUseCase: GetOwnUserUseCase,
-    private val getUserUseCase: GetUserUseCase,
-    registerEventQueueUseCase: RegisterEventQueueUseCase,
-    deleteEventQueueUseCase: DeleteEventQueueUseCase,
-    private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
 ) : Actor<ProfileCommand, ProfileEvent.Internal> {
+
+    private val getOwnUserUseCase = GlobalDI.INSTANCE.getOwnUserUseCase
+    private val getUserUseCase = GlobalDI.INSTANCE.getUserUseCase
+    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
+    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
+    private val getPresenceEventsUseCase = GlobalDI.INSTANCE.getPresenceEventsUseCase
 
     private var eventsQueue =
         EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase)
@@ -95,10 +94,12 @@ class ProfileActor(
     }
 }
 
-class ProfileReducer(private val router: Router) :
+class ProfileReducer :
     ScreenDslReducer<ProfileEvent, ProfileEvent.Ui, ProfileEvent.Internal, ProfileState, ProfileEffect, ProfileCommand>(
         ProfileEvent.Ui::class, ProfileEvent.Internal::class
     ) {
+
+    val router = GlobalDI.INSTANCE.globalRouter
 
     override fun Result.internal(event: ProfileEvent.Internal) = when (event) {
         is ProfileEvent.Internal.UserLoaded ->
@@ -126,27 +127,6 @@ class ProfileReducer(private val router: Router) :
         is ProfileEvent.Ui.Init -> {}
     }
 }
-
-fun profileStoreFactory(
-    router: Router,
-    coroutineScope: LifecycleCoroutineScope,
-    getOwnUserUseCase: GetOwnUserUseCase,
-    getUserUseCase: GetUserUseCase,
-    registerEventQueueUseCase: RegisterEventQueueUseCase,
-    deleteEventQueueUseCase: DeleteEventQueueUseCase,
-    getPresenceEventsUseCase: GetPresenceEventsUseCase,
-) = ElmStoreCompat(
-    initialState = ProfileState(),
-    reducer = ProfileReducer(router),
-    actor = ProfileActor(
-        coroutineScope,
-        getOwnUserUseCase,
-        getUserUseCase,
-        registerEventQueueUseCase,
-        deleteEventQueueUseCase,
-        getPresenceEventsUseCase
-    )
-)
 
 sealed class ProfileCommand {
 
