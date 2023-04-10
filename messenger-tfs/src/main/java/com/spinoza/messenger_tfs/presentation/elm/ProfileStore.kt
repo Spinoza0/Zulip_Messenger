@@ -1,6 +1,9 @@
 package com.spinoza.messenger_tfs.presentation.elm
 
-import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.coroutineScope
 import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
@@ -19,10 +22,9 @@ import kotlinx.coroutines.launch
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 import vivid.money.elmslie.coroutines.Actor
 
-class ProfileActor(
-    private val lifecycleScope: LifecycleCoroutineScope,
-) : Actor<ProfileCommand, ProfileEvent.Internal> {
+class ProfileActor(lifecycle: Lifecycle) : Actor<ProfileCommand, ProfileEvent.Internal> {
 
+    private val lifecycleScope = lifecycle.coroutineScope
     private val getOwnUserUseCase = GlobalDI.INSTANCE.getOwnUserUseCase
     private val getUserUseCase = GlobalDI.INSTANCE.getUserUseCase
     private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
@@ -33,6 +35,16 @@ class ProfileActor(
         EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase)
     private var user: User? = null
     private val actorFlow = MutableSharedFlow<ProfileEvent.Internal>()
+
+    private val lifecycleObserver = object : DefaultLifecycleObserver {
+        override fun onDestroy(owner: LifecycleOwner) {
+            eventsQueue.deleteQueue()
+        }
+    }
+
+    init {
+        lifecycle.addObserver(lifecycleObserver)
+    }
 
     override fun execute(command: ProfileCommand): Flow<ProfileEvent.Internal> {
         when (command) {

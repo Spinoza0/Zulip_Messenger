@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.spinoza.messenger_tfs.R
@@ -39,7 +38,7 @@ open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileSta
                     PARAM_STATE
                 ) ?: ProfileState()
             savedStateRegistry.unregisterSavedStateProvider(PARAM_STATE)
-            provideProfileStore(initialState, ProfileActor(lifecycleScope))
+            provideProfileStore(initialState, ProfileActor(lifecycle))
         }
     }
 

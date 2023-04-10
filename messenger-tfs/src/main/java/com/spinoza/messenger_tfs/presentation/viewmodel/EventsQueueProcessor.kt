@@ -19,15 +19,19 @@ class EventsQueueProcessor(
     var queue = EventsQueue()
 
     private val scope = CoroutineScope(Dispatchers.IO)
+    private var isQueueRegistered = false
 
     fun registerQueue(eventType: EventType, onSuccessCallback: () -> Unit) {
         scope.launch {
-            var isRegistrationSuccess = false
-            while (!isRegistrationSuccess) {
+            if (isQueueRegistered) {
+                deleteEventQueueUseCase(queue.queueId)
+                isQueueRegistered = false
+            }
+            while (!isQueueRegistered) {
                 registerEventQueueUseCase(listOf(eventType), messagesFilter).onSuccess {
                     queue = it
                     onSuccessCallback()
-                    isRegistrationSuccess = true
+                    isQueueRegistered = true
                 }
                 delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)
             }
