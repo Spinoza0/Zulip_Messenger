@@ -19,7 +19,8 @@ import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import vivid.money.elmslie.android.base.ElmFragment
-import vivid.money.elmslie.core.store.Store
+import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
+import vivid.money.elmslie.android.storeholder.StoreHolder
 
 open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>() {
 
@@ -31,8 +32,8 @@ open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileSta
     override val initEvent: ProfileEvent
         get() = ProfileEvent.Ui.Init
 
-    override fun createStore(): Store<ProfileEvent, ProfileEffect, ProfileState>? {
-        return provideProfileStore(ProfileActor(lifecycleScope))
+    override val storeHolder: StoreHolder<ProfileEvent, ProfileEffect, ProfileState> by lazy {
+        LifecycleAwareStoreHolder(lifecycle) { provideProfileStore(ProfileActor(lifecycleScope)) }
     }
 
     override fun onCreateView(
