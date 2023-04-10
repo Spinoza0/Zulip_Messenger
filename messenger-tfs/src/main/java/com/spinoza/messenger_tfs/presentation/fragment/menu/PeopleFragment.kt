@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
@@ -35,7 +34,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
 
     override val storeHolder: StoreHolder<PeopleEvent, PeopleEffect, PeopleState> by lazy {
         LifecycleAwareStoreHolder(lifecycle) {
-            providePeopleStore(PeopleActor(lifecycleScope))
+            providePeopleStore(PeopleActor(lifecycle))
         }
     }
 

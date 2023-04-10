@@ -21,6 +21,8 @@ sealed class PeopleEvent {
 
         class UsersLoaded(val value: List<User>) : Internal()
 
+        class PresencesLoaded(val value: List<User>) : Internal()
+
         class Filter(val value: String) : Internal()
 
         class ErrorNetwork(val value: String) : Internal()

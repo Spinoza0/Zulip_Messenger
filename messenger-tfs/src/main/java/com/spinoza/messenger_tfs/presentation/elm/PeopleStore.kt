@@ -1,6 +1,9 @@
 package com.spinoza.messenger_tfs.presentation.elm
 
-import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.coroutineScope
 import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
@@ -16,10 +19,9 @@ import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 import vivid.money.elmslie.coroutines.Actor
 
-class PeopleActor(
-    private val lifecycleScope: LifecycleCoroutineScope,
-) : Actor<PeopleCommand, PeopleEvent.Internal> {
+class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Internal> {
 
+    private val lifecycleScope = lifecycle.coroutineScope
     private val getUsersByFilterUseCase = GlobalDI.INSTANCE.getUsersByFilterUseCase
     private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
     private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
@@ -31,15 +33,21 @@ class PeopleActor(
     private val searchQueryState = MutableSharedFlow<String>()
     private var usersCache = mutableListOf<User>()
 
+    private val lifecycleObserver = object : DefaultLifecycleObserver {
+        override fun onDestroy(owner: LifecycleOwner) {
+            eventsQueue.deleteQueue()
+        }
+    }
+
+    init {
+        lifecycle.addObserver(lifecycleObserver)
+        subscribeToSearchQueryChanges()
+    }
+
     override fun execute(command: PeopleCommand): Flow<PeopleEvent.Internal> {
         when (command) {
-            is PeopleCommand.Init -> {
-                subscribeToSearchQueryChanges()
-                setFilter(command.filter)
-            }
-            is PeopleCommand.Load -> loadUsers(command.filter)
-            is PeopleCommand.SubscribePresence -> subscribePresence()
             is PeopleCommand.Filter -> setFilter(command.filter)
+            is PeopleCommand.Load -> loadUsers(command.filter)
         }
         return actorFlow.asSharedFlow()
     }
@@ -56,18 +64,19 @@ class PeopleActor(
             .distinctUntilChanged()
             .debounce(DURATION_MILLIS)
             .flatMapLatest { flow { emit(it) } }
-            .onEach { actorFlow.emit(PeopleEvent.Internal.Filter(it)) }
+            .onEach { loadUsers(it) }
             .flowOn(Dispatchers.Default)
             .launchIn(lifecycleScope)
     }
 
     private fun loadUsers(filter: String) {
         lifecycleScope.launch(Dispatchers.Default) {
+            actorFlow.emit(PeopleEvent.Internal.Filter(filter))
             getUsersByFilterUseCase(filter).onSuccess {
                 usersCache.clear()
                 usersCache.addAll(it)
                 actorFlow.emit(PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList()))
-                subscribePresence()
+                eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
             }.onFailure { error ->
                 val peopleEvent = if (error is RepositoryError) {
                     PeopleEvent.Internal.ErrorUserLoading(error.value)
@@ -76,12 +85,6 @@ class PeopleActor(
                 }
                 actorFlow.emit(peopleEvent)
             }
-        }
-    }
-
-    private fun subscribePresence() {
-        lifecycleScope.launch {
-            eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
         }
     }
 
@@ -101,7 +104,7 @@ class PeopleActor(
                     }
                     if (isListChanged) {
                         lastUpdatingTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
-                        actorFlow.emit(PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList()))
+                        actorFlow.emit(PeopleEvent.Internal.PresencesLoaded(usersCache.toSortedList()))
                     }
                 }.onFailure {
                     val currentTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
@@ -111,7 +114,7 @@ class PeopleActor(
                                 usersCache[index].copy(presence = User.Presence.OFFLINE)
                         }
                         lastUpdatingTimeStamp = currentTimeStamp
-                        actorFlow.emit(PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList()))
+                        actorFlow.emit(PeopleEvent.Internal.PresencesLoaded(usersCache.toSortedList()))
                     }
                 }
                 delay(DELAY_BEFORE_UPDATE_INFO)
@@ -145,6 +148,8 @@ class PeopleReducer :
     override fun Result.internal(event: PeopleEvent.Internal) = when (event) {
         is PeopleEvent.Internal.UsersLoaded ->
             state { copy(isLoading = false, users = event.value) }
+        is PeopleEvent.Internal.PresencesLoaded ->
+            state { copy(isLoading = false, users = event.value) }
         is PeopleEvent.Internal.ErrorUserLoading -> {
             state { copy(isLoading = false) }
             effects { +PeopleEffect.Failure.ErrorLoadingUsers(event.value) }
@@ -154,15 +159,14 @@ class PeopleReducer :
             effects { +PeopleEffect.Failure.ErrorNetwork(event.value) }
         }
         is PeopleEvent.Internal.Filter -> {
-            state { copy(isLoading = true, filter = event.value) }
-            commands { +PeopleCommand.Load(event.value) }
+            state { copy(filter = event.value) }
         }
     }
 
     override fun Result.ui(event: PeopleEvent.Ui) = when (event) {
         is PeopleEvent.Ui.Init -> {
             state { copy(isLoading = true) }
-            commands { +PeopleCommand.Init(state.filter) }
+            commands { +PeopleCommand.Load(state.filter) }
         }
         is PeopleEvent.Ui.Load -> {
             state { copy(isLoading = true) }
@@ -176,11 +180,7 @@ class PeopleReducer :
 
 sealed class PeopleCommand {
 
-    class Init(val filter: String) : PeopleCommand()
-
     class Load(val filter: String) : PeopleCommand()
 
     class Filter(val filter: String) : PeopleCommand()
-
-    class SubscribePresence(val user: User) : PeopleCommand()
 }
