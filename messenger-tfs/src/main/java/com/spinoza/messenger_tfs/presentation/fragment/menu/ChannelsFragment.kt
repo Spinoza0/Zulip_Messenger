@@ -27,7 +27,7 @@ class ChannelsFragment : Fragment() {
     private val binding: FragmentChannelsBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsBinding == null")
 
-    private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()
+    private val sharedStore: ChannelsFragmentSharedViewModel by activityViewModels()
     private val searchFilters = arrayListOf("", "")
 
     private lateinit var tabLayoutMediator: TabLayoutMediator
@@ -82,7 +82,7 @@ class ChannelsFragment : Fragment() {
 
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
-            sharedViewModel.reduce(
+            sharedStore.accept(
                 ChannelsEvent.Ui.Filter(SearchQuery(binding.viewPager.currentItem, text))
             )
         }
@@ -91,7 +91,7 @@ class ChannelsFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                sharedViewModel.state.collect(::handleState)
+                sharedStore.state.collect(::handleState)
             }
         }
     }

@@ -45,7 +45,7 @@ class PeopleFragmentViewModel(
         loadUsers(state.value.filter)
     }
 
-    fun reduce(event: PeopleEvent) {
+    fun accept(event: PeopleEvent) {
         when (event) {
             is PeopleEvent.Ui.Filter -> setFilter(event.value)
             is PeopleEvent.Ui.Load -> loadUsers(state.value.filter)

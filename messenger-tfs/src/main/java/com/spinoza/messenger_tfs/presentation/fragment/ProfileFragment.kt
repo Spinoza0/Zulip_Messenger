@@ -33,7 +33,7 @@ open class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
 
-    protected val viewModel: ProfileFragmentViewModel by viewModels {
+    protected val store: ProfileFragmentViewModel by viewModels {
         ProfileFragmentViewModelFactory(
             App.router,
             GetOwnUserUseCase(MessagesRepositoryImpl.getInstance()),
@@ -55,13 +55,13 @@ open class ProfileFragment : Fragment() {
     protected fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleState)
+                store.state.collect(::handleState)
             }
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.effects.collect(::handleEffect)
+                store.effects.collect(::handleEffect)
             }
         }
     }

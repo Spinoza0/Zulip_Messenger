@@ -61,7 +61,7 @@ class MessagesFragmentViewModel(
         setOwnStatusToActive()
     }
 
-    fun reduce(event: MessagesEvent) {
+    fun accept(event: MessagesEvent) {
         when (event) {
             is MessagesEvent.Ui.SendMessage -> sendMessage(event.value.toString())
             is MessagesEvent.Ui.UpdateReaction -> updateReaction(event.messageId, event.emoji)

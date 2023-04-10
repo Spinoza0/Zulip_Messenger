@@ -23,7 +23,7 @@ class ChannelsFragmentSharedViewModel : ViewModel() {
         subscribeToSearchQueryChanges()
     }
 
-    fun reduce(event: ChannelsEvent) {
+    fun accept(event: ChannelsEvent) {
         when (event) {
             is ChannelsEvent.Ui.Filter -> setFilter(event.value)
         }

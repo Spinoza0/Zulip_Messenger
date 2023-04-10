@@ -36,7 +36,7 @@ class ProfileFragmentViewModel(
     private var eventsQueue =
         EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase)
 
-    fun reduce(event: ProfileEvent) {
+    fun accept(event: ProfileEvent) {
         when (event) {
             is ProfileEvent.Ui.LoadCurrentUser -> loadUser(CURRENT_USER)
             is ProfileEvent.Ui.LoadUser -> loadUser(event.userId)

@@ -20,13 +20,13 @@ class UserProfileFragment : ProfileFragment() {
         setupObservers()
         setupScreen()
         if (savedInstanceState == null) {
-            viewModel.reduce(ProfileEvent.Ui.LoadUser(userId))
+            store.accept(ProfileEvent.Ui.LoadUser(userId))
         }
     }
 
     private fun setupListeners() {
         binding.toolbar.setNavigationOnClickListener {
-            viewModel.reduce(ProfileEvent.Ui.GoBack)
+            store.accept(ProfileEvent.Ui.GoBack)
         }
     }
 
@@ -39,14 +39,14 @@ class UserProfileFragment : ProfileFragment() {
     private fun parseParams() {
         userId = arguments?.getLong(EXTRA_USER_ID, UNDEFINED_USER_ID) ?: UNDEFINED_USER_ID
         if (userId == UNDEFINED_USER_ID) {
-            viewModel.reduce(ProfileEvent.Ui.GoBack)
+            store.accept(ProfileEvent.Ui.GoBack)
         }
     }
 
     private fun setupOnBackPressedCallback() {
         onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                viewModel.reduce(ProfileEvent.Ui.GoBack)
+                store.accept(ProfileEvent.Ui.GoBack)
             }
         }
         requireActivity().onBackPressedDispatcher.addCallback(this, onBackPressedCallback)

@@ -46,7 +46,7 @@ class MessagesFragment : Fragment() {
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
 
-    private val viewModel: MessagesFragmentViewModel by viewModels {
+    private val store: MessagesFragmentViewModel by viewModels {
         MessagesFragmentViewModelFactory(
             App.router,
             messagesFilter,
@@ -129,7 +129,7 @@ class MessagesFragment : Fragment() {
                         messageIds.add((item.content() as Message).id)
                     }
                 }
-                viewModel.reduce(MessagesEvent.Ui.SetMessagesRead(messageIds))
+                store.accept(MessagesEvent.Ui.SetMessagesRead(messageIds))
             }
         })
     }
@@ -137,13 +137,13 @@ class MessagesFragment : Fragment() {
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleState)
+                store.state.collect(::handleState)
             }
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.effects.collect(::handleEffect)
+                store.effects.collect(::handleEffect)
             }
         }
     }
@@ -154,10 +154,10 @@ class MessagesFragment : Fragment() {
                 goBack()
             }
             imageViewAction.setOnClickListener {
-                viewModel.reduce(MessagesEvent.Ui.SendMessage(editTextMessage.text))
+                store.accept(MessagesEvent.Ui.SendMessage(editTextMessage.text))
             }
             editTextMessage.doOnTextChanged { text, _, _, _ ->
-                viewModel.reduce(MessagesEvent.Ui.NewMessageText(text))
+                store.accept(MessagesEvent.Ui.NewMessageText(text))
             }
             imageViewArrow.setOnClickListener {
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
@@ -190,7 +190,7 @@ class MessagesFragment : Fragment() {
             )
             is MessagesEffect.Failure.Network -> {
                 showError(String.format(getString(R.string.error_network), effect.value))
-                showCheckInternetConnectionDialog({ viewModel.reduce(MessagesEvent.Ui.Load) }) {
+                showCheckInternetConnectionDialog({ store.accept(MessagesEvent.Ui.Load) }) {
                     goBack()
                 }
             }
@@ -210,7 +210,7 @@ class MessagesFragment : Fragment() {
                     MessagePosition.Type.UNDEFINED -> {}
                 }
                 showArrowDown()
-                viewModel.reduce(MessagesEvent.Ui.AfterSubmitMessages)
+                store.accept(MessagesEvent.Ui.AfterSubmitMessages)
             }
         }
     }
@@ -224,7 +224,7 @@ class MessagesFragment : Fragment() {
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
-        viewModel.reduce(MessagesEvent.Ui.ShowUserInfo(messageView))
+        store.accept(MessagesEvent.Ui.ShowUserInfo(messageView))
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
@@ -240,11 +240,11 @@ class MessagesFragment : Fragment() {
     }
 
     private fun updateReaction(messageId: Long, emoji: Emoji) {
-        viewModel.reduce(MessagesEvent.Ui.UpdateReaction(messageId, emoji))
+        store.accept(MessagesEvent.Ui.UpdateReaction(messageId, emoji))
     }
 
     private fun goBack() {
-        viewModel.reduce(MessagesEvent.Ui.Exit)
+        store.accept(MessagesEvent.Ui.Exit)
     }
 
     @Suppress("deprecation")

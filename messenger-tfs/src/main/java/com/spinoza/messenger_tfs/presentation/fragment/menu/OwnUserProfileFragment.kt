@@ -11,7 +11,7 @@ class OwnUserProfileFragment : ProfileFragment() {
         super.onViewCreated(view, savedInstanceState)
         setupObservers()
         if (savedInstanceState == null) {
-            viewModel.reduce(ProfileEvent.Ui.LoadCurrentUser)
+            store.accept(ProfileEvent.Ui.LoadCurrentUser)
         }
     }
 

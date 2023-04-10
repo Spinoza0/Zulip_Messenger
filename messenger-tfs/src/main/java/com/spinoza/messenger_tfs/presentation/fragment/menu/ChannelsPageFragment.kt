@@ -46,7 +46,7 @@ class ChannelsPageFragment : Fragment() {
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
 
-    private val viewModel: ChannelsPageFragmentViewModel by viewModels {
+    private val store: ChannelsPageFragmentViewModel by viewModels {
         ChannelsPageFragmentViewModelFactory(
             App.router,
             isAllChannels,
@@ -58,7 +58,7 @@ class ChannelsPageFragment : Fragment() {
             GetChannelEventsUseCase(MessagesRepositoryImpl.getInstance()),
         )
     }
-    private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()
+    private val sharedStore: ChannelsFragmentSharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -101,7 +101,7 @@ class ChannelsPageFragment : Fragment() {
                     if (lastVisibleItemPosition == lastItem ||
                         firstVisibleItemPosition == firstItem
                     ) {
-                        viewModel.reduce(ChannelsPageEvent.Ui.UpdateMessageCount)
+                        store.accept(ChannelsPageEvent.Ui.UpdateMessageCount)
                     }
                 }
             }
@@ -109,29 +109,29 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun onChannelClickListener(channelItem: ChannelItem) {
-        viewModel.reduce(ChannelsPageEvent.Ui.OnChannelClick(channelItem))
+        store.accept(ChannelsPageEvent.Ui.OnChannelClick(channelItem))
     }
 
     private fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        viewModel.reduce(ChannelsPageEvent.Ui.OnTopicClick(messagesFilter))
+        store.accept(ChannelsPageEvent.Ui.OnTopicClick(messagesFilter))
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleState)
+                store.state.collect(::handleState)
             }
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                sharedViewModel.state.collect(::handleSharedScreenState)
+                sharedStore.state.collect(::handleSharedScreenState)
             }
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.effects.collect(::handleEffect)
+                store.effects.collect(::handleEffect)
             }
         }
     }
@@ -153,7 +153,7 @@ class ChannelsPageFragment : Fragment() {
                 String.format(getString(R.string.error_channels), effect.value)
             )
             is ChannelsPageEffect.Failure.Network ->
-                showCheckInternetConnectionDialog({ viewModel.reduce(ChannelsPageEvent.Ui.Load) }) {
+                showCheckInternetConnectionDialog({ store.accept(ChannelsPageEvent.Ui.Load) }) {
                     closeApplication()
                 }
         }
@@ -163,7 +163,7 @@ class ChannelsPageFragment : Fragment() {
         state.filter?.let { filter ->
             val filterIsAllChannels = filter.screenPosition % 2 != 0
             if (filterIsAllChannels == isAllChannels) {
-                viewModel.reduce(
+                store.accept(
                     ChannelsPageEvent.Ui.Filter(ChannelsFilter(filter.text, !isAllChannels))
                 )
             }
@@ -176,7 +176,7 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.reduce(ChannelsPageEvent.Ui.UpdateMessageCount)
+        store.accept(ChannelsPageEvent.Ui.UpdateMessageCount)
     }
 
     override fun onPause() {

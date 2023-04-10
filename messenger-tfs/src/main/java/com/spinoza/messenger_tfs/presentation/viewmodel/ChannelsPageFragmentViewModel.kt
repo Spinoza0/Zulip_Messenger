@@ -53,7 +53,7 @@ class ChannelsPageFragmentViewModel(
         updateTopicsMessageCount()
     }
 
-    fun reduce(event: ChannelsPageEvent) {
+    fun accept(event: ChannelsPageEvent) {
         when (event) {
             is ChannelsPageEvent.Ui.Filter -> setChannelsFilter(event.filter)
             is ChannelsPageEvent.Ui.Load -> loadItems()

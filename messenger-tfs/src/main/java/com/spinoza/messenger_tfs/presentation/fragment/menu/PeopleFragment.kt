@@ -38,7 +38,7 @@ class PeopleFragment : Fragment() {
     private val binding: FragmentPeopleBinding
         get() = _binding ?: throw RuntimeException("FragmentPeopleBinding == null")
 
-    private val viewModel: PeopleFragmentViewModel by viewModels {
+    private val store: PeopleFragmentViewModel by viewModels {
         PeopleFragmentViewModelFactory(
             App.router,
             GetUsersByFilterUseCase(MessagesRepositoryImpl.getInstance()),
@@ -77,7 +77,7 @@ class PeopleFragment : Fragment() {
                     if (lastVisibleItemPosition == lastItem ||
                         firstVisibleItemPosition == firstItem
                     ) {
-                        viewModel.reduce(PeopleEvent.Ui.Load)
+                        store.accept(PeopleEvent.Ui.Load)
                     }
                 }
             }
@@ -86,20 +86,20 @@ class PeopleFragment : Fragment() {
 
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
-            viewModel.reduce(PeopleEvent.Ui.Filter(text.toString()))
+            store.accept(PeopleEvent.Ui.Filter(text.toString()))
         }
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleState)
+                store.state.collect(::handleState)
             }
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.effects.collect(::handleEffect)
+                store.effects.collect(::handleEffect)
             }
         }
     }
@@ -120,14 +120,14 @@ class PeopleFragment : Fragment() {
             is PeopleEffect.Failure.LoadingUsers ->
                 showError(String.format(getString(R.string.error_loading_users), effect.value))
             is PeopleEffect.Failure.Network ->
-                showCheckInternetConnectionDialog({ viewModel.reduce(PeopleEvent.Ui.Load) }) {
-                    viewModel.reduce(PeopleEvent.Ui.OpenMainMenu)
+                showCheckInternetConnectionDialog({ store.accept(PeopleEvent.Ui.Load) }) {
+                    store.accept(PeopleEvent.Ui.OpenMainMenu)
                 }
         }
     }
 
     private fun onUserClickListener(userId: Long) {
-        viewModel.reduce(PeopleEvent.Ui.ShowUserInfo(userId))
+        store.accept(PeopleEvent.Ui.ShowUserInfo(userId))
     }
 
     override fun onPause() {
