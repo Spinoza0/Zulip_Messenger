@@ -113,7 +113,7 @@ class ProfileReducer :
 
     override fun Result.internal(event: ProfileEvent.Internal) = when (event) {
         is ProfileEvent.Internal.UserLoaded ->
-            state { copy(isLoading = false, user = event.user) }
+            state { copy(isLoading = false, user = event.value) }
         is ProfileEvent.Internal.ErrorUserLoading -> {
             state { copy(isLoading = false) }
             effects { +ProfileEffect.Failure.ErrorUserLoading(event.value) }

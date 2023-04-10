@@ -5,22 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
-import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
-import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
+import com.spinoza.messenger_tfs.presentation.elm.PeopleActor
+import com.spinoza.messenger_tfs.presentation.elm.providePeopleStore
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleEffect
@@ -28,24 +20,23 @@ import com.spinoza.messenger_tfs.presentation.model.people.PeopleEvent
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
-import com.spinoza.messenger_tfs.presentation.viewmodel.PeopleFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.PeopleFragmentViewModelFactory
-import kotlinx.coroutines.launch
+import vivid.money.elmslie.android.base.ElmFragment
+import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
+import vivid.money.elmslie.android.storeholder.StoreHolder
 
-class PeopleFragment : Fragment() {
+class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
 
     private var _binding: FragmentPeopleBinding? = null
     private val binding: FragmentPeopleBinding
         get() = _binding ?: throw RuntimeException("FragmentPeopleBinding == null")
 
-    private val store: PeopleFragmentViewModel by viewModels {
-        PeopleFragmentViewModelFactory(
-            App.router,
-            GetUsersByFilterUseCase(MessagesRepositoryImpl.getInstance()),
-            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            GetPresenceEventsUseCase(MessagesRepositoryImpl.getInstance()),
-        )
+    override val initEvent: PeopleEvent
+        get() = PeopleEvent.Ui.Init
+
+    override val storeHolder: StoreHolder<PeopleEvent, PeopleEffect, PeopleState> by lazy {
+        LifecycleAwareStoreHolder(lifecycle) {
+            providePeopleStore(PeopleActor(lifecycleScope))
+        }
     }
 
     override fun onCreateView(
@@ -60,7 +51,6 @@ class PeopleFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupRecyclerView()
         setupListeners()
-        setupObservers()
     }
 
     private fun setupRecyclerView() {
@@ -90,21 +80,7 @@ class PeopleFragment : Fragment() {
         }
     }
 
-    private fun setupObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                store.state.collect(::handleState)
-            }
-        }
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                store.effects.collect(::handleEffect)
-            }
-        }
-    }
-
-    private fun handleState(state: PeopleState) {
+    override fun render(state: PeopleState) {
         if (state.isLoading) {
             binding.shimmerLarge.on()
         } else {
@@ -115,11 +91,11 @@ class PeopleFragment : Fragment() {
         }
     }
 
-    private fun handleEffect(effect: PeopleEffect) {
+    override fun handleEffect(effect: PeopleEffect) {
         when (effect) {
-            is PeopleEffect.Failure.LoadingUsers ->
+            is PeopleEffect.Failure.ErrorLoadingUsers ->
                 showError(String.format(getString(R.string.error_loading_users), effect.value))
-            is PeopleEffect.Failure.Network ->
+            is PeopleEffect.Failure.ErrorNetwork ->
                 showCheckInternetConnectionDialog({ store.accept(PeopleEvent.Ui.Load) }) {
                     store.accept(PeopleEvent.Ui.OpenMainMenu)
                 }

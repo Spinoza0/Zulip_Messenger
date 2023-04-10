@@ -38,6 +38,7 @@ open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileSta
                 savedStateRegistry.consumeRestoredStateForKey(PARAM_STATE)?.getParam<ProfileState>(
                     PARAM_STATE
                 ) ?: ProfileState()
+            savedStateRegistry.unregisterSavedStateProvider(PARAM_STATE)
             provideProfileStore(initialState, ProfileActor(lifecycleScope))
         }
     }

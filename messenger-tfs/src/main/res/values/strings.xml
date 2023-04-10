@@ -39,7 +39,7 @@
     <string name="error_user_loading">User loading error. %s</string>
     <string name="error_messages">Error while working with messages. %s</string>
     <string name="error_channels">Error while working with channels. %s</string>
-    <string name="error_loading_users">Error loading users list. %s</string>
+    <string name="error_loading_users">Error loading users. %s</string>
     <string name="error_network">Network error. %s</string>
     <string name="check_internet_connection">Check your internet connection</string>
     <string name="button_ok">OK</string>

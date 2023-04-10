@@ -4,8 +4,8 @@ sealed class PeopleEffect {
 
     sealed class Failure : PeopleEffect() {
 
-        class Network(val value: String) : Failure()
+        class ErrorNetwork(val value: String) : Failure()
 
-        class LoadingUsers(val value: String) : Failure()
+        class ErrorLoadingUsers(val value: String) : Failure()
     }
 }

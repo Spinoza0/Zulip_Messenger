@@ -19,7 +19,7 @@ sealed class ProfileEvent {
 
     sealed class Internal : ProfileEvent() {
 
-        class UserLoaded(val user: User) : Internal()
+        class UserLoaded(val value: User) : Internal()
 
         class ErrorNetwork(val value: String) : Internal()
 
