@@ -19,7 +19,10 @@ class MessagesReducer :
     override fun Result.internal(event: MessagesEvent.Internal) = when (event) {
         is MessagesEvent.Internal.Messages ->
             state { copy(isLoading = false, messages = event.value) }
-        is MessagesEvent.Internal.MessageSent -> state { copy(isSendingMessage = false) }
+        is MessagesEvent.Internal.MessageSent -> {
+            state { copy(isSendingMessage = false) }
+            effects { +MessagesEffect.MessageSent }
+        }
         is MessagesEvent.Internal.IconActionResId -> state { copy(iconActionResId = event.value) }
         is MessagesEvent.Internal.ErrorMessages -> {
             state { copy(isLoading = false, isSendingMessage = false) }
@@ -59,7 +62,7 @@ class MessagesReducer :
                 }
             }
         is MessagesEvent.Ui.SetMessagesRead ->
-            commands { MessagesCommand.SetMessagesRead(event.messageIds) }
+            commands { +MessagesCommand.SetMessagesRead(event.messageIds) }
         is MessagesEvent.Ui.Init -> {}
     }
 }

@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.*
@@ -21,7 +22,6 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessag
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.elm.MessagesActor
-import com.spinoza.messenger_tfs.presentation.elm.provideMessagesStore
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
@@ -42,7 +42,9 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     private lateinit var onBackPressedCallback: OnBackPressedCallback
 
     override val storeHolder: StoreHolder<MessagesEvent, MessagesEffect, MessagesState> by lazy {
-        LifecycleAwareStoreHolder(lifecycle) { provideMessagesStore(MessagesActor(lifecycle)) }
+        LifecycleAwareStoreHolder(lifecycle) {
+            GlobalDI.INSTANCE.provideMessagesStore(MessagesActor(lifecycle))
+        }
     }
 
     override val initEvent: MessagesEvent

@@ -12,24 +12,17 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.fragment.closeApplication
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelItem
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEffect
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEvent
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageState
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsState
+import com.spinoza.messenger_tfs.presentation.model.channels.*
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
@@ -47,16 +40,7 @@ class ChannelsPageFragment : Fragment() {
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
 
     private val store: ChannelsPageFragmentViewModel by viewModels {
-        ChannelsPageFragmentViewModelFactory(
-            App.router,
-            isAllChannels,
-            GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetChannelsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetTopicUseCase(MessagesRepositoryImpl.getInstance()),
-            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            GetChannelEventsUseCase(MessagesRepositoryImpl.getInstance()),
-        )
+        ChannelsPageFragmentViewModelFactory(isAllChannels)
     }
     private val sharedStore: ChannelsFragmentSharedViewModel by activityViewModels()
 

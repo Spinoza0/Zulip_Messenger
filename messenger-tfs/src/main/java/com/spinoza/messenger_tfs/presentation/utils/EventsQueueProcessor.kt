@@ -1,28 +1,26 @@
 package com.spinoza.messenger_tfs.presentation.utils
 
+import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
-import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
-import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class EventsQueueProcessor(
-    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    private val lifecycleScope: CoroutineScope,
     private val messagesFilter: MessagesFilter = MessagesFilter(),
 ) {
 
     var queue = EventsQueue()
+    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
+    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
 
-    private val scope = CoroutineScope(Dispatchers.IO)
     private var isQueueRegistered = false
 
     fun registerQueue(eventType: EventType, onSuccessCallback: () -> Unit) {
-        scope.launch {
+        lifecycleScope.launch {
             if (isQueueRegistered) {
                 deleteEventQueueUseCase(queue.queueId)
                 isQueueRegistered = false
@@ -39,7 +37,7 @@ class EventsQueueProcessor(
     }
 
     fun deleteQueue() {
-        scope.launch {
+        lifecycleScope.launch {
             deleteEventQueueUseCase(queue.queueId)
         }
     }

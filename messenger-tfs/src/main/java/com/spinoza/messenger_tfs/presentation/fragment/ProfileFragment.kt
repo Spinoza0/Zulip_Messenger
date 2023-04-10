@@ -7,11 +7,11 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.presentation.elm.ProfileActor
-import com.spinoza.messenger_tfs.presentation.elm.provideProfileStore
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
@@ -38,7 +38,7 @@ open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileSta
                     PARAM_STATE
                 ) ?: ProfileState()
             savedStateRegistry.unregisterSavedStateProvider(PARAM_STATE)
-            provideProfileStore(initialState, ProfileActor(lifecycle))
+            GlobalDI.INSTANCE.provideProfileStore(initialState, ProfileActor(lifecycle))
         }
     }
 

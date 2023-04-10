@@ -9,10 +9,10 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileCommand
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
 import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -25,12 +25,9 @@ class ProfileActor(lifecycle: Lifecycle) : Actor<ProfileCommand, ProfileEvent.In
     private val lifecycleScope = lifecycle.coroutineScope
     private val getOwnUserUseCase = GlobalDI.INSTANCE.getOwnUserUseCase
     private val getUserUseCase = GlobalDI.INSTANCE.getUserUseCase
-    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
-    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
     private val getPresenceEventsUseCase = GlobalDI.INSTANCE.getPresenceEventsUseCase
 
-    private var eventsQueue =
-        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase)
+    private var eventsQueue = EventsQueueProcessor(lifecycleScope)
     private var user: User? = null
     private val actorFlow = MutableSharedFlow<ProfileEvent.Internal>()
 

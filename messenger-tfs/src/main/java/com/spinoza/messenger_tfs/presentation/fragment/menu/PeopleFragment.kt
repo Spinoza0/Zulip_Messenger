@@ -7,11 +7,11 @@ import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
 import com.spinoza.messenger_tfs.presentation.elm.PeopleActor
-import com.spinoza.messenger_tfs.presentation.elm.providePeopleStore
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleEffect
@@ -33,7 +33,9 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         get() = PeopleEvent.Ui.Load
 
     override val storeHolder: StoreHolder<PeopleEvent, PeopleEffect, PeopleState> by lazy {
-        LifecycleAwareStoreHolder(lifecycle) { providePeopleStore(PeopleActor(lifecycle)) }
+        LifecycleAwareStoreHolder(lifecycle) {
+            GlobalDI.INSTANCE.providePeopleStore(PeopleActor(lifecycle))
+        }
     }
 
     override fun onCreateView(

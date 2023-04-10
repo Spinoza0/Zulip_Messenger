@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.terrakok.cicerone.Router
+import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -14,26 +14,17 @@ import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelItem
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEffect
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEvent
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-class ChannelsPageFragmentViewModel(
-    private val router: Router,
-    private val isAllChannels: Boolean,
-    private val getTopicsUseCase: GetTopicsUseCase,
-    private val getChannelsUseCase: GetChannelsUseCase,
-    private val getTopicUseCase: GetTopicUseCase,
-    registerEventQueueUseCase: RegisterEventQueueUseCase,
-    deleteEventQueueUseCase: DeleteEventQueueUseCase,
-    private val getChannelEventsUseCase: GetChannelEventsUseCase,
-) : ViewModel() {
+class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewModel() {
 
     val state: StateFlow<ChannelsPageState>
         get() = _state.asStateFlow()
@@ -41,13 +32,18 @@ class ChannelsPageFragmentViewModel(
     val effects: SharedFlow<ChannelsPageEffect>
         get() = _effects.asSharedFlow()
 
-    private var channelsFilter = ChannelsFilter(ChannelsFilter.NO_FILTER, !isAllChannels)
+    private val router = GlobalDI.INSTANCE.globalRouter
+    private val getTopicsUseCase = GlobalDI.INSTANCE.getTopicsUseCase
+    private val getChannelsUseCase = GlobalDI.INSTANCE.getChannelsUseCase
+    private val getTopicUseCase = GlobalDI.INSTANCE.getTopicUseCase
+    private val getChannelEventsUseCase = GlobalDI.INSTANCE.getChannelEventsUseCase
+    private var channelsFilter = GlobalDI.INSTANCE.getChannelsFilter(isAllChannels)
+
     private val _state = MutableStateFlow(ChannelsPageState())
     private val _effects = MutableSharedFlow<ChannelsPageEffect>()
-    private val cache = mutableListOf<DelegateAdapterItem>()
-    private var eventsQueue =
-        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase)
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
+    private val cache = mutableListOf<DelegateAdapterItem>()
+    private var eventsQueue = EventsQueueProcessor(viewModelScope)
 
     init {
         subscribeToChannelsQueryChanges()

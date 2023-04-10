@@ -30,8 +30,6 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
     private val getMessagesUseCase = GlobalDI.INSTANCE.getMessagesUseCase
     private val sendMessageUseCase = GlobalDI.INSTANCE.sendMessageUseCase
     private val updateReactionUseCase = GlobalDI.INSTANCE.updateReactionUseCase
-    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
-    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
     private val getMessageEventUseCase = GlobalDI.INSTANCE.getMessageEventUseCase
     private val getDeleteMessageEventUseCase = GlobalDI.INSTANCE.getDeleteMessageEventUseCase
     private val getReactionEventUseCase = GlobalDI.INSTANCE.getReactionEventUseCase
@@ -65,21 +63,9 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
         when (command) {
             is MessagesCommand.Load -> {
                 messagesFilter = command.filter
-                messagesQueue = EventsQueueProcessor(
-                    registerEventQueueUseCase,
-                    deleteEventQueueUseCase,
-                    messagesFilter
-                )
-                deleteMessagesQueue = EventsQueueProcessor(
-                    registerEventQueueUseCase,
-                    deleteEventQueueUseCase,
-                    messagesFilter
-                )
-                reactionsQueue = EventsQueueProcessor(
-                    registerEventQueueUseCase,
-                    deleteEventQueueUseCase,
-                    messagesFilter
-                )
+                messagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter)
+                deleteMessagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter)
+                reactionsQueue = EventsQueueProcessor(lifecycleScope, messagesFilter)
                 loadMessages()
             }
             is MessagesCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)

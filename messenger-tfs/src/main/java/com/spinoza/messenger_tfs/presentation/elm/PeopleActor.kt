@@ -8,10 +8,10 @@ import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleCommand
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleEvent
 import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.coroutines.Actor
@@ -20,12 +20,9 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
 
     private val lifecycleScope = lifecycle.coroutineScope
     private val getUsersByFilterUseCase = GlobalDI.INSTANCE.getUsersByFilterUseCase
-    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
-    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
     private val getPresenceEventsUseCase = GlobalDI.INSTANCE.getPresenceEventsUseCase
 
-    private var eventsQueue =
-        EventsQueueProcessor(registerEventQueueUseCase, deleteEventQueueUseCase)
+    private var eventsQueue = EventsQueueProcessor(lifecycleScope)
     private val actorFlow = MutableSharedFlow<PeopleEvent.Internal>()
     private val searchQueryState = MutableSharedFlow<String>()
     private var usersCache = mutableListOf<User>()
