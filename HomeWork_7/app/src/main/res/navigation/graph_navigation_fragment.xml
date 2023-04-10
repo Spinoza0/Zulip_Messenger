@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/graph_navigation_fragment"
+    app:startDestination="@id/profileFragment">
+
+    <fragment
+        android:id="@+id/streamsFragment"
+        android:name="org.kimp.tfs.hw7.presentation.streams.StreamsFragment"
+        android:label="StreamsFragment" />
+
+    <fragment
+        android:id="@+id/peopleFragment"
+        android:name="org.kimp.tfs.hw7.presentation.people.PeopleFragment"
+        android:label="PeopleFragment" />
+
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="org.kimp.tfs.hw7.presentation.profile.ProfileFragment"
+        android:label="ProfileFragment" />
+
+</navigation>

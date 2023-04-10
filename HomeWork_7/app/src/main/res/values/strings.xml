@@ -1,4 +1,8 @@
 <?xml version="1.1" encoding="UTF-8"?>
 <resources>
-    <string name="app_name">TFS HW1</string>
+    <string name="app_name">TFS HW7</string>
+
+    <string name="navigation_profile_fragment_title">Profile</string>
+    <string name="navigation_people_fragment_title">People</string>
+    <string name="navigation_streams_fragment_title">Streams</string>
 </resources>
