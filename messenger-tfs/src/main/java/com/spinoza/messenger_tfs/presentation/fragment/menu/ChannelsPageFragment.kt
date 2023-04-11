@@ -85,7 +85,7 @@ class ChannelsPageFragment : Fragment() {
                     if (lastVisibleItemPosition == lastItem ||
                         firstVisibleItemPosition == firstItem
                     ) {
-                        store.accept(ChannelsPageEvent.Ui.UpdateMessageCount)
+                        updateChannelsList()
                     }
                 }
             }
@@ -160,6 +160,13 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        updateChannelsList()
+    }
+
+    private fun updateChannelsList() {
+        if ((binding.recyclerViewChannels.adapter as MainDelegateAdapter).itemCount == NO_ITEMS) {
+            store.accept(ChannelsPageEvent.Ui.Load)
+        }
         store.accept(ChannelsPageEvent.Ui.UpdateMessageCount)
     }
 
@@ -178,6 +185,7 @@ class ChannelsPageFragment : Fragment() {
     companion object {
 
         private const val PARAM_IS_ALL_CHANNELS = "isAllChannels"
+        private const val NO_ITEMS = 0
 
         fun newInstance(isAllChannels: Boolean): ChannelsPageFragment {
             return ChannelsPageFragment().apply {
