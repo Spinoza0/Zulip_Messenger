@@ -8,6 +8,8 @@ plugins {
     alias(libs.plugins.safeargs)
     alias(libs.plugins.secrets)
     alias(libs.plugins.kotlin.serialization)
+
+    id(libs.plugins.kotlin.parcelize.get().pluginId)
 }
 
 android {

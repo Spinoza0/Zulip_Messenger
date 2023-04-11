@@ -9,12 +9,18 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import org.kimp.tfs.hw7.data.ZulipService
 import org.kimp.tfs.hw7.utils.ZulipAuthInterceptor
 import retrofit2.Retrofit
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+    @Provides
+    fun provideZulipService(
+        retrofit: Retrofit
+    ) = retrofit.create(ZulipService::class.java)
+
 
     @Provides
     @OptIn(ExperimentalSerializationApi::class)
