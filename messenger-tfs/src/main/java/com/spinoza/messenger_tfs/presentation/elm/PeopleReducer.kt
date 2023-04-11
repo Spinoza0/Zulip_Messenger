@@ -16,10 +16,12 @@ class PeopleReducer :
     private val router = GlobalDI.INSTANCE.globalRouter
 
     override fun Result.internal(event: PeopleEvent.Internal) = when (event) {
-        is PeopleEvent.Internal.UsersLoaded ->
+        is PeopleEvent.Internal.UsersLoaded -> {
             state { copy(isLoading = false, users = event.value) }
-        is PeopleEvent.Internal.PresencesLoaded ->
-            state { copy(isLoading = false, users = event.value) }
+            commands { +PeopleCommand.GetEvent }
+        }
+        is PeopleEvent.Internal.EmptyQueueEvent -> commands { +PeopleCommand.GetEvent }
+        is PeopleEvent.Internal.FilterChanged -> commands { +PeopleCommand.GetFilteredList }
         is PeopleEvent.Internal.ErrorUserLoading -> {
             state { copy(isLoading = false) }
             effects { +PeopleEffect.Failure.ErrorLoadingUsers(event.value) }
@@ -28,18 +30,17 @@ class PeopleReducer :
             state { copy(isLoading = false) }
             effects { +PeopleEffect.Failure.ErrorNetwork(event.value) }
         }
-        is PeopleEvent.Internal.Filter -> {
-            state { copy(filter = event.value) }
-        }
+        is PeopleEvent.Internal.Idle -> {}
     }
 
     override fun Result.ui(event: PeopleEvent.Ui) = when (event) {
         is PeopleEvent.Ui.Load -> {
             state { copy(isLoading = true) }
-            commands { +PeopleCommand.Load(state.filter) }
+            commands { +PeopleCommand.Load(event.filter) }
         }
         is PeopleEvent.Ui.OpenMainMenu -> router.navigateTo(Screens.MainMenu())
         is PeopleEvent.Ui.ShowUserInfo -> router.navigateTo(Screens.UserProfile(event.userId))
-        is PeopleEvent.Ui.Filter -> commands { +PeopleCommand.Filter(event.value) }
+        is PeopleEvent.Ui.Filter -> commands { +PeopleCommand.SetNewFilter(event.value) }
+        is PeopleEvent.Ui.Init -> {}
     }
 }

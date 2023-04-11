@@ -30,7 +30,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         get() = _binding ?: throw RuntimeException("FragmentPeopleBinding == null")
 
     override val initEvent: PeopleEvent
-        get() = PeopleEvent.Ui.Load
+        get() = PeopleEvent.Ui.Init
 
     override val storeHolder: StoreHolder<PeopleEvent, PeopleEffect, PeopleState> by lazy {
         LifecycleAwareStoreHolder(lifecycle) {
@@ -66,7 +66,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
                     if (lastVisibleItemPosition == lastItem ||
                         firstVisibleItemPosition == firstItem
                     ) {
-                        store.accept(PeopleEvent.Ui.Load)
+                        store.accept(PeopleEvent.Ui.Load(getFilter()))
                     }
                 }
             }
@@ -95,7 +95,9 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
             is PeopleEffect.Failure.ErrorLoadingUsers ->
                 showError(String.format(getString(R.string.error_loading_users), effect.value))
             is PeopleEffect.Failure.ErrorNetwork ->
-                showCheckInternetConnectionDialog({ store.accept(PeopleEvent.Ui.Load) }) {
+                showCheckInternetConnectionDialog(
+                    { store.accept(PeopleEvent.Ui.Load(getFilter())) }
+                ) {
                     store.accept(PeopleEvent.Ui.OpenMainMenu)
                 }
         }
@@ -103,6 +105,13 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
 
     private fun onUserClickListener(userId: Long) {
         store.accept(PeopleEvent.Ui.ShowUserInfo(userId))
+    }
+
+    private fun getFilter() = binding.editTextSearch.text.toString()
+
+    override fun onResume() {
+        super.onResume()
+        store.accept(PeopleEvent.Ui.Load(getFilter()))
     }
 
     override fun onPause() {

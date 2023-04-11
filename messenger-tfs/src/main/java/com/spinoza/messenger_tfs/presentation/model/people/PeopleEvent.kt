@@ -6,7 +6,9 @@ sealed class PeopleEvent {
 
     sealed class Ui : PeopleEvent() {
 
-        object Load : Ui()
+        object Init : Ui()
+
+        class Load(val filter: String) : Ui()
 
         class Filter(val value: String) : Ui()
 
@@ -17,11 +19,13 @@ sealed class PeopleEvent {
 
     sealed class Internal : PeopleEvent() {
 
+        object Idle : Internal()
+
+        object EmptyQueueEvent : Internal()
+
+        object FilterChanged : Internal()
+
         class UsersLoaded(val value: List<User>) : Internal()
-
-        class PresencesLoaded(val value: List<User>) : Internal()
-
-        class Filter(val value: String) : Internal()
 
         class ErrorNetwork(val value: String) : Internal()
 

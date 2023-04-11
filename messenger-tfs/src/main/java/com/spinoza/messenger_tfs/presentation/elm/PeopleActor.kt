@@ -23,9 +23,10 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
     private val getPresenceEventsUseCase = GlobalDI.INSTANCE.getPresenceEventsUseCase
 
     private var eventsQueue = EventsQueueProcessor(lifecycleScope)
-    private val actorFlow = MutableSharedFlow<PeopleEvent.Internal>()
     private val searchQueryState = MutableSharedFlow<String>()
     private var usersCache = mutableListOf<User>()
+    private var usersFilter = ""
+    private var isPresencesChanged = false
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
@@ -38,48 +39,61 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
         subscribeToSearchQueryChanges()
     }
 
-    override fun execute(command: PeopleCommand): Flow<PeopleEvent.Internal> {
-        when (command) {
-            is PeopleCommand.Filter -> setFilter(command.filter)
-            is PeopleCommand.Load -> loadUsers(command.filter)
+    override fun execute(command: PeopleCommand): Flow<PeopleEvent.Internal> = flow {
+        val event = when (command) {
+            is PeopleCommand.SetNewFilter -> setNewFilter(command.filter.trim())
+            is PeopleCommand.GetFilteredList ->
+                PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
+            is PeopleCommand.Load -> {
+                loadUsers()
+                setNewFilter(command.filter)
+            }
+            is PeopleCommand.GetEvent -> if (isPresencesChanged) {
+                isPresencesChanged = false
+                PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
+            } else {
+                delay(DELAY_BEFORE_UPDATE_INFO)
+                PeopleEvent.Internal.EmptyQueueEvent
+            }
         }
-        return actorFlow.asSharedFlow()
+        emit(event)
     }
 
-    private fun setFilter(filter: String) {
-        lifecycleScope.launch {
-            searchQueryState.emit(filter.trim())
+    private suspend fun setNewFilter(filter: String): PeopleEvent.Internal {
+        searchQueryState.emit(filter)
+        delay(DURATION_MILLIS_CHECK_FILTER)
+        if (filter == usersFilter) {
+            return PeopleEvent.Internal.FilterChanged
         }
+        return PeopleEvent.Internal.Idle
     }
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
     private fun subscribeToSearchQueryChanges() {
         searchQueryState
             .distinctUntilChanged()
-            .debounce(DURATION_MILLIS)
+            .debounce(DURATION_MILLIS_SET_FILTER)
             .flatMapLatest { flow { emit(it) } }
-            .onEach { loadUsers(it) }
+            .onEach { usersFilter = it }
             .flowOn(Dispatchers.Default)
             .launchIn(lifecycleScope)
     }
 
-    private fun loadUsers(filter: String) {
-        lifecycleScope.launch(Dispatchers.Default) {
-            actorFlow.emit(PeopleEvent.Internal.Filter(filter))
-            getUsersByFilterUseCase(filter).onSuccess {
-                usersCache.clear()
-                usersCache.addAll(it)
-                actorFlow.emit(PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList()))
-                eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
-            }.onFailure { error ->
-                val peopleEvent = if (error is RepositoryError) {
-                    PeopleEvent.Internal.ErrorUserLoading(error.value)
-                } else {
-                    PeopleEvent.Internal.ErrorNetwork(error.getErrorText())
-                }
-                actorFlow.emit(peopleEvent)
+    private suspend fun loadUsers(): PeopleEvent.Internal {
+        var event: PeopleEvent.Internal = PeopleEvent.Internal.Idle
+        getUsersByFilterUseCase(NO_FILTER).onSuccess {
+            usersCache.clear()
+            usersCache.addAll(it)
+            event = PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList())
+            eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
+        }.onFailure { error ->
+            event = if (error is RepositoryError) {
+                PeopleEvent.Internal.ErrorUserLoading(error.value)
+            } else {
+                PeopleEvent.Internal.ErrorNetwork(error.getErrorText())
             }
         }
+        return event
     }
 
     private fun handleOnSuccessQueueRegistration() {
@@ -87,18 +101,16 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
             var lastUpdatingTimeStamp = 0L
             while (true) {
                 getPresenceEventsUseCase(eventsQueue.queue).onSuccess { events ->
-                    var isListChanged = false
                     events.forEach { event ->
                         eventsQueue.queue = eventsQueue.queue.copy(lastEventId = event.id)
                         val index = usersCache.indexOfFirst { it.userId == event.userId }
                         if (index != INDEX_NOT_FOUND) {
                             usersCache[index] = usersCache[index].copy(presence = event.presence)
-                            isListChanged = true
+                            isPresencesChanged = true
                         }
                     }
-                    if (isListChanged) {
+                    if (isPresencesChanged) {
                         lastUpdatingTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
-                        actorFlow.emit(PeopleEvent.Internal.PresencesLoaded(usersCache.toSortedList()))
                     }
                 }.onFailure {
                     val currentTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
@@ -108,7 +120,7 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
                                 usersCache[index].copy(presence = User.Presence.OFFLINE)
                         }
                         lastUpdatingTimeStamp = currentTimeStamp
-                        actorFlow.emit(PeopleEvent.Internal.PresencesLoaded(usersCache.toSortedList()))
+                        isPresencesChanged = true
                     }
                 }
                 delay(DELAY_BEFORE_UPDATE_INFO)
@@ -116,15 +128,24 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
         }
     }
 
-    private fun List<User>.toSortedList(): List<User> {
-        val sortedList = ArrayList(this)
-        sortedList.sortWith(compareBy<User> { it.presence }.thenBy { it.fullName })
-        return sortedList
-    }
+    private suspend fun List<User>.toSortedList(filter: String = NO_FILTER): List<User> =
+        withContext(Dispatchers.Default) {
+            val sortedList = ArrayList(this@toSortedList)
+            sortedList.sortWith(compareBy<User> { it.presence }.thenBy { it.fullName })
+            if (filter.isBlank()) {
+                sortedList
+            } else {
+                sortedList.filter {
+                    it.fullName.contains(filter, true) || it.email.contains(filter, true)
+                }
+            }
+        }
 
     private companion object {
 
-        const val DURATION_MILLIS = 300L
+        const val NO_FILTER = ""
+        const val DURATION_MILLIS_SET_FILTER = 300L
+        const val DURATION_MILLIS_CHECK_FILTER = 400L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val INDEX_NOT_FOUND = -1
         const val MILLIS_IN_SECOND = 1000
