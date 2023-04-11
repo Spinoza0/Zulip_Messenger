@@ -157,6 +157,15 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     override fun handleEffect(effect: MessagesEffect) {
         when (effect) {
             is MessagesEffect.MessageSent -> binding.editTextMessage.text?.clear()
+            is MessagesEffect.ShowChooseReactionDialog -> {
+                val dialog = ChooseReactionDialogFragment.newInstance(
+                    effect.messageId,
+                )
+                dialog.listener = ::updateReaction
+                dialog.show(
+                    requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG
+                )
+            }
             is MessagesEffect.Failure.ErrorMessages -> showError(
                 String.format(getString(R.string.error_messages), effect.value)
             )
@@ -202,11 +211,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
-        val dialog = ChooseReactionDialogFragment.newInstance(
-            messageView.messageId,
-        )
-        dialog.listener = ::updateReaction
-        dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
+        store.accept(MessagesEvent.Ui.ShowChooseReactionDialog(messageView))
     }
 
     private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {

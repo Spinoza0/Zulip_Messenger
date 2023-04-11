@@ -25,6 +25,8 @@ sealed class MessagesEvent {
         class SetMessagesRead(val messageIds: List<Long>) : Ui()
 
         class ShowUserInfo(val message: MessageView) : Ui()
+
+        class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
     }
 
     sealed class Internal : MessagesEvent() {

@@ -63,6 +63,8 @@ class MessagesReducer :
             }
         is MessagesEvent.Ui.SetMessagesRead ->
             commands { +MessagesCommand.SetMessagesRead(event.messageIds) }
+        is MessagesEvent.Ui.ShowChooseReactionDialog ->
+            effects { +MessagesEffect.ShowChooseReactionDialog(event.messageView.messageId) }
         is MessagesEvent.Ui.Init -> {}
     }
 }
