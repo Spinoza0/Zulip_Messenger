@@ -99,23 +99,32 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
         return event
     }
 
-    private suspend fun updateReaction(messageId: Long, emoji: Emoji): MessagesEvent.Internal {
-        var event: MessagesEvent.Internal = MessagesEvent.Internal.Idle
-        updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
-            getOwnUserIdUseCase().onSuccess { userId ->
-                event = handleMessagesResult(messagesResult, userId)
-            }.onFailure {
-                event = handleErrors(it)
+    private suspend fun updateReaction(messageId: Long, emoji: Emoji): MessagesEvent.Internal =
+        withContext(Dispatchers.Default) {
+            var event: MessagesEvent.Internal = MessagesEvent.Internal.Idle
+            updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
+                getOwnUserIdUseCase().onSuccess { userId ->
+                    event = MessagesEvent.Internal.Messages(
+                        MessagesResultDelegate(
+                            messagesResult.messages.groupByDate(userId), messagesResult.position
+                        )
+                    )
+                }.onFailure {
+                    event = handleErrors(it)
+                }
             }
+            event
         }
-        return event
-    }
 
-    private suspend fun loadMessages(): MessagesEvent.Internal {
+    private suspend fun loadMessages(): MessagesEvent.Internal = withContext(Dispatchers.Default) {
         var event: MessagesEvent.Internal = MessagesEvent.Internal.Idle
         getMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
             getOwnUserIdUseCase().onSuccess { userId ->
-                event = handleMessagesResult(messagesResult, userId)
+                event = MessagesEvent.Internal.Messages(
+                    MessagesResultDelegate(
+                        messagesResult.messages.groupByDate(userId), messagesResult.position
+                    )
+                )
                 messagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter)
                 deleteMessagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter)
                 reactionsQueue = EventsQueueProcessor(lifecycleScope, messagesFilter)
@@ -128,7 +137,7 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
         }.onFailure {
             event = handleErrors(it)
         }
-        return event
+        event
     }
 
     private suspend fun setMessageReadFlags(messageIds: List<Long>): MessagesEvent.Internal {
@@ -166,52 +175,63 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
             .launchIn(lifecycleScope)
     }
 
-    private suspend fun handleMessagesResult(result: MessagesResult, userId: Long) =
+    private suspend fun getMessagesEvent(): MessagesEvent.Internal =
         withContext(Dispatchers.Default) {
-            MessagesEvent.Internal.Messages(
-                MessagesResultDelegate(result.messages.groupByDate(userId), result.position)
-            )
-        }
-
-    private suspend fun getMessagesEvent(): MessagesEvent.Internal {
-        getMessageEventUseCase(messagesQueue.queue, messagesFilter).onSuccess { event ->
-            getOwnUserIdUseCase().onSuccess { userId ->
-                messagesQueue.queue = messagesQueue.queue.copy(lastEventId = event.lastEventId)
-                val messagesResult = if (isMessageSent) {
-                    isMessageSent = false
-                    event.messagesResult.copy(
-                        position = MessagePosition(MessagePosition.Type.LAST_POSITION)
-                    )
-                } else {
-                    event.messagesResult
-                }
-                return handleMessagesResult(messagesResult, userId)
-            }
-        }
-        return MessagesEvent.Internal.EmptyMessagesQueueEvent
-    }
-
-    private suspend fun getDeleteMessagesEvent(): MessagesEvent.Internal {
-        getDeleteMessageEventUseCase(deleteMessagesQueue.queue, messagesFilter)
-            .onSuccess { event ->
+            getMessageEventUseCase(messagesQueue.queue, messagesFilter).onSuccess { event ->
                 getOwnUserIdUseCase().onSuccess { userId ->
-                    deleteMessagesQueue.queue =
-                        deleteMessagesQueue.queue.copy(lastEventId = event.lastEventId)
-                    return handleMessagesResult(event.messagesResult, userId)
+                    messagesQueue.queue = messagesQueue.queue.copy(lastEventId = event.lastEventId)
+                    val messagesResult = if (isMessageSent) {
+                        isMessageSent = false
+                        event.messagesResult.copy(
+                            position = MessagePosition(MessagePosition.Type.LAST_POSITION)
+                        )
+                    } else {
+                        event.messagesResult
+                    }
+                    return@withContext MessagesEvent.Internal.EventFromQueue(
+                        MessagesResultDelegate(
+                            messagesResult.messages.groupByDate(userId), messagesResult.position
+                        )
+                    )
                 }
             }
-        return MessagesEvent.Internal.EmptyDeleteMessagesQueueEvent
-    }
-
-    private suspend fun getReactionsEvent(): MessagesEvent.Internal {
-        getReactionEventUseCase(reactionsQueue.queue, messagesFilter).onSuccess { event ->
-            getOwnUserIdUseCase().onSuccess { userId ->
-                reactionsQueue.queue = reactionsQueue.queue.copy(lastEventId = event.lastEventId)
-                return handleMessagesResult(event.messagesResult, userId)
-            }
+            MessagesEvent.Internal.EmptyMessagesQueueEvent
         }
-        return MessagesEvent.Internal.EmptyReactionsQueueEvent
-    }
+
+    private suspend fun getDeleteMessagesEvent(): MessagesEvent.Internal =
+        withContext(Dispatchers.Default) {
+            getDeleteMessageEventUseCase(deleteMessagesQueue.queue, messagesFilter)
+                .onSuccess { event ->
+                    getOwnUserIdUseCase().onSuccess { userId ->
+                        deleteMessagesQueue.queue =
+                            deleteMessagesQueue.queue.copy(lastEventId = event.lastEventId)
+                        return@withContext MessagesEvent.Internal.EventFromQueue(
+                            MessagesResultDelegate(
+                                event.messagesResult.messages.groupByDate(userId),
+                                event.messagesResult.position
+                            )
+                        )
+                    }
+                }
+            MessagesEvent.Internal.EmptyDeleteMessagesQueueEvent
+        }
+
+    private suspend fun getReactionsEvent(): MessagesEvent.Internal =
+        withContext(Dispatchers.Default) {
+            getReactionEventUseCase(reactionsQueue.queue, messagesFilter).onSuccess { event ->
+                getOwnUserIdUseCase().onSuccess { userId ->
+                    reactionsQueue.queue =
+                        reactionsQueue.queue.copy(lastEventId = event.lastEventId)
+                    return@withContext MessagesEvent.Internal.EventFromQueue(
+                        MessagesResultDelegate(
+                            event.messagesResult.messages.groupByDate(userId),
+                            event.messagesResult.position
+                        )
+                    )
+                }
+            }
+            MessagesEvent.Internal.EmptyReactionsQueueEvent
+        }
 
     private fun handleErrors(error: Throwable): MessagesEvent.Internal {
         return if (error is RepositoryError) {

@@ -45,6 +45,8 @@ sealed class MessagesEvent {
 
         class Messages(val value: MessagesResultDelegate) : Internal()
 
+        class EventFromQueue(val value: MessagesResultDelegate) : Internal()
+
         class ErrorNetwork(val value: String) : Internal()
 
         class ErrorMessages(val value: String) : Internal()
