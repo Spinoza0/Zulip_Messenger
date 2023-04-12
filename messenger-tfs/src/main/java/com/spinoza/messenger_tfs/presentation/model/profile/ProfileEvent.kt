@@ -19,6 +19,10 @@ sealed class ProfileEvent {
 
     sealed class Internal : ProfileEvent() {
 
+        object Idle : Internal()
+
+        object EmptyQueueEvent : Internal()
+
         class UserLoaded(val value: User) : Internal()
 
         class ErrorNetwork(val value: String) : Internal()

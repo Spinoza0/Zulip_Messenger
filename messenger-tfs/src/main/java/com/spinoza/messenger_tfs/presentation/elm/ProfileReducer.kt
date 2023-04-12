@@ -15,8 +15,11 @@ class ProfileReducer :
     private val router = GlobalDI.INSTANCE.globalRouter
 
     override fun Result.internal(event: ProfileEvent.Internal) = when (event) {
-        is ProfileEvent.Internal.UserLoaded ->
+        is ProfileEvent.Internal.UserLoaded -> {
             state { copy(isLoading = false, user = event.value) }
+            commands { +ProfileCommand.GetEvent }
+        }
+        is ProfileEvent.Internal.EmptyQueueEvent -> commands { +ProfileCommand.GetEvent }
         is ProfileEvent.Internal.ErrorUserLoading -> {
             state { copy(isLoading = false) }
             effects { +ProfileEffect.Failure.ErrorUserLoading(event.value) }
@@ -25,6 +28,7 @@ class ProfileReducer :
             state { copy(isLoading = false) }
             effects { +ProfileEffect.Failure.ErrorNetwork(event.value) }
         }
+        is ProfileEvent.Internal.Idle -> {}
     }
 
     override fun Result.ui(event: ProfileEvent.Ui) = when (event) {

@@ -6,6 +6,8 @@ sealed class ProfileCommand {
 
     object LoadCurrentUser : ProfileCommand()
 
+    object GetEvent : ProfileCommand()
+
     class SubscribePresence(val user: User) : ProfileCommand()
 
     class LoadUser(val userId: Long) : ProfileCommand()

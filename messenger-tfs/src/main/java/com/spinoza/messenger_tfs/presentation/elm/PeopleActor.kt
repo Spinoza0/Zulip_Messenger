@@ -25,8 +25,8 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
     private var eventsQueue = EventsQueueProcessor(lifecycleScope)
     private val searchQueryState = MutableSharedFlow<String>()
     private var usersCache = mutableListOf<User>()
+    private var isUsersCacheChanged = false
     private var usersFilter = ""
-    private var isPresencesChanged = false
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
@@ -48,8 +48,8 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
                 loadUsers()
                 setNewFilter(command.filter)
             }
-            is PeopleCommand.GetEvent -> if (isPresencesChanged) {
-                isPresencesChanged = false
+            is PeopleCommand.GetEvent -> if (isUsersCacheChanged) {
+                isUsersCacheChanged = false
                 PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
             } else {
                 delay(DELAY_BEFORE_UPDATE_INFO)
@@ -106,10 +106,10 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
                         val index = usersCache.indexOfFirst { it.userId == event.userId }
                         if (index != INDEX_NOT_FOUND) {
                             usersCache[index] = usersCache[index].copy(presence = event.presence)
-                            isPresencesChanged = true
+                            isUsersCacheChanged = true
                         }
                     }
-                    if (isPresencesChanged) {
+                    if (isUsersCacheChanged) {
                         lastUpdatingTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
                     }
                 }.onFailure {
@@ -120,7 +120,7 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
                                 usersCache[index].copy(presence = User.Presence.OFFLINE)
                         }
                         lastUpdatingTimeStamp = currentTimeStamp
-                        isPresencesChanged = true
+                        isUsersCacheChanged = true
                     }
                 }
                 delay(DELAY_BEFORE_UPDATE_INFO)
