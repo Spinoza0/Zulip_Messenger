@@ -20,8 +20,17 @@ class PeopleReducer :
             state { copy(isLoading = false, users = event.value) }
             commands { +PeopleCommand.GetEvent }
         }
+        is PeopleEvent.Internal.EventFromQueue -> {
+            state { copy(users = event.value) }
+            commands { +PeopleCommand.GetEvent }
+        }
         is PeopleEvent.Internal.EmptyQueueEvent -> commands { +PeopleCommand.GetEvent }
-        is PeopleEvent.Internal.FilterChanged -> commands { +PeopleCommand.GetFilteredList }
+        is PeopleEvent.Internal.FilterChanged -> {
+            if (state.users?.isEmpty() != false) {
+                state { copy(isLoading = true) }
+            }
+            commands { +PeopleCommand.GetFilteredList }
+        }
         is PeopleEvent.Internal.ErrorUserLoading -> {
             state { copy(isLoading = false) }
             effects { +PeopleEffect.Failure.ErrorLoadingUsers(event.value) }
@@ -36,7 +45,7 @@ class PeopleReducer :
     override fun Result.ui(event: PeopleEvent.Ui) = when (event) {
         is PeopleEvent.Ui.Load -> {
             state { copy(isLoading = true) }
-            commands { +PeopleCommand.Load(event.filter) }
+            commands { +PeopleCommand.Load }
         }
         is PeopleEvent.Ui.OpenMainMenu -> router.navigateTo(Screens.MainMenu())
         is PeopleEvent.Ui.ShowUserInfo -> router.navigateTo(Screens.UserProfile(event.userId))

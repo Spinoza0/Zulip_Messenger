@@ -8,7 +8,7 @@ sealed class PeopleEvent {
 
         object Init : Ui()
 
-        class Load(val filter: String) : Ui()
+        object Load : Ui()
 
         class Filter(val value: String) : Ui()
 
@@ -26,6 +26,8 @@ sealed class PeopleEvent {
         object FilterChanged : Internal()
 
         class UsersLoaded(val value: List<User>) : Internal()
+
+        class EventFromQueue(val value: List<User>) : Internal()
 
         class ErrorNetwork(val value: String) : Internal()
 

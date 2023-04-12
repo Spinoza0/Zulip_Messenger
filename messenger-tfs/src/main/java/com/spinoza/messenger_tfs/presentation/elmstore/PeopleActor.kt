@@ -43,14 +43,15 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
         val event = when (command) {
             is PeopleCommand.SetNewFilter -> setNewFilter(command.filter.trim())
             is PeopleCommand.GetFilteredList ->
-                PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
-            is PeopleCommand.Load -> {
-                loadUsers()
-                setNewFilter(command.filter)
-            }
+                if (usersCache.isNotEmpty()) {
+                    PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
+                } else {
+                    loadUsers()
+                }
+            is PeopleCommand.Load -> loadUsers()
             is PeopleCommand.GetEvent -> if (isUsersCacheChanged) {
                 isUsersCacheChanged = false
-                PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
+                PeopleEvent.Internal.EventFromQueue(usersCache.toSortedList(usersFilter))
             } else {
                 delay(DELAY_BEFORE_UPDATE_INFO)
                 PeopleEvent.Internal.EmptyQueueEvent
@@ -84,7 +85,7 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
         getUsersByFilterUseCase(NO_FILTER).onSuccess {
             usersCache.clear()
             usersCache.addAll(it)
-            event = PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList())
+            event = PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
             eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
         }.onFailure { error ->
             event = if (error is RepositoryError) {

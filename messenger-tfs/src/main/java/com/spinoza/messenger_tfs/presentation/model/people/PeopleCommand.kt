@@ -6,7 +6,7 @@ sealed class PeopleCommand {
 
     object GetEvent : PeopleCommand()
 
-    class Load(val filter: String) : PeopleCommand()
+    object Load : PeopleCommand()
 
     class SetNewFilter(val filter: String) : PeopleCommand()
 }

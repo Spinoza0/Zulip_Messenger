@@ -66,7 +66,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
                     if (lastVisibleItemPosition == lastItem ||
                         firstVisibleItemPosition == firstItem
                     ) {
-                        store.accept(PeopleEvent.Ui.Load(getFilter()))
+                        store.accept(PeopleEvent.Ui.Load)
                     }
                 }
             }
@@ -98,7 +98,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
                 showError(String.format(getString(R.string.error_loading_users), effect.value))
             is PeopleEffect.Failure.ErrorNetwork ->
                 showCheckInternetConnectionDialog(
-                    { store.accept(PeopleEvent.Ui.Load(getFilter())) }
+                    { store.accept(PeopleEvent.Ui.Load) }
                 ) {
                     store.accept(PeopleEvent.Ui.OpenMainMenu)
                 }
@@ -109,11 +109,9 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         store.accept(PeopleEvent.Ui.ShowUserInfo(userId))
     }
 
-    private fun getFilter() = binding.editTextSearch.text.toString()
-
     override fun onResume() {
         super.onResume()
-        store.accept(PeopleEvent.Ui.Load(getFilter()))
+        store.accept(PeopleEvent.Ui.Filter(binding.editTextSearch.text.toString()))
     }
 
     override fun onPause() {
