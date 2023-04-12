@@ -328,12 +328,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         filter: MessagesFilter,
     ): Result<MessageEvent> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
-            if (!response.isSuccessful) {
-                throw RepositoryError(response.message())
-            }
+            val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
-                MessageEventsResponse.serializer(), response.getBodyOrThrow().string()
+                MessageEventsResponse.serializer(), responseBody
             )
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
@@ -355,12 +352,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         filter: MessagesFilter,
     ): Result<DeleteMessageEvent> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
-            if (!response.isSuccessful) {
-                throw RepositoryError(response.message())
-            }
+            val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
-                DeleteMessageEventsResponse.serializer(), response.getBodyOrThrow().string()
+                DeleteMessageEventsResponse.serializer(), responseBody
             )
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
@@ -382,12 +376,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         filter: MessagesFilter,
     ): Result<ReactionEvent> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
-            if (!response.isSuccessful) {
-                throw RepositoryError(response.message())
-            }
+            val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
-                ReactionEventsResponse.serializer(), response.getBodyOrThrow().string()
+                ReactionEventsResponse.serializer(), responseBody
             )
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
@@ -445,6 +436,30 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         User.Presence.OFFLINE
     }
 
+    private suspend fun getNonHeartBeatEventResponse(queue: EventsQueue): String {
+        var lastEventId = queue.lastEventId
+        var isHeartBeat = true
+        var responseBody: String
+        do {
+            val response = apiService.getEventsFromQueue(queue.queueId, lastEventId)
+            if (!response.isSuccessful) {
+                throw RepositoryError(response.message())
+            }
+            responseBody = response.getBodyOrThrow().string()
+            val heartBeatEventsResponse = jsonConverter.decodeFromString(
+                HeartBeatEventsResponse.serializer(), responseBody
+            )
+            if (heartBeatEventsResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(heartBeatEventsResponse.msg)
+            }
+            heartBeatEventsResponse.events.forEach { heartBeatEventDto ->
+                lastEventId = heartBeatEventDto.id
+                isHeartBeat = heartBeatEventDto.type == EVENT_HEARTBEAT
+            }
+        } while (isHeartBeat)
+        return responseBody
+    }
+
     private fun makeAllUsersAnswer(
         usersFilter: String,
         usersResponse: AllUsersResponse,
@@ -485,6 +500,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     companion object {
 
         private const val RESULT_SUCCESS = "success"
+        private const val EVENT_HEARTBEAT = "heartbeat"
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
 

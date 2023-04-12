@@ -187,8 +187,6 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
                 }
                 return handleMessagesResult(messagesResult, userId)
             }
-        }.onFailure {
-            delay(DELAY_MESSAGES_EVENTS)
         }
         return MessagesEvent.Internal.EmptyMessagesQueueEvent
     }
@@ -202,9 +200,6 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
                     return handleMessagesResult(event.messagesResult, userId)
                 }
             }
-            .onFailure {
-                delay(DELAY_DELETE_MESSAGES_EVENTS)
-            }
         return MessagesEvent.Internal.EmptyDeleteMessagesQueueEvent
     }
 
@@ -214,8 +209,6 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
                 reactionsQueue.queue = reactionsQueue.queue.copy(lastEventId = event.lastEventId)
                 return handleMessagesResult(event.messagesResult, userId)
             }
-        }.onFailure {
-            delay(DELAY_REACTIONS_EVENTS)
         }
         return MessagesEvent.Internal.EmptyReactionsQueueEvent
     }
@@ -255,8 +248,5 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_CHECK_ACTION_ICON = 300L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
-        const val DELAY_REACTIONS_EVENTS = 500L
-        const val DELAY_DELETE_MESSAGES_EVENTS = 1000L
-        const val DELAY_MESSAGES_EVENTS = 250L
     }
 }
