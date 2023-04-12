@@ -86,7 +86,9 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
             binding.shimmerLarge.off()
         }
         state.users?.let {
-            (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(it)
+            (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(it) {
+                binding.recyclerViewUsers.scrollToPosition(FIRST_ITEM)
+            }
         }
     }
 
@@ -125,6 +127,8 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
     }
 
     companion object {
+
+        private const val FIRST_ITEM = 0
 
         fun newInstance(): PeopleFragment {
             return PeopleFragment()
