@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.elm
+package com.spinoza.messenger_tfs.presentation.elmstore
 
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle

@@ -21,7 +21,7 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessag
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.elm.MessagesActor
+import com.spinoza.messenger_tfs.presentation.elmstore.MessagesActor
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate

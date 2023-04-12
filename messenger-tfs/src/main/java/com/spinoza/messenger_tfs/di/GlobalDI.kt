@@ -5,7 +5,7 @@ import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.usecase.*
-import com.spinoza.messenger_tfs.presentation.elm.*
+import com.spinoza.messenger_tfs.presentation.elmstore.*
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesState
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleState
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState

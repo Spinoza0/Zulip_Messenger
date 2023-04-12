@@ -11,7 +11,7 @@ import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.presentation.elm.ProfileActor
+import com.spinoza.messenger_tfs.presentation.elmstore.ProfileActor
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState

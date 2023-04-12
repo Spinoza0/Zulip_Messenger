@@ -11,7 +11,7 @@ import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
-import com.spinoza.messenger_tfs.presentation.elm.PeopleActor
+import com.spinoza.messenger_tfs.presentation.elmstore.PeopleActor
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleEffect

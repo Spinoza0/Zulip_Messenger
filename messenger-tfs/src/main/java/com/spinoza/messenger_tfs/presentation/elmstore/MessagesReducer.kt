@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.elm
+package com.spinoza.messenger_tfs.presentation.elmstore
 
 import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
