@@ -64,7 +64,6 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
         setupStatusBar()
         setupListeners()
         setupScreen()
-        store.accept(MessagesEvent.Ui.Load(messagesFilter))
     }
 
     private fun setupScreen() {
@@ -246,6 +245,13 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     override fun onStart() {
         super.onStart()
         setupOnBackPressedCallback()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (messagesListIsEmpty()) {
+            store.accept(MessagesEvent.Ui.Load(messagesFilter))
+        }
     }
 
     override fun onPause() {
