@@ -61,7 +61,7 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
 
     private suspend fun setNewFilter(filter: String): PeopleEvent.Internal {
         searchQueryState.emit(filter)
-        delay(DURATION_MILLIS_CHECK_FILTER)
+        delay(DELAY_BEFORE_CHECK_FILTER)
         if (filter == usersFilter) {
             return PeopleEvent.Internal.FilterChanged
         }
@@ -72,7 +72,7 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
     private fun subscribeToSearchQueryChanges() {
         searchQueryState
             .distinctUntilChanged()
-            .debounce(DURATION_MILLIS_SET_FILTER)
+            .debounce(DELAY_BEFORE_SET_FILTER)
             .flatMapLatest { flow { emit(it) } }
             .onEach { usersFilter = it }
             .flowOn(Dispatchers.Default)
@@ -144,8 +144,8 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
     private companion object {
 
         const val NO_FILTER = ""
-        const val DURATION_MILLIS_SET_FILTER = 300L
-        const val DURATION_MILLIS_CHECK_FILTER = 400L
+        const val DELAY_BEFORE_SET_FILTER = 300L
+        const val DELAY_BEFORE_CHECK_FILTER = 400L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val INDEX_NOT_FOUND = -1
         const val MILLIS_IN_SECOND = 1000

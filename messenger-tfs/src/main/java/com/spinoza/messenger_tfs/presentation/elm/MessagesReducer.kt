@@ -17,8 +17,20 @@ class MessagesReducer :
     private val router = GlobalDI.INSTANCE.globalRouter
 
     override fun Result.internal(event: MessagesEvent.Internal) = when (event) {
-        is MessagesEvent.Internal.Messages ->
+        is MessagesEvent.Internal.Messages -> {
             state { copy(isLoading = false, messages = event.value) }
+            commands {
+                +MessagesCommand.GetMessagesEvent
+                +MessagesCommand.GetDeleteMessagesEvent
+                +MessagesCommand.GetReactionsEvent
+            }
+        }
+        is MessagesEvent.Internal.EmptyMessagesQueueEvent ->
+            commands { +MessagesCommand.GetMessagesEvent }
+        is MessagesEvent.Internal.EmptyDeleteMessagesQueueEvent ->
+            commands { +MessagesCommand.GetDeleteMessagesEvent }
+        is MessagesEvent.Internal.EmptyReactionsQueueEvent ->
+            commands { +MessagesCommand.GetReactionsEvent }
         is MessagesEvent.Internal.MessageSent -> {
             state { copy(isSendingMessage = false) }
             effects { +MessagesEffect.MessageSent }
@@ -32,6 +44,7 @@ class MessagesReducer :
             state { copy(isLoading = false, isSendingMessage = false) }
             effects { +MessagesEffect.Failure.ErrorNetwork(event.value) }
         }
+        is MessagesEvent.Internal.Idle -> {}
     }
 
     override fun Result.ui(event: MessagesEvent.Ui) = when (event) {

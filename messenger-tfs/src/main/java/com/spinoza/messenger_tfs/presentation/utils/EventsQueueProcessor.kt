@@ -19,7 +19,7 @@ class EventsQueueProcessor(
 
     private var isQueueRegistered = false
 
-    fun registerQueue(eventType: EventType, onSuccessCallback: () -> Unit) {
+    fun registerQueue(eventType: EventType, onSuccessCallback: (() -> Unit)? = null) {
         lifecycleScope.launch {
             if (isQueueRegistered) {
                 deleteEventQueueUseCase(queue.queueId)
@@ -28,7 +28,7 @@ class EventsQueueProcessor(
             while (!isQueueRegistered) {
                 registerEventQueueUseCase(listOf(eventType), messagesFilter).onSuccess {
                     queue = it
-                    onSuccessCallback()
+                    onSuccessCallback?.invoke()
                     isQueueRegistered = true
                 }
                 delay(DELAY_BEFORE_REGISTRATION_ATTEMPT)

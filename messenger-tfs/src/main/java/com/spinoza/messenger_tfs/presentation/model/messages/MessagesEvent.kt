@@ -31,7 +31,15 @@ sealed class MessagesEvent {
 
     sealed class Internal : MessagesEvent() {
 
+        object Idle : Internal()
+
         object MessageSent : Internal()
+
+        object EmptyMessagesQueueEvent : Internal()
+
+        object EmptyDeleteMessagesQueueEvent : Internal()
+
+        object EmptyReactionsQueueEvent : Internal()
 
         class IconActionResId(val value: Int) : Internal()
 
