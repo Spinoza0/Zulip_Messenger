@@ -44,6 +44,7 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
     private val cache = mutableListOf<DelegateAdapterItem>()
     private var eventsQueue = EventsQueueProcessor(viewModelScope)
+    private var updateMessagesCountJob: Job? = null
 
     init {
         subscribeToChannelsQueryChanges()
@@ -91,7 +92,7 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
     }
 
     private fun updateMessagesCount() {
-        viewModelScope.launch(Dispatchers.Default) {
+        updateMessagesCountJob = viewModelScope.launch(Dispatchers.Default) {
             for (i in 0 until cache.size) {
                 if (cache[i] is TopicDelegateItem) {
                     val messagesFilter = cache[i].content() as MessagesFilter
@@ -116,6 +117,12 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
             if (oldChannelDelegateItem != null) {
                 val index = cache.indexOf(oldChannelDelegateItem)
                 val oldChannelItem = oldChannelDelegateItem.content() as ChannelItem
+                if (!oldChannelItem.isFolded) {
+                    updateMessagesCountJob?.let {
+                        it.cancel()
+                        updateMessagesCountJob = null
+                    }
+                }
                 val newChannelDelegateItem = ChannelDelegateItem(
                     oldChannelItem.copy(isFolded = !oldChannelItem.isFolded)
                 )
