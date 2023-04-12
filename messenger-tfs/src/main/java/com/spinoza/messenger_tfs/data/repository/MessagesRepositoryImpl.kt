@@ -290,13 +290,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         queue: EventsQueue,
     ): Result<List<PresenceEvent>> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
-            if (!response.isSuccessful) {
-                throw RepositoryError(response.message())
-            }
-            val eventResponseBody = response.getBodyOrThrow()
+            val eventResponseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
-                PresenceEventsResponse.serializer(), eventResponseBody.string()
+                PresenceEventsResponse.serializer(), eventResponseBody
             )
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
@@ -308,13 +304,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getChannelEvents(queue: EventsQueue): Result<List<ChannelEvent>> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
-                val response = apiService.getEventsFromQueue(queue.queueId, queue.lastEventId)
-                if (!response.isSuccessful) {
-                    throw RepositoryError(response.message())
-                }
-                val eventResponseBody = response.getBodyOrThrow()
+                val eventResponseBody = getNonHeartBeatEventResponse(queue)
                 val eventResponse = jsonConverter.decodeFromString(
-                    StreamEventsResponse.serializer(), eventResponseBody.string()
+                    StreamEventsResponse.serializer(), eventResponseBody
                 )
                 if (eventResponse.result != RESULT_SUCCESS) {
                     throw RepositoryError(eventResponse.msg)
