@@ -103,18 +103,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 showArrowDown()
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                val adapter = binding.recyclerViewMessages.adapter as MainDelegateAdapter
-                val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
-                val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
-                val messageIds = mutableListOf<Long>()
-                for (i in firstVisiblePosition..lastVisiblePosition) {
-                    val item = adapter.getItem(i)
-                    if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
-                        messageIds.add((item.content() as Message).id)
-                    }
-                }
-                store.accept(MessagesEvent.Ui.SetMessagesRead(messageIds))
+                store.accept(MessagesEvent.Ui.VisibleMessages(getVisibleMessagesIds()))
             }
         })
     }
@@ -148,7 +137,10 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
             binding.shimmerSending.off()
         }
         state.messages?.let {
-            submitMessages(it)
+            (binding.recyclerViewMessages.adapter as MainDelegateAdapter).submitList(it.messages) {
+                scrollAfterSubmitMessages(it)
+            }
+
         }
         binding.imageViewAction.setImageResource(state.iconActionResId)
     }
@@ -179,22 +171,39 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
         }
     }
 
-    private fun submitMessages(result: MessagesResultDelegate) {
-        with(binding) {
-            val messagesAdapter = recyclerViewMessages.adapter as MainDelegateAdapter
-            messagesAdapter.submitList(result.messages) {
-                when (result.position.type) {
-                    MessagePosition.Type.LAST_POSITION ->
-                        recyclerViewMessages.smoothScrollToLastPosition()
-                    MessagePosition.Type.EXACTLY -> {
-                        recyclerViewMessages.smoothScrollToMessage(result.position.messageId)
-                    }
-                    MessagePosition.Type.UNDEFINED -> {}
-                }
-                showArrowDown()
-                store.accept(MessagesEvent.Ui.AfterSubmitMessages)
-            }
+    private fun getVisibleMessagesIds(): List<Long> {
+        val layoutManager = binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+        val adapter = binding.recyclerViewMessages.adapter as MainDelegateAdapter
+        var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+        if (firstVisiblePosition == UNDEFINED_POSITION) {
+            firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
         }
+        var lastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
+        if (lastVisiblePosition == UNDEFINED_POSITION) {
+            lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+        }
+        val messageIds = mutableListOf<Long>()
+        if (firstVisiblePosition != UNDEFINED_POSITION && lastVisiblePosition != UNDEFINED_POSITION)
+            for (i in firstVisiblePosition..lastVisiblePosition) {
+                val item = adapter.getItem(i)
+                if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
+                    messageIds.add((item.content() as Message).id)
+                }
+            }
+        return messageIds
+    }
+
+    private fun scrollAfterSubmitMessages(result: MessagesResultDelegate) {
+        when (result.position.type) {
+            MessagePosition.Type.LAST_POSITION ->
+                binding.recyclerViewMessages.smoothScrollToLastPosition()
+            MessagePosition.Type.EXACTLY -> {
+                binding.recyclerViewMessages.smoothScrollToMessage(result.position.messageId)
+            }
+            MessagePosition.Type.UNDEFINED -> {}
+        }
+        showArrowDown()
+        store.accept(MessagesEvent.Ui.AfterSubmitMessages)
     }
 
     private fun showArrowDown() {
@@ -275,6 +284,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
 
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
         private const val NO_ITEMS = 0
+        private const val UNDEFINED_POSITION = -1
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {
