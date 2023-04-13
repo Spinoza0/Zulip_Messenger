@@ -5,9 +5,10 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 
-class GetMessageEventUseCase(private val repository: MessagesRepository) {
+class GetMessageEventUseCase(private val repository: MessagesRepository) :
+    EventUseCase<MessageEvent> {
 
-    suspend operator fun invoke(
+    override suspend operator fun invoke(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
     ): Result<MessageEvent> {

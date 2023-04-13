@@ -5,9 +5,10 @@ import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 
-class GetDeleteMessageEventUseCase(private val repository: MessagesRepository) {
+class GetDeleteMessageEventUseCase(private val repository: MessagesRepository) :
+    EventUseCase<DeleteMessageEvent> {
 
-    suspend operator fun invoke(
+    override suspend operator fun invoke(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
     ): Result<DeleteMessageEvent> {
