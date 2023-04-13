@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.fragment
 
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -40,6 +41,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
 
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
+    private var recyclerViewState: Parcelable? = null
 
     override val storeHolder: StoreHolder<MessagesEvent, MessagesEffect, MessagesState> by lazy {
         LifecycleAwareStoreHolder(lifecycle) {
@@ -59,7 +61,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        parseParams()
+        parseParams(savedInstanceState)
         setupRecyclerView()
         setupStatusBar()
         setupListeners()
@@ -194,7 +196,10 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     }
 
     private fun scrollAfterSubmitMessages(result: MessagesResultDelegate) {
-        when (result.position.type) {
+        if (recyclerViewState != null) {
+            binding.recyclerViewMessages.layoutManager?.onRestoreInstanceState(recyclerViewState)
+            recyclerViewState = null
+        } else when (result.position.type) {
             MessagePosition.Type.LAST_POSITION ->
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
             MessagePosition.Type.EXACTLY -> {
@@ -235,7 +240,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     }
 
     @Suppress("deprecation")
-    private fun parseParams() {
+    private fun parseParams(savedInstanceState: Bundle?) {
         val newMessagesFilter = arguments?.getParam<MessagesFilter>(PARAM_CHANNEL_FILTER)
         if (newMessagesFilter == null ||
             newMessagesFilter.channel.channelId == Channel.UNDEFINED_ID ||
@@ -244,6 +249,9 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
             goBack()
         } else {
             messagesFilter = newMessagesFilter
+        }
+        savedInstanceState?.let {
+            recyclerViewState = it.getParcelable(PARAM_RECYCLERVIEW_STATE)
         }
     }
 
@@ -274,6 +282,12 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
         onBackPressedCallback.remove()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        recyclerViewState = binding.recyclerViewMessages.layoutManager?.onSaveInstanceState()
+        outState.putParcelable(PARAM_RECYCLERVIEW_STATE, recyclerViewState)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         (binding.recyclerViewMessages.adapter as MainDelegateAdapter).clear()
@@ -283,6 +297,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     companion object {
 
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
+        private const val PARAM_RECYCLERVIEW_STATE = "recyclerViewState"
         private const val NO_ITEMS = 0
         private const val UNDEFINED_POSITION = -1
 
