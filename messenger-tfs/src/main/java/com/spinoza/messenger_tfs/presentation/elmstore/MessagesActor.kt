@@ -150,7 +150,7 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
 
     private fun setOwnStatusToActive() {
         lifecycleScope.launch {
-            while (true) {
+            while (isActive) {
                 setOwnStatusActiveUseCase()
                 delay(DELAY_BEFORE_UPDATE_OWN_STATUS)
             }

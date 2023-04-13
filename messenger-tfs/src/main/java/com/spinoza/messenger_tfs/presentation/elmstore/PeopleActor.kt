@@ -100,7 +100,7 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
     private fun handleOnSuccessQueueRegistration() {
         lifecycleScope.launch(Dispatchers.Default) {
             var lastUpdatingTimeStamp = 0L
-            while (true) {
+            while (isActive) {
                 getPresenceEventsUseCase(eventsQueue.queue).onSuccess { events ->
                     events.forEach { event ->
                         eventsQueue.queue = eventsQueue.queue.copy(lastEventId = event.id)

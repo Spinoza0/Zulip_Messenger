@@ -48,6 +48,7 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
 
     init {
         subscribeToChannelsQueryChanges()
+        updateTopicsMessageCount()
     }
 
     fun accept(event: ChannelsPageEvent) {
@@ -168,7 +169,7 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
 
     private fun handleOnSuccessQueueRegistration() {
         viewModelScope.launch(Dispatchers.Default) {
-            while (true) {
+            while (isActive) {
                 delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
                 getChannelEventsUseCase(eventsQueue.queue).onSuccess { events ->
                     val channels = mutableListOf<Channel>()
@@ -270,6 +271,15 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
         _effects.emit(channelsPageEffect)
     }
 
+    private fun updateTopicsMessageCount() {
+        viewModelScope.launch {
+            while (isActive) {
+                delay(DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO)
+                updateMessagesCount()
+            }
+        }
+    }
+
     private fun Channel.toDelegateItem(isAllChannels: Boolean): ChannelDelegateItem {
         return ChannelDelegateItem(ChannelItem(this, isAllChannels, true))
     }
@@ -290,5 +300,6 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
 
         const val UNDEFINED_INDEX = -1
         const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
+        const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
     }
 }
