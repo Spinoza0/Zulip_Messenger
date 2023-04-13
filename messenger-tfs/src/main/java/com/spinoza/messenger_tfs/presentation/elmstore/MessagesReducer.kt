@@ -25,7 +25,18 @@ class MessagesReducer :
                 +MessagesCommand.GetReactionsEvent
             }
         }
-        is MessagesEvent.Internal.EventFromQueue -> state { copy(messages = event.value) }
+        is MessagesEvent.Internal.MessagesEventFromQueue -> {
+            state { copy(messages = event.value) }
+            commands { +MessagesCommand.GetMessagesEvent }
+        }
+        is MessagesEvent.Internal.DeleteMessagesEventFromQueue -> {
+            state { copy(messages = event.value) }
+            commands { +MessagesCommand.GetDeleteMessagesEvent }
+        }
+        is MessagesEvent.Internal.ReactionsEventFromQueue -> {
+            state { copy(messages = event.value) }
+            commands { +MessagesCommand.GetReactionsEvent }
+        }
         is MessagesEvent.Internal.EmptyMessagesQueueEvent ->
             commands { +MessagesCommand.GetMessagesEvent }
         is MessagesEvent.Internal.EmptyDeleteMessagesQueueEvent ->

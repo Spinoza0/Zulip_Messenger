@@ -188,11 +188,8 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
                     } else {
                         event.messagesResult
                     }
-                    return@withContext MessagesEvent.Internal.EventFromQueue(
-                        MessagesResultDelegate(
-                            messagesResult.messages.groupByDate(userId), messagesResult.position
-                        )
-                    )
+                    return@withContext MessagesEvent.Internal.MessagesEventFromQueue(
+                        handleMessagesResult(messagesResult, userId))
                 }
             }
             MessagesEvent.Internal.EmptyMessagesQueueEvent
@@ -205,12 +202,8 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
                     getOwnUserIdUseCase().onSuccess { userId ->
                         deleteMessagesQueue.queue =
                             deleteMessagesQueue.queue.copy(lastEventId = event.lastEventId)
-                        return@withContext MessagesEvent.Internal.EventFromQueue(
-                            MessagesResultDelegate(
-                                event.messagesResult.messages.groupByDate(userId),
-                                event.messagesResult.position
-                            )
-                        )
+                        return@withContext MessagesEvent.Internal.DeleteMessagesEventFromQueue(
+                            handleMessagesResult(event.messagesResult, userId))
                     }
                 }
             MessagesEvent.Internal.EmptyDeleteMessagesQueueEvent
@@ -222,16 +215,22 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
                 getOwnUserIdUseCase().onSuccess { userId ->
                     reactionsQueue.queue =
                         reactionsQueue.queue.copy(lastEventId = event.lastEventId)
-                    return@withContext MessagesEvent.Internal.EventFromQueue(
-                        MessagesResultDelegate(
-                            event.messagesResult.messages.groupByDate(userId),
-                            event.messagesResult.position
-                        )
+                    return@withContext MessagesEvent.Internal.ReactionsEventFromQueue(
+                        handleMessagesResult(event.messagesResult, userId)
                     )
                 }
             }
             MessagesEvent.Internal.EmptyReactionsQueueEvent
         }
+
+    private fun handleMessagesResult(
+        messagesResult: MessagesResult,
+        userId: Long,
+    ): MessagesResultDelegate {
+        return MessagesResultDelegate(
+            messagesResult.messages.groupByDate(userId), messagesResult.position
+        )
+    }
 
     private fun handleErrors(error: Throwable): MessagesEvent.Internal {
         return if (error is RepositoryError) {
