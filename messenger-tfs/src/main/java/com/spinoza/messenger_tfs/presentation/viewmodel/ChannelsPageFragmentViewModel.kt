@@ -94,10 +94,13 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
     private fun updateMessagesCount() {
         updateMessagesCountJob = viewModelScope.launch(Dispatchers.Default) {
             for (i in 0 until cache.size) {
-                if (cache[i] is TopicDelegateItem) {
-                    val messagesFilter = cache[i].content() as MessagesFilter
-                    getTopicUseCase(messagesFilter).onSuccess {
-                        cache[i] = TopicDelegateItem(messagesFilter.copy(topic = it))
+                if (!isActive) return@launch
+                runCatching {
+                    if (cache[i] is TopicDelegateItem) {
+                        val messagesFilter = cache[i].content() as MessagesFilter
+                        getTopicUseCase(messagesFilter).onSuccess {
+                            cache[i] = TopicDelegateItem(messagesFilter.copy(topic = it))
+                        }
                     }
                 }
             }
