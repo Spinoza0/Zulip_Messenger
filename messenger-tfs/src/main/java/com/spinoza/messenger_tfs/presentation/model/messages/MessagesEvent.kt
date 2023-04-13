@@ -22,7 +22,7 @@ sealed class MessagesEvent {
 
         class NewMessageText(val value: CharSequence?) : Ui()
 
-        class SetMessagesRead(val messageIds: List<Long>) : Ui()
+        class VisibleMessages(val messageIds: List<Long>) : Ui()
 
         class ShowUserInfo(val message: MessageView) : Ui()
 
