@@ -17,7 +17,7 @@ sealed class MessagesCommand {
 
     class NewMessageText(val value: CharSequence?) : MessagesCommand()
 
-    class SendMessage(val value: CharSequence?) : MessagesCommand()
+    class SendMessage(val value: String) : MessagesCommand()
 
     class UpdateReaction(val messageId: Long, val emoji: Emoji) : MessagesCommand()
 }

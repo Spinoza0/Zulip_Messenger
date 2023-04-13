@@ -68,8 +68,15 @@ class MessagesReducer :
             commands { +MessagesCommand.Load(event.filter) }
         }
         is MessagesEvent.Ui.SendMessage -> {
-            state { copy(isSendingMessage = true) }
-            commands { +MessagesCommand.SendMessage(event.value) }
+            val text = event.value.toString().trim()
+            when (text.isNotEmpty()) {
+                true -> {
+                    state { copy(isSendingMessage = true) }
+                    commands { +MessagesCommand.SendMessage(text) }
+                }
+                // TODO: show field for creating new topic
+                false -> {}
+            }
         }
         is MessagesEvent.Ui.ShowUserInfo ->
             router.navigateTo(Screens.UserProfile(event.message.userId))

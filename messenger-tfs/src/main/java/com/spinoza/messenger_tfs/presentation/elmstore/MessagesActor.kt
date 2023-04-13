@@ -69,7 +69,7 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
             is MessagesCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
             is MessagesCommand.NewMessageText -> newMessageText(command.value)
             is MessagesCommand.UpdateReaction -> updateReaction(command.messageId, command.emoji)
-            is MessagesCommand.SendMessage -> sendMessage(command.value.toString())
+            is MessagesCommand.SendMessage -> sendMessage(command.value)
             is MessagesCommand.GetMessagesEvent -> getMessagesEvent()
             is MessagesCommand.GetDeleteMessagesEvent -> getDeleteMessagesEvent()
             is MessagesCommand.GetReactionsEvent -> getReactionsEvent()
