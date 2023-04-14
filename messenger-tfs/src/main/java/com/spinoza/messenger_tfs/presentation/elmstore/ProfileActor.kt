@@ -8,8 +8,8 @@ import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileCommand
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenCommand
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEvent
 import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
 import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +19,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import vivid.money.elmslie.coroutines.Actor
 
-class ProfileActor(lifecycle: Lifecycle) : Actor<ProfileCommand, ProfileEvent.Internal> {
+class ProfileActor(lifecycle: Lifecycle) : Actor<ProfileScreenCommand, ProfileScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
     private val getOwnUserUseCase = GlobalDI.INSTANCE.getOwnUserUseCase
@@ -40,39 +40,39 @@ class ProfileActor(lifecycle: Lifecycle) : Actor<ProfileCommand, ProfileEvent.In
         lifecycle.addObserver(lifecycleObserver)
     }
 
-    override fun execute(command: ProfileCommand): Flow<ProfileEvent.Internal> = flow {
+    override fun execute(command: ProfileScreenCommand): Flow<ProfileScreenEvent.Internal> = flow {
         val event = when (command) {
-            is ProfileCommand.LoadUser -> loadUser(command.userId)
-            is ProfileCommand.LoadCurrentUser -> loadUser(CURRENT_USER)
-            is ProfileCommand.GetEvent -> if (isUserChanged) {
+            is ProfileScreenCommand.LoadUser -> loadUser(command.userId)
+            is ProfileScreenCommand.LoadCurrentUser -> loadUser(CURRENT_USER)
+            is ProfileScreenCommand.GetEvent -> if (isUserChanged) {
                 isUserChanged = false
-                user?.let { ProfileEvent.Internal.UserLoaded(it) }
-                    ?: ProfileEvent.Internal.EmptyQueueEvent
+                user?.let { ProfileScreenEvent.Internal.UserLoaded(it) }
+                    ?: ProfileScreenEvent.Internal.EmptyQueueEvent
             } else {
                 delay(DELAY_BEFORE_UPDATE_INFO)
-                ProfileEvent.Internal.EmptyQueueEvent
+                ProfileScreenEvent.Internal.EmptyQueueEvent
             }
-            is ProfileCommand.SubscribePresence -> {
+            is ProfileScreenCommand.SubscribePresence -> {
                 changeUser(command.user)
                 subscribePresence()
-                ProfileEvent.Internal.EmptyQueueEvent
+                ProfileScreenEvent.Internal.EmptyQueueEvent
             }
         }
         emit(event)
     }
 
-    private suspend fun loadUser(userId: Long): ProfileEvent.Internal {
-        var event: ProfileEvent.Internal = ProfileEvent.Internal.Idle
+    private suspend fun loadUser(userId: Long): ProfileScreenEvent.Internal {
+        var event: ProfileScreenEvent.Internal = ProfileScreenEvent.Internal.Idle
         val result = if (userId == CURRENT_USER) getOwnUserUseCase() else getUserUseCase(userId)
         result.onSuccess {
             user = it
-            event = ProfileEvent.Internal.UserLoaded(it)
+            event = ProfileScreenEvent.Internal.UserLoaded(it)
             subscribePresence()
         }.onFailure {
             event = if (it is RepositoryError) {
-                ProfileEvent.Internal.ErrorUserLoading(it.value)
+                ProfileScreenEvent.Internal.ErrorUserLoading(it.value)
             } else {
-                ProfileEvent.Internal.ErrorNetwork(it.getErrorText())
+                ProfileScreenEvent.Internal.ErrorNetwork(it.getErrorText())
             }
         }
         return event

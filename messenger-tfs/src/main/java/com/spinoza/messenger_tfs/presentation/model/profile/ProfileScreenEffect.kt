@@ -1,8 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.model.profile
 
-sealed class ProfileEffect {
+sealed class ProfileScreenEffect {
 
-    sealed class Failure : ProfileEffect() {
+    sealed class Failure : ProfileScreenEffect() {
 
         class ErrorNetwork(val value: String) : Failure()
 

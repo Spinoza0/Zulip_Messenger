@@ -1,8 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.model.people
 
-sealed class PeopleEffect {
+sealed class PeopleScreenEffect {
 
-    sealed class Failure : PeopleEffect() {
+    sealed class Failure : PeopleScreenEffect() {
 
         class ErrorNetwork(val value: String) : Failure()
 

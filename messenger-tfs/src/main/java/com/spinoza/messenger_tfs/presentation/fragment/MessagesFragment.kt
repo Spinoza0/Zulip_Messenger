@@ -23,17 +23,18 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessag
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.elmstore.MessagesActor
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesState
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.ui.*
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
 import java.util.*
 
-class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesState>() {
+class MessagesFragment :
+    ElmFragment<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState>() {
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
@@ -43,14 +44,15 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     private lateinit var onBackPressedCallback: OnBackPressedCallback
     private var recyclerViewState: Parcelable? = null
 
-    override val storeHolder: StoreHolder<MessagesEvent, MessagesEffect, MessagesState> by lazy {
+    override val storeHolder:
+            StoreHolder<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState> by lazy {
         LifecycleAwareStoreHolder(lifecycle) {
             GlobalDI.INSTANCE.provideMessagesStore(MessagesActor(lifecycle))
         }
     }
 
-    override val initEvent: MessagesEvent
-        get() = MessagesEvent.Ui.Init
+    override val initEvent: MessagesScreenEvent
+        get() = MessagesScreenEvent.Ui.Init
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -105,7 +107,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 showArrowDown()
-                store.accept(MessagesEvent.Ui.VisibleMessages(getVisibleMessagesIds()))
+                store.accept(MessagesScreenEvent.Ui.VisibleMessages(getVisibleMessagesIds()))
             }
         })
     }
@@ -116,10 +118,10 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
                 goBack()
             }
             imageViewAction.setOnClickListener {
-                store.accept(MessagesEvent.Ui.SendMessage(editTextMessage.text))
+                store.accept(MessagesScreenEvent.Ui.SendMessage(editTextMessage.text))
             }
             editTextMessage.doOnTextChanged { text, _, _, _ ->
-                store.accept(MessagesEvent.Ui.NewMessageText(text))
+                store.accept(MessagesScreenEvent.Ui.NewMessageText(text))
             }
             imageViewArrow.setOnClickListener {
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
@@ -127,7 +129,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
         }
     }
 
-    override fun render(state: MessagesState) {
+    override fun render(state: MessagesScreenState) {
         if (state.isLoading) {
             if (messagesListIsEmpty()) binding.shimmerLarge.on()
         } else {
@@ -147,10 +149,10 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
         binding.imageViewAction.setImageResource(state.iconActionResId)
     }
 
-    override fun handleEffect(effect: MessagesEffect) {
+    override fun handleEffect(effect: MessagesScreenEffect) {
         when (effect) {
-            is MessagesEffect.MessageSent -> binding.editTextMessage.text?.clear()
-            is MessagesEffect.ShowChooseReactionDialog -> {
+            is MessagesScreenEffect.MessageSent -> binding.editTextMessage.text?.clear()
+            is MessagesScreenEffect.ShowChooseReactionDialog -> {
                 val dialog = ChooseReactionDialogFragment.newInstance(
                     effect.messageId,
                 )
@@ -159,13 +161,13 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
                     requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG
                 )
             }
-            is MessagesEffect.Failure.ErrorMessages -> showError(
+            is MessagesScreenEffect.Failure.ErrorMessages -> showError(
                 String.format(getString(R.string.error_messages), effect.value)
             )
-            is MessagesEffect.Failure.ErrorNetwork -> {
+            is MessagesScreenEffect.Failure.ErrorNetwork -> {
                 showError(String.format(getString(R.string.error_network), effect.value))
                 showCheckInternetConnectionDialog({
-                    store.accept(MessagesEvent.Ui.Load(messagesFilter))
+                    store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
                 }) {
                     goBack()
                 }
@@ -208,7 +210,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
             MessagePosition.Type.UNDEFINED -> {}
         }
         showArrowDown()
-        store.accept(MessagesEvent.Ui.AfterSubmitMessages)
+        store.accept(MessagesScreenEvent.Ui.AfterSubmitMessages)
     }
 
     private fun showArrowDown() {
@@ -220,11 +222,11 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
-        store.accept(MessagesEvent.Ui.ShowUserInfo(messageView))
+        store.accept(MessagesScreenEvent.Ui.ShowUserInfo(messageView))
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
-        store.accept(MessagesEvent.Ui.ShowChooseReactionDialog(messageView))
+        store.accept(MessagesScreenEvent.Ui.ShowChooseReactionDialog(messageView))
     }
 
     private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
@@ -232,11 +234,11 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     }
 
     private fun updateReaction(messageId: Long, emoji: Emoji) {
-        store.accept(MessagesEvent.Ui.UpdateReaction(messageId, emoji))
+        store.accept(MessagesScreenEvent.Ui.UpdateReaction(messageId, emoji))
     }
 
     private fun goBack() {
-        store.accept(MessagesEvent.Ui.Exit)
+        store.accept(MessagesScreenEvent.Ui.Exit)
     }
 
     @Suppress("deprecation")
@@ -267,7 +269,7 @@ class MessagesFragment : ElmFragment<MessagesEvent, MessagesEffect, MessagesStat
     override fun onResume() {
         super.onResume()
         if (messagesListIsEmpty()) {
-            store.accept(MessagesEvent.Ui.Load(messagesFilter))
+            store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
         }
     }
 

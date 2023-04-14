@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.model.messages
 
 import com.spinoza.messenger_tfs.R
 
-data class MessagesState(
+data class MessagesScreenState(
     val isLoading: Boolean = false,
     val isSendingMessage: Boolean = false,
     val messages: MessagesResultDelegate? = null,

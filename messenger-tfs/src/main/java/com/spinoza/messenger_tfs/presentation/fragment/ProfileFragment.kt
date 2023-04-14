@@ -12,31 +12,32 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.presentation.elmstore.ProfileActor
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
 
-open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileState>() {
+open class ProfileFragment :
+    ElmFragment<ProfileScreenEvent, ProfileScreenEffect, ProfileScreenState>() {
 
     protected val binding: FragmentProfileBinding
         get() = _binding ?: throw RuntimeException("FragmentProfileBinding == null")
 
     private var _binding: FragmentProfileBinding? = null
 
-    override val initEvent: ProfileEvent
-        get() = ProfileEvent.Ui.Init
+    override val initEvent: ProfileScreenEvent
+        get() = ProfileScreenEvent.Ui.Init
 
-    override val storeHolder: StoreHolder<ProfileEvent, ProfileEffect, ProfileState> by lazy {
+    override val storeHolder:
+            StoreHolder<ProfileScreenEvent, ProfileScreenEffect, ProfileScreenState> by lazy {
         LifecycleAwareStoreHolder(lifecycle) {
-            val initialState =
-                savedStateRegistry.consumeRestoredStateForKey(PARAM_STATE)?.getParam<ProfileState>(
-                    PARAM_STATE
-                ) ?: ProfileState()
+            val initialState = savedStateRegistry.consumeRestoredStateForKey(PARAM_STATE)
+                ?.getParam<ProfileScreenState>(PARAM_STATE)
+                ?: ProfileScreenState()
             savedStateRegistry.unregisterSavedStateProvider(PARAM_STATE)
             GlobalDI.INSTANCE.provideProfileStore(initialState, ProfileActor(lifecycle))
         }
@@ -50,7 +51,7 @@ open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileSta
         return binding.root
     }
 
-    override fun render(state: ProfileState) {
+    override fun render(state: ProfileScreenState) {
         if (state.isLoading) {
             binding.shimmer.on()
         } else {
@@ -61,12 +62,12 @@ open class ProfileFragment : ElmFragment<ProfileEvent, ProfileEffect, ProfileSta
         }
     }
 
-    override fun handleEffect(effect: ProfileEffect) {
+    override fun handleEffect(effect: ProfileScreenEffect) {
         when (effect) {
-            is ProfileEffect.Failure.ErrorUserLoading -> showError(
+            is ProfileScreenEffect.Failure.ErrorUserLoading -> showError(
                 String.format(getString(R.string.error_user_loading), effect.value)
             )
-            is ProfileEffect.Failure.ErrorNetwork -> showError(
+            is ProfileScreenEffect.Failure.ErrorNetwork -> showError(
                 String.format(getString(R.string.error_network), effect.value)
             )
         }

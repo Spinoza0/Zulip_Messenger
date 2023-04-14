@@ -5,7 +5,7 @@ import com.spinoza.messenger_tfs.domain.model.User
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class ProfileState(
+data class ProfileScreenState(
     val isLoading: Boolean = false,
     val user: User? = null,
 ) : Parcelable

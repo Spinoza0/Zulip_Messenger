@@ -2,8 +2,8 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsEvent
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsState
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.model.channels.SearchQuery
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -13,19 +13,19 @@ import kotlinx.coroutines.launch
 
 class ChannelsFragmentSharedViewModel : ViewModel() {
 
-    val state: StateFlow<ChannelsState>
+    val state: StateFlow<ChannelsScreenState>
         get() = _state.asStateFlow()
 
-    private val _state = MutableStateFlow(ChannelsState())
+    private val _state = MutableStateFlow(ChannelsScreenState())
     private val searchQueryState = MutableSharedFlow<SearchQuery>()
 
     init {
         subscribeToSearchQueryChanges()
     }
 
-    fun accept(event: ChannelsEvent) {
+    fun accept(event: ChannelsScreenEvent) {
         when (event) {
-            is ChannelsEvent.Ui.Filter -> setFilter(event.value)
+            is ChannelsScreenEvent.Ui.Filter -> setFilter(event.value)
         }
     }
 

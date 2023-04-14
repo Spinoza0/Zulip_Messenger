@@ -15,9 +15,9 @@ import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateIt
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.model.channels.ChannelItem
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEffect
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageEvent
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageState
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
 import com.spinoza.messenger_tfs.presentation.utils.getErrorText
@@ -26,10 +26,10 @@ import kotlinx.coroutines.flow.*
 
 class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewModel() {
 
-    val state: StateFlow<ChannelsPageState>
+    val state: StateFlow<ChannelsPageScreenState>
         get() = _state.asStateFlow()
 
-    val effects: SharedFlow<ChannelsPageEffect>
+    val effects: SharedFlow<ChannelsPageScreenEffect>
         get() = _effects.asSharedFlow()
 
     private val router = GlobalDI.INSTANCE.globalRouter
@@ -39,8 +39,8 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
     private val getChannelEventsUseCase = GlobalDI.INSTANCE.getChannelEventsUseCase
     private var channelsFilter = GlobalDI.INSTANCE.getChannelsFilter(isAllChannels)
 
-    private val _state = MutableStateFlow(ChannelsPageState())
-    private val _effects = MutableSharedFlow<ChannelsPageEffect>()
+    private val _state = MutableStateFlow(ChannelsPageScreenState())
+    private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
     private val cache = mutableListOf<DelegateAdapterItem>()
     private var eventsQueue = EventsQueueProcessor(viewModelScope)
@@ -51,13 +51,13 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
         updateTopicsMessageCount()
     }
 
-    fun accept(event: ChannelsPageEvent) {
+    fun accept(event: ChannelsPageScreenEvent) {
         when (event) {
-            is ChannelsPageEvent.Ui.Filter -> setChannelsFilter(event.filter)
-            is ChannelsPageEvent.Ui.Load -> loadItems()
-            is ChannelsPageEvent.Ui.UpdateMessageCount -> updateMessagesCount()
-            is ChannelsPageEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
-            is ChannelsPageEvent.Ui.OnTopicClick ->
+            is ChannelsPageScreenEvent.Ui.Filter -> setChannelsFilter(event.filter)
+            is ChannelsPageScreenEvent.Ui.Load -> loadItems()
+            is ChannelsPageScreenEvent.Ui.UpdateMessageCount -> updateMessagesCount()
+            is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
+            is ChannelsPageScreenEvent.Ui.OnTopicClick ->
                 router.navigateTo(Screens.Messages(event.messagesFilter))
         }
     }
@@ -263,12 +263,12 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
     }
 
     private suspend fun handleErrors(error: Throwable) {
-        val channelsPageEffect = if (error is RepositoryError) {
-            ChannelsPageEffect.Failure.Error(error.value)
+        val channelsPageScreenEffect = if (error is RepositoryError) {
+            ChannelsPageScreenEffect.Failure.Error(error.value)
         } else {
-            ChannelsPageEffect.Failure.Network(error.getErrorText())
+            ChannelsPageScreenEffect.Failure.Network(error.getErrorText())
         }
-        _effects.emit(channelsPageEffect)
+        _effects.emit(channelsPageScreenEffect)
     }
 
     private fun updateTopicsMessageCount() {

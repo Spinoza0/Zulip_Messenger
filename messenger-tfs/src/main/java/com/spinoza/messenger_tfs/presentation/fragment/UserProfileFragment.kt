@@ -5,7 +5,7 @@ import android.view.View
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEvent
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 
 class UserProfileFragment : ProfileFragment() {
@@ -19,15 +19,15 @@ class UserProfileFragment : ProfileFragment() {
         setupListeners()
         setupScreen()
         if (savedInstanceState == null) {
-            store.accept(ProfileEvent.Ui.LoadUser(userId))
+            store.accept(ProfileScreenEvent.Ui.LoadUser(userId))
         } else {
-            store.accept(ProfileEvent.Ui.SubscribePresence(store.currentState.user))
+            store.accept(ProfileScreenEvent.Ui.SubscribePresence(store.currentState.user))
         }
     }
 
     private fun setupListeners() {
         binding.toolbar.setNavigationOnClickListener {
-            store.accept(ProfileEvent.Ui.GoBack)
+            store.accept(ProfileScreenEvent.Ui.GoBack)
         }
     }
 
@@ -40,14 +40,14 @@ class UserProfileFragment : ProfileFragment() {
     private fun parseParams() {
         userId = arguments?.getLong(EXTRA_USER_ID, UNDEFINED_USER_ID) ?: UNDEFINED_USER_ID
         if (userId == UNDEFINED_USER_ID) {
-            store.accept(ProfileEvent.Ui.GoBack)
+            store.accept(ProfileScreenEvent.Ui.GoBack)
         }
     }
 
     private fun setupOnBackPressedCallback() {
         onBackPressedCallback = object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                store.accept(ProfileEvent.Ui.GoBack)
+                store.accept(ProfileScreenEvent.Ui.GoBack)
             }
         }
         requireActivity().onBackPressedDispatcher.addCallback(this, onBackPressedCallback)

@@ -16,8 +16,8 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelsPagerAdapter
 import com.spinoza.messenger_tfs.presentation.model.channels.SearchQuery
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsEvent
-import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsState
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentSharedViewModel
 import kotlinx.coroutines.launch
 
@@ -83,7 +83,7 @@ class ChannelsFragment : Fragment() {
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
             sharedStore.accept(
-                ChannelsEvent.Ui.Filter(SearchQuery(binding.viewPager.currentItem, text))
+                ChannelsScreenEvent.Ui.Filter(SearchQuery(binding.viewPager.currentItem, text))
             )
         }
     }
@@ -96,7 +96,7 @@ class ChannelsFragment : Fragment() {
         }
     }
 
-    private fun handleState(state: ChannelsState) {
+    private fun handleState(state: ChannelsScreenState) {
         state.filter?.let { filter ->
             if (filter.screenPosition == binding.viewPager.currentItem)
                 searchFilters[filter.screenPosition] = filter.text

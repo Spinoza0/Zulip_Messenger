@@ -4,9 +4,9 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.presentation.ui.MessageView
 
-sealed class MessagesEvent {
+sealed class MessagesScreenEvent {
 
-    sealed class Ui : MessagesEvent() {
+    sealed class Ui : MessagesScreenEvent() {
 
         object Init : Ui()
 
@@ -29,7 +29,7 @@ sealed class MessagesEvent {
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
     }
 
-    sealed class Internal : MessagesEvent() {
+    sealed class Internal : MessagesScreenEvent() {
 
         object Idle : Internal()
 

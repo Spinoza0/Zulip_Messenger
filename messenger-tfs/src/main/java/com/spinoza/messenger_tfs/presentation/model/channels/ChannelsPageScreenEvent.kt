@@ -3,9 +3,9 @@ package com.spinoza.messenger_tfs.presentation.model.channels
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 
-sealed class ChannelsPageEvent {
+sealed class ChannelsPageScreenEvent {
 
-    sealed class Ui : ChannelsPageEvent() {
+    sealed class Ui : ChannelsPageScreenEvent() {
 
         object UpdateMessageCount : Ui()
 

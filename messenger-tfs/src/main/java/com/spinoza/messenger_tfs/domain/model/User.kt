@@ -11,6 +11,7 @@ data class User(
     val avatarUrl: String,
     val presence: Presence,
 ) : Parcelable {
+
     enum class Presence {
         ACTIVE,
         IDLE,

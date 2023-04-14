@@ -17,7 +17,7 @@ class ReactionView @JvmOverloads constructor(
     defStyleRes: Int = 0,
 ) : View(context, attrs, defStyleAttr, defStyleRes) {
 
-    var emoji = Emoji("","")
+    var emoji = Emoji("", "")
         set(value) {
             field = value
             makeReaction()
@@ -102,7 +102,8 @@ class ReactionView @JvmOverloads constructor(
     }
 
     private fun makeReaction() {
-        reaction = if (isCountVisible) "$emoji $count" else emoji.toString()
+        reaction =
+            if (isCountVisible) "${emoji.toCharacterImage()} $count" else emoji.toCharacterImage()
         reactionPaint.textSize = size.spToPx(this)
     }
 

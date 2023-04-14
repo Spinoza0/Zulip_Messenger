@@ -7,12 +7,22 @@ import androidx.core.view.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
+import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
 
 private const val MAX_DISTANCE = 5
+private const val EMOJI_BASE = 16
+private const val FIRST_PART = 0
+
+fun Emoji.toCharacterImage(): String {
+    return runCatching {
+        val codeParts = code.split("-").map { it.toInt(EMOJI_BASE) }.toIntArray()
+        String(codeParts, FIRST_PART, codeParts.size)
+    }.getOrElse { ":$name:" }
+}
 
 fun Float.spToPx(view: View) = TypedValue.applyDimension(
     TypedValue.COMPLEX_UNIT_SP,

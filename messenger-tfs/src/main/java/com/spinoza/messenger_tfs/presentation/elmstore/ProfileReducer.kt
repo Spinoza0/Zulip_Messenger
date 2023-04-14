@@ -1,49 +1,54 @@
 package com.spinoza.messenger_tfs.presentation.elmstore
 
 import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileCommand
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEffect
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileEvent
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenCommand
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenState
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 
-class ProfileReducer :
-    ScreenDslReducer<ProfileEvent, ProfileEvent.Ui, ProfileEvent.Internal, ProfileState, ProfileEffect, ProfileCommand>(
-        ProfileEvent.Ui::class, ProfileEvent.Internal::class
-    ) {
+class ProfileReducer : ScreenDslReducer<
+        ProfileScreenEvent,
+        ProfileScreenEvent.Ui,
+        ProfileScreenEvent.Internal,
+        ProfileScreenState,
+        ProfileScreenEffect,
+        ProfileScreenCommand>(
+    ProfileScreenEvent.Ui::class, ProfileScreenEvent.Internal::class
+) {
 
     private val router = GlobalDI.INSTANCE.globalRouter
 
-    override fun Result.internal(event: ProfileEvent.Internal) = when (event) {
-        is ProfileEvent.Internal.UserLoaded -> {
+    override fun Result.internal(event: ProfileScreenEvent.Internal) = when (event) {
+        is ProfileScreenEvent.Internal.UserLoaded -> {
             state { copy(isLoading = false, user = event.value) }
-            commands { +ProfileCommand.GetEvent }
+            commands { +ProfileScreenCommand.GetEvent }
         }
-        is ProfileEvent.Internal.EmptyQueueEvent -> commands { +ProfileCommand.GetEvent }
-        is ProfileEvent.Internal.ErrorUserLoading -> {
+        is ProfileScreenEvent.Internal.EmptyQueueEvent -> commands { +ProfileScreenCommand.GetEvent }
+        is ProfileScreenEvent.Internal.ErrorUserLoading -> {
             state { copy(isLoading = false) }
-            effects { +ProfileEffect.Failure.ErrorUserLoading(event.value) }
+            effects { +ProfileScreenEffect.Failure.ErrorUserLoading(event.value) }
         }
-        is ProfileEvent.Internal.ErrorNetwork -> {
+        is ProfileScreenEvent.Internal.ErrorNetwork -> {
             state { copy(isLoading = false) }
-            effects { +ProfileEffect.Failure.ErrorNetwork(event.value) }
+            effects { +ProfileScreenEffect.Failure.ErrorNetwork(event.value) }
         }
-        is ProfileEvent.Internal.Idle -> {}
+        is ProfileScreenEvent.Internal.Idle -> {}
     }
 
-    override fun Result.ui(event: ProfileEvent.Ui) = when (event) {
-        is ProfileEvent.Ui.LoadCurrentUser -> {
+    override fun Result.ui(event: ProfileScreenEvent.Ui) = when (event) {
+        is ProfileScreenEvent.Ui.LoadCurrentUser -> {
             state { copy(isLoading = true) }
-            commands { +ProfileCommand.LoadCurrentUser }
+            commands { +ProfileScreenCommand.LoadCurrentUser }
         }
-        is ProfileEvent.Ui.LoadUser -> {
+        is ProfileScreenEvent.Ui.LoadUser -> {
             state { copy(isLoading = true) }
-            commands { +ProfileCommand.LoadUser(event.userId) }
+            commands { +ProfileScreenCommand.LoadUser(event.userId) }
         }
-        is ProfileEvent.Ui.GoBack -> router.exit()
-        is ProfileEvent.Ui.SubscribePresence -> event.user?.let {
-            commands { +ProfileCommand.SubscribePresence(event.user) }
+        is ProfileScreenEvent.Ui.GoBack -> router.exit()
+        is ProfileScreenEvent.Ui.SubscribePresence -> event.user?.let {
+            commands { +ProfileScreenCommand.SubscribePresence(event.user) }
         }
-        is ProfileEvent.Ui.Init -> {}
+        is ProfileScreenEvent.Ui.Init -> {}
     }
 }

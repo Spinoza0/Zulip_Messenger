@@ -2,9 +2,9 @@ package com.spinoza.messenger_tfs.presentation.model.profile
 
 import com.spinoza.messenger_tfs.domain.model.User
 
-sealed class ProfileEvent {
+sealed class ProfileScreenEvent {
 
-    sealed class Ui : ProfileEvent() {
+    sealed class Ui : ProfileScreenEvent() {
 
         object Init : Ui()
 
@@ -17,7 +17,7 @@ sealed class ProfileEvent {
         class SubscribePresence(val user: User?) : Ui()
     }
 
-    sealed class Internal : ProfileEvent() {
+    sealed class Internal : ProfileScreenEvent() {
 
         object Idle : Internal()
 

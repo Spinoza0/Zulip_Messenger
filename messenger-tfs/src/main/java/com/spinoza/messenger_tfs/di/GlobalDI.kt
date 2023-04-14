@@ -6,9 +6,9 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.elmstore.*
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesState
-import com.spinoza.messenger_tfs.presentation.model.people.PeopleState
-import com.spinoza.messenger_tfs.presentation.model.profile.ProfileState
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenState
+import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenState
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 
@@ -42,20 +42,20 @@ class GlobalDI private constructor() {
     fun getChannelsFilter(isAllChannels: Boolean) =
         ChannelsFilter(ChannelsFilter.NO_FILTER, !isAllChannels)
 
-    fun provideProfileStore(initialState: ProfileState, actor: ProfileActor) = ElmStoreCompat(
+    fun provideProfileStore(initialState: ProfileScreenState, actor: ProfileActor) = ElmStoreCompat(
         initialState = initialState,
         reducer = ProfileReducer(),
         actor = actor
     )
 
     fun providePeopleStore(actor: PeopleActor) = ElmStoreCompat(
-        initialState = PeopleState(),
+        initialState = PeopleScreenState(),
         reducer = PeopleReducer(),
         actor = actor
     )
 
     fun provideMessagesStore(actor: MessagesActor) = ElmStoreCompat(
-        initialState = MessagesState(),
+        initialState = MessagesScreenState(),
         reducer = MessagesReducer(),
         actor = actor
     )

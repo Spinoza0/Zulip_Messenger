@@ -93,11 +93,11 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun onChannelClickListener(channelItem: ChannelItem) {
-        store.accept(ChannelsPageEvent.Ui.OnChannelClick(channelItem))
+        store.accept(ChannelsPageScreenEvent.Ui.OnChannelClick(channelItem))
     }
 
     private fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        store.accept(ChannelsPageEvent.Ui.OnTopicClick(messagesFilter))
+        store.accept(ChannelsPageScreenEvent.Ui.OnTopicClick(messagesFilter))
     }
 
     private fun setupObservers() {
@@ -120,7 +120,7 @@ class ChannelsPageFragment : Fragment() {
         }
     }
 
-    private fun handleState(state: ChannelsPageState) {
+    private fun handleState(state: ChannelsPageScreenState) {
         if (state.isLoading) {
             binding.shimmerLarge.on()
         } else {
@@ -131,24 +131,26 @@ class ChannelsPageFragment : Fragment() {
         }
     }
 
-    private fun handleEffect(effect: ChannelsPageEffect) {
+    private fun handleEffect(effect: ChannelsPageScreenEffect) {
         when (effect) {
-            is ChannelsPageEffect.Failure.Error -> showError(
+            is ChannelsPageScreenEffect.Failure.Error -> showError(
                 String.format(getString(R.string.error_channels), effect.value)
             )
-            is ChannelsPageEffect.Failure.Network ->
-                showCheckInternetConnectionDialog({ store.accept(ChannelsPageEvent.Ui.Load) }) {
+            is ChannelsPageScreenEffect.Failure.Network ->
+                showCheckInternetConnectionDialog(
+                    { store.accept(ChannelsPageScreenEvent.Ui.Load) }
+                ) {
                     closeApplication()
                 }
         }
     }
 
-    private fun handleSharedScreenState(state: ChannelsState) {
+    private fun handleSharedScreenState(state: ChannelsScreenState) {
         state.filter?.let { filter ->
             val filterIsAllChannels = filter.screenPosition % 2 != 0
             if (filterIsAllChannels == isAllChannels) {
                 store.accept(
-                    ChannelsPageEvent.Ui.Filter(ChannelsFilter(filter.text, !isAllChannels))
+                    ChannelsPageScreenEvent.Ui.Filter(ChannelsFilter(filter.text, !isAllChannels))
                 )
             }
         }
@@ -165,9 +167,9 @@ class ChannelsPageFragment : Fragment() {
 
     private fun updateChannelsList() {
         if ((binding.recyclerViewChannels.adapter as MainDelegateAdapter).itemCount == NO_ITEMS) {
-            store.accept(ChannelsPageEvent.Ui.Load)
+            store.accept(ChannelsPageScreenEvent.Ui.Load)
         }
-        store.accept(ChannelsPageEvent.Ui.UpdateMessageCount)
+        store.accept(ChannelsPageScreenEvent.Ui.UpdateMessageCount)
     }
 
     override fun onPause() {

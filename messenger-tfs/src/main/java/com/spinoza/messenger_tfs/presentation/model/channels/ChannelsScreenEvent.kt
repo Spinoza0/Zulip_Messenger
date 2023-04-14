@@ -1,8 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.model.channels
 
-sealed class ChannelsEvent {
+sealed class ChannelsScreenEvent {
 
-    sealed class Ui : ChannelsEvent() {
+    sealed class Ui : ChannelsScreenEvent() {
 
         class Filter(val value: SearchQuery) : Ui()
     }

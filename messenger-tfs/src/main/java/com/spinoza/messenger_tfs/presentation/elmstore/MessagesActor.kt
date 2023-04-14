@@ -17,9 +17,9 @@ import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterIt
 import com.spinoza.messenger_tfs.presentation.adapter.message.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesCommand
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenCommand
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
 import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import kotlinx.coroutines.*
@@ -27,7 +27,9 @@ import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.coroutines.Actor
 import java.util.*
 
-class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent.Internal> {
+class MessagesActor(
+    lifecycle: Lifecycle,
+) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
     private val getOwnUserIdUseCase = GlobalDI.INSTANCE.getOwnUserIdUseCase
@@ -64,51 +66,58 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
         setOwnStatusToActive()
     }
 
-    override fun execute(command: MessagesCommand): Flow<MessagesEvent.Internal> = flow {
-        val event = when (command) {
-            is MessagesCommand.Load -> {
-                messagesFilter = command.filter
-                loadMessages()
+    override fun execute(command: MessagesScreenCommand): Flow<MessagesScreenEvent.Internal> =
+        flow {
+            val event = when (command) {
+                is MessagesScreenCommand.Load -> {
+                    messagesFilter = command.filter
+                    loadMessages()
+                }
+                is MessagesScreenCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
+                is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
+                is MessagesScreenCommand.UpdateReaction -> updateReaction(
+                    command.messageId,
+                    command.emoji
+                )
+                is MessagesScreenCommand.SendMessage -> sendMessage(command.value)
+                is MessagesScreenCommand.GetMessagesEvent -> getMessagesEvent()
+                is MessagesScreenCommand.GetDeleteMessagesEvent -> getDeleteMessagesEvent()
+                is MessagesScreenCommand.GetReactionsEvent -> getReactionsEvent()
             }
-            is MessagesCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
-            is MessagesCommand.NewMessageText -> newMessageText(command.value)
-            is MessagesCommand.UpdateReaction -> updateReaction(command.messageId, command.emoji)
-            is MessagesCommand.SendMessage -> sendMessage(command.value)
-            is MessagesCommand.GetMessagesEvent -> getMessagesEvent()
-            is MessagesCommand.GetDeleteMessagesEvent -> getDeleteMessagesEvent()
-            is MessagesCommand.GetReactionsEvent -> getReactionsEvent()
+            emit(event)
         }
-        emit(event)
-    }
 
-    private suspend fun newMessageText(text: CharSequence?): MessagesEvent.Internal {
+    private suspend fun newMessageText(text: CharSequence?): MessagesScreenEvent.Internal {
         newMessageFieldState.emit(text.toString())
         delay(DELAY_BEFORE_CHECK_ACTION_ICON)
         if (isIconActionResIdChanged) {
             isIconActionResIdChanged = false
-            return MessagesEvent.Internal.IconActionResId(iconActionResId)
+            return MessagesScreenEvent.Internal.IconActionResId(iconActionResId)
         }
-        return MessagesEvent.Internal.Idle
+        return MessagesScreenEvent.Internal.Idle
     }
 
-    private suspend fun sendMessage(value: String): MessagesEvent.Internal {
-        var event: MessagesEvent.Internal = MessagesEvent.Internal.Idle
+    private suspend fun sendMessage(value: String): MessagesScreenEvent.Internal {
+        var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
         if (value.isNotEmpty()) {
             val result = sendMessageUseCase(value, messagesFilter)
             result.onSuccess {
                 isMessageSent = true
-                event = MessagesEvent.Internal.MessageSent
+                event = MessagesScreenEvent.Internal.MessageSent
             }
         }
         return event
     }
 
-    private suspend fun updateReaction(messageId: Long, emoji: Emoji): MessagesEvent.Internal =
+    private suspend fun updateReaction(
+        messageId: Long,
+        emoji: Emoji,
+    ): MessagesScreenEvent.Internal =
         withContext(Dispatchers.Default) {
-            var event: MessagesEvent.Internal = MessagesEvent.Internal.Idle
+            var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
             updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
                 getOwnUserIdUseCase().onSuccess { userId ->
-                    event = MessagesEvent.Internal.Messages(
+                    event = MessagesScreenEvent.Internal.Messages(
                         MessagesResultDelegate(
                             messagesResult.messages.groupByDate(userId), messagesResult.position
                         )
@@ -120,36 +129,38 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
             event
         }
 
-    private suspend fun loadMessages(): MessagesEvent.Internal = withContext(Dispatchers.Default) {
-        var event: MessagesEvent.Internal = MessagesEvent.Internal.Idle
-        getMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
-            getOwnUserIdUseCase().onSuccess { userId ->
-                event = MessagesEvent.Internal.Messages(
-                    MessagesResultDelegate(
-                        messagesResult.messages.groupByDate(userId), messagesResult.position
+    private suspend fun loadMessages(): MessagesScreenEvent.Internal =
+        withContext(Dispatchers.Default) {
+            var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
+            getMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
+                getOwnUserIdUseCase().onSuccess { userId ->
+                    event = MessagesScreenEvent.Internal.Messages(
+                        MessagesResultDelegate(
+                            messagesResult.messages.groupByDate(userId), messagesResult.position
+                        )
                     )
-                )
-                messagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
-                    registerQueue(EventType.MESSAGE)
-                }
-                deleteMessagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
-                    registerQueue(EventType.DELETE_MESSAGE)
-                }
-                reactionsQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
-                    registerQueue(EventType.REACTION)
+                    messagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
+                        registerQueue(EventType.MESSAGE)
+                    }
+                    deleteMessagesQueue =
+                        EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
+                            registerQueue(EventType.DELETE_MESSAGE)
+                        }
+                    reactionsQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
+                        registerQueue(EventType.REACTION)
+                    }
+                }.onFailure {
+                    event = handleErrors(it)
                 }
             }.onFailure {
                 event = handleErrors(it)
             }
-        }.onFailure {
-            event = handleErrors(it)
+            event
         }
-        event
-    }
 
-    private suspend fun setMessageReadFlags(messageIds: List<Long>): MessagesEvent.Internal {
+    private suspend fun setMessageReadFlags(messageIds: List<Long>): MessagesScreenEvent.Internal {
         setMessagesFlagToReadUserCase(messageIds)
-        return MessagesEvent.Internal.Idle
+        return MessagesScreenEvent.Internal.Idle
     }
 
     private fun setOwnStatusToActive() {
@@ -182,41 +193,41 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
             .launchIn(lifecycleScope)
     }
 
-    private suspend fun getMessagesEvent(): MessagesEvent.Internal {
+    private suspend fun getMessagesEvent(): MessagesScreenEvent.Internal {
         messagesQueue?.let {
             return getEvent(
                 it, getMessageEventUseCase, ::onSuccessMessageEvent,
-                MessagesEvent.Internal.EmptyMessagesQueueEvent
+                MessagesScreenEvent.Internal.EmptyMessagesQueueEvent
             )
         }
-        return MessagesEvent.Internal.EmptyMessagesQueueEvent
+        return MessagesScreenEvent.Internal.EmptyMessagesQueueEvent
     }
 
-    private suspend fun getDeleteMessagesEvent(): MessagesEvent.Internal {
+    private suspend fun getDeleteMessagesEvent(): MessagesScreenEvent.Internal {
         deleteMessagesQueue?.let {
             return getEvent(
                 it, getDeleteMessageEventUseCase, ::onSuccessDeleteMessageEvent,
-                MessagesEvent.Internal.EmptyDeleteMessagesQueueEvent
+                MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent
             )
         }
-        return MessagesEvent.Internal.EmptyDeleteMessagesQueueEvent
+        return MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent
     }
 
-    private suspend fun getReactionsEvent(): MessagesEvent.Internal {
+    private suspend fun getReactionsEvent(): MessagesScreenEvent.Internal {
         reactionsQueue?.let {
             return getEvent(
                 it, getReactionEventUseCase, ::onSuccessReactionEvent,
-                MessagesEvent.Internal.EmptyReactionsQueueEvent
+                MessagesScreenEvent.Internal.EmptyReactionsQueueEvent
             )
         }
-        return MessagesEvent.Internal.EmptyReactionsQueueEvent
+        return MessagesScreenEvent.Internal.EmptyReactionsQueueEvent
     }
 
     private fun onSuccessMessageEvent(
         eventsQueue: EventsQueueProcessor,
         event: MessageEvent,
         userId: Long,
-    ): MessagesEvent.Internal {
+    ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
         val messagesResult = if (isMessageSent) {
             isMessageSent = false
@@ -224,7 +235,7 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
         } else {
             event.messagesResult
         }
-        return MessagesEvent.Internal.MessagesEventFromQueue(
+        return MessagesScreenEvent.Internal.MessagesEventFromQueue(
             handleMessagesResult(messagesResult, userId)
         )
     }
@@ -233,9 +244,9 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
         eventsQueue: EventsQueueProcessor,
         event: DeleteMessageEvent,
         userId: Long,
-    ): MessagesEvent.Internal {
+    ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
-        return MessagesEvent.Internal.DeleteMessagesEventFromQueue(
+        return MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue(
             handleMessagesResult(event.messagesResult, userId)
         )
     }
@@ -244,9 +255,9 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
         eventsQueue: EventsQueueProcessor,
         event: ReactionEvent,
         userId: Long,
-    ): MessagesEvent.Internal {
+    ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
-        return MessagesEvent.Internal.ReactionsEventFromQueue(
+        return MessagesScreenEvent.Internal.ReactionsEventFromQueue(
             handleMessagesResult(event.messagesResult, userId)
         )
     }
@@ -258,9 +269,9 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
     private suspend fun <T> getEvent(
         eventsQueue: EventsQueueProcessor,
         useCase: EventUseCase<T>,
-        onSuccessCallback: (EventsQueueProcessor, T, Long) -> MessagesEvent.Internal,
-        emptyEvent: MessagesEvent.Internal,
-    ): MessagesEvent.Internal = withContext(Dispatchers.Default) {
+        onSuccessCallback: (EventsQueueProcessor, T, Long) -> MessagesScreenEvent.Internal,
+        emptyEvent: MessagesScreenEvent.Internal,
+    ): MessagesScreenEvent.Internal = withContext(Dispatchers.Default) {
         useCase(eventsQueue.queue, messagesFilter).onSuccess { event ->
             getOwnUserIdUseCase().onSuccess { userId ->
                 return@withContext onSuccessCallback(eventsQueue, event, userId)
@@ -278,11 +289,11 @@ class MessagesActor(lifecycle: Lifecycle) : Actor<MessagesCommand, MessagesEvent
         )
     }
 
-    private fun handleErrors(error: Throwable): MessagesEvent.Internal {
+    private fun handleErrors(error: Throwable): MessagesScreenEvent.Internal {
         return if (error is RepositoryError) {
-            MessagesEvent.Internal.ErrorMessages(error.value)
+            MessagesScreenEvent.Internal.ErrorMessages(error.value)
         } else {
-            MessagesEvent.Internal.ErrorNetwork(error.getErrorText())
+            MessagesScreenEvent.Internal.ErrorNetwork(error.getErrorText())
         }
     }
 

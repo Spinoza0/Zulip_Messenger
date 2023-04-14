@@ -2,88 +2,94 @@ package com.spinoza.messenger_tfs.presentation.elmstore
 
 import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesCommand
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEffect
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesEvent
-import com.spinoza.messenger_tfs.presentation.model.messages.MessagesState
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenCommand
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 
-class MessagesReducer :
-    ScreenDslReducer<MessagesEvent, MessagesEvent.Ui, MessagesEvent.Internal, MessagesState, MessagesEffect, MessagesCommand>(
-        MessagesEvent.Ui::class, MessagesEvent.Internal::class
-    ) {
+class MessagesReducer : ScreenDslReducer<
+        MessagesScreenEvent,
+        MessagesScreenEvent.Ui,
+        MessagesScreenEvent.Internal,
+        MessagesScreenState,
+        MessagesScreenEffect,
+        MessagesScreenCommand>(
+    MessagesScreenEvent.Ui::class, MessagesScreenEvent.Internal::class
+) {
 
     private val router = GlobalDI.INSTANCE.globalRouter
 
-    override fun Result.internal(event: MessagesEvent.Internal) = when (event) {
-        is MessagesEvent.Internal.Messages -> {
+    override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
+        is MessagesScreenEvent.Internal.Messages -> {
             state { copy(isLoading = false, messages = event.value) }
             commands {
-                +MessagesCommand.GetMessagesEvent
-                +MessagesCommand.GetDeleteMessagesEvent
-                +MessagesCommand.GetReactionsEvent
+                +MessagesScreenCommand.GetMessagesEvent
+                +MessagesScreenCommand.GetDeleteMessagesEvent
+                +MessagesScreenCommand.GetReactionsEvent
             }
         }
-        is MessagesEvent.Internal.MessagesEventFromQueue -> {
+        is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
             state { copy(messages = event.value) }
-            commands { +MessagesCommand.GetMessagesEvent }
+            commands { +MessagesScreenCommand.GetMessagesEvent }
         }
-        is MessagesEvent.Internal.DeleteMessagesEventFromQueue -> {
+        is MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue -> {
             state { copy(messages = event.value) }
-            commands { +MessagesCommand.GetDeleteMessagesEvent }
+            commands { +MessagesScreenCommand.GetDeleteMessagesEvent }
         }
-        is MessagesEvent.Internal.ReactionsEventFromQueue -> {
+        is MessagesScreenEvent.Internal.ReactionsEventFromQueue -> {
             state { copy(messages = event.value) }
-            commands { +MessagesCommand.GetReactionsEvent }
+            commands { +MessagesScreenCommand.GetReactionsEvent }
         }
-        is MessagesEvent.Internal.EmptyMessagesQueueEvent ->
-            commands { +MessagesCommand.GetMessagesEvent }
-        is MessagesEvent.Internal.EmptyDeleteMessagesQueueEvent ->
-            commands { +MessagesCommand.GetDeleteMessagesEvent }
-        is MessagesEvent.Internal.EmptyReactionsQueueEvent ->
-            commands { +MessagesCommand.GetReactionsEvent }
-        is MessagesEvent.Internal.MessageSent -> {
+        is MessagesScreenEvent.Internal.EmptyMessagesQueueEvent ->
+            commands { +MessagesScreenCommand.GetMessagesEvent }
+        is MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent ->
+            commands { +MessagesScreenCommand.GetDeleteMessagesEvent }
+        is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent ->
+            commands { +MessagesScreenCommand.GetReactionsEvent }
+        is MessagesScreenEvent.Internal.MessageSent -> {
             state { copy(isSendingMessage = false) }
-            effects { +MessagesEffect.MessageSent }
+            effects { +MessagesScreenEffect.MessageSent }
         }
-        is MessagesEvent.Internal.IconActionResId -> state { copy(iconActionResId = event.value) }
-        is MessagesEvent.Internal.ErrorMessages -> {
+        is MessagesScreenEvent.Internal.IconActionResId ->
+            state { copy(iconActionResId = event.value) }
+        is MessagesScreenEvent.Internal.ErrorMessages -> {
             state { copy(isLoading = false, isSendingMessage = false) }
-            effects { +MessagesEffect.Failure.ErrorMessages(event.value) }
+            effects { +MessagesScreenEffect.Failure.ErrorMessages(event.value) }
         }
-        is MessagesEvent.Internal.ErrorNetwork -> {
+        is MessagesScreenEvent.Internal.ErrorNetwork -> {
             state { copy(isLoading = false, isSendingMessage = false) }
-            effects { +MessagesEffect.Failure.ErrorNetwork(event.value) }
+            effects { +MessagesScreenEffect.Failure.ErrorNetwork(event.value) }
         }
-        is MessagesEvent.Internal.Idle -> {}
+        is MessagesScreenEvent.Internal.Idle -> {}
     }
 
-    override fun Result.ui(event: MessagesEvent.Ui) = when (event) {
-        is MessagesEvent.Ui.NewMessageText -> {
-            commands { +MessagesCommand.NewMessageText(event.value) }
+    override fun Result.ui(event: MessagesScreenEvent.Ui) = when (event) {
+        is MessagesScreenEvent.Ui.NewMessageText -> {
+            commands { +MessagesScreenCommand.NewMessageText(event.value) }
         }
-        is MessagesEvent.Ui.Load -> {
+        is MessagesScreenEvent.Ui.Load -> {
             state { copy(isLoading = true) }
-            commands { +MessagesCommand.Load(event.filter) }
+            commands { +MessagesScreenCommand.Load(event.filter) }
         }
-        is MessagesEvent.Ui.SendMessage -> {
+        is MessagesScreenEvent.Ui.SendMessage -> {
             val text = event.value.toString().trim()
             when (text.isNotEmpty()) {
                 true -> {
                     state { copy(isSendingMessage = true) }
-                    commands { +MessagesCommand.SendMessage(text) }
+                    commands { +MessagesScreenCommand.SendMessage(text) }
                 }
                 // TODO: show field for creating new topic
                 false -> {}
             }
         }
-        is MessagesEvent.Ui.ShowUserInfo ->
+        is MessagesScreenEvent.Ui.ShowUserInfo ->
             router.navigateTo(Screens.UserProfile(event.message.userId))
-        is MessagesEvent.Ui.Exit -> router.exit()
-        is MessagesEvent.Ui.UpdateReaction ->
-            commands { +MessagesCommand.UpdateReaction(event.messageId, event.emoji) }
-        is MessagesEvent.Ui.AfterSubmitMessages ->
+        is MessagesScreenEvent.Ui.Exit -> router.exit()
+        is MessagesScreenEvent.Ui.UpdateReaction ->
+            commands { +MessagesScreenCommand.UpdateReaction(event.messageId, event.emoji) }
+        is MessagesScreenEvent.Ui.AfterSubmitMessages ->
             state.messages?.let { messages ->
                 state {
                     copy(
@@ -93,10 +99,10 @@ class MessagesReducer :
                     )
                 }
             }
-        is MessagesEvent.Ui.VisibleMessages ->
-            commands { +MessagesCommand.SetMessagesRead(event.messageIds) }
-        is MessagesEvent.Ui.ShowChooseReactionDialog ->
-            effects { +MessagesEffect.ShowChooseReactionDialog(event.messageView.messageId) }
-        is MessagesEvent.Ui.Init -> {}
+        is MessagesScreenEvent.Ui.VisibleMessages ->
+            commands { +MessagesScreenCommand.SetMessagesRead(event.messageIds) }
+        is MessagesScreenEvent.Ui.ShowChooseReactionDialog ->
+            effects { +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId) }
+        is MessagesScreenEvent.Ui.Init -> {}
     }
 }

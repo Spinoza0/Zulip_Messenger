@@ -1,8 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.model.channels
 
-sealed class ChannelsPageEffect {
+sealed class ChannelsPageScreenEffect {
 
-    sealed class Failure : ChannelsPageEffect() {
+    sealed class Failure : ChannelsPageScreenEffect() {
 
         class Network(val value: String) : Failure()
 

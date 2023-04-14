@@ -14,16 +14,16 @@ import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
 import com.spinoza.messenger_tfs.presentation.elmstore.PeopleActor
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
-import com.spinoza.messenger_tfs.presentation.model.people.PeopleEffect
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleEvent
-import com.spinoza.messenger_tfs.presentation.model.people.PeopleState
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
 
-class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
+class PeopleFragment : ElmFragment<PeopleEvent, PeopleScreenEffect, PeopleScreenState>() {
 
     private var _binding: FragmentPeopleBinding? = null
     private val binding: FragmentPeopleBinding
@@ -32,7 +32,8 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
     override val initEvent: PeopleEvent
         get() = PeopleEvent.Ui.Init
 
-    override val storeHolder: StoreHolder<PeopleEvent, PeopleEffect, PeopleState> by lazy {
+    override val storeHolder:
+            StoreHolder<PeopleEvent, PeopleScreenEffect, PeopleScreenState> by lazy {
         LifecycleAwareStoreHolder(lifecycle) {
             GlobalDI.INSTANCE.providePeopleStore(PeopleActor(lifecycle))
         }
@@ -79,7 +80,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         }
     }
 
-    override fun render(state: PeopleState) {
+    override fun render(state: PeopleScreenState) {
         if (state.isLoading) {
             binding.shimmerLarge.on()
         } else {
@@ -92,11 +93,11 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleEffect, PeopleState>() {
         }
     }
 
-    override fun handleEffect(effect: PeopleEffect) {
+    override fun handleEffect(effect: PeopleScreenEffect) {
         when (effect) {
-            is PeopleEffect.Failure.ErrorLoadingUsers ->
+            is PeopleScreenEffect.Failure.ErrorLoadingUsers ->
                 showError(String.format(getString(R.string.error_loading_users), effect.value))
-            is PeopleEffect.Failure.ErrorNetwork ->
+            is PeopleScreenEffect.Failure.ErrorNetwork ->
                 showCheckInternetConnectionDialog(
                     { store.accept(PeopleEvent.Ui.Load) }
                 ) {

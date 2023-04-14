@@ -8,7 +8,7 @@ import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.presentation.model.people.PeopleCommand
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenCommand
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleEvent
 import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
 import com.spinoza.messenger_tfs.presentation.utils.getErrorText
@@ -16,7 +16,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.coroutines.Actor
 
-class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Internal> {
+class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleScreenCommand, PeopleEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
     private val getUsersByFilterUseCase = GlobalDI.INSTANCE.getUsersByFilterUseCase
@@ -39,17 +39,17 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleCommand, PeopleEvent.Inter
         subscribeToSearchQueryChanges()
     }
 
-    override fun execute(command: PeopleCommand): Flow<PeopleEvent.Internal> = flow {
+    override fun execute(command: PeopleScreenCommand): Flow<PeopleEvent.Internal> = flow {
         val event = when (command) {
-            is PeopleCommand.SetNewFilter -> setNewFilter(command.filter.trim())
-            is PeopleCommand.GetFilteredList ->
+            is PeopleScreenCommand.SetNewFilter -> setNewFilter(command.filter.trim())
+            is PeopleScreenCommand.GetFilteredList ->
                 if (usersCache.isNotEmpty()) {
                     PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
                 } else {
                     loadUsers()
                 }
-            is PeopleCommand.Load -> loadUsers()
-            is PeopleCommand.GetEvent -> if (isUsersCacheChanged) {
+            is PeopleScreenCommand.Load -> loadUsers()
+            is PeopleScreenCommand.GetEvent -> if (isUsersCacheChanged) {
                 isUsersCacheChanged = false
                 PeopleEvent.Internal.EventFromQueue(usersCache.toSortedList(usersFilter))
             } else {
