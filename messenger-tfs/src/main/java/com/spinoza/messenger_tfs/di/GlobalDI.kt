@@ -1,4 +1,4 @@
-package com.cyberfox21.tinkofffintechseminar.di
+package com.spinoza.messenger_tfs.di
 
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
