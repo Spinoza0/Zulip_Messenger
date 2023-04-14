@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.elmstore
 
-import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenEffect

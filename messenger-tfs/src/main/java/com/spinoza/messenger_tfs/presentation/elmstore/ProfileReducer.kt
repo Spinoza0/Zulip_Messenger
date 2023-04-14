@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.elmstore
 
-import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenCommand
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEffect
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEvent

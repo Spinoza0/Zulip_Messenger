@@ -1,12 +1,16 @@
 package com.spinoza.messenger_tfs.presentation.model.login
 
+import android.content.Context
+
 sealed class LoginScreenEvent {
 
     sealed class Ui : LoginScreenEvent() {
 
         object Init : Ui()
 
-        object Exit: Ui()
+        object Exit : Ui()
+
+        class CheckPreviousLogin(val context: Context, val logout: Boolean) : Ui()
 
         class ButtonPressed(val email: String, val password: String) : Ui()
 
@@ -19,7 +23,7 @@ sealed class LoginScreenEvent {
 
         object Idle : Internal()
 
-        object LoginSuccess : Internal()
+        class LoginSuccess(val email: String, val password: String) : Internal()
 
         class EmailStatus(val value: Boolean) : Internal()
 

@@ -1,5 +1,6 @@
-package com.cyberfox21.tinkofffintechseminar.di
+package com.spinoza.messenger_tfs.di
 
+import android.content.Context
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
@@ -10,10 +11,11 @@ import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenState
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenState
+import com.spinoza.messenger_tfs.presentation.utils.LoginStorageImpl
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 
-class GlobalDI private constructor() {
+class GlobalDI private constructor(context: Context) {
 
     private val repository by lazy { MessagesRepositoryImpl.getInstance() }
 
@@ -41,12 +43,14 @@ class GlobalDI private constructor() {
     val setOwnStatusActiveUseCase by lazy { SetOwnStatusActiveUseCase(repository) }
     val updateReactionUseCase by lazy { UpdateReactionUseCase(repository) }
 
+    private val loginStorage by lazy { LoginStorageImpl(context) }
+
     fun getChannelsFilter(isAllChannels: Boolean) =
         ChannelsFilter(ChannelsFilter.NO_FILTER, !isAllChannels)
 
     fun provideLoginStore(actor: LoginActor) = ElmStoreCompat(
         initialState = LoginScreenState(),
-        reducer = LoginReducer(),
+        reducer = LoginReducer(loginStorage),
         actor = actor
     )
 
@@ -72,8 +76,8 @@ class GlobalDI private constructor() {
 
         lateinit var INSTANCE: GlobalDI
 
-        fun init() {
-            INSTANCE = GlobalDI()
+        fun init(context: Context) {
+            INSTANCE = GlobalDI(context)
         }
     }
 }

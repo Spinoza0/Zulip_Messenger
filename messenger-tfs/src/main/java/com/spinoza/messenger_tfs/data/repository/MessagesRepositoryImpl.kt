@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.model.event.*
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto

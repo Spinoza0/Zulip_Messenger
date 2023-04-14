@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.elmstore
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
-import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenEvent
@@ -68,7 +68,7 @@ class LoginActor(
     private suspend fun checkUserLogin(email: String, password: String): LoginScreenEvent.Internal {
         var event: LoginScreenEvent.Internal = LoginScreenEvent.Internal.Idle
         checkLoginUseCase(email.trim(), password.trim()).onSuccess {
-            event = LoginScreenEvent.Internal.LoginSuccess
+            event = LoginScreenEvent.Internal.LoginSuccess(email, password)
         }.onFailure { error ->
             event = if (error is RepositoryError) {
                 LoginScreenEvent.Internal.ErrorLogin(error.value)

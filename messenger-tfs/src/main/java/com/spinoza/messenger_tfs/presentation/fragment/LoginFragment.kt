@@ -7,9 +7,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
-import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentLoginBinding
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.presentation.elmstore.LoginActor
 import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenEffect
 import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenEvent
@@ -44,12 +44,19 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.textViewForgotPassword.movementMethod = LinkMovementMethod.getInstance()
         setupListeners()
+        binding.textViewForgotPassword.movementMethod = LinkMovementMethod.getInstance()
+        store.accept(LoginScreenEvent.Ui.CheckPreviousLogin(requireContext(), getParamLogout()))
     }
 
     override fun render(state: LoginScreenState) {
-        binding.progressBar.isVisible = state.isCheckingLogin
+        with(binding) {
+            progressBar.isVisible = state.isCheckingLogin
+            editTextEmail.isVisible = state.isNeedLogin
+            editTextPassword.isVisible = state.isNeedLogin
+            buttonLogin.isVisible = state.isNeedLogin
+            textViewForgotPassword.isVisible = state.isNeedLogin
+        }
     }
 
     override fun handleEffect(effect: LoginScreenEffect) {
