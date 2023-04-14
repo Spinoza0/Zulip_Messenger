@@ -1,0 +1,110 @@
+package com.spinoza.messenger_tfs.presentation.fragment
+
+import android.os.Bundle
+import android.text.method.LinkMovementMethod
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.isVisible
+import androidx.core.widget.doOnTextChanged
+import com.cyberfox21.tinkofffintechseminar.di.GlobalDI
+import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.databinding.FragmentLoginBinding
+import com.spinoza.messenger_tfs.presentation.elmstore.LoginActor
+import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenState
+import vivid.money.elmslie.android.base.ElmFragment
+import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
+import vivid.money.elmslie.android.storeholder.StoreHolder
+
+class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScreenState>() {
+
+    private var _binding: FragmentLoginBinding? = null
+    private val binding: FragmentLoginBinding
+        get() = _binding ?: throw RuntimeException("FragmentLoginBinding == null")
+
+    override val initEvent: LoginScreenEvent
+        get() = LoginScreenEvent.Ui.Init
+
+    override val storeHolder:
+            StoreHolder<LoginScreenEvent, LoginScreenEffect, LoginScreenState> by lazy {
+        LifecycleAwareStoreHolder(lifecycle) {
+            GlobalDI.INSTANCE.provideLoginStore(LoginActor(lifecycle))
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
+        _binding = FragmentLoginBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.textViewForgotPassword.movementMethod = LinkMovementMethod.getInstance()
+        setupListeners()
+    }
+
+    override fun render(state: LoginScreenState) {
+        binding.progressBar.isVisible = state.isCheckingLogin
+    }
+
+    override fun handleEffect(effect: LoginScreenEffect) {
+        when (effect) {
+            is LoginScreenEffect.ButtonStatus -> binding.buttonLogin.isEnabled = effect.isEnabled
+            is LoginScreenEffect.Failure.ErrorLogin -> showError(
+                String.format(getString(R.string.error_login), effect.value)
+            )
+            is LoginScreenEffect.Failure.ErrorNetwork -> {
+                showError(String.format(getString(R.string.error_network), effect.value))
+                showCheckInternetConnectionDialog({ }) {
+                    store.accept(LoginScreenEvent.Ui.Exit)
+                }
+            }
+        }
+    }
+
+    private fun setupListeners() {
+        with(binding) {
+            editTextEmail.doOnTextChanged { text, _, _, _ ->
+                store.accept(LoginScreenEvent.Ui.NewEmailText(text))
+            }
+            editTextPassword.doOnTextChanged { text, _, _, _ ->
+                store.accept(LoginScreenEvent.Ui.NewPasswordText(text))
+            }
+            buttonLogin.setOnClickListener {
+                store.accept(
+                    LoginScreenEvent.Ui.ButtonPressed(
+                        editTextEmail.text.toString(),
+                        editTextPassword.text.toString()
+                    )
+                )
+            }
+        }
+    }
+
+    private fun getParamLogout(): Boolean {
+        return arguments?.getBoolean(PARAM_LOGOUT, false) ?: false
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    companion object {
+
+        private const val PARAM_LOGOUT = "logout"
+
+        fun newInstance(logout: Boolean = false): LoginFragment {
+            return LoginFragment().apply {
+                arguments = Bundle().apply {
+                    putBoolean(PARAM_LOGOUT, logout)
+                }
+            }
+        }
+    }
+}

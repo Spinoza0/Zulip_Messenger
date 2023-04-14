@@ -9,13 +9,8 @@ import java.util.concurrent.TimeUnit
 
 object ZulipApiFactory {
 
-    private const val HEADER_AUTHORIZATION = "Authorization"
     private const val MEDIA_TYPE_JSON = "application/json"
-
-     private const val BASE_URL = "https://tinkoff-android-spring-2023.zulipchat.com/api/v1/"
-     private const val CREDENTIALS_USERNAME = "spinoza0@gmail.com"
-     private const val CREDENTIALS_PASSWORD = "Tu1s51Gtq1ec02fBd1lhAaOALD0hc2JH"
-
+    private const val BASE_URL = "https://tinkoff-android-spring-2023.zulipchat.com/api/v1/"
     private const val TIME_OUT_SECONDS = 15L
     private val json = Json {
         ignoreUnknownKeys = true
@@ -28,15 +23,6 @@ object ZulipApiFactory {
         .connectTimeout(TIME_OUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(TIME_OUT_SECONDS, TimeUnit.SECONDS)
         .writeTimeout(TIME_OUT_SECONDS, TimeUnit.SECONDS)
-        .authenticator { _: Route?, response: Response ->
-            val request = response.request()
-            if (request.header(HEADER_AUTHORIZATION) != null)
-                return@authenticator null
-            request.newBuilder().header(
-                HEADER_AUTHORIZATION,
-                Credentials.basic(CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD)
-            ).build()
-        }
         .build()
 
     @OptIn(ExperimentalSerializationApi::class)

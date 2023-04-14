@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         if (savedInstanceState == null) {
-            globalRouter.navigateTo(Screens.MainMenu())
+            globalRouter.replaceScreen(Screens.Login())
         }
     }
 

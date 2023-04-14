@@ -6,6 +6,7 @@ import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.elmstore.*
+import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenState
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenState
@@ -19,6 +20,7 @@ class GlobalDI private constructor() {
     val globalRouter by lazy { App.router }
     val apiService = ZulipApiFactory.apiService
 
+    val checkLoginUseCase by lazy { CheckLoginUseCase(repository) }
     val deleteEventQueueUseCase by lazy { DeleteEventQueueUseCase(repository) }
     val getChannelEventsUseCase by lazy { GetChannelEventsUseCase(repository) }
     val getChannelsUseCase by lazy { GetChannelsUseCase(repository) }
@@ -41,6 +43,12 @@ class GlobalDI private constructor() {
 
     fun getChannelsFilter(isAllChannels: Boolean) =
         ChannelsFilter(ChannelsFilter.NO_FILTER, !isAllChannels)
+
+    fun provideLoginStore(actor: LoginActor) = ElmStoreCompat(
+        initialState = LoginScreenState(),
+        reducer = LoginReducer(),
+        actor = actor
+    )
 
     fun provideProfileStore(initialState: ProfileScreenState, actor: ProfileActor) = ElmStoreCompat(
         initialState = initialState,

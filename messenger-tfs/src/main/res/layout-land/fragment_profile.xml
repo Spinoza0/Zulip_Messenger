@@ -88,6 +88,33 @@
         app:layout_constraintStart_toStartOf="@id/textViewName"
         app:layout_constraintTop_toBottomOf="@id/textViewName" />
 
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/barrierStatus"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="textViewStatusActive,textViewStatusIdle,textViewStatusOffline" />
+
+    <Button
+        android:id="@+id/buttonLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:backgroundTint="?attr/background_600_color"
+        android:paddingHorizontal="56dp"
+        android:paddingVertical="14dp"
+        android:text="@string/log_out"
+        android:textAllCaps="false"
+        android:textColor="?attr/text_200_color"
+        android:textSize="20sp"
+        android:visibility="gone"
+        app:cornerRadius="31dp"
+        app:layout_constraintBaseline_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="@id/textViewName"
+        app:layout_constraintTop_toBottomOf="@id/barrierStatus"
+        tools:visibility="visible" />
+
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmer"
         android:layout_width="wrap_content"

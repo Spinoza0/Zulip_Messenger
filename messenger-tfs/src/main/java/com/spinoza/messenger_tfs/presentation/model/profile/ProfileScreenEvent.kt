@@ -10,6 +10,8 @@ sealed class ProfileScreenEvent {
 
         object GoBack : Ui()
 
+        object Logout : Ui()
+
         object LoadCurrentUser : Ui()
 
         class LoadUser(val userId: Long) : Ui()

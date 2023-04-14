@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
+import okhttp3.Credentials
 
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
 // TODO: 2) пагинация для сообщений
@@ -26,6 +26,7 @@ import kotlinx.serialization.json.Json
 class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     private val messagesCache = MessagesCache()
+    private var authHeader = ""
     private var ownUser: UserDto = UserDto()
     private var isOwnUserLoaded = false
     private val apiService = GlobalDI.INSTANCE.apiService
@@ -34,9 +35,25 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         coerceInputValues = true
     }
 
+    override suspend fun checkLogin(email: String, password: String): Result<Boolean> =
+        withContext(Dispatchers.IO) {
+            runCatchingNonCancellation {
+                val response = apiService.fetchApiKey(email, password)
+                if (!response.isSuccessful) {
+                    throw RepositoryError(response.message())
+                }
+                val apiKeyResponse = response.getBodyOrThrow()
+                if (apiKeyResponse.result != RESULT_SUCCESS) {
+                    throw RepositoryError(apiKeyResponse.msg)
+                }
+                authHeader = Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
+                true
+            }
+        }
+
     override suspend fun setOwnStatusActive() {
         withContext(Dispatchers.IO) {
-            runCatchingNonCancellation { apiService.setOwnStatusActive() }
+            runCatchingNonCancellation { apiService.setOwnStatusActive(authHeader) }
         }
     }
 
@@ -48,14 +65,14 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             if (result.isSuccess) {
                 Result.success(ownUser.userId)
             } else {
-                Result.failure(result.exceptionOrNull() ?: RepositoryError(""))
+                Result.failure(result.exceptionOrNull() ?: RepositoryError(UNKNOWN_ERROR))
             }
         }
     }
 
     override suspend fun getOwnUser(): Result<User> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            val response = apiService.getOwnUser()
+            val response = apiService.getOwnUser(authHeader)
             if (!response.isSuccessful) {
                 throw RepositoryError(response.message())
             }
@@ -73,7 +90,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getUser(userId: Long): Result<User> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
-                val response = apiService.getUser(userId)
+                val response = apiService.getUser(authHeader, userId)
                 if (!response.isSuccessful) {
                     throw RepositoryError(response.message())
                 }
@@ -89,7 +106,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getUsersByFilter(usersFilter: String): Result<List<User>> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
-                val response = apiService.getAllUsers()
+                val response = apiService.getAllUsers(authHeader)
                 if (!response.isSuccessful) {
                     throw RepositoryError(response.message())
                 }
@@ -97,7 +114,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 if (allUsersResponse.result != RESULT_SUCCESS) {
                     throw RepositoryError(allUsersResponse.msg)
                 }
-                val presencesResponse = apiService.getAllPresences()
+                val presencesResponse = apiService.getAllPresences(authHeader)
                 if (presencesResponse.isSuccessful) {
                     makeAllUsersAnswer(usersFilter, allUsersResponse, presencesResponse.body())
                 } else {
@@ -114,6 +131,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                 getOwnUser()
             }
             val response = apiService.getMessages(
+                authHeader = authHeader,
                 anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
                 narrow = filter.createNarrowJsonWithOperator()
             )
@@ -141,7 +159,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             var streamsList: List<StreamDto> = emptyList()
             var errorMsg: String
             if (channelsFilter.isSubscribed) {
-                val response = apiService.getSubscribedStreams()
+                val response = apiService.getSubscribedStreams(authHeader)
                 errorMsg = response.message()
                 if (response.isSuccessful) {
                     val subscribedStreamsDto = response.getBodyOrThrow()
@@ -151,7 +169,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                     }
                 }
             } else {
-                val response = apiService.getAllStreams()
+                val response = apiService.getAllStreams(authHeader)
                 errorMsg = response.message()
                 if (response.isSuccessful) {
                     val allStreamsDto = response.getBodyOrThrow()
@@ -171,7 +189,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun getTopics(channel: Channel): Result<List<Topic>> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
-                val response = apiService.getTopics(channel.channelId)
+                val response = apiService.getTopics(authHeader, channel.channelId)
                 if (!response.isSuccessful) {
                     throw RepositoryError(response.message())
                 }
@@ -202,6 +220,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
                 val response = apiService.sendMessageToStream(
+                    authHeader,
                     filter.channel.channelId,
                     filter.topic.name,
                     content
@@ -223,7 +242,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            val response = apiService.getSingleMessage(messageId)
+            val response = apiService.getSingleMessage(authHeader, messageId)
             if (!response.isSuccessful) {
                 throw RepositoryError(response.message())
             }
@@ -238,7 +257,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     override suspend fun setMessagesFlagToRead(messageIds: List<Long>): Unit =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
-                apiService.setMessageFlagsToRead(Json.encodeToString(messageIds))
+                apiService.setMessageFlagsToRead(authHeader, Json.encodeToString(messageIds))
             }
         }
 
@@ -246,6 +265,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         filter: MessagesFilter,
     ): Long = runCatchingNonCancellation {
         val response = apiService.getMessages(
+            authHeader = authHeader,
             anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
             narrow = filter.createNarrowJsonWithOperator()
         )
@@ -266,6 +286,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     ): Result<EventsQueue> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             val response = apiService.registerEventQueue(
+                authHeader = authHeader,
                 narrow = messagesFilter.createNarrowJsonForEvents(),
                 eventTypes = Json.encodeToString(eventTypes.toStringsList())
             )
@@ -282,7 +303,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
     override suspend fun deleteEventQueue(queueId: String): Unit = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            apiService.deleteEventQueue(queueId)
+            apiService.deleteEventQueue(authHeader, queueId)
         }
     }
 
@@ -400,9 +421,9 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         CoroutineScope(Dispatchers.IO).launch {
             runCatchingNonCancellation {
                 if (isAddReaction) {
-                    apiService.addReaction(messageId, emoji.name)
+                    apiService.addReaction(authHeader, messageId, emoji.name)
                 } else {
-                    apiService.removeReaction(messageId, emoji.name)
+                    apiService.removeReaction(authHeader, messageId, emoji.name)
                 }
             }
         }
@@ -413,7 +434,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
     }
 
     private suspend fun getUserPresence(userId: Long): User.Presence = runCatchingNonCancellation {
-        val response = apiService.getUserPresence(userId)
+        val response = apiService.getUserPresence(authHeader, userId)
         if (!response.isSuccessful) {
             return@runCatchingNonCancellation User.Presence.OFFLINE
         }
@@ -433,7 +454,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         var isHeartBeat = true
         var responseBody: String
         do {
-            val response = apiService.getEventsFromQueue(queue.queueId, lastEventId)
+            val response = apiService.getEventsFromQueue(authHeader, queue.queueId, lastEventId)
             if (!response.isSuccessful) {
                 throw RepositoryError(response.message())
             }
@@ -493,6 +514,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         private const val RESULT_SUCCESS = "success"
         private const val EVENT_HEARTBEAT = "heartbeat"
+        private const val UNKNOWN_ERROR = ""
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
 

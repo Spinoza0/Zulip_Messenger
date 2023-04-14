@@ -19,6 +19,8 @@
     <color name="background_400_night">#1E1E1E</color>
     <color name="background_500">#1C1C1C</color>
     <color name="background_500_night">#1C1C1C</color>
+    <color name="background_600">#1B1B1B</color>
+    <color name="background_600_night">#1B1B1B</color>
     <color name="background_700">#121212</color>
     <color name="background_700_night">#121212</color>
     <color name="text_200">#FFFFFF</color>
@@ -70,8 +72,5 @@
     <color name="online">#4AB54D</color>
     <color name="idle">#FF9800</color>
     <color name="offline">#EF2516</color>
-
-    <!-- Fragment Profile -->
-    <color name="button_logout">#1B1B1B</color>
 
 </resources>

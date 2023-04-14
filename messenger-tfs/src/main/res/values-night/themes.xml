@@ -18,6 +18,7 @@
         <item name="background_300_color">@color/background_300_night</item>
         <item name="background_400_color">@color/background_400_night</item>
         <item name="background_500_color">@color/background_500_night</item>
+        <item name="background_600_color">@color/background_600_night</item>
         <item name="background_700_color">@color/background_700_night</item>
         <item name="text_200_color">@color/text_200_night</item>
         <item name="text_300_color">@color/text_300_night</item>
@@ -51,9 +52,6 @@
         <item name="underline_color">@color/underline_night</item>
         <item name="even_topic_color">@color/even_topic_night</item>
         <item name="odd_topic_color">@color/odd_topic_night</item>
-
-        <!-- Fragment Profile -->
-        <item name="button_logout_color">@color/button_logout</item>
 
     </style>
 </resources>
