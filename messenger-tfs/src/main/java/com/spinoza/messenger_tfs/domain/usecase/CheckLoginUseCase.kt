@@ -4,7 +4,7 @@ import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 
 class CheckLoginUseCase(private val repository: MessagesRepository) {
 
-    suspend operator fun invoke(email: String, password: String): Result<Boolean> {
-        return repository.checkLogin(email, password)
+    suspend operator fun invoke(apiKey: String, email: String, password: String): Result<String> {
+        return repository.checkLogin(apiKey, email, password)
     }
 }

@@ -11,7 +11,7 @@ import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenState
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenState
-import com.spinoza.messenger_tfs.presentation.utils.LoginStorageImpl
+import com.spinoza.messenger_tfs.presentation.elmstore.LoginStorageImpl
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 
@@ -20,6 +20,7 @@ class GlobalDI private constructor(context: Context) {
     private val repository by lazy { MessagesRepositoryImpl.getInstance() }
 
     val globalRouter by lazy { App.router }
+    val globalNavigatorHolder by lazy { App.navigatorHolder }
     val apiService = ZulipApiFactory.apiService
 
     val checkLoginUseCase by lazy { CheckLoginUseCase(repository) }

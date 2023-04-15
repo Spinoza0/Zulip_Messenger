@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.model.event.*
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
@@ -8,6 +7,7 @@ import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesRespons
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -35,9 +35,22 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         coerceInputValues = true
     }
 
-    override suspend fun checkLogin(email: String, password: String): Result<Boolean> =
+    override suspend fun checkLogin(
+        apiKey: String,
+        email: String,
+        password: String,
+    ): Result<String> =
         withContext(Dispatchers.IO) {
-            runCatchingNonCancellation {
+            var isApyKeyValid = false
+            if (apiKey.isNotEmpty()) {
+                authHeader = Credentials.basic(email, apiKey)
+                getOwnUser().onSuccess {
+                    isApyKeyValid = true
+                }
+            }
+            if (isApyKeyValid) {
+                Result.success(apiKey)
+            } else runCatchingNonCancellation {
                 val response = apiService.fetchApiKey(email, password)
                 if (!response.isSuccessful) {
                     throw RepositoryError(response.message())
@@ -47,7 +60,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
                     throw RepositoryError(apiKeyResponse.msg)
                 }
                 authHeader = Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
-                true
+                apiKeyResponse.apiKey
             }
         }
 

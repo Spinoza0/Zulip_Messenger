@@ -38,6 +38,7 @@ class LoginActor(
                 is LoginScreenCommand.NewEmailText -> newEmailStatus(command.value)
                 is LoginScreenCommand.NewPasswordText -> newPasswordStatus(command.value)
                 is LoginScreenCommand.ButtonPressed -> checkUserLogin(
+                    command.apiKey,
                     command.email,
                     command.password
                 )
@@ -65,10 +66,14 @@ class LoginActor(
         return LoginScreenEvent.Internal.Idle
     }
 
-    private suspend fun checkUserLogin(email: String, password: String): LoginScreenEvent.Internal {
+    private suspend fun checkUserLogin(
+        apiKey: String,
+        email: String,
+        password: String,
+    ): LoginScreenEvent.Internal {
         var event: LoginScreenEvent.Internal = LoginScreenEvent.Internal.Idle
-        checkLoginUseCase(email.trim(), password.trim()).onSuccess {
-            event = LoginScreenEvent.Internal.LoginSuccess(email, password)
+        checkLoginUseCase(apiKey, email.trim(), password.trim()).onSuccess { apiKeyResult ->
+            event = LoginScreenEvent.Internal.LoginSuccess(apiKeyResult, email, password)
         }.onFailure { error ->
             event = if (error is RepositoryError) {
                 LoginScreenEvent.Internal.ErrorLogin(error.value)

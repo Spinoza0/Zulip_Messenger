@@ -6,7 +6,6 @@ import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenEffect
 import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenEvent
 import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
-import com.spinoza.messenger_tfs.presentation.utils.LoginStorage
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 
 class LoginReducer(private val storage: LoginStorage) : ScreenDslReducer<
@@ -33,7 +32,7 @@ class LoginReducer(private val storage: LoginStorage) : ScreenDslReducer<
             effects { +LoginScreenEffect.ButtonStatus(isEmailValid && isPasswordNotEmpty) }
         }
         is LoginScreenEvent.Internal.LoginSuccess -> {
-            storage.saveData(event.email, event.password)
+            storage.saveData(event.apiKey, event.email, event.password)
             router.replaceScreen(Screens.MainMenu())
         }
         is LoginScreenEvent.Internal.ErrorLogin -> {
@@ -54,18 +53,19 @@ class LoginReducer(private val storage: LoginStorage) : ScreenDslReducer<
             commands { +LoginScreenCommand.NewPasswordText(event.value) }
         is LoginScreenEvent.Ui.ButtonPressed -> {
             state { copy(isCheckingLogin = true) }
-            commands { +LoginScreenCommand.ButtonPressed(event.email, event.password) }
+            commands { +LoginScreenCommand.ButtonPressed(NO_API_KEY, event.email, event.password) }
         }
         is LoginScreenEvent.Ui.CheckPreviousLogin -> {
             if (event.logout) {
                 storage.deleteData()
                 state { copy(isNeedLogin = true) }
             } else {
-                val password = storage.getPassword()
+                val apiKey = storage.getApiKey()
                 val email = storage.getEmail()
-                if (password.isNotEmpty() && email.isNotEmpty()) {
+                val password = storage.getPassword()
+                if (apiKey.isNotEmpty() && password.isNotEmpty() && email.isNotEmpty()) {
                     state { copy(isNeedLogin = false) }
-                    commands { +LoginScreenCommand.ButtonPressed(email, password) }
+                    commands { +LoginScreenCommand.ButtonPressed(apiKey, email, password) }
                 } else {
                     state { copy(isNeedLogin = true) }
                 }
@@ -73,5 +73,10 @@ class LoginReducer(private val storage: LoginStorage) : ScreenDslReducer<
         }
         is LoginScreenEvent.Ui.Exit -> router.exit()
         is LoginScreenEvent.Ui.Init -> {}
+    }
+
+    private companion object {
+
+        const val NO_API_KEY = ""
     }
 }

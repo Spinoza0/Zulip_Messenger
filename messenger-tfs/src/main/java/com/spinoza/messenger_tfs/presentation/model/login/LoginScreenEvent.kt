@@ -23,7 +23,7 @@ sealed class LoginScreenEvent {
 
         object Idle : Internal()
 
-        class LoginSuccess(val email: String, val password: String) : Internal()
+        class LoginSuccess(val apiKey: String, val email: String, val password: String) : Internal()
 
         class EmailStatus(val value: Boolean) : Internal()
 
