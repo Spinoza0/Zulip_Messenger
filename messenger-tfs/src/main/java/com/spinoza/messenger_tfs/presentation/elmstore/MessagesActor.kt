@@ -4,8 +4,8 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
@@ -122,8 +122,8 @@ class MessagesActor(
                             messagesResult.messages.groupByDate(userId), messagesResult.position
                         )
                     )
-                }.onFailure {
-                    event = handleErrors(it)
+                }.onFailure { error ->
+                    event = handleErrors(error)
                 }
             }
             event
@@ -133,27 +133,9 @@ class MessagesActor(
         withContext(Dispatchers.Default) {
             var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
             getMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
-                getOwnUserIdUseCase().onSuccess { userId ->
-                    event = MessagesScreenEvent.Internal.Messages(
-                        MessagesResultDelegate(
-                            messagesResult.messages.groupByDate(userId), messagesResult.position
-                        )
-                    )
-                    messagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
-                        registerQueue(EventType.MESSAGE)
-                    }
-                    deleteMessagesQueue =
-                        EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
-                            registerQueue(EventType.DELETE_MESSAGE)
-                        }
-                    reactionsQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
-                        registerQueue(EventType.REACTION)
-                    }
-                }.onFailure {
-                    event = handleErrors(it)
-                }
-            }.onFailure {
-                event = handleErrors(it)
+                event = handleMessages(messagesResult)
+            }.onFailure { error ->
+                event = handleErrors(error)
             }
             event
         }
@@ -194,9 +176,9 @@ class MessagesActor(
     }
 
     private suspend fun getMessagesEvent(): MessagesScreenEvent.Internal {
-        messagesQueue?.let {
+        messagesQueue?.let { queue ->
             return getEvent(
-                it, getMessageEventUseCase, ::onSuccessMessageEvent,
+                queue, getMessageEventUseCase, ::onSuccessMessageEvent,
                 MessagesScreenEvent.Internal.EmptyMessagesQueueEvent
             )
         }
@@ -204,9 +186,9 @@ class MessagesActor(
     }
 
     private suspend fun getDeleteMessagesEvent(): MessagesScreenEvent.Internal {
-        deleteMessagesQueue?.let {
+        deleteMessagesQueue?.let { queue ->
             return getEvent(
-                it, getDeleteMessageEventUseCase, ::onSuccessDeleteMessageEvent,
+                queue, getDeleteMessageEventUseCase, ::onSuccessDeleteMessageEvent,
                 MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent
             )
         }
@@ -214,9 +196,9 @@ class MessagesActor(
     }
 
     private suspend fun getReactionsEvent(): MessagesScreenEvent.Internal {
-        reactionsQueue?.let {
+        reactionsQueue?.let { queue ->
             return getEvent(
-                it, getReactionEventUseCase, ::onSuccessReactionEvent,
+                queue, getReactionEventUseCase, ::onSuccessReactionEvent,
                 MessagesScreenEvent.Internal.EmptyReactionsQueueEvent
             )
         }
@@ -236,7 +218,7 @@ class MessagesActor(
             event.messagesResult
         }
         return MessagesScreenEvent.Internal.MessagesEventFromQueue(
-            handleMessagesResult(messagesResult, userId)
+            getMessagesResultDelegate(messagesResult, userId)
         )
     }
 
@@ -247,7 +229,7 @@ class MessagesActor(
     ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
         return MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue(
-            handleMessagesResult(event.messagesResult, userId)
+            getMessagesResultDelegate(event.messagesResult, userId)
         )
     }
 
@@ -258,7 +240,7 @@ class MessagesActor(
     ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
         return MessagesScreenEvent.Internal.ReactionsEventFromQueue(
-            handleMessagesResult(event.messagesResult, userId)
+            getMessagesResultDelegate(event.messagesResult, userId)
         )
     }
 
@@ -280,13 +262,34 @@ class MessagesActor(
         emptyEvent
     }
 
-    private fun handleMessagesResult(
+    private fun getMessagesResultDelegate(
         messagesResult: MessagesResult,
         userId: Long,
     ): MessagesResultDelegate {
         return MessagesResultDelegate(
             messagesResult.messages.groupByDate(userId), messagesResult.position
         )
+    }
+
+    private suspend fun handleMessages(messagesResult: MessagesResult): MessagesScreenEvent.Internal {
+        var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
+        getOwnUserIdUseCase().onSuccess { userId ->
+            event = MessagesScreenEvent.Internal.Messages(
+                getMessagesResultDelegate(messagesResult, userId)
+            )
+            messagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
+                registerQueue(EventType.MESSAGE)
+            }
+            deleteMessagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
+                registerQueue(EventType.DELETE_MESSAGE)
+            }
+            reactionsQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
+                registerQueue(EventType.REACTION)
+            }
+        }.onFailure {
+            event = handleErrors(it)
+        }
+        return event
     }
 
     private fun handleErrors(error: Throwable): MessagesScreenEvent.Internal {
