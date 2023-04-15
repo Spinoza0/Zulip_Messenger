@@ -5,47 +5,38 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.App
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
-import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
-import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.people.PeopleAdapter
+import com.spinoza.messenger_tfs.presentation.elmstore.PeopleActor
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
-import com.spinoza.messenger_tfs.presentation.navigation.Screens
-import com.spinoza.messenger_tfs.presentation.state.PeopleScreenState
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleEvent
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
-import com.spinoza.messenger_tfs.presentation.viewmodel.PeopleFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.PeopleFragmentViewModelFactory
-import kotlinx.coroutines.launch
+import vivid.money.elmslie.android.base.ElmFragment
+import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
+import vivid.money.elmslie.android.storeholder.StoreHolder
 
-class PeopleFragment : Fragment() {
-
-    private val globalRouter = App.router
+class PeopleFragment : ElmFragment<PeopleEvent, PeopleScreenEffect, PeopleScreenState>() {
 
     private var _binding: FragmentPeopleBinding? = null
     private val binding: FragmentPeopleBinding
         get() = _binding ?: throw RuntimeException("FragmentPeopleBinding == null")
 
-    private val viewModel: PeopleFragmentViewModel by viewModels {
-        PeopleFragmentViewModelFactory(
-            GetUsersByFilterUseCase(MessagesRepositoryImpl.getInstance()),
-            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            GetPresenceEventsUseCase(MessagesRepositoryImpl.getInstance()),
-        )
+    override val initEvent: PeopleEvent
+        get() = PeopleEvent.Ui.Init
+
+    override val storeHolder:
+            StoreHolder<PeopleEvent, PeopleScreenEffect, PeopleScreenState> by lazy {
+        LifecycleAwareStoreHolder(lifecycle) {
+            GlobalDI.INSTANCE.providePeopleStore(PeopleActor(lifecycle))
+        }
     }
 
     override fun onCreateView(
@@ -58,10 +49,8 @@ class PeopleFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         setupRecyclerView()
         setupListeners()
-        setupObservers()
     }
 
     private fun setupRecyclerView() {
@@ -78,7 +67,7 @@ class PeopleFragment : Fragment() {
                     if (lastVisibleItemPosition == lastItem ||
                         firstVisibleItemPosition == firstItem
                     ) {
-                        viewModel.loadUsers()
+                        store.accept(PeopleEvent.Ui.Load)
                     }
                 }
             }
@@ -87,48 +76,43 @@ class PeopleFragment : Fragment() {
 
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
-            viewModel.doOnTextChanged(text)
+            store.accept(PeopleEvent.Ui.Filter(text.toString()))
         }
     }
 
-    private fun setupObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleState)
-            }
-        }
-    }
-
-    private fun handleState(state: PeopleScreenState) {
-        if (state !is PeopleScreenState.Loading) {
+    override fun render(state: PeopleScreenState) {
+        if (state.isLoading) {
+            binding.shimmerLarge.on()
+        } else {
             binding.shimmerLarge.off()
         }
-        when (state) {
-            is PeopleScreenState.Users ->
-                (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(state.value)
-            is PeopleScreenState.Loading -> if (peopleListIsEmpty()) {
-                binding.shimmerLarge.on()
+        state.users?.let {
+            (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(it) {
+                binding.recyclerViewUsers.scrollToPosition(FIRST_ITEM)
             }
-            is PeopleScreenState.Start -> viewModel.setUsersFilter(NO_FILTER)
-            is PeopleScreenState.Failure.LoadingUsers -> showError(
-                String.format(
-                    getString(R.string.error_loading_users),
-                    state.value
-                )
-            )
-            is PeopleScreenState.Failure.Network ->
-                showCheckInternetConnectionDialog(viewModel::loadUsers) {
-                    globalRouter.navigateTo(Screens.MainMenu())
+        }
+    }
+
+    override fun handleEffect(effect: PeopleScreenEffect) {
+        when (effect) {
+            is PeopleScreenEffect.Failure.ErrorLoadingUsers ->
+                showError(String.format(getString(R.string.error_loading_users), effect.value))
+            is PeopleScreenEffect.Failure.ErrorNetwork ->
+                showCheckInternetConnectionDialog(
+                    { store.accept(PeopleEvent.Ui.Load) }
+                ) {
+                    store.accept(PeopleEvent.Ui.OpenMainMenu)
                 }
         }
     }
 
-    private fun peopleListIsEmpty(): Boolean {
-        return (binding.recyclerViewUsers.adapter as PeopleAdapter).itemCount == NO_ITEMS
+    private fun onUserClickListener(userId: Long) {
+        store.accept(PeopleEvent.Ui.ShowUserInfo(userId))
     }
 
-    private fun onUserClickListener(userId: Long) {
-        globalRouter.navigateTo(Screens.UserProfile(userId))
+    override fun onResume() {
+        super.onResume()
+        store.accept(PeopleEvent.Ui.Filter(binding.editTextSearch.text.toString()))
     }
 
     override fun onPause() {
@@ -143,8 +127,7 @@ class PeopleFragment : Fragment() {
 
     companion object {
 
-        private const val NO_ITEMS = 0
-        private const val NO_FILTER = ""
+        private const val FIRST_ITEM = 0
 
         fun newInstance(): PeopleFragment {
             return PeopleFragment()

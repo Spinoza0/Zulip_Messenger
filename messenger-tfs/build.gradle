@@ -59,5 +59,9 @@ dependencies {
     implementation retrofit.converter
     implementation kotlinx.serializationJson
 
+    implementation elmslie.core
+    implementation elmslie.android
+    implementation elmslie.coroutines
+
     debugImplementation leakcanary
 }

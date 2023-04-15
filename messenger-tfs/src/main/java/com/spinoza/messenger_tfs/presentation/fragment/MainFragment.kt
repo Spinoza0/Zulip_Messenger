@@ -63,11 +63,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
                 }
             }
         }
-
-        requireActivity().onBackPressedDispatcher.addCallback(
-            requireActivity(),
-            onBackPressedCallback
-        )
+        requireActivity().onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
     }
 
     private fun setupNavigation() {

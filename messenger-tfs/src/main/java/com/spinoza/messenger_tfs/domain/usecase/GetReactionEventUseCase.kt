@@ -4,14 +4,14 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 
-class GetReactionEventUseCase(private val repository: MessagesRepository) {
+class GetReactionEventUseCase(private val repository: MessagesRepository) :
+    EventUseCase<ReactionEvent> {
 
-    suspend operator fun invoke(
+    override suspend operator fun invoke(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
-    ): RepositoryResult<ReactionEvent> {
+    ): Result<ReactionEvent> {
         return repository.getReactionEvent(queue, messagesFilter)
     }
 }

@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.domain.model
 
-class MessagePosition(
+data class MessagePosition(
     val type: Type = Type.UNDEFINED,
     val messageId: Long = Message.UNDEFINED_ID,
 ) {

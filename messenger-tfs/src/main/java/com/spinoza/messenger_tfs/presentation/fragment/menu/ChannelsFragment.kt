@@ -15,8 +15,9 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelsPagerAdapter
-import com.spinoza.messenger_tfs.presentation.model.SearchQuery
-import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
+import com.spinoza.messenger_tfs.presentation.model.channels.SearchQuery
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.viewmodel.ChannelsFragmentSharedViewModel
 import kotlinx.coroutines.launch
 
@@ -26,7 +27,7 @@ class ChannelsFragment : Fragment() {
     private val binding: FragmentChannelsBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsBinding == null")
 
-    private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()
+    private val sharedStore: ChannelsFragmentSharedViewModel by activityViewModels()
     private val searchFilters = arrayListOf("", "")
 
     private lateinit var tabLayoutMediator: TabLayoutMediator
@@ -81,25 +82,24 @@ class ChannelsFragment : Fragment() {
 
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
-            sharedViewModel.doOnTextChanged(SearchQuery(binding.viewPager.currentItem, text))
+            sharedStore.accept(
+                ChannelsScreenEvent.Ui.Filter(SearchQuery(binding.viewPager.currentItem, text))
+            )
         }
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                sharedViewModel.state.collect(::handleState)
+                sharedStore.state.collect(::handleState)
             }
         }
     }
 
     private fun handleState(state: ChannelsScreenState) {
-        when (state) {
-            is ChannelsScreenState.Filter -> {
-                if (state.value.screenPosition == binding.viewPager.currentItem)
-                    searchFilters[state.value.screenPosition] = state.value.text
-            }
-            is ChannelsScreenState.Idle -> {}
+        state.filter?.let { filter ->
+            if (filter.screenPosition == binding.viewPager.currentItem)
+                searchFilters[filter.screenPosition] = filter.text
         }
     }
 

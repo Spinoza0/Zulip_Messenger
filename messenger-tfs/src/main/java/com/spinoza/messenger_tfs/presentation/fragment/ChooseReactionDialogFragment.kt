@@ -27,6 +27,9 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
+        if (savedInstanceState != null) {
+            dismiss()
+        }
         _binding = FragmentDialogChooseReactionBinding.inflate(inflater, container, false)
         return binding.root
     }

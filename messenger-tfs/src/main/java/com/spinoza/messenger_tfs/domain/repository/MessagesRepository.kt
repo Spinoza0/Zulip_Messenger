@@ -5,58 +5,52 @@ import com.spinoza.messenger_tfs.domain.model.event.*
 
 interface MessagesRepository {
 
-    suspend fun getOwnUserId(): RepositoryResult<Long>
+    suspend fun getOwnUserId(): Result<Long>
 
-    suspend fun getOwnUser(): RepositoryResult<User>
+    suspend fun getOwnUser(): Result<User>
 
-    suspend fun getUser(userId: Long): RepositoryResult<User>
+    suspend fun getUser(userId: Long): Result<User>
 
-    suspend fun getUsersByFilter(usersFilter: String): RepositoryResult<List<User>>
+    suspend fun getUsersByFilter(usersFilter: String): Result<List<User>>
 
-    suspend fun getMessages(filter: MessagesFilter): RepositoryResult<MessagesResult>
+    suspend fun getMessages(filter: MessagesFilter): Result<MessagesResult>
 
-    suspend fun getChannels(channelsFilter: ChannelsFilter): RepositoryResult<List<Channel>>
+    suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>
 
-    suspend fun getTopics(channel: Channel): RepositoryResult<List<Topic>>
+    suspend fun getTopics(channel: Channel): Result<List<Topic>>
 
-    suspend fun getTopic(filter: MessagesFilter): RepositoryResult<Topic>
+    suspend fun getTopic(filter: MessagesFilter): Result<Topic>
 
-    suspend fun sendMessage(
-        content: String,
-        filter: MessagesFilter,
-    ): RepositoryResult<Long>
+    suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long>
 
     suspend fun updateReaction(
         messageId: Long,
         emoji: Emoji,
         filter: MessagesFilter,
-    ): RepositoryResult<MessagesResult>
+    ): Result<MessagesResult>
 
     suspend fun registerEventQueue(
         eventTypes: List<EventType>,
         messagesFilter: MessagesFilter,
-    ): RepositoryResult<EventsQueue>
+    ): Result<EventsQueue>
 
     suspend fun deleteEventQueue(queueId: String)
 
-    suspend fun getPresenceEvents(queue: EventsQueue): RepositoryResult<List<PresenceEvent>>
+    suspend fun getPresenceEvents(queue: EventsQueue): Result<List<PresenceEvent>>
 
-    suspend fun getChannelEvents(queue: EventsQueue): RepositoryResult<List<ChannelEvent>>
+    suspend fun getChannelEvents(queue: EventsQueue): Result<List<ChannelEvent>>
 
-    suspend fun getMessageEvent(
-        queue: EventsQueue,
-        filter: MessagesFilter,
-    ): RepositoryResult<MessageEvent>
+    suspend fun getMessageEvent(queue: EventsQueue, filter: MessagesFilter): Result<MessageEvent>
 
     suspend fun getDeleteMessageEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
-    ): RepositoryResult<DeleteMessageEvent>
+    ): Result<DeleteMessageEvent>
 
     suspend fun getReactionEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
-    ): RepositoryResult<ReactionEvent>
+    ): Result<ReactionEvent>
 
     suspend fun setOwnStatusActive()
 

@@ -2,99 +2,114 @@ package com.spinoza.messenger_tfs.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spinoza.messenger_tfs.App
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
+import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.model.ChannelItem
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelItem
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.channels.ChannelsPageScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
-import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
+import com.spinoza.messenger_tfs.presentation.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.utils.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-class ChannelsPageFragmentViewModel(
-    private val isAllChannels: Boolean,
-    private val getTopicsUseCase: GetTopicsUseCase,
-    private val getChannelsUseCase: GetChannelsUseCase,
-    private val getTopicUseCase: GetTopicUseCase,
-    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
-    private val getChannelEventsUseCase: GetChannelEventsUseCase,
-) : ViewModel() {
+class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewModel() {
 
-    val state: SharedFlow<ChannelsPageScreenState>
-        get() = _state.asSharedFlow()
+    val state: StateFlow<ChannelsPageScreenState>
+        get() = _state.asStateFlow()
 
-    private var channelsFilter = ChannelsFilter(ChannelsFilter.NO_FILTER, !isAllChannels)
+    val effects: SharedFlow<ChannelsPageScreenEffect>
+        get() = _effects.asSharedFlow()
 
-    private val _state =
-        MutableSharedFlow<ChannelsPageScreenState>(replay = 1)
+    private val router = GlobalDI.INSTANCE.globalRouter
+    private val getTopicsUseCase = GlobalDI.INSTANCE.getTopicsUseCase
+    private val getChannelsUseCase = GlobalDI.INSTANCE.getChannelsUseCase
+    private val getTopicUseCase = GlobalDI.INSTANCE.getTopicUseCase
+    private val getChannelEventsUseCase = GlobalDI.INSTANCE.getChannelEventsUseCase
+    private var channelsFilter = GlobalDI.INSTANCE.getChannelsFilter(isAllChannels)
 
-    private val cache = mutableListOf<DelegateAdapterItem>()
-    private val globalRouter = App.router
-    private var eventsQueue = EventsQueue()
+    private val _state = MutableStateFlow(ChannelsPageScreenState())
+    private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
+    private val cache = mutableListOf<DelegateAdapterItem>()
+    private var eventsQueue = EventsQueueProcessor(viewModelScope)
+    private var updateMessagesCountJob: Job? = null
 
     init {
         subscribeToChannelsQueryChanges()
         updateTopicsMessageCount()
     }
 
+    fun accept(event: ChannelsPageScreenEvent) {
+        when (event) {
+            is ChannelsPageScreenEvent.Ui.Filter -> setChannelsFilter(event.filter)
+            is ChannelsPageScreenEvent.Ui.Load -> loadItems()
+            is ChannelsPageScreenEvent.Ui.UpdateMessageCount -> updateMessagesCount()
+            is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
+            is ChannelsPageScreenEvent.Ui.OnTopicClick ->
+                router.navigateTo(Screens.Messages(event.messagesFilter))
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         cache.clear()
         viewModelScope.launch {
-            deleteEventQueueUseCase(eventsQueue.queueId)
+            eventsQueue.deleteQueue()
         }
     }
 
-    fun setChannelsFilter(newFilter: ChannelsFilter) {
+    private fun setChannelsFilter(newFilter: ChannelsFilter) {
         viewModelScope.launch {
             channelsQueryState.emit(newFilter)
         }
     }
 
-    fun loadItems() {
+    private fun loadItems() {
         viewModelScope.launch(Dispatchers.Default) {
-            _state.emit(ChannelsPageScreenState.Loading)
-            when (val result = getChannelsUseCase(channelsFilter)) {
-                is RepositoryResult.Success -> {
-                    updateCacheWithShowedTopicsSaving(result.value.toDelegateItem(isAllChannels))
-                    _state.emit(ChannelsPageScreenState.Items(cache.toList()))
-                    registerEventQueue()
-                }
-                is RepositoryResult.Failure -> handleErrors(result)
+            _state.emit(state.value.copy(isLoading = true))
+            val result = getChannelsUseCase(channelsFilter)
+            _state.emit(state.value.copy(isLoading = false))
+            result.onSuccess {
+                updateCacheWithShowedTopicsSaving(it.toDelegateItem(isAllChannels))
+                _state.emit(state.value.copy(items = cache.toList()))
+                eventsQueue.registerQueue(EventType.CHANNEL, ::handleOnSuccessQueueRegistration)
+            }.onFailure {
+                handleErrors(it)
             }
         }
     }
 
-    fun updateMessagesCount() {
-        viewModelScope.launch(Dispatchers.Default) {
+    private fun updateMessagesCount() {
+        updateMessagesCountJob = viewModelScope.launch(Dispatchers.Default) {
             for (i in 0 until cache.size) {
-                if (cache[i] is TopicDelegateItem) {
-                    val messagesFilter = cache[i].content() as MessagesFilter
-                    val result = getTopicUseCase(messagesFilter)
-                    if (result is RepositoryResult.Success) {
-                        cache[i] = TopicDelegateItem(messagesFilter.copy(topic = result.value))
+                if (!isActive) return@launch
+                runCatching {
+                    if (cache[i] is TopicDelegateItem) {
+                        val messagesFilter = cache[i].content() as MessagesFilter
+                        getTopicUseCase(messagesFilter).onSuccess {
+                            cache[i] = TopicDelegateItem(messagesFilter.copy(topic = it))
+                        }
                     }
                 }
             }
-            _state.emit(ChannelsPageScreenState.TopicMessagesCountUpdate(cache.toList()))
+            _state.emit(state.value.copy(items = cache.toList()))
         }
     }
 
-    fun onChannelClickListener(channelItem: ChannelItem) {
+    private fun onChannelClickListener(channelItem: ChannelItem) {
         viewModelScope.launch(Dispatchers.Default) {
-            _state.emit(ChannelsPageScreenState.Loading)
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -105,6 +120,12 @@ class ChannelsPageFragmentViewModel(
             if (oldChannelDelegateItem != null) {
                 val index = cache.indexOf(oldChannelDelegateItem)
                 val oldChannelItem = oldChannelDelegateItem.content() as ChannelItem
+                if (!oldChannelItem.isFolded) {
+                    updateMessagesCountJob?.let {
+                        it.cancel()
+                        updateMessagesCountJob = null
+                    }
+                }
                 val newChannelDelegateItem = ChannelDelegateItem(
                     oldChannelItem.copy(isFolded = !oldChannelItem.isFolded)
                 )
@@ -127,14 +148,10 @@ class ChannelsPageFragmentViewModel(
                     }
                     cache.subList(index + 1, nextIndex).clear()
                 }
-                _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                _state.emit(state.value.copy(items = cache.toList()))
                 updateMessagesCount()
             }
         }
-    }
-
-    fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        globalRouter.navigateTo(Screens.Messages(messagesFilter))
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -150,29 +167,16 @@ class ChannelsPageFragmentViewModel(
             .launchIn(viewModelScope)
     }
 
-    private fun registerEventQueue() {
-        viewModelScope.launch {
-            when (val queueResult = registerEventQueueUseCase(listOf(EventType.CHANNEL))) {
-                is RepositoryResult.Success -> {
-                    eventsQueue = queueResult.value
-                    handleOnSuccessQueueRegistration()
-                }
-                is RepositoryResult.Failure -> handleErrors(queueResult)
-            }
-        }
-    }
-
     private fun handleOnSuccessQueueRegistration() {
-        viewModelScope.launch {
-            while (true) {
+        viewModelScope.launch(Dispatchers.Default) {
+            while (isActive) {
                 delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
-                val eventResult = getChannelEventsUseCase(eventsQueue)
-                if (eventResult is RepositoryResult.Success) {
+                getChannelEventsUseCase(eventsQueue.queue).onSuccess { events ->
                     val channels = mutableListOf<Channel>()
                     channels.addAll(cache
                         .filterIsInstance<ChannelDelegateItem>()
                         .filter { channelDelegateItem ->
-                            val event = eventResult.value.find { channelEvent ->
+                            val event = events.find { channelEvent ->
                                 channelEvent.channel.channelId == channelDelegateItem.id()
                             }
                             if (event == null) true
@@ -181,17 +185,17 @@ class ChannelsPageFragmentViewModel(
                             }
                         }.map { (it.content() as ChannelItem).channel }
                     )
-                    var lastEventId = eventsQueue.lastEventId
-                    eventResult.value
+                    var lastEventId = eventsQueue.queue.lastEventId
+                    events
                         .filter { it.operation != ChannelEvent.Operation.DELETE }
                         .filter { !channels.contains(it.channel) }
                         .forEach {
                             lastEventId = it.id
                             channels.add(it.channel)
                         }
-                    eventsQueue = eventsQueue.copy(lastEventId = lastEventId)
+                    eventsQueue.queue = eventsQueue.queue.copy(lastEventId = lastEventId)
                     updateCacheWithShowedTopicsSaving(channels.toDelegateItem(isAllChannels))
-                    _state.emit(ChannelsPageScreenState.Items(cache.toList()))
+                    _state.emit(state.value.copy(items = cache.toList()))
                 }
             }
         }
@@ -244,42 +248,35 @@ class ChannelsPageFragmentViewModel(
     }
 
     private suspend fun addTopicsToCache(channelItem: ChannelItem, index: Int = UNDEFINED_INDEX) {
-        when (val topicsResult = getTopicsUseCase(channelItem.channel)) {
-            is RepositoryResult.Success -> {
-                val topics = topicsResult.value.toDelegateItem(channelItem.channel)
-                if (index != UNDEFINED_INDEX)
-                    cache.addAll(index, topics)
-                else
-                    cache.addAll(topics)
-            }
-            is RepositoryResult.Failure -> handleErrors(topicsResult)
+        _state.emit(state.value.copy(isLoading = true))
+        val topicsResult = getTopicsUseCase(channelItem.channel)
+        _state.emit(state.value.copy(isLoading = false))
+        topicsResult.onSuccess {
+            val topics = it.toDelegateItem(channelItem.channel)
+            if (index != UNDEFINED_INDEX)
+                cache.addAll(index, topics)
+            else
+                cache.addAll(topics)
+        }.onFailure {
+            handleErrors(it)
         }
     }
 
-    private suspend fun handleErrors(error: RepositoryResult.Failure) {
-        when (error) {
-            is RepositoryResult.Failure.LoadingChannels -> _state.emit(
-                ChannelsPageScreenState.Failure.LoadingChannels(
-                    error.channelsFilter,
-                    error.value
-                )
-            )
-            is RepositoryResult.Failure.LoadingChannelTopics -> _state.emit(
-                ChannelsPageScreenState.Failure.LoadingChannelTopics(
-                    error.channel,
-                    error.value
-                )
-            )
-            is RepositoryResult.Failure.Network ->
-                _state.emit(ChannelsPageScreenState.Failure.Network(error.value))
-            else -> {}
+    private suspend fun handleErrors(error: Throwable) {
+        val channelsPageScreenEffect = if (error is RepositoryError) {
+            ChannelsPageScreenEffect.Failure.Error(error.value)
+        } else {
+            ChannelsPageScreenEffect.Failure.Network(error.getErrorText())
         }
+        _effects.emit(channelsPageScreenEffect)
     }
 
     private fun updateTopicsMessageCount() {
         viewModelScope.launch {
-            delay(DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO)
-            updateMessagesCount()
+            while (isActive) {
+                delay(DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO)
+                updateMessagesCount()
+            }
         }
     }
 

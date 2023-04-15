@@ -10,19 +10,19 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
-import com.spinoza.messenger_tfs.domain.usecase.*
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.presentation.adapter.channels.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.channels.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.delegate.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.fragment.closeApplication
 import com.spinoza.messenger_tfs.presentation.fragment.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.fragment.showError
-import com.spinoza.messenger_tfs.presentation.state.ChannelsPageScreenState
-import com.spinoza.messenger_tfs.presentation.state.ChannelsScreenState
+import com.spinoza.messenger_tfs.presentation.model.channels.*
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.ui.off
 import com.spinoza.messenger_tfs.presentation.ui.on
@@ -39,18 +39,10 @@ class ChannelsPageFragment : Fragment() {
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
 
-    private val viewModel: ChannelsPageFragmentViewModel by viewModels {
-        ChannelsPageFragmentViewModelFactory(
-            isAllChannels,
-            GetTopicsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetChannelsUseCase(MessagesRepositoryImpl.getInstance()),
-            GetTopicUseCase(MessagesRepositoryImpl.getInstance()),
-            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            GetChannelEventsUseCase(MessagesRepositoryImpl.getInstance()),
-        )
+    private val store: ChannelsPageFragmentViewModel by viewModels {
+        ChannelsPageFragmentViewModelFactory(isAllChannels)
     }
-    private val sharedViewModel: ChannelsFragmentSharedViewModel by activityViewModels()
+    private val sharedStore: ChannelsFragmentSharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -71,80 +63,95 @@ class ChannelsPageFragment : Fragment() {
     private fun setupRecyclerView() {
         val delegateAdapter = MainDelegateAdapter()
         delegateAdapter.addDelegate(
-            ChannelDelegate(
-                getString(R.string.channel_name_template),
-                viewModel::onChannelClickListener
-            )
+            ChannelDelegate(getString(R.string.channel_name_template), ::onChannelClickListener)
         )
         delegateAdapter.addDelegate(
             TopicDelegate(
                 requireContext().getThemeColor(R.attr.even_topic_color),
                 requireContext().getThemeColor(R.attr.odd_topic_color),
-                viewModel::onTopicClickListener
+                ::onTopicClickListener
             )
         )
         binding.recyclerViewChannels.adapter = delegateAdapter
+        binding.recyclerViewChannels.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+                val lastItem = layoutManager.itemCount - 1
+                val firstItem = 0
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    if (lastVisibleItemPosition == lastItem ||
+                        firstVisibleItemPosition == firstItem
+                    ) {
+                        updateChannelsList()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun onChannelClickListener(channelItem: ChannelItem) {
+        store.accept(ChannelsPageScreenEvent.Ui.OnChannelClick(channelItem))
+    }
+
+    private fun onTopicClickListener(messagesFilter: MessagesFilter) {
+        store.accept(ChannelsPageScreenEvent.Ui.OnTopicClick(messagesFilter))
     }
 
     private fun setupObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleState)
+                store.state.collect(::handleState)
             }
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                sharedViewModel.state.collect(::handleSharedScreenState)
+                sharedStore.state.collect(::handleSharedScreenState)
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                store.effects.collect(::handleEffect)
             }
         }
     }
 
     private fun handleState(state: ChannelsPageScreenState) {
-        if (state !is ChannelsPageScreenState.Loading) {
+        if (state.isLoading) {
+            binding.shimmerLarge.on()
+        } else {
             binding.shimmerLarge.off()
         }
-        when (state) {
-            is ChannelsPageScreenState.Items ->
-                (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
-                    .submitList(state.value)
-            is ChannelsPageScreenState.TopicMessagesCountUpdate ->
-                (binding.recyclerViewChannels.adapter as MainDelegateAdapter)
-                    .submitList(state.value)
-            is ChannelsPageScreenState.Loading -> binding.shimmerLarge.on()
-            is ChannelsPageScreenState.Failure -> handleErrors(state)
+        state.items?.let {
+            (binding.recyclerViewChannels.adapter as MainDelegateAdapter).submitList(it)
         }
     }
 
-    private fun handleErrors(error: ChannelsPageScreenState.Failure) {
-        when (error) {
-            is ChannelsPageScreenState.Failure.LoadingChannels -> showError(
-                String.format(
-                    getString(R.string.error_loading_channels),
-                    error.channelsFilter.name,
-                    error.value
-                )
+    private fun handleEffect(effect: ChannelsPageScreenEffect) {
+        when (effect) {
+            is ChannelsPageScreenEffect.Failure.Error -> showError(
+                String.format(getString(R.string.error_channels), effect.value)
             )
-            is ChannelsPageScreenState.Failure.LoadingChannelTopics -> showError(
-                String.format(
-                    getString(R.string.error_loading_topics),
-                    error.channel.name,
-                    error.value
-                )
-            )
-            is ChannelsPageScreenState.Failure.Network ->
-                showCheckInternetConnectionDialog(viewModel::loadItems) { closeApplication() }
+            is ChannelsPageScreenEffect.Failure.Network ->
+                showCheckInternetConnectionDialog(
+                    { store.accept(ChannelsPageScreenEvent.Ui.Load) }
+                ) {
+                    closeApplication()
+                }
         }
     }
 
     private fun handleSharedScreenState(state: ChannelsScreenState) {
-        when (state) {
-            is ChannelsScreenState.Idle -> {}
-            is ChannelsScreenState.Filter -> {
-                val filterIsAllChannels = state.value.screenPosition % 2 != 0
-                if (filterIsAllChannels == isAllChannels) {
-                    viewModel.setChannelsFilter(ChannelsFilter(state.value.text, !isAllChannels))
-                }
+        state.filter?.let { filter ->
+            val filterIsAllChannels = filter.screenPosition % 2 != 0
+            if (filterIsAllChannels == isAllChannels) {
+                store.accept(
+                    ChannelsPageScreenEvent.Ui.Filter(ChannelsFilter(filter.text, !isAllChannels))
+                )
             }
         }
     }
@@ -155,7 +162,14 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.updateMessagesCount()
+        updateChannelsList()
+    }
+
+    private fun updateChannelsList() {
+        if ((binding.recyclerViewChannels.adapter as MainDelegateAdapter).itemCount == NO_ITEMS) {
+            store.accept(ChannelsPageScreenEvent.Ui.Load)
+        }
+        store.accept(ChannelsPageScreenEvent.Ui.UpdateMessageCount)
     }
 
     override fun onPause() {
@@ -173,6 +187,7 @@ class ChannelsPageFragment : Fragment() {
     companion object {
 
         private const val PARAM_IS_ALL_CHANNELS = "isAllChannels"
+        private const val NO_ITEMS = 0
 
         fun newInstance(isAllChannels: Boolean): ChannelsPageFragment {
             return ChannelsPageFragment().apply {

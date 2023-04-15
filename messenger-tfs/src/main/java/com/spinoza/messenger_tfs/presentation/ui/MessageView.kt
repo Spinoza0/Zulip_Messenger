@@ -11,7 +11,7 @@ import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.model.Emoji
-import com.spinoza.messenger_tfs.domain.model.FlexBoxGravity
+import com.spinoza.messenger_tfs.presentation.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 

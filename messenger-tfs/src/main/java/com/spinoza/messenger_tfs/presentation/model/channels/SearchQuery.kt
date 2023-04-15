@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.model
+package com.spinoza.messenger_tfs.presentation.model.channels
 
 data class SearchQuery(
     val screenPosition: Int,

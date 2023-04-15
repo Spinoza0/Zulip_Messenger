@@ -3,7 +3,6 @@ package com.spinoza.messenger_tfs.data.repository
 import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperator
 import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperatorItemDto
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.domain.repository.RepositoryResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -18,20 +17,6 @@ suspend fun <R> runCatchingNonCancellation(block: suspend () -> R): Result<R> {
         Result.failure(e)
     }
 }
-
-suspend fun <R> runCatchingGetRepositoryResult(
-    block: suspend () -> RepositoryResult<R>,
-): RepositoryResult<R> {
-    return try {
-        block()
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: Exception) {
-        RepositoryResult.Failure.Network(e.getErrorText())
-    }
-}
-
-fun Throwable.getErrorText(): String = localizedMessage ?: message ?: toString()
 
 fun MessagesFilter.createNarrowJsonWithOperator(): String {
     val narrow = mutableListOf<NarrowOperatorItemDto>()

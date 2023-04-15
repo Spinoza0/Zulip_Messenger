@@ -1,22 +1,17 @@
 package com.spinoza.messenger_tfs.presentation.fragment
 
 import android.os.Bundle
+import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.App
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.usecase.*
@@ -27,18 +22,19 @@ import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessag
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.message.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.model.MessagesResultDelegate
-import com.spinoza.messenger_tfs.presentation.navigation.Screens
-import com.spinoza.messenger_tfs.presentation.state.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.elmstore.MessagesActor
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesResultDelegate
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenEffect
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenEvent
+import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.ui.*
-import com.spinoza.messenger_tfs.presentation.viewmodel.MessagesFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.viewmodel.factory.MessagesFragmentViewModelFactory
-import kotlinx.coroutines.launch
+import vivid.money.elmslie.android.base.ElmFragment
+import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
+import vivid.money.elmslie.android.storeholder.StoreHolder
 import java.util.*
 
-class MessagesFragment : Fragment() {
-
-    private val globalRouter = App.router
+class MessagesFragment :
+    ElmFragment<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState>() {
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
@@ -46,24 +42,17 @@ class MessagesFragment : Fragment() {
 
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
-    private var isGoingBack = false
+    private var recyclerViewState: Parcelable? = null
 
-    private val viewModel: MessagesFragmentViewModel by viewModels {
-        MessagesFragmentViewModelFactory(
-            messagesFilter,
-            GetOwnUserIdUseCase(MessagesRepositoryImpl.getInstance()),
-            GetMessagesUseCase(MessagesRepositoryImpl.getInstance()),
-            SendMessageUseCase(MessagesRepositoryImpl.getInstance()),
-            UpdateReactionUseCase(MessagesRepositoryImpl.getInstance()),
-            RegisterEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            DeleteEventQueueUseCase(MessagesRepositoryImpl.getInstance()),
-            GetMessageEventUseCase(MessagesRepositoryImpl.getInstance()),
-            GetDeleteMessageEventUseCase(MessagesRepositoryImpl.getInstance()),
-            GetReactionEventUseCase(MessagesRepositoryImpl.getInstance()),
-            SetOwnStatusActiveUseCase(MessagesRepositoryImpl.getInstance()),
-            SetMessagesFlagToReadUserCase(MessagesRepositoryImpl.getInstance()),
-        )
+    override val storeHolder:
+            StoreHolder<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState> by lazy {
+        LifecycleAwareStoreHolder(lifecycle) {
+            GlobalDI.INSTANCE.provideMessagesStore(MessagesActor(lifecycle))
+        }
     }
+
+    override val initEvent: MessagesScreenEvent
+        get() = MessagesScreenEvent.Ui.Init
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,
@@ -74,10 +63,9 @@ class MessagesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        parseParams()
+        parseParams(savedInstanceState)
         setupRecyclerView()
         setupStatusBar()
-        setupObservers()
         setupListeners()
         setupScreen()
     }
@@ -93,10 +81,7 @@ class MessagesFragment : Fragment() {
                 goBack()
             }
         }
-        requireActivity().onBackPressedDispatcher.addCallback(
-            requireActivity(),
-            onBackPressedCallback
-        )
+        requireActivity().onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
     }
 
     private fun setupStatusBar() {
@@ -110,14 +95,10 @@ class MessagesFragment : Fragment() {
         val messagesAdapter = MainDelegateAdapter().apply {
             addDelegate(
                 UserMessageDelegate(
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener,
-                    ::onAvatarClickListener
+                    ::onReactionAddClickListener, ::onReactionClickListener, ::onAvatarClickListener
                 )
             )
-            addDelegate(
-                OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener)
-            )
+            addDelegate(OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener))
             addDelegate(DateDelegate())
         }
         binding.recyclerViewMessages.adapter = messagesAdapter
@@ -126,122 +107,110 @@ class MessagesFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 showArrowDown()
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                val adapter = binding.recyclerViewMessages.adapter as MainDelegateAdapter
-                val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
-                val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
-                val messageIds = mutableListOf<Long>()
-                for (i in firstVisiblePosition..lastVisiblePosition) {
-                    val item = adapter.getItem(i)
-                    if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
-                        messageIds.add((item.content() as Message).id)
-                    }
-                }
-                viewModel.setMessageReadFlags(messageIds)
+                store.accept(MessagesScreenEvent.Ui.VisibleMessages(getVisibleMessagesIds()))
             }
         })
     }
 
-    private fun setupObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::handleState)
-            }
-        }
-    }
-
     private fun setupListeners() {
-        binding.toolbar.setNavigationOnClickListener {
-            goBack()
-        }
-        binding.imageViewAction.setOnClickListener {
-            viewModel.sendMessage(binding.editTextMessage.text.toString())
-        }
-        binding.editTextMessage.doOnTextChanged { text, _, _, _ ->
-            viewModel.doOnTextChanged(text)
-        }
-        binding.imageViewArrow.setOnClickListener {
-            binding.recyclerViewMessages.smoothScrollToLastPosition()
-        }
-    }
-
-    private fun handleState(state: MessagesScreenState) {
-        if (state !is MessagesScreenState.Loading) {
-            binding.shimmerLarge.off()
-        }
-        if (state !is MessagesScreenState.SendingMessage) {
-            binding.shimmerSending.off()
-        }
-        when (state) {
-            is MessagesScreenState.Messages -> {
-                submitMessages(state.value)
-            }
-            is MessagesScreenState.UpdateIconImage -> {
-                binding.imageViewAction.setImageResource(state.resId)
-            }
-            is MessagesScreenState.MessageSent -> {
-                binding.editTextMessage.text?.clear()
-            }
-            is MessagesScreenState.ReactionSent -> {}
-            is MessagesScreenState.Loading -> {
-                if (messagesListIsEmpty()) binding.shimmerLarge.on()
-            }
-            is MessagesScreenState.Failure -> {
-                handleErrors(state)
-            }
-            is MessagesScreenState.SendingMessage -> binding.shimmerSending.on()
-        }
-    }
-
-    private fun handleErrors(error: MessagesScreenState.Failure) {
-        when (error) {
-            is MessagesScreenState.Failure.MessageNotFound -> showError(
-                String.format(getString(R.string.error_message_not_found), error.messageId)
-            )
-            is MessagesScreenState.Failure.UserNotFound -> showError(
-                String.format(getString(R.string.error_user_not_found), error.userId)
-            )
-            is MessagesScreenState.Failure.SendingMessage -> showError(
-                String.format(getString(R.string.error_sending_message), error.value)
-            )
-            is MessagesScreenState.Failure.UpdatingReaction -> showError(
-                String.format(getString(R.string.error_updating_reaction), error.value)
-            )
-            is MessagesScreenState.Failure.OwnUserNotFound -> {
-                showError(String.format(getString(R.string.error_loading_user), error.value))
+        with(binding) {
+            toolbar.setNavigationOnClickListener {
                 goBack()
             }
-            is MessagesScreenState.Failure.Network -> {
-                showError(String.format(getString(R.string.error_network), error.value))
-                showCheckInternetConnectionDialog(viewModel::loadMessages) { goBack() }
+            imageViewAction.setOnClickListener {
+                store.accept(MessagesScreenEvent.Ui.SendMessage(editTextMessage.text))
             }
-            is MessagesScreenState.Failure.LoadingMessages -> showError(
-                String.format(
-                    getString(R.string.error_loading_messages),
-                    error.messagesFilter.channel.name,
-                    error.messagesFilter.topic.name,
-                    error.value
-                )
-            )
+            editTextMessage.doOnTextChanged { text, _, _, _ ->
+                store.accept(MessagesScreenEvent.Ui.NewMessageText(text))
+            }
+            imageViewArrow.setOnClickListener {
+                binding.recyclerViewMessages.smoothScrollToLastPosition()
+            }
         }
     }
 
-    private fun submitMessages(result: MessagesResultDelegate) {
-        val messagesAdapter =
-            binding.recyclerViewMessages.adapter as MainDelegateAdapter
-        messagesAdapter.submitList(result.messages) {
-            when (result.position.type) {
-                MessagePosition.Type.LAST_POSITION ->
-                    binding.recyclerViewMessages.smoothScrollToLastPosition()
-                MessagePosition.Type.EXACTLY -> {
-                    binding.recyclerViewMessages.smoothScrollToMessage(
-                        result.position.messageId
-                    )
-                }
-                MessagePosition.Type.UNDEFINED -> {}
-            }
-            showArrowDown()
+    override fun render(state: MessagesScreenState) {
+        if (state.isLoading) {
+            if (messagesListIsEmpty()) binding.shimmerLarge.on()
+        } else {
+            binding.shimmerLarge.off()
         }
+        if (state.isSendingMessage) {
+            binding.shimmerSending.on()
+        } else {
+            binding.shimmerSending.off()
+        }
+        state.messages?.let {
+            (binding.recyclerViewMessages.adapter as MainDelegateAdapter).submitList(it.messages) {
+                scrollAfterSubmitMessages(it)
+            }
+
+        }
+        binding.imageViewAction.setImageResource(state.iconActionResId)
+    }
+
+    override fun handleEffect(effect: MessagesScreenEffect) {
+        when (effect) {
+            is MessagesScreenEffect.MessageSent -> binding.editTextMessage.text?.clear()
+            is MessagesScreenEffect.ShowChooseReactionDialog -> {
+                val dialog = ChooseReactionDialogFragment.newInstance(
+                    effect.messageId,
+                )
+                dialog.listener = ::updateReaction
+                dialog.show(
+                    requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG
+                )
+            }
+            is MessagesScreenEffect.Failure.ErrorMessages -> showError(
+                String.format(getString(R.string.error_messages), effect.value)
+            )
+            is MessagesScreenEffect.Failure.ErrorNetwork -> {
+                showError(String.format(getString(R.string.error_network), effect.value))
+                showCheckInternetConnectionDialog({
+                    store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
+                }) {
+                    goBack()
+                }
+            }
+        }
+    }
+
+    private fun getVisibleMessagesIds(): List<Long> {
+        val layoutManager = binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+        val adapter = binding.recyclerViewMessages.adapter as MainDelegateAdapter
+        var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+        if (firstVisiblePosition == UNDEFINED_POSITION) {
+            firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+        }
+        var lastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
+        if (lastVisiblePosition == UNDEFINED_POSITION) {
+            lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+        }
+        val messageIds = mutableListOf<Long>()
+        if (firstVisiblePosition != UNDEFINED_POSITION && lastVisiblePosition != UNDEFINED_POSITION)
+            for (i in firstVisiblePosition..lastVisiblePosition) {
+                val item = adapter.getItem(i)
+                if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
+                    messageIds.add((item.content() as Message).id)
+                }
+            }
+        return messageIds
+    }
+
+    private fun scrollAfterSubmitMessages(result: MessagesResultDelegate) {
+        if (recyclerViewState != null) {
+            binding.recyclerViewMessages.layoutManager?.onRestoreInstanceState(recyclerViewState)
+            recyclerViewState = null
+        } else when (result.position.type) {
+            MessagePosition.Type.LAST_POSITION ->
+                binding.recyclerViewMessages.smoothScrollToLastPosition()
+            MessagePosition.Type.EXACTLY -> {
+                binding.recyclerViewMessages.smoothScrollToMessage(result.position.messageId)
+            }
+            MessagePosition.Type.UNDEFINED -> {}
+        }
+        showArrowDown()
+        store.accept(MessagesScreenEvent.Ui.AfterSubmitMessages)
     }
 
     private fun showArrowDown() {
@@ -253,30 +222,27 @@ class MessagesFragment : Fragment() {
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
-        globalRouter.navigateTo(Screens.UserProfile(messageView.userId))
+        store.accept(MessagesScreenEvent.Ui.ShowUserInfo(messageView))
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
-        val dialog = ChooseReactionDialogFragment.newInstance(
-            messageView.messageId,
-        )
-        dialog.listener = viewModel::updateReaction
-        dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
+        store.accept(MessagesScreenEvent.Ui.ShowChooseReactionDialog(messageView))
     }
 
     private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
-        viewModel.updateReaction(messageView.messageId, reactionView.emoji)
+        updateReaction(messageView.messageId, reactionView.emoji)
+    }
+
+    private fun updateReaction(messageId: Long, emoji: Emoji) {
+        store.accept(MessagesScreenEvent.Ui.UpdateReaction(messageId, emoji))
     }
 
     private fun goBack() {
-        if (!isGoingBack) {
-            isGoingBack = true
-            globalRouter.exit()
-        }
+        store.accept(MessagesScreenEvent.Ui.Exit)
     }
 
     @Suppress("deprecation")
-    private fun parseParams() {
+    private fun parseParams(savedInstanceState: Bundle?) {
         val newMessagesFilter = arguments?.getParam<MessagesFilter>(PARAM_CHANNEL_FILTER)
         if (newMessagesFilter == null ||
             newMessagesFilter.channel.channelId == Channel.UNDEFINED_ID ||
@@ -285,6 +251,9 @@ class MessagesFragment : Fragment() {
             goBack()
         } else {
             messagesFilter = newMessagesFilter
+        }
+        savedInstanceState?.let {
+            recyclerViewState = it.getParcelable(PARAM_RECYCLERVIEW_STATE)
         }
     }
 
@@ -295,6 +264,13 @@ class MessagesFragment : Fragment() {
     override fun onStart() {
         super.onStart()
         setupOnBackPressedCallback()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (messagesListIsEmpty()) {
+            store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
+        }
     }
 
     override fun onPause() {
@@ -308,6 +284,12 @@ class MessagesFragment : Fragment() {
         onBackPressedCallback.remove()
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        recyclerViewState = binding.recyclerViewMessages.layoutManager?.onSaveInstanceState()
+        outState.putParcelable(PARAM_RECYCLERVIEW_STATE, recyclerViewState)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         (binding.recyclerViewMessages.adapter as MainDelegateAdapter).clear()
@@ -317,7 +299,9 @@ class MessagesFragment : Fragment() {
     companion object {
 
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
+        private const val PARAM_RECYCLERVIEW_STATE = "recyclerViewState"
         private const val NO_ITEMS = 0
+        private const val UNDEFINED_POSITION = -1
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {
