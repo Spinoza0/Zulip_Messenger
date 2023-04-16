@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.di
 
 import android.content.Context
+import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import dagger.BindsInstance
@@ -14,6 +15,8 @@ interface ApplicationComponent {
     fun messagesRepository(): MessagesRepository
 
     fun globalRouter(): Router
+
+    fun globalNavigatorHolder(): NavigatorHolder
 
     @Component.Factory
     interface Factory {

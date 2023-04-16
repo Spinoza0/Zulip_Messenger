@@ -21,7 +21,6 @@ class GlobalDI private constructor() {
     private val repository by lazy { MessagesRepositoryImpl.getInstance() }
 
     val globalRouter by lazy { App.router }
-    val globalNavigatorHolder by lazy { App.navigatorHolder }
     val apiService = ZulipApiFactory.apiService
 
     val deleteEventQueueUseCase by lazy { DeleteEventQueueUseCase(repository) }
