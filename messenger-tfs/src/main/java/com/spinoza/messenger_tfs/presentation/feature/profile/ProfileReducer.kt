@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.profile
 
-import com.spinoza.messenger_tfs.di.GlobalDI
+import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
@@ -8,7 +8,7 @@ import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScree
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 
-class ProfileReducer : ScreenDslReducer<
+class ProfileReducer(private val router: Router) : ScreenDslReducer<
         ProfileScreenEvent,
         ProfileScreenEvent.Ui,
         ProfileScreenEvent.Internal,
@@ -17,8 +17,6 @@ class ProfileReducer : ScreenDslReducer<
         ProfileScreenCommand>(
     ProfileScreenEvent.Ui::class, ProfileScreenEvent.Internal::class
 ) {
-
-    private val router = GlobalDI.INSTANCE.globalRouter
 
     override fun Result.internal(event: ProfileScreenEvent.Internal) = when (event) {
         is ProfileScreenEvent.Internal.UserLoaded -> {

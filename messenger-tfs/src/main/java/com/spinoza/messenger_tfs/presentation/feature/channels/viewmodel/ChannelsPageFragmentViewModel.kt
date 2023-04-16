@@ -31,6 +31,8 @@ class ChannelsPageFragmentViewModel(
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
+    registerEventQueueUseCase: RegisterEventQueueUseCase,
+    deleteEventQueueUseCase: DeleteEventQueueUseCase,
 ) : ViewModel() {
 
     val state: StateFlow<ChannelsPageScreenState>
@@ -44,7 +46,8 @@ class ChannelsPageFragmentViewModel(
     private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
     private val cache = mutableListOf<DelegateAdapterItem>()
-    private var eventsQueue = EventsQueueHolder(viewModelScope)
+    private var eventsQueue =
+        EventsQueueHolder(viewModelScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var updateMessagesCountJob: Job? = null
 
     init {

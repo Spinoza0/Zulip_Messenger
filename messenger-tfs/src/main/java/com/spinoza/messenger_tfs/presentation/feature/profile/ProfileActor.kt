@@ -4,14 +4,16 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
-import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
+import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
+import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
+import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -19,14 +21,15 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import vivid.money.elmslie.coroutines.Actor
 
-class ProfileActor(lifecycle: Lifecycle) : Actor<ProfileScreenCommand, ProfileScreenEvent.Internal> {
+class ProfileActor(
+    lifecycle: Lifecycle,
+    private val getOwnUserUseCase: GetOwnUserUseCase,
+    private val getUserUseCase: GetUserUseCase,
+    private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
+    private val eventsQueue: EventsQueueHolder,
+) : Actor<ProfileScreenCommand, ProfileScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
-    private val getOwnUserUseCase = GlobalDI.INSTANCE.getOwnUserUseCase
-    private val getUserUseCase = GlobalDI.INSTANCE.getUserUseCase
-    private val getPresenceEventsUseCase = GlobalDI.INSTANCE.getPresenceEventsUseCase
-
-    private var eventsQueue = EventsQueueHolder(lifecycleScope)
     private var user: User? = null
     private var isUserChanged = false
 

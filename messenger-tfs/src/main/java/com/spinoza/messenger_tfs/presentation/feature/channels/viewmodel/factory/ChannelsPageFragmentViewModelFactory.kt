@@ -16,6 +16,8 @@ class ChannelsPageFragmentViewModelFactory @Inject constructor(
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -26,6 +28,8 @@ class ChannelsPageFragmentViewModelFactory @Inject constructor(
             getChannelsUseCase,
             getTopicUseCase,
             getChannelEventsUseCase,
+            registerEventQueueUseCase,
+            deleteEventQueueUseCase
         ) as T
     }
 }

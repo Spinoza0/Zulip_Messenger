@@ -8,10 +8,10 @@ import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
-import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleEvent
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
+import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleEvent
+import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.coroutines.Actor
@@ -21,8 +21,11 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleScreenCommand, PeopleEvent
     private val lifecycleScope = lifecycle.coroutineScope
     private val getUsersByFilterUseCase = GlobalDI.INSTANCE.getUsersByFilterUseCase
     private val getPresenceEventsUseCase = GlobalDI.INSTANCE.getPresenceEventsUseCase
+    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
+    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
 
-    private var eventsQueue = EventsQueueHolder(lifecycleScope)
+    private val eventsQueue =
+        EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private val searchQueryState = MutableSharedFlow<String>()
     private var usersCache = mutableListOf<User>()
     private var isUsersCacheChanged = false

@@ -4,8 +4,9 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import javax.inject.Inject
 
-class RegisterEventQueueUseCase(private val repository: MessagesRepository) {
+class RegisterEventQueueUseCase @Inject constructor(private val repository: MessagesRepository) {
 
     suspend operator fun invoke(
         eventTypes: List<EventType>,

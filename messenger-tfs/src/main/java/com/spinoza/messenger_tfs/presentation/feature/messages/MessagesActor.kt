@@ -14,14 +14,14 @@ import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.EventUseCase
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.coroutines.Actor
@@ -41,6 +41,8 @@ class MessagesActor(
     private val getReactionEventUseCase = GlobalDI.INSTANCE.getReactionEventUseCase
     private val setOwnStatusActiveUseCase = GlobalDI.INSTANCE.setOwnStatusActiveUseCase
     private val setMessagesFlagToReadUserCase = GlobalDI.INSTANCE.setMessagesFlagToReadUserCase
+    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
+    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
 
     private val newMessageFieldState = MutableSharedFlow<String>()
     private lateinit var messagesFilter: MessagesFilter
@@ -277,15 +279,18 @@ class MessagesActor(
             event = MessagesScreenEvent.Internal.Messages(
                 getMessagesResultDelegate(messagesResult, userId)
             )
-            messagesQueue = EventsQueueHolder(lifecycleScope, messagesFilter).apply {
+            messagesQueue = EventsQueueHolder(
+                lifecycleScope,
+                registerEventQueueUseCase,
+                deleteEventQueueUseCase,
+                messagesFilter
+            ).apply {
                 registerQueue(EventType.MESSAGE)
+                deleteMessagesQueue = EventsQueueHolder(this)
+                reactionsQueue = EventsQueueHolder(this)
             }
-            deleteMessagesQueue = EventsQueueHolder(lifecycleScope, messagesFilter).apply {
-                registerQueue(EventType.DELETE_MESSAGE)
-            }
-            reactionsQueue = EventsQueueHolder(lifecycleScope, messagesFilter).apply {
-                registerQueue(EventType.REACTION)
-            }
+            deleteMessagesQueue?.registerQueue(EventType.DELETE_MESSAGE)
+            reactionsQueue?.registerQueue(EventType.REACTION)
         }.onFailure {
             event = handleErrors(it)
         }

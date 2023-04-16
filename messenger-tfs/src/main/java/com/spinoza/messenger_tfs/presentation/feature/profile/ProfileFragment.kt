@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.profile
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,23 +8,34 @@ import android.view.ViewGroup
 import androidx.core.view.isVisible
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
+import com.spinoza.messenger_tfs.di.profile.DaggerProfileComponent
 import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getParam
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
+import com.spinoza.messenger_tfs.presentation.feature.messages.ui.off
+import com.spinoza.messenger_tfs.presentation.feature.messages.ui.on
+import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenState
-import com.spinoza.messenger_tfs.presentation.feature.messages.ui.off
-import com.spinoza.messenger_tfs.presentation.feature.messages.ui.on
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
+import vivid.money.elmslie.coroutines.ElmStoreCompat
+import javax.inject.Inject
 
 open class ProfileFragment :
     ElmFragment<ProfileScreenEvent, ProfileScreenEffect, ProfileScreenState>() {
+
+    @Inject
+    lateinit var profileStore: ElmStoreCompat<
+            ProfileScreenEvent,
+            ProfileScreenState,
+            ProfileScreenEffect,
+            ProfileScreenCommand>
 
     protected val binding: FragmentProfileBinding
         get() = _binding ?: throw RuntimeException("FragmentProfileBinding == null")
@@ -40,8 +52,15 @@ open class ProfileFragment :
                 ?.getParam<ProfileScreenState>(PARAM_STATE)
                 ?: ProfileScreenState()
             savedStateRegistry.unregisterSavedStateProvider(PARAM_STATE)
-            GlobalDI.INSTANCE.provideProfileStore(initialState, ProfileActor(lifecycle))
+            DaggerProfileComponent.factory()
+                .create(requireContext().getAppComponent(), lifecycle, initialState)
+                .inject(this)
+            profileStore
         }
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
     }
 
     override fun onCreateView(

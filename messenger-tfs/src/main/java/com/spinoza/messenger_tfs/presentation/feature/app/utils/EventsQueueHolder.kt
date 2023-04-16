@@ -1,9 +1,10 @@
 package com.spinoza.messenger_tfs.presentation.feature.app.utils
 
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
+import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -11,13 +12,19 @@ import kotlinx.coroutines.launch
 
 class EventsQueueHolder(
     private val lifecycleScope: CoroutineScope,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val messagesFilter: MessagesFilter = MessagesFilter(),
 ) {
 
-    var queue = EventsQueue()
-    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
-    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
+    constructor(eventsQueueHolder: EventsQueueHolder) : this(
+        eventsQueueHolder.lifecycleScope,
+        eventsQueueHolder.registerEventQueueUseCase,
+        eventsQueueHolder.deleteEventQueueUseCase,
+        eventsQueueHolder.messagesFilter
+    )
 
+    var queue: EventsQueue = EventsQueue()
     private var isQueueRegistered = false
 
     fun registerQueue(eventType: EventType, onSuccessCallback: (() -> Unit)? = null) {
