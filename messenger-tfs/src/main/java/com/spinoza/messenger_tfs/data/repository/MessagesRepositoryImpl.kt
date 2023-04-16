@@ -7,7 +7,6 @@ import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesRespons
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -23,16 +22,15 @@ import okhttp3.Credentials
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
 // TODO: 2) пагинация для сообщений
 
-class MessagesRepositoryImpl(private val messagesCache: MessagesCache) : MessagesRepository {
+class MessagesRepositoryImpl private constructor(
+    private val messagesCache: MessagesCache,
+    private val apiService: ZulipApiService,
+    private val jsonConverter: Json,
+) : MessagesRepository {
 
     private var authHeader = ""
     private var ownUser: UserDto = UserDto()
     private var isOwnUserLoaded = false
-    private val apiService = GlobalDI.INSTANCE.apiService
-    private val jsonConverter = Json {
-        ignoreUnknownKeys = true
-        coerceInputValues = true
-    }
 
     override suspend fun checkLogin(
         apiKey: String,
@@ -534,11 +532,20 @@ class MessagesRepositoryImpl(private val messagesCache: MessagesCache) : Message
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit
 
-        fun getInstance(): MessagesRepositoryImpl {
+        fun getInstance(
+            zulipApiService: ZulipApiService,
+            jsonConverter: Json,
+        ): MessagesRepositoryImpl {
             instance?.let { return it }
             synchronized(LOCK) {
                 instance?.let { return it }
-                return MessagesRepositoryImpl(MessagesCache()).also { instance = it }
+                return MessagesRepositoryImpl(
+                    MessagesCache(),
+                    zulipApiService,
+                    jsonConverter
+                ).also {
+                    instance = it
+                }
             }
         }
     }

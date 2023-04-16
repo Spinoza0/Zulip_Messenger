@@ -13,15 +13,20 @@ import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenS
 import com.spinoza.messenger_tfs.presentation.feature.profile.ProfileActor
 import com.spinoza.messenger_tfs.presentation.feature.profile.ProfileReducer
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenState
+import kotlinx.serialization.json.Json
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 
 class GlobalDI private constructor() {
 
-    private val repository by lazy { MessagesRepositoryImpl.getInstance() }
+    private val repository by lazy {
+        MessagesRepositoryImpl.getInstance(ZulipApiFactory.apiService, Json {
+            ignoreUnknownKeys = true
+            coerceInputValues = true
+        })
+    }
 
     val globalRouter by lazy { App.router }
-    val apiService = ZulipApiFactory.apiService
 
     val deleteEventQueueUseCase by lazy { DeleteEventQueueUseCase(repository) }
     val getDeleteMessageEventUseCase by lazy { GetDeleteMessageEventUseCase(repository) }
