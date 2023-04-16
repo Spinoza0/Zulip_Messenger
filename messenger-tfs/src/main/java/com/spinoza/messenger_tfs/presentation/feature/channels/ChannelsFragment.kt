@@ -1,12 +1,12 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -14,24 +14,39 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
+import com.spinoza.messenger_tfs.di.channels.DaggerChannelsComponent
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelsPagerAdapter
-import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenState
+import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class ChannelsFragment : Fragment() {
+
+    @Inject
+    lateinit var channelsPagerAdapter: ChannelsPagerAdapter
+
+    @Inject
+    lateinit var sharedStore: ChannelsFragmentSharedViewModel
+
+    private lateinit var tabLayoutMediator: TabLayoutMediator
+    private lateinit var onPageChangeCallback: ViewPager2.OnPageChangeCallback
 
     private var _binding: FragmentChannelsBinding? = null
     private val binding: FragmentChannelsBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsBinding == null")
 
-    private val sharedStore: ChannelsFragmentSharedViewModel by activityViewModels()
     private val searchFilters = arrayListOf("", "")
 
-    private lateinit var tabLayoutMediator: TabLayoutMediator
-    private lateinit var onPageChangeCallback: ViewPager2.OnPageChangeCallback
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerChannelsComponent.factory()
+            .create(context.getAppComponent(), requireActivity(), this)
+            .inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,7 +73,6 @@ class ChannelsFragment : Fragment() {
     }
 
     private fun setupViewPager() {
-        val channelsPagerAdapter = ChannelsPagerAdapter(this)
         onPageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
 
             override fun onPageSelected(position: Int) {

@@ -44,6 +44,9 @@ dependencies {
     implementation androidx.crypto
     implementation androidx.constraintlayout
 
+    implementation dagger.dagger
+    kapt dagger.compiler
+
     implementation material
 
     implementation navigation.fragment

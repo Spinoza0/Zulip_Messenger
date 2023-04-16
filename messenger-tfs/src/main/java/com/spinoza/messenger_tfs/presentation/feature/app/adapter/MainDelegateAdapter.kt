@@ -3,8 +3,9 @@ package com.spinoza.messenger_tfs.presentation.feature.app.adapter
 import android.view.ViewGroup
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import javax.inject.Inject
 
-class MainDelegateAdapter :
+class MainDelegateAdapter @Inject constructor() :
     ListAdapter<DelegateAdapterItem, RecyclerView.ViewHolder>(DelegateAdapterItemCallback()) {
 
     private val delegates: MutableList<AdapterDelegate> = mutableListOf()

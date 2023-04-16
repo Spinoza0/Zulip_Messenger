@@ -1,12 +1,11 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -14,35 +13,48 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
+import com.spinoza.messenger_tfs.di.channels.DaggerChannelsComponent
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegate
-import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.closeApplication
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
+import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegate
+import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.*
+import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
+import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsPageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.off
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.on
-import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
-import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsPageFragmentViewModel
-import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.factory.ChannelsPageFragmentViewModelFactory
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 class ChannelsPageFragment : Fragment() {
 
-    private var isAllChannels = false
+    @Inject
+    lateinit var channelsAdapter: MainDelegateAdapter
+
+    @Inject
+    lateinit var store: ChannelsPageFragmentViewModel
+
+    @Inject
+    lateinit var sharedStore: ChannelsFragmentSharedViewModel
+
+    private var isSubscribed = true
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
 
-    private val store: ChannelsPageFragmentViewModel by viewModels {
-        ChannelsPageFragmentViewModelFactory(isAllChannels)
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerChannelsComponent.factory()
+            .create(context.getAppComponent(), requireActivity(), this)
+            .inject(this)
     }
-    private val sharedStore: ChannelsFragmentSharedViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -61,18 +73,20 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        val delegateAdapter = MainDelegateAdapter()
-        delegateAdapter.addDelegate(
-            ChannelDelegate(getString(R.string.channel_name_template), ::onChannelClickListener)
+        channelsAdapter.addDelegate(
+            ChannelDelegate(
+                getString(R.string.channel_name_template),
+                ::onChannelClickListener
+            )
         )
-        delegateAdapter.addDelegate(
+        channelsAdapter.addDelegate(
             TopicDelegate(
                 requireContext().getThemeColor(R.attr.even_topic_color),
                 requireContext().getThemeColor(R.attr.odd_topic_color),
                 ::onTopicClickListener
             )
         )
-        binding.recyclerViewChannels.adapter = delegateAdapter
+        binding.recyclerViewChannels.adapter = channelsAdapter
         binding.recyclerViewChannels.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
@@ -127,7 +141,7 @@ class ChannelsPageFragment : Fragment() {
             binding.shimmerLarge.off()
         }
         state.items?.let {
-            (binding.recyclerViewChannels.adapter as MainDelegateAdapter).submitList(it)
+            channelsAdapter.submitList(it)
         }
     }
 
@@ -147,17 +161,17 @@ class ChannelsPageFragment : Fragment() {
 
     private fun handleSharedScreenState(state: ChannelsScreenState) {
         state.filter?.let { filter ->
-            val filterIsAllChannels = filter.screenPosition % 2 != 0
-            if (filterIsAllChannels == isAllChannels) {
+            val filterIsSubscribed = filter.screenPosition % 2 == 0
+            if (filterIsSubscribed == isSubscribed) {
                 store.accept(
-                    ChannelsPageScreenEvent.Ui.Filter(ChannelsFilter(filter.text, !isAllChannels))
+                    ChannelsPageScreenEvent.Ui.Filter(ChannelsFilter(filter.text, isSubscribed))
                 )
             }
         }
     }
 
     private fun parseParams() {
-        isAllChannels = arguments?.getBoolean(PARAM_IS_ALL_CHANNELS, false) ?: false
+        isSubscribed = arguments?.getBoolean(PARAM_IS_SUBSCRIBED, true) ?: true
     }
 
     override fun onResume() {
@@ -166,7 +180,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun updateChannelsList() {
-        if ((binding.recyclerViewChannels.adapter as MainDelegateAdapter).itemCount == NO_ITEMS) {
+        if (channelsAdapter.itemCount == NO_ITEMS) {
             store.accept(ChannelsPageScreenEvent.Ui.Load)
         }
         store.accept(ChannelsPageScreenEvent.Ui.UpdateMessageCount)
@@ -179,20 +193,20 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        (binding.recyclerViewChannels.adapter as MainDelegateAdapter).clear()
+        channelsAdapter.clear()
         binding.recyclerViewChannels.adapter = null
         _binding = null
     }
 
     companion object {
 
-        private const val PARAM_IS_ALL_CHANNELS = "isAllChannels"
+        private const val PARAM_IS_SUBSCRIBED = "isSubscribed"
         private const val NO_ITEMS = 0
 
-        fun newInstance(isAllChannels: Boolean): ChannelsPageFragment {
+        fun newInstance(isSubscribed: Boolean): ChannelsPageFragment {
             return ChannelsPageFragment().apply {
                 arguments = Bundle().apply {
-                    putBoolean(PARAM_IS_ALL_CHANNELS, isAllChannels)
+                    putBoolean(PARAM_IS_SUBSCRIBED, isSubscribed)
                 }
             }
         }

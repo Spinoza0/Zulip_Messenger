@@ -10,6 +10,10 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.di.ApplicationComponent
+import com.spinoza.messenger_tfs.presentation.feature.app.App
+
+fun Context.getAppComponent(): ApplicationComponent = (this.applicationContext as App).appComponent
 
 fun Throwable.getErrorText(): String = localizedMessage ?: message ?: toString()
 

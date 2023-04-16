@@ -11,20 +11,20 @@ import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
+import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegateItem
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueProcessor
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewModel() {
+class ChannelsPageFragmentViewModel : ViewModel() {
 
     val state: StateFlow<ChannelsPageScreenState>
         get() = _state.asStateFlow()
@@ -37,7 +37,7 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
     private val getChannelsUseCase = GlobalDI.INSTANCE.getChannelsUseCase
     private val getTopicUseCase = GlobalDI.INSTANCE.getTopicUseCase
     private val getChannelEventsUseCase = GlobalDI.INSTANCE.getChannelEventsUseCase
-    private var channelsFilter = GlobalDI.INSTANCE.getChannelsFilter(isAllChannels)
+    private var channelsFilter = ChannelsFilter()
 
     private val _state = MutableStateFlow(ChannelsPageScreenState())
     private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
@@ -82,7 +82,7 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
             val result = getChannelsUseCase(channelsFilter)
             _state.emit(state.value.copy(isLoading = false))
             result.onSuccess {
-                updateCacheWithShowedTopicsSaving(it.toDelegateItem(isAllChannels))
+                updateCacheWithShowedTopicsSaving(it.toDelegateItem())
                 _state.emit(state.value.copy(items = cache.toList()))
                 eventsQueue.registerQueue(EventType.CHANNEL, ::handleOnSuccessQueueRegistration)
             }.onFailure {
@@ -194,7 +194,7 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
                             channels.add(it.channel)
                         }
                     eventsQueue.queue = eventsQueue.queue.copy(lastEventId = lastEventId)
-                    updateCacheWithShowedTopicsSaving(channels.toDelegateItem(isAllChannels))
+                    updateCacheWithShowedTopicsSaving(channels.toDelegateItem())
                     _state.emit(state.value.copy(items = cache.toList()))
                 }
             }
@@ -280,12 +280,12 @@ class ChannelsPageFragmentViewModel(private val isAllChannels: Boolean) : ViewMo
         }
     }
 
-    private fun Channel.toDelegateItem(isAllChannels: Boolean): ChannelDelegateItem {
-        return ChannelDelegateItem(ChannelItem(this, isAllChannels, true))
+    private fun Channel.toDelegateItem(): ChannelDelegateItem {
+        return ChannelDelegateItem(ChannelItem(this, channelsFilter.isSubscribed, true))
     }
 
-    private fun List<Channel>.toDelegateItem(isAllChannels: Boolean): List<ChannelDelegateItem> {
-        return map { it.toDelegateItem(isAllChannels) }
+    private fun List<Channel>.toDelegateItem(): List<ChannelDelegateItem> {
+        return map { it.toDelegateItem() }
     }
 
     private fun Topic.toDelegateItem(channel: Channel): TopicDelegateItem {

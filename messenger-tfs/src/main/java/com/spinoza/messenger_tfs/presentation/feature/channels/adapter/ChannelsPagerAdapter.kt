@@ -15,8 +15,8 @@ class ChannelsPagerAdapter(
     override fun getItemCount() = ITEM_COUNT
 
     override fun createFragment(position: Int): Fragment {
-        val isAllChannels = position % 2 != 0
-        return ChannelsPageFragment.newInstance(isAllChannels)
+        val isSubscribed = position % 2 == 0
+        return ChannelsPageFragment.newInstance(isSubscribed)
     }
 
     private companion object {
