@@ -25,7 +25,7 @@ class App : Application() {
         navigatorHolder = cicerone.getNavigatorHolder()
         router = cicerone.router
 
-        GlobalDI.init(applicationContext)
+        GlobalDI.init()
 
         ElmslieConfig.apply {
             if (BuildConfig.DEBUG) {

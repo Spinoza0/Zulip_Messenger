@@ -4,8 +4,10 @@ import android.content.Context
 import dagger.BindsInstance
 import dagger.Component
 
-@Component
+@Component(modules = [ApplicationModule::class, DataModule::class])
 interface ApplicationComponent {
+
+    fun context(): Context
 
     @Component.Factory
     interface Factory {

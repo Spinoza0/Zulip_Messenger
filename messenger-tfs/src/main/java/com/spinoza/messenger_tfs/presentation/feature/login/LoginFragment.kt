@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.login
 
+import android.content.Context
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
@@ -9,17 +10,28 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentLoginBinding
-import com.spinoza.messenger_tfs.di.GlobalDI
+import com.spinoza.messenger_tfs.di.login.DaggerLoginComponent
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
+import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenState
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
+import vivid.money.elmslie.coroutines.ElmStoreCompat
+import javax.inject.Inject
 
 class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScreenState>() {
+
+    @Inject
+    lateinit var loginStore: ElmStoreCompat<
+            LoginScreenEvent,
+            LoginScreenState,
+            LoginScreenEffect,
+            LoginScreenCommand>
 
     private var _binding: FragmentLoginBinding? = null
     private val binding: FragmentLoginBinding
@@ -30,9 +42,12 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
 
     override val storeHolder:
             StoreHolder<LoginScreenEvent, LoginScreenEffect, LoginScreenState> by lazy {
-        LifecycleAwareStoreHolder(lifecycle) {
-            GlobalDI.INSTANCE.provideLoginStore(LoginActor(lifecycle))
-        }
+        LifecycleAwareStoreHolder(lifecycle) { loginStore }
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerLoginComponent.factory().create(context.getAppComponent(), lifecycle).inject(this)
     }
 
     override fun onCreateView(

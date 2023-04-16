@@ -2,11 +2,11 @@ package com.spinoza.messenger_tfs.presentation.feature.login
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
+import com.spinoza.messenger_tfs.domain.usecase.CheckLoginUseCase
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -16,10 +16,10 @@ import vivid.money.elmslie.coroutines.Actor
 
 class LoginActor(
     lifecycle: Lifecycle,
+    private val checkLoginUseCase: CheckLoginUseCase,
 ) : Actor<LoginScreenCommand, LoginScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
-    private val checkLoginUseCase = GlobalDI.INSTANCE.checkLoginUseCase
     private val newEmailFieldState = MutableSharedFlow<String>()
     private val newPasswordFieldState = MutableSharedFlow<String>()
     private var isEmailValid = false

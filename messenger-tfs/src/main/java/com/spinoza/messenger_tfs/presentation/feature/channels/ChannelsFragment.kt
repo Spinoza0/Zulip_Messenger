@@ -27,9 +27,6 @@ import javax.inject.Inject
 class ChannelsFragment : Fragment() {
 
     @Inject
-    lateinit var channelsPagerAdapter: ChannelsPagerAdapter
-
-    @Inject
     lateinit var sharedStore: ChannelsFragmentSharedViewModel
 
     private lateinit var tabLayoutMediator: TabLayoutMediator
@@ -73,6 +70,7 @@ class ChannelsFragment : Fragment() {
     }
 
     private fun setupViewPager() {
+        val channelsPagerAdapter = ChannelsPagerAdapter(this)
         onPageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
 
             override fun onPageSelected(position: Int) {

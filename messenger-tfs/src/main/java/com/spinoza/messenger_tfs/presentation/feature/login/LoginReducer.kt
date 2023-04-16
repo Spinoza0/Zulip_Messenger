@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.login
 
-import com.spinoza.messenger_tfs.di.GlobalDI
+import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
@@ -8,7 +8,10 @@ import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenSta
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 
-class LoginReducer(private val storage: LoginStorage) : ScreenDslReducer<
+class LoginReducer(
+    private val storage: LoginStorage,
+    private val router: Router,
+) : ScreenDslReducer<
         LoginScreenEvent,
         LoginScreenEvent.Ui,
         LoginScreenEvent.Internal,
@@ -18,7 +21,6 @@ class LoginReducer(private val storage: LoginStorage) : ScreenDslReducer<
     LoginScreenEvent.Ui::class, LoginScreenEvent.Internal::class
 ) {
 
-    private val router = GlobalDI.INSTANCE.globalRouter
     private var isEmailValid = false
     private var isPasswordNotEmpty = false
 

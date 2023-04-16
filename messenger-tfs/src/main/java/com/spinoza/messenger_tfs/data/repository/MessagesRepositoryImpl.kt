@@ -23,9 +23,8 @@ import okhttp3.Credentials
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
 // TODO: 2) пагинация для сообщений
 
-class MessagesRepositoryImpl private constructor() : MessagesRepository {
+class MessagesRepositoryImpl(private val messagesCache: MessagesCache) : MessagesRepository {
 
-    private val messagesCache = MessagesCache()
     private var authHeader = ""
     private var ownUser: UserDto = UserDto()
     private var isOwnUserLoaded = false
@@ -539,7 +538,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             instance?.let { return it }
             synchronized(LOCK) {
                 instance?.let { return it }
-                return MessagesRepositoryImpl().also { instance = it }
+                return MessagesRepositoryImpl(MessagesCache()).also { instance = it }
             }
         }
     }
