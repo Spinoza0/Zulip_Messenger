@@ -10,7 +10,7 @@ import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -26,7 +26,7 @@ class ProfileActor(lifecycle: Lifecycle) : Actor<ProfileScreenCommand, ProfileSc
     private val getUserUseCase = GlobalDI.INSTANCE.getUserUseCase
     private val getPresenceEventsUseCase = GlobalDI.INSTANCE.getPresenceEventsUseCase
 
-    private var eventsQueue = EventsQueueProcessor(lifecycleScope)
+    private var eventsQueue = EventsQueueHolder(lifecycleScope)
     private var user: User? = null
     private var isUserChanged = false
 

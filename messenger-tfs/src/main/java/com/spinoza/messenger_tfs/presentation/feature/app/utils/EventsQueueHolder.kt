@@ -6,9 +6,10 @@ import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-class EventsQueueProcessor(
+class EventsQueueHolder(
     private val lifecycleScope: CoroutineScope,
     private val messagesFilter: MessagesFilter = MessagesFilter(),
 ) {
@@ -25,7 +26,7 @@ class EventsQueueProcessor(
                 deleteEventQueueUseCase(queue.queueId)
                 isQueueRegistered = false
             }
-            while (!isQueueRegistered) {
+            while (isActive && !isQueueRegistered) {
                 registerEventQueueUseCase(listOf(eventType), messagesFilter).onSuccess {
                     queue = it
                     onSuccessCallback?.invoke()

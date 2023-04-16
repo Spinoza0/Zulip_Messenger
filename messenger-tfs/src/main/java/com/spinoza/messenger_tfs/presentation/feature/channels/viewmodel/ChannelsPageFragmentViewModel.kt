@@ -12,7 +12,7 @@ import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegateItem
@@ -43,7 +43,7 @@ class ChannelsPageFragmentViewModel : ViewModel() {
     private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
     private val cache = mutableListOf<DelegateAdapterItem>()
-    private var eventsQueue = EventsQueueProcessor(viewModelScope)
+    private var eventsQueue = EventsQueueHolder(viewModelScope)
     private var updateMessagesCountJob: Job? = null
 
     init {

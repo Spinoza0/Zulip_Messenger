@@ -20,7 +20,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -44,9 +44,9 @@ class MessagesActor(
 
     private val newMessageFieldState = MutableSharedFlow<String>()
     private lateinit var messagesFilter: MessagesFilter
-    private var messagesQueue: EventsQueueProcessor? = null
-    private var deleteMessagesQueue: EventsQueueProcessor? = null
-    private var reactionsQueue: EventsQueueProcessor? = null
+    private var messagesQueue: EventsQueueHolder? = null
+    private var deleteMessagesQueue: EventsQueueHolder? = null
+    private var reactionsQueue: EventsQueueHolder? = null
     private var isMessageSent = false
 
     private var iconActionResId = R.drawable.ic_add_circle_outline
@@ -206,7 +206,7 @@ class MessagesActor(
     }
 
     private fun onSuccessMessageEvent(
-        eventsQueue: EventsQueueProcessor,
+        eventsQueue: EventsQueueHolder,
         event: MessageEvent,
         userId: Long,
     ): MessagesScreenEvent.Internal {
@@ -223,7 +223,7 @@ class MessagesActor(
     }
 
     private fun onSuccessDeleteMessageEvent(
-        eventsQueue: EventsQueueProcessor,
+        eventsQueue: EventsQueueHolder,
         event: DeleteMessageEvent,
         userId: Long,
     ): MessagesScreenEvent.Internal {
@@ -234,7 +234,7 @@ class MessagesActor(
     }
 
     private fun onSuccessReactionEvent(
-        eventsQueue: EventsQueueProcessor,
+        eventsQueue: EventsQueueHolder,
         event: ReactionEvent,
         userId: Long,
     ): MessagesScreenEvent.Internal {
@@ -244,14 +244,14 @@ class MessagesActor(
         )
     }
 
-    private fun updateLastEventId(eventsQueue: EventsQueueProcessor, lastEventId: Long) {
+    private fun updateLastEventId(eventsQueue: EventsQueueHolder, lastEventId: Long) {
         eventsQueue.queue = eventsQueue.queue.copy(lastEventId = lastEventId)
     }
 
     private suspend fun <T> getEvent(
-        eventsQueue: EventsQueueProcessor,
+        eventsQueue: EventsQueueHolder,
         useCase: EventUseCase<T>,
-        onSuccessCallback: (EventsQueueProcessor, T, Long) -> MessagesScreenEvent.Internal,
+        onSuccessCallback: (EventsQueueHolder, T, Long) -> MessagesScreenEvent.Internal,
         emptyEvent: MessagesScreenEvent.Internal,
     ): MessagesScreenEvent.Internal = withContext(Dispatchers.Default) {
         useCase(eventsQueue.queue, messagesFilter).onSuccess { event ->
@@ -277,13 +277,13 @@ class MessagesActor(
             event = MessagesScreenEvent.Internal.Messages(
                 getMessagesResultDelegate(messagesResult, userId)
             )
-            messagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
+            messagesQueue = EventsQueueHolder(lifecycleScope, messagesFilter).apply {
                 registerQueue(EventType.MESSAGE)
             }
-            deleteMessagesQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
+            deleteMessagesQueue = EventsQueueHolder(lifecycleScope, messagesFilter).apply {
                 registerQueue(EventType.DELETE_MESSAGE)
             }
-            reactionsQueue = EventsQueueProcessor(lifecycleScope, messagesFilter).apply {
+            reactionsQueue = EventsQueueHolder(lifecycleScope, messagesFilter).apply {
                 registerQueue(EventType.REACTION)
             }
         }.onFailure {

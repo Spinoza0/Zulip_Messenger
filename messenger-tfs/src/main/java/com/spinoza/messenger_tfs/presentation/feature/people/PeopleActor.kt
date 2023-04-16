@@ -10,7 +10,7 @@ import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleEvent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueProcessor
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -22,7 +22,7 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleScreenCommand, PeopleEvent
     private val getUsersByFilterUseCase = GlobalDI.INSTANCE.getUsersByFilterUseCase
     private val getPresenceEventsUseCase = GlobalDI.INSTANCE.getPresenceEventsUseCase
 
-    private var eventsQueue = EventsQueueProcessor(lifecycleScope)
+    private var eventsQueue = EventsQueueHolder(lifecycleScope)
     private val searchQueryState = MutableSharedFlow<String>()
     private var usersCache = mutableListOf<User>()
     private var isUsersCacheChanged = false
