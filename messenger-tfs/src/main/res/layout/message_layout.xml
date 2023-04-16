@@ -2,7 +2,7 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:parentTag="com.spinoza.messenger_tfs.presentation.ui.MessageView">
+    tools:parentTag="com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView">
 
     <ImageView
         android:id="@+id/avatarImageView"
@@ -38,7 +38,7 @@
         android:textSize="16sp"
         tools:text="@tools:sample/full_names" />
 
-    <com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
+    <com.spinoza.messenger_tfs.presentation.feature.messages.ui.FlexBoxLayout
         android:id="@+id/reactionsFlexBoxLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

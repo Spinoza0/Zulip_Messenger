@@ -4,5 +4,5 @@
     android:id="@+id/mainFragmentContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".presentation.activity.MainActivity"
+    tools:context=".presentation.feature.app.MainActivity"
     tools:layout="@layout/fragment_login" />

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="?attr/background_700_color"
     android:orientation="vertical"
-    tools:context=".presentation.fragment.menu.ChannelsFragment">
+    tools:context=".presentation.feature.channels.ChannelsFragment">
 
     <FrameLayout
         android:layout_width="match_parent"

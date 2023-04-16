@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <com.spinoza.messenger_tfs.presentation.ui.MessageView
+    <com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
         android:id="@+id/messageView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="?attr/background_700_color"
     android:orientation="vertical"
-    tools:context=".presentation.fragment.menu.PeopleFragment">
+    tools:context=".presentation.feature.people.PeopleFragment">
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/editTextSearch"
@@ -40,7 +40,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editTextSearch"
-        tools:context=".presentation.fragment.menu.ChannelsPageFragment"
+        tools:context=".presentation.feature.channels.ChannelsPageFragment"
         tools:listitem="@layout/user_item" />
 
     <com.facebook.shimmer.ShimmerFrameLayout

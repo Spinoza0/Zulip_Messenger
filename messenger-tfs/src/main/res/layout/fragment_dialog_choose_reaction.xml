@@ -20,7 +20,7 @@
             android:layout_marginBottom="24dp"
             android:background="@drawable/shape_add_reactions_top_line" />
 
-        <com.spinoza.messenger_tfs.presentation.ui.FlexBoxLayout
+        <com.spinoza.messenger_tfs.presentation.feature.messages.ui.FlexBoxLayout
             android:id="@+id/flexBoxLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
