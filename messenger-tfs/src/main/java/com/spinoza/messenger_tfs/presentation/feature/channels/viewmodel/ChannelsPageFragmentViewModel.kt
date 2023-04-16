@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.spinoza.messenger_tfs.di.GlobalDI
+import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -24,7 +24,14 @@ import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 
-class ChannelsPageFragmentViewModel : ViewModel() {
+class ChannelsPageFragmentViewModel(
+    isSubscribed: Boolean,
+    private val router: Router,
+    private val getTopicsUseCase: GetTopicsUseCase,
+    private val getChannelsUseCase: GetChannelsUseCase,
+    private val getTopicUseCase: GetTopicUseCase,
+    private val getChannelEventsUseCase: GetChannelEventsUseCase,
+) : ViewModel() {
 
     val state: StateFlow<ChannelsPageScreenState>
         get() = _state.asStateFlow()
@@ -32,13 +39,7 @@ class ChannelsPageFragmentViewModel : ViewModel() {
     val effects: SharedFlow<ChannelsPageScreenEffect>
         get() = _effects.asSharedFlow()
 
-    private val router = GlobalDI.INSTANCE.globalRouter
-    private val getTopicsUseCase = GlobalDI.INSTANCE.getTopicsUseCase
-    private val getChannelsUseCase = GlobalDI.INSTANCE.getChannelsUseCase
-    private val getTopicUseCase = GlobalDI.INSTANCE.getTopicUseCase
-    private val getChannelEventsUseCase = GlobalDI.INSTANCE.getChannelEventsUseCase
-    private var channelsFilter = ChannelsFilter()
-
+    private var channelsFilter = ChannelsFilter(EMPTY_NAME, isSubscribed)
     private val _state = MutableStateFlow(ChannelsPageScreenState())
     private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
@@ -299,6 +300,7 @@ class ChannelsPageFragmentViewModel : ViewModel() {
     private companion object {
 
         const val UNDEFINED_INDEX = -1
+        const val EMPTY_NAME = ""
         const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
         const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
     }

@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -44,17 +43,9 @@ class ChannelsPageFragment : Fragment() {
     lateinit var sharedStore: ChannelsFragmentSharedViewModel
 
     private var isSubscribed = true
-
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        DaggerChannelsComponent.factory()
-            .create(context.getAppComponent(), requireActivity(), this)
-            .inject(this)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -66,8 +57,10 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         parseParams()
+        DaggerChannelsComponent.factory()
+            .create(requireContext().getAppComponent(), requireActivity(), this, isSubscribed)
+            .inject(this)
         setupRecyclerView()
         setupObservers()
     }

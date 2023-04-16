@@ -25,8 +25,6 @@ class GlobalDI private constructor() {
     val apiService = ZulipApiFactory.apiService
 
     val deleteEventQueueUseCase by lazy { DeleteEventQueueUseCase(repository) }
-    val getChannelEventsUseCase by lazy { GetChannelEventsUseCase(repository) }
-    val getChannelsUseCase by lazy { GetChannelsUseCase(repository) }
     val getDeleteMessageEventUseCase by lazy { GetDeleteMessageEventUseCase(repository) }
     val getMessageEventUseCase by lazy { GetMessageEventUseCase(repository) }
     val getMessagesUseCase by lazy { GetMessagesUseCase(repository) }
@@ -34,8 +32,6 @@ class GlobalDI private constructor() {
     val getOwnUserUseCase by lazy { GetOwnUserUseCase(repository) }
     val getPresenceEventsUseCase by lazy { GetPresenceEventsUseCase(repository) }
     val getReactionEventUseCase by lazy { GetReactionEventUseCase(repository) }
-    val getTopicsUseCase by lazy { GetTopicsUseCase(repository) }
-    val getTopicUseCase by lazy { GetTopicUseCase(repository) }
     val getUsersByFilterUseCase by lazy { GetUsersByFilterUseCase(repository) }
     val getUserUseCase by lazy { GetUserUseCase(repository) }
     val registerEventQueueUseCase by lazy { RegisterEventQueueUseCase(repository) }

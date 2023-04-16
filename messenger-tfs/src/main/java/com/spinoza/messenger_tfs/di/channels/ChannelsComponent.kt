@@ -22,6 +22,7 @@ interface ChannelsComponent {
             applicationComponent: ApplicationComponent,
             @BindsInstance activity: Activity,
             @BindsInstance fragment: Fragment,
+            @BindsInstance isSubscribed: Boolean = true
         ): ChannelsComponent
     }
 }
