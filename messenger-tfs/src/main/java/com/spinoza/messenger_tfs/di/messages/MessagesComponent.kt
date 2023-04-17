@@ -2,10 +2,12 @@ package com.spinoza.messenger_tfs.di.messages
 
 import androidx.lifecycle.Lifecycle
 import com.spinoza.messenger_tfs.di.ApplicationComponent
+import com.spinoza.messenger_tfs.di.MessagesScope
 import com.spinoza.messenger_tfs.presentation.feature.messages.MessagesFragment
 import dagger.BindsInstance
 import dagger.Component
 
+@MessagesScope
 @Component(dependencies = [ApplicationComponent::class], modules = [MessagesModule::class])
 interface MessagesComponent {
 

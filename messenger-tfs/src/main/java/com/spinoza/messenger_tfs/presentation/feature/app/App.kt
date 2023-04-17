@@ -18,7 +18,7 @@ class App : Application() {
         super.onCreate()
 
         appComponent = DaggerApplicationComponent.factory().create(applicationContext)
-        val cicerone = appComponent.getCicerone()
+        val cicerone = appComponent.cicerone()
         navigatorHolder = cicerone.getNavigatorHolder()
         router = cicerone.router
 

@@ -1,9 +1,11 @@
 package com.spinoza.messenger_tfs.di.menu
 
 import com.spinoza.messenger_tfs.di.ApplicationComponent
+import com.spinoza.messenger_tfs.di.MenuScope
 import com.spinoza.messenger_tfs.presentation.feature.menu.MainMenuFragment
 import dagger.Component
 
+@MenuScope
 @Component(dependencies = [ApplicationComponent::class])
 interface MenuComponent {
 

@@ -7,8 +7,9 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import java.util.*
+import javax.inject.Inject
 
-class MessagesCache {
+class MessagesCache @Inject constructor() {
 
     private val data = TreeSet<MessageDto>()
     private val lock = Any()

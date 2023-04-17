@@ -1,10 +1,12 @@
 package com.spinoza.messenger_tfs.di.mainactivity
 
+import com.spinoza.messenger_tfs.di.ActivityScope
 import com.spinoza.messenger_tfs.di.ApplicationComponent
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import dagger.BindsInstance
 import dagger.Component
 
+@ActivityScope
 @Component(dependencies = [ApplicationComponent::class], modules = [MainActivityModule::class])
 interface MainActivityComponent {
 

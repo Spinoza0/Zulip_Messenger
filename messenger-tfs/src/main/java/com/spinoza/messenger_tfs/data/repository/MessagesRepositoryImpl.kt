@@ -23,7 +23,7 @@ import okhttp3.Credentials
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
 // TODO: 2) пагинация для сообщений
 
-class MessagesRepositoryImpl private constructor(
+class MessagesRepositoryImpl(
     private val messagesCache: MessagesCache,
     private val apiService: ZulipApiService,
     private val apiAuthKeeper: ZulipAuthKeeper,
@@ -527,28 +527,5 @@ class MessagesRepositoryImpl private constructor(
         private const val UNKNOWN_ERROR = ""
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
-
-        @Volatile
-        private var instance: MessagesRepositoryImpl? = null
-        private val LOCK = Unit
-
-        fun getInstance(
-            apiService: ZulipApiService,
-            apiAuthKeeper: ZulipAuthKeeper,
-            jsonConverter: Json,
-        ): MessagesRepositoryImpl {
-            instance?.let { return it }
-            synchronized(LOCK) {
-                instance?.let { return it }
-                return MessagesRepositoryImpl(
-                    MessagesCache(),
-                    apiService,
-                    apiAuthKeeper,
-                    jsonConverter
-                ).also {
-                    instance = it
-                }
-            }
-        }
     }
 }

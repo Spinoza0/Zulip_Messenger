@@ -8,6 +8,7 @@ import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import dagger.BindsInstance
 import dagger.Component
 
+@ApplicationScope
 @Component(modules = [ApplicationModule::class, DataModule::class])
 interface ApplicationComponent {
 
@@ -15,11 +16,11 @@ interface ApplicationComponent {
 
     fun messagesRepository(): MessagesRepository
 
-    fun globalRouter(): Router
+    fun router(): Router
 
-    fun globalNavigatorHolder(): NavigatorHolder
+    fun navigatorHolder(): NavigatorHolder
 
-    fun getCicerone(): Cicerone<Router>
+    fun cicerone(): Cicerone<Router>
 
     @Component.Factory
     interface Factory {
