@@ -43,14 +43,14 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
     override val initEvent: PeopleScreenEvent
         get() = PeopleScreenEvent.Ui.Init
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        DaggerPeopleComponent.factory().create(context.getAppComponent(), lifecycle).inject(this)
-    }
-
     override val storeHolder:
             StoreHolder<PeopleScreenEvent, PeopleScreenEffect, PeopleScreenState> by lazy {
         LifecycleAwareStoreHolder(lifecycle) { peopleStore }
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerPeopleComponent.factory().create(context.getAppComponent(), lifecycle).inject(this)
     }
 
     override fun onCreateView(

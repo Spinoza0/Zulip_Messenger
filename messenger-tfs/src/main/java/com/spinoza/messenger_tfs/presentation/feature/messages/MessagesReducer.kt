@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
-import com.spinoza.messenger_tfs.di.GlobalDI
+import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
@@ -9,7 +9,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScr
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 
-class MessagesReducer : ScreenDslReducer<
+class MessagesReducer(private val router: Router) : ScreenDslReducer<
         MessagesScreenEvent,
         MessagesScreenEvent.Ui,
         MessagesScreenEvent.Internal,
@@ -18,8 +18,6 @@ class MessagesReducer : ScreenDslReducer<
         MessagesScreenCommand>(
     MessagesScreenEvent.Ui::class, MessagesScreenEvent.Internal::class
 ) {
-
-    private val router = GlobalDI.INSTANCE.globalRouter
 
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {

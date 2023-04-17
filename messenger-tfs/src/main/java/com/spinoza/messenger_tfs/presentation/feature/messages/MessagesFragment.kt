@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
+import android.content.Context
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -12,10 +13,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
-import com.spinoza.messenger_tfs.di.GlobalDI
+import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getParam
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
@@ -25,18 +27,24 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
-import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
-import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
-import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.*
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.*
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
+import vivid.money.elmslie.coroutines.ElmStoreCompat
 import java.util.*
+import javax.inject.Inject
 
 class MessagesFragment :
     ElmFragment<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState>() {
+
+    @Inject
+    lateinit var messagesStore: ElmStoreCompat<
+            MessagesScreenEvent,
+            MessagesScreenState,
+            MessagesScreenEffect,
+            MessagesScreenCommand>
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
@@ -48,13 +56,16 @@ class MessagesFragment :
 
     override val storeHolder:
             StoreHolder<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState> by lazy {
-        LifecycleAwareStoreHolder(lifecycle) {
-            GlobalDI.INSTANCE.provideMessagesStore(MessagesActor(lifecycle))
-        }
+        LifecycleAwareStoreHolder(lifecycle) { messagesStore }
     }
 
     override val initEvent: MessagesScreenEvent
         get() = MessagesScreenEvent.Ui.Init
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerMessagesComponent.factory().create(context.getAppComponent(), lifecycle).inject(this)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?,

@@ -5,14 +5,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.EventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
@@ -29,21 +28,20 @@ import java.util.*
 
 class MessagesActor(
     lifecycle: Lifecycle,
+    private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
+    private val getMessagesUseCase: GetMessagesUseCase,
+    private val sendMessageUseCase: SendMessageUseCase,
+    private val updateReactionUseCase: UpdateReactionUseCase,
+    private val getMessageEventUseCase: GetMessageEventUseCase,
+    private val getDeleteMessageEventUseCase: GetDeleteMessageEventUseCase,
+    private val getReactionEventUseCase: GetReactionEventUseCase,
+    private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
+    private val setMessagesFlagToReadUserCase: SetMessagesFlagToReadUserCase,
+    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
+    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
 ) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
-    private val getOwnUserIdUseCase = GlobalDI.INSTANCE.getOwnUserIdUseCase
-    private val getMessagesUseCase = GlobalDI.INSTANCE.getMessagesUseCase
-    private val sendMessageUseCase = GlobalDI.INSTANCE.sendMessageUseCase
-    private val updateReactionUseCase = GlobalDI.INSTANCE.updateReactionUseCase
-    private val getMessageEventUseCase = GlobalDI.INSTANCE.getMessageEventUseCase
-    private val getDeleteMessageEventUseCase = GlobalDI.INSTANCE.getDeleteMessageEventUseCase
-    private val getReactionEventUseCase = GlobalDI.INSTANCE.getReactionEventUseCase
-    private val setOwnStatusActiveUseCase = GlobalDI.INSTANCE.setOwnStatusActiveUseCase
-    private val setMessagesFlagToReadUserCase = GlobalDI.INSTANCE.setMessagesFlagToReadUserCase
-    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
-    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
-
     private val newMessageFieldState = MutableSharedFlow<String>()
     private lateinit var messagesFilter: MessagesFilter
     private var messagesQueue: EventsQueueHolder? = null
