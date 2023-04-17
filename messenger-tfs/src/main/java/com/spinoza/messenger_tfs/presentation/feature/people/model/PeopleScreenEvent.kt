@@ -2,9 +2,9 @@ package com.spinoza.messenger_tfs.presentation.feature.people.model
 
 import com.spinoza.messenger_tfs.domain.model.User
 
-sealed class PeopleEvent {
+sealed class PeopleScreenEvent {
 
-    sealed class Ui : PeopleEvent() {
+    sealed class Ui : PeopleScreenEvent() {
 
         object Init : Ui()
 
@@ -17,7 +17,7 @@ sealed class PeopleEvent {
         object OpenMainMenu : Ui()
     }
 
-    sealed class Internal : PeopleEvent() {
+    sealed class Internal : PeopleScreenEvent() {
 
         object Idle : Internal()
 

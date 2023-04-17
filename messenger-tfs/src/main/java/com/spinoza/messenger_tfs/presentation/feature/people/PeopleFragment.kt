@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.people
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,35 +8,49 @@ import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
+import com.spinoza.messenger_tfs.di.people.DaggerPeopleComponent
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
-import com.spinoza.messenger_tfs.presentation.feature.people.adapter.PeopleAdapter
-import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleEvent
-import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEffect
-import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.off
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.on
+import com.spinoza.messenger_tfs.presentation.feature.people.adapter.PeopleAdapter
+import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
+import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEffect
+import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEvent
+import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenState
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
+import vivid.money.elmslie.coroutines.ElmStoreCompat
+import javax.inject.Inject
 
-class PeopleFragment : ElmFragment<PeopleEvent, PeopleScreenEffect, PeopleScreenState>() {
+class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, PeopleScreenState>() {
+
+    @Inject
+    lateinit var peopleStore: ElmStoreCompat<
+            PeopleScreenEvent,
+            PeopleScreenState,
+            PeopleScreenEffect,
+            PeopleScreenCommand>
 
     private var _binding: FragmentPeopleBinding? = null
     private val binding: FragmentPeopleBinding
         get() = _binding ?: throw RuntimeException("FragmentPeopleBinding == null")
 
-    override val initEvent: PeopleEvent
-        get() = PeopleEvent.Ui.Init
+    override val initEvent: PeopleScreenEvent
+        get() = PeopleScreenEvent.Ui.Init
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerPeopleComponent.factory().create(context.getAppComponent(), lifecycle).inject(this)
+    }
 
     override val storeHolder:
-            StoreHolder<PeopleEvent, PeopleScreenEffect, PeopleScreenState> by lazy {
-        LifecycleAwareStoreHolder(lifecycle) {
-            GlobalDI.INSTANCE.providePeopleStore(PeopleActor(lifecycle))
-        }
+            StoreHolder<PeopleScreenEvent, PeopleScreenEffect, PeopleScreenState> by lazy {
+        LifecycleAwareStoreHolder(lifecycle) { peopleStore }
     }
 
     override fun onCreateView(
@@ -66,7 +81,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleScreenEffect, PeopleScreen
                     if (lastVisibleItemPosition == lastItem ||
                         firstVisibleItemPosition == firstItem
                     ) {
-                        store.accept(PeopleEvent.Ui.Load)
+                        store.accept(PeopleScreenEvent.Ui.Load)
                     }
                 }
             }
@@ -75,7 +90,7 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleScreenEffect, PeopleScreen
 
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
-            store.accept(PeopleEvent.Ui.Filter(text.toString()))
+            store.accept(PeopleScreenEvent.Ui.Filter(text.toString()))
         }
     }
 
@@ -98,20 +113,20 @@ class PeopleFragment : ElmFragment<PeopleEvent, PeopleScreenEffect, PeopleScreen
                 showError(String.format(getString(R.string.error_loading_users), effect.value))
             is PeopleScreenEffect.Failure.ErrorNetwork ->
                 showCheckInternetConnectionDialog(
-                    { store.accept(PeopleEvent.Ui.Load) }
+                    { store.accept(PeopleScreenEvent.Ui.Load) }
                 ) {
-                    store.accept(PeopleEvent.Ui.OpenMainMenu)
+                    store.accept(PeopleScreenEvent.Ui.OpenMainMenu)
                 }
         }
     }
 
     private fun onUserClickListener(userId: Long) {
-        store.accept(PeopleEvent.Ui.ShowUserInfo(userId))
+        store.accept(PeopleScreenEvent.Ui.ShowUserInfo(userId))
     }
 
     override fun onResume() {
         super.onResume()
-        store.accept(PeopleEvent.Ui.Filter(binding.editTextSearch.text.toString()))
+        store.accept(PeopleScreenEvent.Ui.Filter(binding.editTextSearch.text.toString()))
     }
 
     override fun onPause() {

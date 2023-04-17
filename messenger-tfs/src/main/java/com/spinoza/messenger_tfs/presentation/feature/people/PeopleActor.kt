@@ -4,28 +4,27 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
+import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
-import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleEvent
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
+import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEvent
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.coroutines.Actor
 
-class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleScreenCommand, PeopleEvent.Internal> {
+class PeopleActor(
+    lifecycle: Lifecycle,
+    private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
+    private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
+    private val eventsQueue: EventsQueueHolder,
+) : Actor<PeopleScreenCommand, PeopleScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
-    private val getUsersByFilterUseCase = GlobalDI.INSTANCE.getUsersByFilterUseCase
-    private val getPresenceEventsUseCase = GlobalDI.INSTANCE.getPresenceEventsUseCase
-    private val registerEventQueueUseCase = GlobalDI.INSTANCE.registerEventQueueUseCase
-    private val deleteEventQueueUseCase = GlobalDI.INSTANCE.deleteEventQueueUseCase
-
-    private val eventsQueue =
-        EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private val searchQueryState = MutableSharedFlow<String>()
     private var usersCache = mutableListOf<User>()
     private var isUsersCacheChanged = false
@@ -42,34 +41,34 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleScreenCommand, PeopleEvent
         subscribeToSearchQueryChanges()
     }
 
-    override fun execute(command: PeopleScreenCommand): Flow<PeopleEvent.Internal> = flow {
+    override fun execute(command: PeopleScreenCommand): Flow<PeopleScreenEvent.Internal> = flow {
         val event = when (command) {
             is PeopleScreenCommand.SetNewFilter -> setNewFilter(command.filter.trim())
             is PeopleScreenCommand.GetFilteredList ->
                 if (usersCache.isNotEmpty()) {
-                    PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
+                    PeopleScreenEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
                 } else {
                     loadUsers()
                 }
             is PeopleScreenCommand.Load -> loadUsers()
             is PeopleScreenCommand.GetEvent -> if (isUsersCacheChanged) {
                 isUsersCacheChanged = false
-                PeopleEvent.Internal.EventFromQueue(usersCache.toSortedList(usersFilter))
+                PeopleScreenEvent.Internal.EventFromQueue(usersCache.toSortedList(usersFilter))
             } else {
                 delay(DELAY_BEFORE_UPDATE_INFO)
-                PeopleEvent.Internal.EmptyQueueEvent
+                PeopleScreenEvent.Internal.EmptyQueueEvent
             }
         }
         emit(event)
     }
 
-    private suspend fun setNewFilter(filter: String): PeopleEvent.Internal {
+    private suspend fun setNewFilter(filter: String): PeopleScreenEvent.Internal {
         searchQueryState.emit(filter)
         delay(DELAY_BEFORE_CHECK_FILTER)
         if (filter == usersFilter) {
-            return PeopleEvent.Internal.FilterChanged
+            return PeopleScreenEvent.Internal.FilterChanged
         }
-        return PeopleEvent.Internal.Idle
+        return PeopleScreenEvent.Internal.Idle
     }
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
@@ -83,18 +82,18 @@ class PeopleActor(lifecycle: Lifecycle) : Actor<PeopleScreenCommand, PeopleEvent
             .launchIn(lifecycleScope)
     }
 
-    private suspend fun loadUsers(): PeopleEvent.Internal {
-        var event: PeopleEvent.Internal = PeopleEvent.Internal.Idle
+    private suspend fun loadUsers(): PeopleScreenEvent.Internal {
+        var event: PeopleScreenEvent.Internal = PeopleScreenEvent.Internal.Idle
         getUsersByFilterUseCase(NO_FILTER).onSuccess {
             usersCache.clear()
             usersCache.addAll(it)
-            event = PeopleEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
+            event = PeopleScreenEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
             eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
         }.onFailure { error ->
             event = if (error is RepositoryError) {
-                PeopleEvent.Internal.ErrorUserLoading(error.value)
+                PeopleScreenEvent.Internal.ErrorUserLoading(error.value)
             } else {
-                PeopleEvent.Internal.ErrorNetwork(error.getErrorText())
+                PeopleScreenEvent.Internal.ErrorNetwork(error.getErrorText())
             }
         }
         return event
