@@ -27,50 +27,34 @@ interface ZulipApiService {
     ): Response<ApiKeyResponse>
 
     @GET("users/me")
-    suspend fun getOwnUser(@Header("Authorization") authHeader: String): Response<OwnUserResponse>
+    suspend fun getOwnUser(): Response<OwnUserResponse>
 
     @GET("users/{$QUERY_USER_ID}")
-    suspend fun getUser(
-        @Header("Authorization") authHeader: String,
-        @Path(QUERY_USER_ID) userId: Long,
-    ): Response<UserResponse>
+    suspend fun getUser(@Path(QUERY_USER_ID) userId: Long): Response<UserResponse>
 
     @GET("users")
-    suspend fun getAllUsers(@Header("Authorization") authHeader: String): Response<AllUsersResponse>
+    suspend fun getAllUsers(): Response<AllUsersResponse>
 
     @GET("users/{$QUERY_USER_ID}/presence")
-    suspend fun getUserPresence(
-        @Header("Authorization") authHeader: String,
-        @Path(QUERY_USER_ID) userId: Long,
-    ): Response<PresenceResponse>
+    suspend fun getUserPresence(@Path(QUERY_USER_ID) userId: Long): Response<PresenceResponse>
 
     @GET("realm/presence")
-    suspend fun getAllPresences(
-        @Header("Authorization") authHeader: String,
-    ): Response<AllPresencesResponse>
+    suspend fun getAllPresences(): Response<AllPresencesResponse>
 
     @POST("users/me/presence?status=active")
-    suspend fun setOwnStatusActive(@Header("Authorization") authHeader: String)
+    suspend fun setOwnStatusActive()
 
     @GET("users/me/subscriptions")
-    suspend fun getSubscribedStreams(
-        @Header("Authorization") authHeader: String,
-    ): Response<SubscribedStreamsResponse>
+    suspend fun getSubscribedStreams(): Response<SubscribedStreamsResponse>
 
     @GET("streams")
-    suspend fun getAllStreams(
-        @Header("Authorization") authHeader: String,
-    ): Response<AllStreamsResponse>
+    suspend fun getAllStreams(): Response<AllStreamsResponse>
 
     @GET("users/me/{$QUERY_STREAM_ID}/topics")
-    suspend fun getTopics(
-        @Header("Authorization") authHeader: String,
-        @Path(QUERY_STREAM_ID) streamId: Long,
-    ): Response<TopicsResponse>
+    suspend fun getTopics(@Path(QUERY_STREAM_ID) streamId: Long): Response<TopicsResponse>
 
     @GET("messages")
     suspend fun getMessages(
-        @Header("Authorization") authHeader: String,
         @Query(QUERY_NUM_BEFORE) numBefore: Int = DEFAULT_NUM_BEFORE,
         @Query(QUERY_NUM_AFTER) numAfter: Int = DEFAULT_NUM_AFTER,
         @Query(QUERY_ANCHOR) anchor: String = ANCHOR_FIRST_UNREAD,
@@ -80,27 +64,23 @@ interface ZulipApiService {
 
     @GET("messages/{$QUERY_MESSAGE_ID}")
     suspend fun getSingleMessage(
-        @Header("Authorization") authHeader: String,
         @Path(QUERY_MESSAGE_ID) messageId: Long,
     ): Response<SingleMessageResponse>
 
     @POST("messages/{$QUERY_MESSAGE_ID}/reactions")
     suspend fun addReaction(
-        @Header("Authorization") authHeader: String,
         @Path(QUERY_MESSAGE_ID) messageId: Long,
         @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): Response<BasicResponse>
 
     @DELETE("messages/{$QUERY_MESSAGE_ID}/reactions")
     suspend fun removeReaction(
-        @Header("Authorization") authHeader: String,
         @Path(QUERY_MESSAGE_ID) messageId: Long,
         @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): Response<BasicResponse>
 
     @POST("messages")
     suspend fun sendMessageToStream(
-        @Header("Authorization") authHeader: String,
         @Query(QUERY_TO) streamId: Long,
         @Query(QUERY_TOPIC) topic: String,
         @Query(QUERY_CONTENT) content: String,
@@ -109,28 +89,22 @@ interface ZulipApiService {
 
     @POST("register")
     suspend fun registerEventQueue(
-        @Header("Authorization") authHeader: String,
         @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = false,
     ): Response<RegisterEventQueueResponse>
 
     @DELETE("events")
-    suspend fun deleteEventQueue(
-        @Header("Authorization") authHeader: String,
-        @Query(QUERY_QUEUE_ID) queueId: String,
-    ): Response<BasicResponse>
+    suspend fun deleteEventQueue(@Query(QUERY_QUEUE_ID) queueId: String): Response<BasicResponse>
 
     @GET("events")
     suspend fun getEventsFromQueue(
-        @Header("Authorization") authHeader: String,
         @Query(QUERY_QUEUE_ID) queueId: String,
         @Query(QUERY_LAST_EVENT_ID) lastEventId: Long,
     ): Response<ResponseBody>
 
     @POST("messages/flags")
     suspend fun setMessageFlagsToRead(
-        @Header("Authorization") authHeader: String,
         @Query(QUERY_MESSAGE_IDS) messageIds: String,
         @Query(QUERY_OPERATION) operation: String = QUERY_OPERATION_ADD,
         @Query(QUERY_FLAG) flag: String = QUERY_FLAG_READ,

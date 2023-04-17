@@ -3,7 +3,7 @@ package com.spinoza.messenger_tfs.di.login
 import android.content.Context
 import androidx.lifecycle.Lifecycle
 import com.github.terrakok.cicerone.Router
-import com.spinoza.messenger_tfs.domain.usecase.CheckLoginUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetApiKeyUseCase
 import com.spinoza.messenger_tfs.presentation.feature.login.LoginActor
 import com.spinoza.messenger_tfs.presentation.feature.login.LoginReducer
 import com.spinoza.messenger_tfs.presentation.feature.login.LoginStorage
@@ -26,8 +26,8 @@ class LoginModule {
     fun provideLoginScreenState(): LoginScreenState = LoginScreenState()
 
     @Provides
-    fun provideLoginActor(lifecycle: Lifecycle, checkLoginUseCase: CheckLoginUseCase): LoginActor =
-        LoginActor(lifecycle, checkLoginUseCase)
+    fun provideLoginActor(lifecycle: Lifecycle, getApiKeyUseCase: GetApiKeyUseCase): LoginActor =
+        LoginActor(lifecycle, getApiKeyUseCase)
 
     @Provides
     fun provideLoginReducer(

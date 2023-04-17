@@ -3,7 +3,7 @@ package com.spinoza.messenger_tfs.presentation.feature.login
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.CheckLoginUseCase
+import com.spinoza.messenger_tfs.domain.usecase.GetApiKeyUseCase
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
@@ -16,7 +16,7 @@ import vivid.money.elmslie.coroutines.Actor
 
 class LoginActor(
     lifecycle: Lifecycle,
-    private val checkLoginUseCase: CheckLoginUseCase,
+    private val getApiKeyUseCase: GetApiKeyUseCase,
 ) : Actor<LoginScreenCommand, LoginScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
@@ -72,7 +72,7 @@ class LoginActor(
         password: String,
     ): LoginScreenEvent.Internal {
         var event: LoginScreenEvent.Internal = LoginScreenEvent.Internal.Idle
-        checkLoginUseCase(apiKey, email.trim(), password.trim()).onSuccess { apiKeyResult ->
+        getApiKeyUseCase(apiKey, email.trim(), password.trim()).onSuccess { apiKeyResult ->
             event = LoginScreenEvent.Internal.LoginSuccess(apiKeyResult, email, password)
         }.onFailure { error ->
             event = if (error is RepositoryError) {

@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.di
 
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
+import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.feature.app.App
@@ -17,7 +18,7 @@ import vivid.money.elmslie.coroutines.ElmStoreCompat
 class GlobalDI private constructor() {
 
     private val repository by lazy {
-        MessagesRepositoryImpl.getInstance(ZulipApiFactory.apiService, Json {
+        MessagesRepositoryImpl.getInstance(ZulipApiFactory.apiService, ZulipAuthKeeper, Json {
             ignoreUnknownKeys = true
             coerceInputValues = true
         })

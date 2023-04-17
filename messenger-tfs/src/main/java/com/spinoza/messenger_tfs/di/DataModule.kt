@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.di
 
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
+import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import dagger.Module
@@ -21,9 +22,13 @@ class DataModule {
     fun provideZulipApiService(): ZulipApiService = ZulipApiFactory.apiService
 
     @Provides
+    fun provideZulipAuthKeeper(): ZulipAuthKeeper = ZulipAuthKeeper
+
+    @Provides
     fun provideMessagesRepository(
-        zulipApiService: ZulipApiService,
+        apiService: ZulipApiService,
+        apiAuthKeeper: ZulipAuthKeeper,
         jsonConverter: Json,
     ): MessagesRepository =
-        MessagesRepositoryImpl.getInstance(zulipApiService, jsonConverter)
+        MessagesRepositoryImpl.getInstance(apiService, apiAuthKeeper, jsonConverter)
 }

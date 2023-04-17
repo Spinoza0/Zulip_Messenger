@@ -5,7 +5,7 @@ import com.spinoza.messenger_tfs.domain.model.event.*
 
 interface MessagesRepository {
 
-    suspend fun checkLogin(apiKey: String, email: String, password: String): Result<String>
+    suspend fun getApiKey(storedApiKey: String, email: String, password: String): Result<String>
 
     suspend fun getOwnUserId(): Result<Long>
 
