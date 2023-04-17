@@ -7,7 +7,6 @@ import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.di.ApplicationComponent
 import com.spinoza.messenger_tfs.di.DaggerApplicationComponent
-import com.spinoza.messenger_tfs.di.GlobalDI
 import vivid.money.elmslie.android.logger.strategy.AndroidLog
 import vivid.money.elmslie.core.config.ElmslieConfig
 import vivid.money.elmslie.core.logger.strategy.IgnoreLog
@@ -24,8 +23,6 @@ class App : Application() {
         val cicerone = Cicerone.create()
         navigatorHolder = cicerone.getNavigatorHolder()
         router = cicerone.router
-
-        GlobalDI.init()
 
         ElmslieConfig.apply {
             if (BuildConfig.DEBUG) {
