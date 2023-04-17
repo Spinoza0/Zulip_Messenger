@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.menu
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -14,12 +15,18 @@ import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.google.android.material.navigation.NavigationBarView.OnItemSelectedListener
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMainMenuBinding
+import com.spinoza.messenger_tfs.di.menu.DaggerMenuComponent
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.closeApplication
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import javax.inject.Inject
 
 
 class MainMenuFragment : Fragment(), OnItemSelectedListener {
+
+    @Inject
+    lateinit var cicerone: Cicerone<Router>
 
     private var _binding: FragmentMainMenuBinding? = null
     private val binding: FragmentMainMenuBinding
@@ -29,12 +36,15 @@ class MainMenuFragment : Fragment(), OnItemSelectedListener {
     private lateinit var localRouter: Router
     private lateinit var onBackPressedCallback: OnBackPressedCallback
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        DaggerMenuComponent.factory().create(context.getAppComponent(), this).inject(this)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val cicerone = Cicerone.create()
         navigatorHolder = cicerone.getNavigatorHolder()
         localRouter = cicerone.router
-
         if (savedInstanceState == null) {
             localRouter.newRootScreen(Screens.ItemChannels())
         }
@@ -50,7 +60,7 @@ class MainMenuFragment : Fragment(), OnItemSelectedListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupStatusBar()
+        setupScreen()
     }
 
     private fun setupOnBackPressedCallback() {
@@ -68,7 +78,6 @@ class MainMenuFragment : Fragment(), OnItemSelectedListener {
     }
 
     private fun setupNavigation() {
-        binding.bottomNavigationView.setOnItemSelectedListener(this)
         val localNavigator =
             AppNavigator(requireActivity(), R.id.fragmentContainer, childFragmentManager)
         navigatorHolder.setNavigator(localNavigator)
@@ -102,9 +111,10 @@ class MainMenuFragment : Fragment(), OnItemSelectedListener {
         _binding = null
     }
 
-    private fun setupStatusBar() {
+    private fun setupScreen() {
         requireActivity().window.statusBarColor =
             requireContext().getThemeColor(R.attr.background_500_color)
+        binding.bottomNavigationView.setOnItemSelectedListener(this)
     }
 
     companion object {
