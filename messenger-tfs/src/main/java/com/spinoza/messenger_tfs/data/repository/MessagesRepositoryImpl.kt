@@ -30,8 +30,8 @@ class MessagesRepositoryImpl private constructor(
     private val jsonConverter: Json,
 ) : MessagesRepository {
 
-    private var ownUser: UserDto = UserDto()
-    private var isOwnUserLoaded = false
+    private var storedOwnUser: UserDto = UserDto()
+    private var isOwnUserStored = false
 
     override suspend fun getApiKey(
         storedApiKey: String,
@@ -66,12 +66,12 @@ class MessagesRepositoryImpl private constructor(
     }
 
     override suspend fun getOwnUserId(): Result<Long> {
-        return if (isOwnUserLoaded) {
-            Result.success(ownUser.userId)
+        return if (isOwnUserStored) {
+            Result.success(storedOwnUser.userId)
         } else {
             val result = getOwnUser()
             if (result.isSuccess) {
-                Result.success(ownUser.userId)
+                Result.success(storedOwnUser.userId)
             } else {
                 Result.failure(result.exceptionOrNull() ?: RepositoryError(UNKNOWN_ERROR))
             }
@@ -88,10 +88,10 @@ class MessagesRepositoryImpl private constructor(
             if (ownUserResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(ownUserResponse.msg)
             }
-            isOwnUserLoaded = true
-            ownUser = ownUserResponse.toUserDto()
-            val presence = getUserPresence(ownUser.userId)
-            ownUser.toDomain(presence)
+            isOwnUserStored = true
+            storedOwnUser = ownUserResponse.toUserDto()
+            val presence = getUserPresence(storedOwnUser.userId)
+            storedOwnUser.toDomain(presence)
         }
     }
 
@@ -135,7 +135,7 @@ class MessagesRepositoryImpl private constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            if (ownUser.userId == UserDto.UNDEFINED_ID) {
+            if (storedOwnUser.userId == UserDto.UNDEFINED_ID) {
                 getOwnUser()
             }
             val response = apiService.getMessages(
@@ -155,7 +155,10 @@ class MessagesRepositoryImpl private constructor(
                 MessagePosition(MessagePosition.Type.LAST_POSITION)
             }
             messagesCache.addAll(messagesResponse.messages)
-            MessagesResult(messagesCache.getMessages(filter).toDomain(ownUser.userId), position)
+            MessagesResult(
+                messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                position
+            )
         }
     }
 
@@ -358,7 +361,8 @@ class MessagesRepositoryImpl private constructor(
             MessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(ownUser.userId), MessagePosition()
+                    messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                    MessagePosition()
                 )
             )
         }
@@ -382,7 +386,8 @@ class MessagesRepositoryImpl private constructor(
             DeleteMessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(ownUser.userId), MessagePosition()
+                    messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                    MessagePosition()
                 )
             )
         }
@@ -406,7 +411,8 @@ class MessagesRepositoryImpl private constructor(
             ReactionEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(ownUser.userId), MessagePosition()
+                    messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                    MessagePosition()
                 )
             )
         }
@@ -419,9 +425,9 @@ class MessagesRepositoryImpl private constructor(
         messagesFilter: MessagesFilter,
     ): MessagesResult {
         val isAddReaction = null == reactions.find {
-            it.emojiName == emoji.name && it.userId == ownUser.userId
+            it.emojiName == emoji.name && it.userId == storedOwnUser.userId
         }
-        messagesCache.updateReaction(messageId, emoji.toDto(ownUser.userId), isAddReaction)
+        messagesCache.updateReaction(messageId, emoji.toDto(storedOwnUser.userId), isAddReaction)
         CoroutineScope(Dispatchers.IO).launch {
             runCatchingNonCancellation {
                 if (isAddReaction) {
@@ -432,7 +438,7 @@ class MessagesRepositoryImpl private constructor(
             }
         }
         return MessagesResult(
-            messagesCache.getMessages(messagesFilter).toDomain(ownUser.userId),
+            messagesCache.getMessages(messagesFilter).toDomain(storedOwnUser.userId),
             MessagePosition(MessagePosition.Type.EXACTLY, messageId)
         )
     }
