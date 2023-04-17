@@ -35,34 +35,30 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         coerceInputValues = true
     }
 
-    override suspend fun checkLogin(
-        apiKey: String,
+    override suspend fun getApiKey(
+        storedApiKey: String,
         email: String,
         password: String,
-    ): Result<String> =
-        withContext(Dispatchers.IO) {
-            var isApyKeyValid = false
-            if (apiKey.isNotEmpty()) {
-                authHeader = Credentials.basic(email, apiKey)
-                getOwnUser().onSuccess {
-                    isApyKeyValid = true
-                }
-            }
-            if (isApyKeyValid) {
-                Result.success(apiKey)
-            } else runCatchingNonCancellation {
-                val response = apiService.fetchApiKey(email, password)
-                if (!response.isSuccessful) {
-                    throw RepositoryError(response.message())
-                }
-                val apiKeyResponse = response.getBodyOrThrow()
-                if (apiKeyResponse.result != RESULT_SUCCESS) {
-                    throw RepositoryError(apiKeyResponse.msg)
-                }
-                authHeader = Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
-                apiKeyResponse.apiKey
+    ): Result<String> = withContext(Dispatchers.IO) {
+        if (storedApiKey.isNotBlank()) {
+            authHeader = Credentials.basic(email, storedApiKey)
+            getOwnUser().onSuccess {
+                return@withContext Result.success(storedApiKey)
             }
         }
+        runCatchingNonCancellation {
+            val response = apiService.fetchApiKey(email, password)
+            if (!response.isSuccessful) {
+                throw RepositoryError(response.message())
+            }
+            val apiKeyResponse = response.getBodyOrThrow()
+            if (apiKeyResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(apiKeyResponse.msg)
+            }
+            authHeader = Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
+            apiKeyResponse.apiKey
+        }
+    }
 
     override suspend fun setOwnStatusActive() {
         withContext(Dispatchers.IO) {

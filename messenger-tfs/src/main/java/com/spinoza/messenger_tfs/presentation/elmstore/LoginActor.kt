@@ -19,7 +19,7 @@ class LoginActor(
 ) : Actor<LoginScreenCommand, LoginScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
-    private val checkLoginUseCase = GlobalDI.INSTANCE.checkLoginUseCase
+    private val getApiKeyUseCase = GlobalDI.INSTANCE.getApiKeyUseCase
     private val newEmailFieldState = MutableSharedFlow<String>()
     private val newPasswordFieldState = MutableSharedFlow<String>()
     private var isEmailValid = false
@@ -72,7 +72,7 @@ class LoginActor(
         password: String,
     ): LoginScreenEvent.Internal {
         var event: LoginScreenEvent.Internal = LoginScreenEvent.Internal.Idle
-        checkLoginUseCase(apiKey, email.trim(), password.trim()).onSuccess { apiKeyResult ->
+        getApiKeyUseCase(apiKey, email.trim(), password.trim()).onSuccess { apiKeyResult ->
             event = LoginScreenEvent.Internal.LoginSuccess(apiKeyResult, email, password)
         }.onFailure { error ->
             event = if (error is RepositoryError) {
