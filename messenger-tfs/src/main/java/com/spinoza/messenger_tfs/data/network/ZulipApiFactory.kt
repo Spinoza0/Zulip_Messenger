@@ -9,8 +9,6 @@ import java.util.concurrent.TimeUnit
 
 object ZulipApiFactory {
 
-    var authHeader = ""
-
     private const val HEADER_AUTHORIZATION = "Authorization"
     private const val MEDIA_TYPE_JSON = "application/json"
     private const val BASE_URL = "https://tinkoff-android-spring-2023.zulipchat.com/api/v1/"
@@ -32,7 +30,7 @@ object ZulipApiFactory {
                 return@authenticator null
             request.newBuilder().header(
                 HEADER_AUTHORIZATION,
-                authHeader
+                ZulipAuthKeeper.authHeader
             ).build()
         }
         .build()

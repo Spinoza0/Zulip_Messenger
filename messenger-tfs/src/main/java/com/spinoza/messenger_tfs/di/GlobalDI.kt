@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.di
 import android.content.Context
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
+import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.usecase.*
@@ -17,7 +18,7 @@ import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 class GlobalDI private constructor(context: Context) {
 
-    private val repository by lazy { MessagesRepositoryImpl.getInstance() }
+    private val repository by lazy { MessagesRepositoryImpl.getInstance(ZulipAuthKeeper) }
 
     val globalRouter by lazy { App.router }
     val globalNavigatorHolder by lazy { App.navigatorHolder }

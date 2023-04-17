@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
+import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.network.model.event.*
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
@@ -23,7 +24,8 @@ import okhttp3.Credentials
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
 // TODO: 2) пагинация для сообщений
 
-class MessagesRepositoryImpl private constructor() : MessagesRepository {
+class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: ZulipAuthKeeper) :
+    MessagesRepository {
 
     private val messagesCache = MessagesCache()
     private var ownUser: UserDto = UserDto()
@@ -41,7 +43,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         password: String,
     ): Result<String> = withContext(Dispatchers.IO) {
         if (storedApiKey.isNotBlank()) {
-            apiFactory.authHeader = Credentials.basic(email, storedApiKey)
+            apiAuthKeeper.authHeader = Credentials.basic(email, storedApiKey)
             getOwnUser().onSuccess {
                 return@withContext Result.success(storedApiKey)
             }
@@ -55,7 +57,8 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             if (apiKeyResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(apiKeyResponse.msg)
             }
-            apiFactory.authHeader = Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
+            apiAuthKeeper.authHeader =
+                Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
             apiKeyResponse.apiKey
         }
     }
@@ -527,11 +530,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit
 
-        fun getInstance(): MessagesRepositoryImpl {
+        fun getInstance(apiAuthKeeper: ZulipAuthKeeper): MessagesRepositoryImpl {
             instance?.let { return it }
             synchronized(LOCK) {
                 instance?.let { return it }
-                return MessagesRepositoryImpl().also { instance = it }
+                return MessagesRepositoryImpl(apiAuthKeeper).also { instance = it }
             }
         }
     }
