@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.di
 
+import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.presentation.feature.app.App
@@ -14,4 +15,7 @@ class ApplicationModule {
 
     @Provides
     fun provideGlobalNavigatorHolder(): NavigatorHolder = App.navigatorHolder
+
+    @Provides
+    fun provideCicerone(): Cicerone<Router> = Cicerone.create()
 }

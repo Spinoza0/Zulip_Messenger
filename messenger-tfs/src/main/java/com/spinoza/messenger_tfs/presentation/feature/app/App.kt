@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.app
 
 import android.app.Application
-import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.BuildConfig
@@ -19,8 +18,7 @@ class App : Application() {
         super.onCreate()
 
         appComponent = DaggerApplicationComponent.factory().create(applicationContext)
-
-        val cicerone = Cicerone.create()
+        val cicerone = appComponent.getCicerone()
         navigatorHolder = cicerone.getNavigatorHolder()
         router = cicerone.router
 

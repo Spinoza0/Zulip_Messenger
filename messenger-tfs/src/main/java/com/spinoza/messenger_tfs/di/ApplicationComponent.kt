@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.di
 
 import android.content.Context
+import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -17,6 +18,8 @@ interface ApplicationComponent {
     fun globalRouter(): Router
 
     fun globalNavigatorHolder(): NavigatorHolder
+
+    fun getCicerone(): Cicerone<Router>
 
     @Component.Factory
     interface Factory {

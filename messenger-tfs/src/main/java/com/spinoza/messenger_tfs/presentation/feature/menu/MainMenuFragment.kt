@@ -38,7 +38,7 @@ class MainMenuFragment : Fragment(), OnItemSelectedListener {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        DaggerMenuComponent.factory().create(context.getAppComponent(), this).inject(this)
+        DaggerMenuComponent.factory().create(context.getAppComponent()).inject(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
