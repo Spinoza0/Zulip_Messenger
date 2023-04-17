@@ -13,8 +13,9 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.coroutines.Actor
+import javax.inject.Inject
 
-class LoginActor(
+class LoginActor @Inject constructor(
     lifecycle: Lifecycle,
     private val getApiKeyUseCase: GetApiKeyUseCase,
 ) : Actor<LoginScreenCommand, LoginScreenEvent.Internal> {

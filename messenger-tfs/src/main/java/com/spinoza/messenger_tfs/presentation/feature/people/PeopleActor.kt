@@ -16,8 +16,9 @@ import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenE
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.coroutines.Actor
+import javax.inject.Inject
 
-class PeopleActor(
+class PeopleActor @Inject constructor(
     lifecycle: Lifecycle,
     private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,

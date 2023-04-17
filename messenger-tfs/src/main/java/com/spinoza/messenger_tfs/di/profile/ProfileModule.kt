@@ -2,8 +2,8 @@ package com.spinoza.messenger_tfs.di.profile
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
-import com.github.terrakok.cicerone.Router
-import com.spinoza.messenger_tfs.domain.usecase.*
+import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.profile.ProfileActor
 import com.spinoza.messenger_tfs.presentation.feature.profile.ProfileReducer
@@ -28,25 +28,6 @@ class ProfileModule {
         registerEventQueueUseCase,
         deleteEventQueueUseCase
     )
-
-    @Provides
-    fun provideProfileActor(
-        lifecycle: Lifecycle,
-        getOwnUserUseCase: GetOwnUserUseCase,
-        getUserUseCase: GetUserUseCase,
-        getPresenceEventsUseCase: GetPresenceEventsUseCase,
-        eventsQueueHolder: EventsQueueHolder,
-    ): ProfileActor =
-        ProfileActor(
-            lifecycle,
-            getOwnUserUseCase,
-            getUserUseCase,
-            getPresenceEventsUseCase,
-            eventsQueueHolder
-        )
-
-    @Provides
-    fun provideProfileReducer(router: Router): ProfileReducer = ProfileReducer(router)
 
     @Provides
     fun provideProfileStore(

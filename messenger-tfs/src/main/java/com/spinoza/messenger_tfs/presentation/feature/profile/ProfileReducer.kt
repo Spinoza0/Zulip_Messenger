@@ -7,8 +7,9 @@ import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScree
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
+import javax.inject.Inject
 
-class ProfileReducer(private val router: Router) : ScreenDslReducer<
+class ProfileReducer @Inject constructor(private val router: Router) : ScreenDslReducer<
         ProfileScreenEvent,
         ProfileScreenEvent.Ui,
         ProfileScreenEvent.Internal,

@@ -8,8 +8,9 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScr
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
+import javax.inject.Inject
 
-class MessagesReducer(private val router: Router) : ScreenDslReducer<
+class MessagesReducer @Inject constructor(private val router: Router) : ScreenDslReducer<
         MessagesScreenEvent,
         MessagesScreenEvent.Ui,
         MessagesScreenEvent.Internal,

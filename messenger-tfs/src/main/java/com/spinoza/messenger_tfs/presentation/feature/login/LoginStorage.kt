@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import javax.inject.Inject
 
 interface LoginStorage {
 
@@ -18,7 +19,7 @@ interface LoginStorage {
     fun deleteData()
 }
 
-class LoginStorageImpl(context: Context) : LoginStorage {
+class LoginStorageImpl @Inject constructor(context: Context) : LoginStorage {
 
     private val masterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)

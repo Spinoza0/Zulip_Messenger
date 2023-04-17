@@ -25,8 +25,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import vivid.money.elmslie.coroutines.Actor
 import java.util.*
+import javax.inject.Inject
 
-class MessagesActor(
+class MessagesActor @Inject constructor(
     lifecycle: Lifecycle,
     private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,

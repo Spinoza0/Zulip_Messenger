@@ -19,11 +19,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Credentials
+import javax.inject.Inject
 
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
 // TODO: 2) пагинация для сообщений
 
-class MessagesRepositoryImpl(
+class MessagesRepositoryImpl @Inject constructor(
     private val messagesCache: MessagesCache,
     private val apiService: ZulipApiService,
     private val apiAuthKeeper: ZulipAuthKeeper,

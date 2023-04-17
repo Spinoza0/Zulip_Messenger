@@ -2,10 +2,7 @@ package com.spinoza.messenger_tfs.di.people
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
-import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.people.PeopleActor
@@ -34,17 +31,6 @@ class PeopleModule {
         registerEventQueueUseCase,
         deleteEventQueueUseCase
     )
-
-    @Provides
-    fun providePeopleActor(
-        lifecycle: Lifecycle, getUsersByFilterUseCase: GetUsersByFilterUseCase,
-        getPresenceEventsUseCase: GetPresenceEventsUseCase,
-        eventsQueue: EventsQueueHolder,
-    ): PeopleActor =
-        PeopleActor(lifecycle, getUsersByFilterUseCase, getPresenceEventsUseCase, eventsQueue)
-
-    @Provides
-    fun providePeopleReducer(router: Router): PeopleReducer = PeopleReducer(router)
 
     @Provides
     fun providePeopleStore(

@@ -20,8 +20,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import vivid.money.elmslie.coroutines.Actor
+import javax.inject.Inject
 
-class ProfileActor(
+class ProfileActor @Inject constructor(
     lifecycle: Lifecycle,
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,

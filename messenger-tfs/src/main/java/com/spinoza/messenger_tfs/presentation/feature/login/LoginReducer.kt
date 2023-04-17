@@ -7,8 +7,9 @@ import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEve
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenState
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
+import javax.inject.Inject
 
-class LoginReducer(
+class LoginReducer @Inject constructor(
     private val storage: LoginStorage,
     private val router: Router,
 ) : ScreenDslReducer<
