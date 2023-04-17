@@ -38,7 +38,7 @@ class MessagesRepositoryImpl private constructor(
         email: String,
         password: String,
     ): Result<String> = withContext(Dispatchers.IO) {
-        if (storedApiKey.isNotEmpty()) {
+        if (storedApiKey.isNotBlank()) {
             apiAuthKeeper.authHeader = Credentials.basic(email, storedApiKey)
             getOwnUser().onSuccess {
                 return@withContext Result.success(storedApiKey)
