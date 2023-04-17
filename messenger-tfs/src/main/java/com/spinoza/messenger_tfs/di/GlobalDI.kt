@@ -21,7 +21,7 @@ class GlobalDI private constructor(context: Context) {
 
     val globalRouter by lazy { App.router }
     val globalNavigatorHolder by lazy { App.navigatorHolder }
-    val apiService = ZulipApiFactory.apiService
+    val apiFactory = ZulipApiFactory
 
     val getApiKeyUseCase by lazy { GetApiKeyUseCase(repository) }
     val deleteEventQueueUseCase by lazy { DeleteEventQueueUseCase(repository) }
