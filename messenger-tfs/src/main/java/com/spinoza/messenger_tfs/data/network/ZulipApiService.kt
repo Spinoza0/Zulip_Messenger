@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data.network
 
+import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
@@ -19,21 +20,23 @@ import retrofit2.http.*
 
 interface ZulipApiService {
 
+    @POST("fetch_api_key")
+    suspend fun fetchApiKey(
+        @Query(QUERY_USERNAME) username: String,
+        @Query(QUERY_PASSWORD) password: String,
+    ): Response<ApiKeyResponse>
+
     @GET("users/me")
     suspend fun getOwnUser(): Response<OwnUserResponse>
 
     @GET("users/{$QUERY_USER_ID}")
-    suspend fun getUser(
-        @Path(QUERY_USER_ID) userId: Long,
-    ): Response<UserResponse>
+    suspend fun getUser(@Path(QUERY_USER_ID) userId: Long): Response<UserResponse>
 
     @GET("users")
     suspend fun getAllUsers(): Response<AllUsersResponse>
 
     @GET("users/{$QUERY_USER_ID}/presence")
-    suspend fun getUserPresence(
-        @Path(QUERY_USER_ID) userId: Long,
-    ): Response<PresenceResponse>
+    suspend fun getUserPresence(@Path(QUERY_USER_ID) userId: Long): Response<PresenceResponse>
 
     @GET("realm/presence")
     suspend fun getAllPresences(): Response<AllPresencesResponse>
@@ -48,9 +51,7 @@ interface ZulipApiService {
     suspend fun getAllStreams(): Response<AllStreamsResponse>
 
     @GET("users/me/{$QUERY_STREAM_ID}/topics")
-    suspend fun getTopics(
-        @Path(QUERY_STREAM_ID) streamId: Long,
-    ): Response<TopicsResponse>
+    suspend fun getTopics(@Path(QUERY_STREAM_ID) streamId: Long): Response<TopicsResponse>
 
     @GET("messages")
     suspend fun getMessages(
@@ -94,9 +95,7 @@ interface ZulipApiService {
     ): Response<RegisterEventQueueResponse>
 
     @DELETE("events")
-    suspend fun deleteEventQueue(
-        @Query(QUERY_QUEUE_ID) queueId: String,
-    ): Response<BasicResponse>
+    suspend fun deleteEventQueue(@Query(QUERY_QUEUE_ID) queueId: String): Response<BasicResponse>
 
     @GET("events")
     suspend fun getEventsFromQueue(
@@ -117,6 +116,8 @@ interface ZulipApiService {
         const val ANCHOR_OLDEST = "oldest"
         const val ANCHOR_FIRST_UNREAD = "first_unread"
 
+        private const val QUERY_USERNAME = "username"
+        private const val QUERY_PASSWORD = "password"
         private const val QUERY_USER_ID = "user_id"
         private const val QUERY_NARROW = "narrow"
         private const val QUERY_ANCHOR = "anchor"

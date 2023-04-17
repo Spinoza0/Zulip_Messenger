@@ -11,11 +11,7 @@ object ZulipApiFactory {
 
     private const val HEADER_AUTHORIZATION = "Authorization"
     private const val MEDIA_TYPE_JSON = "application/json"
-
-     private const val BASE_URL = "https://tinkoff-android-spring-2023.zulipchat.com/api/v1/"
-     private const val CREDENTIALS_USERNAME = "spinoza0@gmail.com"
-     private const val CREDENTIALS_PASSWORD = "XQofyM7WG8hXEQfknohST26F0NS9uEd0"
-
+    private const val BASE_URL = "https://tinkoff-android-spring-2023.zulipchat.com/api/v1/"
     private const val TIME_OUT_SECONDS = 15L
     private val json = Json {
         ignoreUnknownKeys = true
@@ -34,7 +30,7 @@ object ZulipApiFactory {
                 return@authenticator null
             request.newBuilder().header(
                 HEADER_AUTHORIZATION,
-                Credentials.basic(CREDENTIALS_USERNAME, CREDENTIALS_PASSWORD)
+                ZulipAuthKeeper.authHeader
             ).build()
         }
         .build()

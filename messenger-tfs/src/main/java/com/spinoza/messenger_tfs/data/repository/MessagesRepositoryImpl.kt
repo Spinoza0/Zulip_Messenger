@@ -1,13 +1,14 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
+import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.network.model.event.*
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
+import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -18,20 +19,48 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-
+import okhttp3.Credentials
 
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
 // TODO: 2) пагинация для сообщений
 
-class MessagesRepositoryImpl private constructor() : MessagesRepository {
+class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: ZulipAuthKeeper) :
+    MessagesRepository {
 
     private val messagesCache = MessagesCache()
     private var ownUser: UserDto = UserDto()
     private var isOwnUserLoaded = false
-    private val apiService = GlobalDI.INSTANCE.apiService
+    private val apiFactory = GlobalDI.INSTANCE.apiFactory
+    private val apiService = apiFactory.apiService
     private val jsonConverter = Json {
         ignoreUnknownKeys = true
         coerceInputValues = true
+    }
+
+    override suspend fun getApiKey(
+        storedApiKey: String,
+        email: String,
+        password: String,
+    ): Result<String> = withContext(Dispatchers.IO) {
+        if (storedApiKey.isNotBlank()) {
+            apiAuthKeeper.authHeader = Credentials.basic(email, storedApiKey)
+            getOwnUser().onSuccess {
+                return@withContext Result.success(storedApiKey)
+            }
+        }
+        runCatchingNonCancellation {
+            val response = apiService.fetchApiKey(email, password)
+            if (!response.isSuccessful) {
+                throw RepositoryError(response.message())
+            }
+            val apiKeyResponse = response.getBodyOrThrow()
+            if (apiKeyResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(apiKeyResponse.msg)
+            }
+            apiAuthKeeper.authHeader =
+                Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
+            apiKeyResponse.apiKey
+        }
     }
 
     override suspend fun setOwnStatusActive() {
@@ -48,7 +77,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
             if (result.isSuccess) {
                 Result.success(ownUser.userId)
             } else {
-                Result.failure(result.exceptionOrNull() ?: RepositoryError(""))
+                Result.failure(result.exceptionOrNull() ?: RepositoryError(UNKNOWN_ERROR))
             }
         }
     }
@@ -493,6 +522,7 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
 
         private const val RESULT_SUCCESS = "success"
         private const val EVENT_HEARTBEAT = "heartbeat"
+        private const val UNKNOWN_ERROR = ""
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
 
@@ -500,11 +530,11 @@ class MessagesRepositoryImpl private constructor() : MessagesRepository {
         private var instance: MessagesRepositoryImpl? = null
         private val LOCK = Unit
 
-        fun getInstance(): MessagesRepositoryImpl {
+        fun getInstance(apiAuthKeeper: ZulipAuthKeeper): MessagesRepositoryImpl {
             instance?.let { return it }
             synchronized(LOCK) {
                 instance?.let { return it }
-                return MessagesRepositoryImpl().also { instance = it }
+                return MessagesRepositoryImpl(apiAuthKeeper).also { instance = it }
             }
         }
     }

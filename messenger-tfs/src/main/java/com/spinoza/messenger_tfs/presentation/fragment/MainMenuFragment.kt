@@ -13,16 +13,16 @@ import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.google.android.material.navigation.NavigationBarView.OnItemSelectedListener
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.databinding.FragmentMainBinding
+import com.spinoza.messenger_tfs.databinding.FragmentMainMenuBinding
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.ui.getThemeColor
 
 
-class MainFragment : Fragment(), OnItemSelectedListener {
+class MainMenuFragment : Fragment(), OnItemSelectedListener {
 
-    private var _binding: FragmentMainBinding? = null
-    private val binding: FragmentMainBinding
-        get() = _binding ?: throw RuntimeException("FragmentMainBinding == null")
+    private var _binding: FragmentMainMenuBinding? = null
+    private val binding: FragmentMainMenuBinding
+        get() = _binding ?: throw RuntimeException("FragmentMainMenuBinding == null")
 
     private lateinit var navigatorHolder: NavigatorHolder
     private lateinit var localRouter: Router
@@ -43,7 +43,7 @@ class MainFragment : Fragment(), OnItemSelectedListener {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-        _binding = FragmentMainBinding.inflate(inflater, container, false)
+        _binding = FragmentMainMenuBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -108,8 +108,8 @@ class MainFragment : Fragment(), OnItemSelectedListener {
 
     companion object {
 
-        fun newInstance(): MainFragment {
-            return MainFragment()
+        fun newInstance(): MainMenuFragment {
+            return MainMenuFragment()
         }
     }
 }

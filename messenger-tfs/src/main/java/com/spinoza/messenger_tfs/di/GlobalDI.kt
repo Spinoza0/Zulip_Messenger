@@ -1,24 +1,30 @@
 package com.spinoza.messenger_tfs.di
 
+import android.content.Context
 import com.spinoza.messenger_tfs.App
 import com.spinoza.messenger_tfs.data.network.ZulipApiFactory
+import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.presentation.elmstore.*
+import com.spinoza.messenger_tfs.presentation.model.login.LoginScreenState
 import com.spinoza.messenger_tfs.presentation.model.messages.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.model.people.PeopleScreenState
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenState
+import com.spinoza.messenger_tfs.presentation.elmstore.LoginStorageImpl
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 
-class GlobalDI private constructor() {
+class GlobalDI private constructor(context: Context) {
 
-    private val repository by lazy { MessagesRepositoryImpl.getInstance() }
+    private val repository by lazy { MessagesRepositoryImpl.getInstance(ZulipAuthKeeper) }
 
     val globalRouter by lazy { App.router }
-    val apiService = ZulipApiFactory.apiService
+    val globalNavigatorHolder by lazy { App.navigatorHolder }
+    val apiFactory = ZulipApiFactory
 
+    val getApiKeyUseCase by lazy { GetApiKeyUseCase(repository) }
     val deleteEventQueueUseCase by lazy { DeleteEventQueueUseCase(repository) }
     val getChannelEventsUseCase by lazy { GetChannelEventsUseCase(repository) }
     val getChannelsUseCase by lazy { GetChannelsUseCase(repository) }
@@ -39,8 +45,16 @@ class GlobalDI private constructor() {
     val setOwnStatusActiveUseCase by lazy { SetOwnStatusActiveUseCase(repository) }
     val updateReactionUseCase by lazy { UpdateReactionUseCase(repository) }
 
+    private val loginStorage by lazy { LoginStorageImpl(context) }
+
     fun getChannelsFilter(isAllChannels: Boolean) =
         ChannelsFilter(ChannelsFilter.NO_FILTER, !isAllChannels)
+
+    fun provideLoginStore(actor: LoginActor) = ElmStoreCompat(
+        initialState = LoginScreenState(),
+        reducer = LoginReducer(loginStorage),
+        actor = actor
+    )
 
     fun provideProfileStore(initialState: ProfileScreenState, actor: ProfileActor) = ElmStoreCompat(
         initialState = initialState,
@@ -64,8 +78,8 @@ class GlobalDI private constructor() {
 
         lateinit var INSTANCE: GlobalDI
 
-        fun init() {
-            INSTANCE = GlobalDI()
+        fun init(context: Context) {
+            INSTANCE = GlobalDI(context)
         }
     }
 }

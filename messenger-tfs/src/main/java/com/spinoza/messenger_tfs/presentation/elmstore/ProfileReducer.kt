@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenCommand
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEffect
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenEvent
 import com.spinoza.messenger_tfs.presentation.model.profile.ProfileScreenState
+import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 
 class ProfileReducer : ScreenDslReducer<
@@ -49,6 +50,7 @@ class ProfileReducer : ScreenDslReducer<
         is ProfileScreenEvent.Ui.SubscribePresence -> event.user?.let {
             commands { +ProfileScreenCommand.SubscribePresence(event.user) }
         }
+        is ProfileScreenEvent.Ui.Logout -> router.replaceScreen(Screens.Login(true))
         is ProfileScreenEvent.Ui.Init -> {}
     }
 }

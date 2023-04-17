@@ -1,10 +1,10 @@
 package com.spinoza.messenger_tfs
 
 import android.app.Application
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
+import com.spinoza.messenger_tfs.di.GlobalDI
 import vivid.money.elmslie.android.logger.strategy.AndroidLog
 import vivid.money.elmslie.core.config.ElmslieConfig
 import vivid.money.elmslie.core.logger.strategy.IgnoreLog
@@ -18,7 +18,7 @@ class App : Application() {
         navigatorHolder = cicerone.getNavigatorHolder()
         router = cicerone.router
 
-        GlobalDI.init()
+        GlobalDI.init(applicationContext)
 
         ElmslieConfig.apply {
             if (BuildConfig.DEBUG) {
