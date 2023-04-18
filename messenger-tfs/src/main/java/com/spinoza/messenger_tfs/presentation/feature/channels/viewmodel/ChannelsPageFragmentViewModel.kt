@@ -109,7 +109,9 @@ class ChannelsPageFragmentViewModel(
                     }
                 }
             }
-            _state.emit(state.value.copy(items = cache.toList()))
+            if(isActive) {
+                _state.emit(state.value.copy(items = cache.toList()))
+            }
         }
     }
 
