@@ -68,6 +68,7 @@ class ChannelsPageFragmentViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        stopUpdateMessagesCountJob()
         cache.clear()
         viewModelScope.launch {
             eventsQueue.deleteQueue()
@@ -125,10 +126,7 @@ class ChannelsPageFragmentViewModel(
                 val index = cache.indexOf(oldChannelDelegateItem)
                 val oldChannelItem = oldChannelDelegateItem.content() as ChannelItem
                 if (!oldChannelItem.isFolded) {
-                    updateMessagesCountJob?.let {
-                        it.cancel()
-                        updateMessagesCountJob = null
-                    }
+                    stopUpdateMessagesCountJob()
                 }
                 val newChannelDelegateItem = ChannelDelegateItem(
                     oldChannelItem.copy(isFolded = !oldChannelItem.isFolded)
@@ -155,6 +153,13 @@ class ChannelsPageFragmentViewModel(
                 _state.emit(state.value.copy(items = cache.toList()))
                 updateMessagesCount()
             }
+        }
+    }
+
+    private fun stopUpdateMessagesCountJob() {
+        updateMessagesCountJob?.let {
+            it.cancel()
+            updateMessagesCountJob = null
         }
     }
 
