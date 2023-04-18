@@ -101,15 +101,18 @@ class ChannelsPageFragmentViewModel(
             for (i in 0 until cache.size) {
                 if (!isActive) return@launch
                 runCatching {
-                    if (cache[i] is TopicDelegateItem) {
-                        val messagesFilter = cache[i].content() as MessagesFilter
-                        getTopicUseCase(messagesFilter).onSuccess {
-                            cache[i] = TopicDelegateItem(messagesFilter.copy(topic = it))
-                        }
-                    }
+                    val delegateItem = cache[i]
+                    if (delegateItem is TopicDelegateItem) updateTopicDelegateItem(delegateItem, i)
                 }
             }
-            if(isActive) {
+        }
+    }
+
+    private suspend fun updateTopicDelegateItem(delegateItem: DelegateAdapterItem, itemIndex: Int) {
+        val messagesFilter = delegateItem.content() as MessagesFilter
+        getTopicUseCase(messagesFilter).onSuccess { newTopic ->
+            if (messagesFilter.topic.messageCount != newTopic.messageCount) {
+                cache[itemIndex] = TopicDelegateItem(messagesFilter.copy(topic = newTopic))
                 _state.emit(state.value.copy(items = cache.toList()))
             }
         }
