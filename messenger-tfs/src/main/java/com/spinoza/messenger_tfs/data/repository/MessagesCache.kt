@@ -34,7 +34,12 @@ class MessagesCache @Inject constructor() {
         }
     }
 
-    fun updateReaction(messageId: Long, reactionDto: ReactionDto, isAddReaction: Boolean) {
+    fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
+        val messages = data.filter { messageId == it.id }
+        if (messages.isEmpty()) return
+        val isAddReaction = null == messages.first().reactions.find {
+            it.emojiName == reactionDto.emojiName && it.userId == userId
+        }
         updateReaction(
             ReactionEventDto(
                 UNDEFINED_EVENT_ID,

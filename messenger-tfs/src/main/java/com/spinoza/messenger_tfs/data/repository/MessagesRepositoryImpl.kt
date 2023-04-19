@@ -3,7 +3,6 @@ package com.spinoza.messenger_tfs.data.repository
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.network.model.event.*
-import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
@@ -252,15 +251,14 @@ class MessagesRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            val response = apiService.getSingleMessage(messageId)
-            if (!response.isSuccessful) {
-                throw RepositoryError(response.message())
-            }
-            val singleMessageResponse = response.getBodyOrThrow()
-            if (singleMessageResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(singleMessageResponse.msg)
-            }
-            updateReaction(singleMessageResponse.message.reactions, messageId, emoji, filter)
+            messagesCache
+                .updateReaction(messageId, storedOwnUser.userId, emoji.toDto(storedOwnUser.userId))
+            val result = MessagesResult(
+                messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                MessagePosition(MessagePosition.Type.EXACTLY, messageId)
+            )
+            updateReactionOnServer(messageId, emoji)
+            result
         }
     }
 
@@ -419,18 +417,20 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    private suspend fun updateReaction(
-        reactions: List<ReactionDto>,
-        messageId: Long,
-        emoji: Emoji,
-        messagesFilter: MessagesFilter,
-    ): MessagesResult {
-        val isAddReaction = null == reactions.find {
-            it.emojiName == emoji.name && it.userId == storedOwnUser.userId
-        }
-        messagesCache.updateReaction(messageId, emoji.toDto(storedOwnUser.userId), isAddReaction)
+    private fun updateReactionOnServer(messageId: Long, emoji: Emoji) {
         CoroutineScope(Dispatchers.IO).launch {
             runCatchingNonCancellation {
+                val response = apiService.getSingleMessage(messageId)
+                if (!response.isSuccessful) {
+                    throw RepositoryError(response.message())
+                }
+                val singleMessageResponse = response.getBodyOrThrow()
+                if (singleMessageResponse.result != RESULT_SUCCESS) {
+                    throw RepositoryError(singleMessageResponse.msg)
+                }
+                val isAddReaction = null == singleMessageResponse.message.reactions.find {
+                    it.emojiName == emoji.name && it.userId == storedOwnUser.userId
+                }
                 if (isAddReaction) {
                     apiService.addReaction(messageId, emoji.name)
                 } else {
@@ -438,10 +438,6 @@ class MessagesRepositoryImpl @Inject constructor(
                 }
             }
         }
-        return MessagesResult(
-            messagesCache.getMessages(messagesFilter).toDomain(storedOwnUser.userId),
-            MessagePosition(MessagePosition.Type.EXACTLY, messageId)
-        )
     }
 
     private suspend fun getUserPresence(userId: Long): User.Presence = runCatchingNonCancellation {
