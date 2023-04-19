@@ -122,6 +122,7 @@ class ChannelsFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        binding.tabLayout.removeAllTabs()
         tabLayoutMediator.detach()
         binding.viewPager.unregisterOnPageChangeCallback(onPageChangeCallback)
         binding.viewPager.adapter = null
