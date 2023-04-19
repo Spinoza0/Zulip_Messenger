@@ -31,7 +31,6 @@ class MessagesRepositoryImpl @Inject constructor(
 ) : MessagesRepository {
 
     private var storedOwnUser: UserDto = UserDto()
-    private var isOwnUserStored = false
 
     override suspend fun getApiKey(
         storedApiKey: String,
@@ -66,7 +65,7 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getOwnUserId(): Result<Long> {
-        return if (isOwnUserStored) {
+        return if (storedOwnUser.userId != UserDto.UNDEFINED_ID) {
             Result.success(storedOwnUser.userId)
         } else {
             val result = getOwnUser()
@@ -88,7 +87,6 @@ class MessagesRepositoryImpl @Inject constructor(
             if (ownUserResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(ownUserResponse.msg)
             }
-            isOwnUserStored = true
             storedOwnUser = ownUserResponse.toUserDto()
             val presence = getUserPresence(storedOwnUser.userId)
             storedOwnUser.toDomain(presence)

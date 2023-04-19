@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
+import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentLoginBinding
 import com.spinoza.messenger_tfs.di.login.DaggerLoginComponent
@@ -47,7 +48,9 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        DaggerLoginComponent.factory().create(context.getAppComponent(), lifecycle).inject(this)
+        DaggerLoginComponent.factory()
+            .create(context.getAppComponent(), lifecycle.coroutineScope)
+            .inject(this)
     }
 
     override fun onCreateView(

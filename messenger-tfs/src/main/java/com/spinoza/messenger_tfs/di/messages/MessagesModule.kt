@@ -11,7 +11,7 @@ import dagger.Provides
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 @Module
-class MessagesModule {
+object MessagesModule {
 
     @Provides
     fun provideMessagesScreenState(): MessagesScreenState = MessagesScreenState()

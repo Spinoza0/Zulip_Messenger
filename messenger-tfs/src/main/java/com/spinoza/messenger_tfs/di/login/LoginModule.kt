@@ -14,29 +14,28 @@ import dagger.Module
 import dagger.Provides
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
-@Module(includes = [LoginModule.Bind::class])
-class LoginModule {
+@Module
+interface LoginModule {
 
-    @Provides
-    fun provideLoginScreenState(): LoginScreenState = LoginScreenState()
+    @LoginScope
+    @Binds
+    fun bindLoginStorage(impl: LoginStorageImpl): LoginStorage
 
-    @Provides
-    fun provideLoginStore(
-        state: LoginScreenState,
-        actor: LoginActor,
-        reducer: LoginReducer,
-    ): ElmStoreCompat<
-            LoginScreenEvent,
-            LoginScreenState,
-            LoginScreenEffect,
-            LoginScreenCommand> =
-        ElmStoreCompat(state, reducer, actor)
+    companion object {
 
-    @Module
-    interface Bind {
+        @Provides
+        fun provideLoginScreenState(): LoginScreenState = LoginScreenState()
 
-        @LoginScope
-        @Binds
-        fun bindLoginStorage(impl: LoginStorageImpl): LoginStorage
+        @Provides
+        fun provideLoginStore(
+            state: LoginScreenState,
+            actor: LoginActor,
+            reducer: LoginReducer,
+        ): ElmStoreCompat<
+                LoginScreenEvent,
+                LoginScreenState,
+                LoginScreenEffect,
+                LoginScreenCommand> =
+            ElmStoreCompat(state, reducer, actor)
     }
 }

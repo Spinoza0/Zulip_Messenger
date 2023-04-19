@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.login
 
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.coroutineScope
+import androidx.lifecycle.LifecycleCoroutineScope
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.GetApiKeyUseCase
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
@@ -16,11 +15,10 @@ import vivid.money.elmslie.coroutines.Actor
 import javax.inject.Inject
 
 class LoginActor @Inject constructor(
-    lifecycle: Lifecycle,
+    private val lifecycleScope: LifecycleCoroutineScope,
     private val getApiKeyUseCase: GetApiKeyUseCase,
 ) : Actor<LoginScreenCommand, LoginScreenEvent.Internal> {
 
-    private val lifecycleScope = lifecycle.coroutineScope
     private val newEmailFieldState = MutableSharedFlow<String>()
     private val newPasswordFieldState = MutableSharedFlow<String>()
     private var isEmailValid = false

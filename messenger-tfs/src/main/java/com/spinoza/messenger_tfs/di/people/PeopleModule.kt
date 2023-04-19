@@ -16,7 +16,7 @@ import dagger.Provides
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 @Module
-class PeopleModule {
+object PeopleModule {
 
     @Provides
     fun providePeopleScreenState(): PeopleScreenState = PeopleScreenState()

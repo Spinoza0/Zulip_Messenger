@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.di.login
 
-import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleCoroutineScope
 import com.spinoza.messenger_tfs.di.ApplicationComponent
 import com.spinoza.messenger_tfs.di.LoginScope
 import com.spinoza.messenger_tfs.presentation.feature.login.LoginFragment
@@ -18,7 +18,7 @@ interface LoginComponent {
 
         fun create(
             applicationComponent: ApplicationComponent,
-            @BindsInstance lifecycle: Lifecycle,
+            @BindsInstance lifecycleCoroutineScope: LifecycleCoroutineScope,
         ): LoginComponent
     }
 }
