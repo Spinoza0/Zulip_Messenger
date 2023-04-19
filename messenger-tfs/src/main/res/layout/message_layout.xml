@@ -33,7 +33,6 @@
         android:background="@drawable/shape_message_user_bottom"
         android:minWidth="100dp"
         android:paddingHorizontal="13dp"
-        android:paddingBottom="16dp"
         android:textColor="?attr/text_300_color"
         android:textSize="16sp"
         tools:text="@tools:sample/full_names" />

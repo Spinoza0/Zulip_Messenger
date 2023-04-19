@@ -1,6 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.ui
 
 import android.content.Context
+import android.text.Html
+import android.text.Html.ImageGetter
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -11,9 +13,13 @@ import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.model.Emoji
-import com.spinoza.messenger_tfs.presentation.feature.messages.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.FlexBoxGravity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class MessageView @JvmOverloads constructor(
     context: Context,
@@ -37,10 +43,22 @@ class MessageView @JvmOverloads constructor(
     val avatarImage: ImageView
         get() = binding.avatarImageView
 
+    private var imageJob: Job? = null
+
+    private val imageGetter = ImageGetter { imageUrl ->
+        val holder = BitmapDrawablePlaceHolder(resources, null)
+        imageJob?.cancel()
+        imageJob = CoroutineScope(Dispatchers.IO).launch {
+            holder.loadImage(context, resources, imageUrl, binding.contentTextView)
+        }
+        holder
+    }
+
     private var content: String
         get() = binding.contentTextView.text.toString()
         set(value) {
-            binding.contentTextView.text = value
+            binding.contentTextView.text =
+                Html.fromHtml(value, Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL, imageGetter, null)
         }
 
     private val binding by lazy {
@@ -78,6 +96,12 @@ class MessageView @JvmOverloads constructor(
                 )
             }
         }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        imageJob?.cancel()
+        imageJob = null
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -240,6 +264,7 @@ class MessageView @JvmOverloads constructor(
     }
 
     private companion object {
+
         const val UNDEFINED_ID = -1L
         const val REACTION_PADDING_HORIZONTAL = 10f
         const val REACTION_PADDING_VERTICAL = 7f

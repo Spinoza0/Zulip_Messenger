@@ -59,7 +59,7 @@ interface ZulipApiService {
         @Query(QUERY_NUM_AFTER) numAfter: Int = DEFAULT_NUM_AFTER,
         @Query(QUERY_ANCHOR) anchor: String = ANCHOR_FIRST_UNREAD,
         @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = false,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = true,
     ): Response<MessagesResponse>
 
     @GET("messages/{$QUERY_MESSAGE_ID}")
@@ -91,7 +91,7 @@ interface ZulipApiService {
     suspend fun registerEventQueue(
         @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = false,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = true,
     ): Response<RegisterEventQueueResponse>
 
     @DELETE("events")

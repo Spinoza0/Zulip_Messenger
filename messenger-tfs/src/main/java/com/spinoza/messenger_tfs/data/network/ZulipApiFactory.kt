@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.data.network
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.spinoza.messenger_tfs.BuildConfig
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.*
@@ -11,7 +12,7 @@ object ZulipApiFactory {
 
     private const val HEADER_AUTHORIZATION = "Authorization"
     private const val MEDIA_TYPE_JSON = "application/json"
-    private const val BASE_URL = "https://tinkoff-android-spring-2023.zulipchat.com/api/v1/"
+    private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
     private const val TIME_OUT_SECONDS = 15L
     private val json = Json {
         ignoreUnknownKeys = true
