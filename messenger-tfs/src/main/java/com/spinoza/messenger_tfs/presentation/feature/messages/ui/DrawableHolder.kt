@@ -12,8 +12,8 @@ import com.spinoza.messenger_tfs.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class BitmapDrawablePlaceHolder(res: Resources, bitmap: Bitmap?) :
-    BitmapDrawable(res, bitmap) {
+class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
+    BitmapDrawable(resources, bitmap) {
 
     private var drawable: Drawable? = null
 
@@ -21,12 +21,7 @@ class BitmapDrawablePlaceHolder(res: Resources, bitmap: Bitmap?) :
         drawable?.run { draw(canvas) }
     }
 
-    suspend fun loadImage(
-        context: Context,
-        resources: Resources,
-        imageUrl: String,
-        textView: TextView,
-    ) {
+    suspend fun loadImage(context: Context, imageUrl: String, textView: TextView) {
         val fullUrl = if (isFullUrl(imageUrl)) imageUrl else "${IMAGE_BASE_URL}$imageUrl"
         runCatching {
             val bitmap = Glide.with(context)
@@ -56,7 +51,7 @@ class BitmapDrawablePlaceHolder(res: Resources, bitmap: Bitmap?) :
 
         const val IMAGE_TOP_BOUND = 0
         const val IMAGE_LEFT_BOUND = 0
-        const val IMAGE_SCALE = 1.1f
+        const val IMAGE_SCALE = 1.25f
         const val IMAGE_BASE_URL = BuildConfig.ZULIP_SERVER_URL
         const val IMAGE_URL_SECURED_PREFIX = "https://"
         const val IMAGE_URL_BASIC_PREFIX = "http://"
