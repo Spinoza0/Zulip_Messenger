@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -25,6 +27,7 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDele
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.*
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsPageFragmentViewModel
+import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.factory.ViewModelFactory
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.off
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.on
@@ -37,10 +40,13 @@ class ChannelsPageFragment : Fragment() {
     lateinit var channelsAdapter: MainDelegateAdapter
 
     @Inject
-    lateinit var store: ChannelsPageFragmentViewModel
+    lateinit var viewModelFactory: ViewModelFactory
 
-    @Inject
-    lateinit var sharedStore: ChannelsFragmentSharedViewModel
+    private val store: ChannelsPageFragmentViewModel by viewModels { viewModelFactory }
+
+    private val sharedStore: ChannelsFragmentSharedViewModel by activityViewModels {
+        viewModelFactory
+    }
 
     private var isSubscribed = true
     private var _binding: FragmentChannelsPageBinding? = null
@@ -59,7 +65,7 @@ class ChannelsPageFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         parseParams()
         DaggerChannelsComponent.factory()
-            .create(requireContext().getAppComponent(), requireActivity(), this, isSubscribed)
+            .create(requireContext().getAppComponent(), isSubscribed)
             .inject(this)
         setupRecyclerView()
         setupObservers()

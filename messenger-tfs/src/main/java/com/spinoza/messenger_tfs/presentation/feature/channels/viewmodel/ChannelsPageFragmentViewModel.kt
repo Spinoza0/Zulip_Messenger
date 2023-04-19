@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.github.terrakok.cicerone.Router
+import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -23,9 +24,10 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPag
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import javax.inject.Inject
 
-class ChannelsPageFragmentViewModel(
-    isSubscribed: Boolean,
+class ChannelsPageFragmentViewModel @Inject constructor(
+    @ChannelIsSubscribed isSubscribed: Boolean,
     private val router: Router,
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,

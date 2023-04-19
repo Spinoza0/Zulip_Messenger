@@ -10,8 +10,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ChannelsFragmentSharedViewModel : ViewModel() {
+class ChannelsFragmentSharedViewModel @Inject constructor() : ViewModel() {
 
     val state: StateFlow<ChannelsScreenState>
         get() = _state.asStateFlow()

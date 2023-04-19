@@ -1,7 +1,5 @@
 package com.spinoza.messenger_tfs.di.channels
 
-import android.app.Activity
-import androidx.fragment.app.Fragment
 import com.spinoza.messenger_tfs.di.ApplicationComponent
 import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.di.ChannelsScope
@@ -11,7 +9,7 @@ import dagger.BindsInstance
 import dagger.Component
 
 @ChannelsScope
-@Component(dependencies = [ApplicationComponent::class], modules = [ChannelsModule::class])
+@Component(dependencies = [ApplicationComponent::class], modules = [ViewModelModule::class])
 interface ChannelsComponent {
 
     fun inject(fragment: ChannelsFragment)
@@ -23,8 +21,6 @@ interface ChannelsComponent {
 
         fun create(
             applicationComponent: ApplicationComponent,
-            @BindsInstance activity: Activity,
-            @BindsInstance fragment: Fragment,
             @ChannelIsSubscribed @BindsInstance isSubscribed: Boolean = true,
         ): ChannelsComponent
     }

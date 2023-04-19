@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -21,13 +22,18 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScr
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
+import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.factory.ViewModelFactory
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class ChannelsFragment : Fragment() {
 
     @Inject
-    lateinit var sharedStore: ChannelsFragmentSharedViewModel
+    lateinit var viewModelFactory: ViewModelFactory
+
+    private val sharedStore: ChannelsFragmentSharedViewModel by activityViewModels {
+        viewModelFactory
+    }
 
     private lateinit var tabLayoutMediator: TabLayoutMediator
     private lateinit var onPageChangeCallback: ViewPager2.OnPageChangeCallback
@@ -40,9 +46,7 @@ class ChannelsFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        DaggerChannelsComponent.factory()
-            .create(context.getAppComponent(), requireActivity(), this)
-            .inject(this)
+        DaggerChannelsComponent.factory().create(context.getAppComponent()).inject(this)
     }
 
     override fun onCreateView(
