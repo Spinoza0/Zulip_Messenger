@@ -179,9 +179,6 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun updateChannelsList() {
-        if (channelsAdapter.itemCount == NO_ITEMS) {
-            store.accept(ChannelsPageScreenEvent.Ui.Load)
-        }
         store.accept(ChannelsPageScreenEvent.Ui.UpdateMessageCount)
     }
 
@@ -200,7 +197,6 @@ class ChannelsPageFragment : Fragment() {
     companion object {
 
         private const val PARAM_IS_SUBSCRIBED = "isSubscribed"
-        private const val NO_ITEMS = 0
 
         fun newInstance(isSubscribed: Boolean): ChannelsPageFragment {
             return ChannelsPageFragment().apply {
