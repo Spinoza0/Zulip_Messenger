@@ -1,7 +1,10 @@
 package com.spinoza.messenger_tfs.di
 
+import android.content.Context
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.spinoza.messenger_tfs.BuildConfig
+import com.spinoza.messenger_tfs.data.database.MessengerDao
+import com.spinoza.messenger_tfs.data.database.MessengerDatabase
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
@@ -31,6 +34,11 @@ interface DataModule {
         private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
         private const val TIME_OUT_SECONDS = 15L
         private const val EMPTY_STRING = ""
+
+        @ApplicationScope
+        @Provides
+        fun provideMessengerDao(context: Context): MessengerDao =
+            MessengerDatabase.getInstance(context).dao()
 
         @Provides
         fun provideJsonConverter(): Json = Json {

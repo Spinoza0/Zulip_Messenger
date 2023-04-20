@@ -67,5 +67,9 @@ dependencies {
     implementation elmslie.android
     implementation elmslie.coroutines
 
+    implementation room.runtime
+    kapt(room.compiler)
+    implementation room.ktx
+
     debugImplementation leakcanary
 }

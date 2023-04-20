@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
+import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.network.model.event.*
@@ -25,6 +26,7 @@ import javax.inject.Inject
 
 class MessagesRepositoryImpl @Inject constructor(
     private val messagesCache: MessagesCache,
+    private val messengerDao: MessengerDao,
     private val apiService: ZulipApiService,
     private val apiAuthKeeper: ZulipAuthKeeper,
     private val jsonConverter: Json,
