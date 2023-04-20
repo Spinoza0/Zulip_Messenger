@@ -29,8 +29,9 @@ import javax.inject.Inject
 class ChannelsPageFragmentViewModel @Inject constructor(
     @ChannelIsSubscribed isSubscribed: Boolean,
     private val router: Router,
+    private val getStoredTopicsUseCase: GetStoredTopicsUseCase,
     private val getTopicsUseCase: GetTopicsUseCase,
-    private val getChannelsFromCacheUseCase: GetChannelsFromCacheUseCase,
+    private val getStoredChannelsUseCase: GetStoredChannelsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
@@ -86,19 +87,19 @@ class ChannelsPageFragmentViewModel @Inject constructor(
 
     private fun loadItems() {
         viewModelScope.launch(Dispatchers.Default) {
-            var cacheIsEmpty = true
-            getChannelsFromCacheUseCase(channelsFilter).onSuccess { channelsFromCache ->
-                if (channelsFromCache.isNotEmpty()) {
-                    cacheIsEmpty = false
-                    updateCacheWithShowedTopicsSaving(channelsFromCache.toDelegateItem())
+            var storedChannels = emptyList<Channel>()
+            getStoredChannelsUseCase(channelsFilter).onSuccess { channels ->
+                storedChannels = channels
+                if (storedChannels.isNotEmpty()) {
+                    updateCacheWithShowedTopicsSaving(storedChannels.toDelegateItem())
                     _state.emit(state.value.copy(items = cache.toList()))
                 }
             }
-            if (cacheIsEmpty) {
+            if (storedChannels.isEmpty()) {
                 _state.emit(state.value.copy(isLoading = true))
             }
             val result = getChannelsUseCase(channelsFilter)
-            if (cacheIsEmpty) {
+            if (storedChannels.isEmpty()) {
                 _state.emit(state.value.copy(isLoading = false))
             }
             result.onSuccess {
@@ -154,7 +155,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
                 cache[index] = newChannelDelegateItem
 
                 if (oldChannelItem.isFolded) {
-                    addTopicsToCache(channelItem, index + 1)
+                    unfoldChannel(channelItem, index + 1)
                 } else {
                     var nextIndex = index + 1
                     var isNextChannelItemExist = false
@@ -169,8 +170,8 @@ class ChannelsPageFragmentViewModel @Inject constructor(
                         nextIndex = cache.size
                     }
                     cache.subList(index + 1, nextIndex).clear()
+                    _state.emit(state.value.copy(items = cache.toList()))
                 }
-                _state.emit(state.value.copy(items = cache.toList()))
                 updateMessagesCount()
             }
         }
@@ -276,19 +277,35 @@ class ChannelsPageFragmentViewModel @Inject constructor(
         cache.addAll(newCache)
     }
 
-    private suspend fun addTopicsToCache(channelItem: ChannelItem, index: Int = UNDEFINED_INDEX) {
-        _state.emit(state.value.copy(isLoading = true))
+    private suspend fun unfoldChannel(channelItem: ChannelItem, index: Int) {
+        var storedTopics = emptyList<Topic>()
+        getStoredTopicsUseCase(channelItem.channel).onSuccess { topics ->
+            storedTopics = topics
+            if (storedTopics.isNotEmpty()) {
+                insertTopicsToCache(storedTopics, channelItem.channel, index)
+                _state.emit(state.value.copy(items = cache.toList()))
+            }
+        }
+        if (storedTopics.isEmpty()) {
+            _state.emit(state.value.copy(isLoading = true))
+        }
         val topicsResult = getTopicsUseCase(channelItem.channel)
-        _state.emit(state.value.copy(isLoading = false))
-        topicsResult.onSuccess {
-            val topics = it.toDelegateItem(channelItem.channel)
-            if (index != UNDEFINED_INDEX)
-                cache.addAll(index, topics)
-            else
-                cache.addAll(topics)
+        if (storedTopics.isEmpty()) {
+            _state.emit(state.value.copy(isLoading = false))
+        }
+        topicsResult.onSuccess { topics ->
+            if (storedTopics.isNotEmpty()) {
+                cache.subList(index, index + storedTopics.size).clear()
+            }
+            insertTopicsToCache(topics, channelItem.channel, index)
+            _state.emit(state.value.copy(items = cache.toList()))
         }.onFailure {
             handleErrors(it)
         }
+    }
+
+    private fun insertTopicsToCache(topics: List<Topic>, channel: Channel, index: Int) {
+        cache.addAll(index, topics.toDelegateItem(channel))
     }
 
     private suspend fun handleErrors(error: Throwable) {
@@ -327,7 +344,6 @@ class ChannelsPageFragmentViewModel @Inject constructor(
 
     private companion object {
 
-        const val UNDEFINED_INDEX = -1
         const val EMPTY_NAME = ""
         const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
         const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L

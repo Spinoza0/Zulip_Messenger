@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.database.model.StreamDbModel
+import com.spinoza.messenger_tfs.data.database.model.TopicDbModel
 import com.spinoza.messenger_tfs.data.network.model.event.EventTypeDto
 import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventDto
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
@@ -10,6 +11,7 @@ import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.network.model.presence.PresenceDto
 import com.spinoza.messenger_tfs.data.network.model.presence.PresenceTypeDto
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
+import com.spinoza.messenger_tfs.data.network.model.stream.TopicDto
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
 import com.spinoza.messenger_tfs.domain.model.*
@@ -141,6 +143,34 @@ fun List<StreamEventDto>.listToDomain(channelsFilter: ChannelsFilter): List<Chan
     return events
 }
 
+fun List<TopicDto>.toDbModel(channel: Channel): List<TopicDbModel> {
+    return map { it.toDbModel(channel) }
+}
+
+fun List<TopicDto>.dtoToDomain(): List<Topic> {
+    return map { it.dtoToDomain() }
+}
+
+fun List<TopicDbModel>.dbToDomain(): List<Topic> {
+    return map { it.dbToDomain() }
+}
+
+private fun TopicDbModel.dbToDomain(): Topic {
+    return Topic(name = name, messageCount = NO_MESSAGES)
+}
+
+fun TopicDto.dtoToDomain(): Topic {
+    return Topic(name = name, messageCount = NO_MESSAGES)
+}
+
+private fun TopicDto.toDbModel(channel: Channel): TopicDbModel {
+    return TopicDbModel(
+        name = name,
+        streamId = channel.channelId,
+        isSubscribed = channel.isSubscribed
+    )
+}
+
 private fun EventType.toDto(): EventTypeDto = when (this) {
     EventType.PRESENCE -> EventTypeDto.PRESENCE
     EventType.CHANNEL -> EventTypeDto.STREAM
@@ -222,3 +252,4 @@ private fun String.isContainsWords(words: String): Boolean {
 private const val DATE_FORMAT = "dd.MM.yyyy"
 private const val MILLIS_IN_SECOND = 1000L
 private const val SECONDS_IN_DAY = 24 * 60 * 60
+private const val NO_MESSAGES = 0

@@ -162,11 +162,11 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getChannelsFromCache(channelsFilter: ChannelsFilter): Result<List<Channel>> =
+    override suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
-                val streamsList = messengerDao.getStreams()
-                streamsList.dbToDomain(channelsFilter)
+                val storedStreams = messengerDao.getStreams()
+                storedStreams.dbToDomain(channelsFilter)
             }
         }
 
@@ -200,12 +200,20 @@ class MessagesRepositoryImpl @Inject constructor(
             if (streamsList.isEmpty()) {
                 throw RepositoryError(errorMsg)
             }
-            messengerDao.removeTopics(channelsFilter.isSubscribed)
             messengerDao.removeStreams(channelsFilter.isSubscribed)
             messengerDao.insertStreams(streamsList.toDbModel(channelsFilter))
             streamsList.dtoToDomain(channelsFilter)
         }
     }
+
+    override suspend fun getStoredTopics(channel: Channel): Result<List<Topic>> =
+        withContext(Dispatchers.IO)
+        {
+            runCatchingNonCancellation {
+                val storedTopics = messengerDao.getTopics(channel.channelId, channel.isSubscribed)
+                storedTopics.dbToDomain()
+            }
+        }
 
     override suspend fun getTopics(channel: Channel): Result<List<Topic>> =
         withContext(Dispatchers.IO) {
@@ -218,11 +226,9 @@ class MessagesRepositoryImpl @Inject constructor(
                 if (topicsResponseDto.result != RESULT_SUCCESS) {
                     throw RepositoryError(topicsResponseDto.msg)
                 }
-                val topics = mutableListOf<Topic>()
-                topicsResponseDto.topics.forEach { topicDto ->
-                    topics.add(Topic(topicDto.name, 0))
-                }
-                topics
+                messengerDao.removeTopics(channel.channelId, channel.isSubscribed)
+                messengerDao.insertTopics(topicsResponseDto.topics.toDbModel(channel))
+                topicsResponseDto.topics.dtoToDomain()
             }
         }
 
