@@ -3,12 +3,10 @@ package com.spinoza.messenger_tfs.data.repository
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.network.model.event.*
-import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
-import com.spinoza.messenger_tfs.di.GlobalDI
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -20,22 +18,19 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Credentials
+import javax.inject.Inject
 
 // TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
 // TODO: 2) пагинация для сообщений
 
-class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: ZulipAuthKeeper) :
-    MessagesRepository {
+class MessagesRepositoryImpl @Inject constructor(
+    private val messagesCache: MessagesCache,
+    private val apiService: ZulipApiService,
+    private val apiAuthKeeper: ZulipAuthKeeper,
+    private val jsonConverter: Json,
+) : MessagesRepository {
 
-    private val messagesCache = MessagesCache()
-    private var ownUser: UserDto = UserDto()
-    private var isOwnUserLoaded = false
-    private val apiFactory = GlobalDI.INSTANCE.apiFactory
-    private val apiService = apiFactory.apiService
-    private val jsonConverter = Json {
-        ignoreUnknownKeys = true
-        coerceInputValues = true
-    }
+    private var storedOwnUser: UserDto = UserDto()
 
     override suspend fun getApiKey(
         storedApiKey: String,
@@ -70,12 +65,12 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
     }
 
     override suspend fun getOwnUserId(): Result<Long> {
-        return if (isOwnUserLoaded) {
-            Result.success(ownUser.userId)
+        return if (storedOwnUser.userId != UserDto.UNDEFINED_ID) {
+            Result.success(storedOwnUser.userId)
         } else {
             val result = getOwnUser()
             if (result.isSuccess) {
-                Result.success(ownUser.userId)
+                Result.success(storedOwnUser.userId)
             } else {
                 Result.failure(result.exceptionOrNull() ?: RepositoryError(UNKNOWN_ERROR))
             }
@@ -92,10 +87,9 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
             if (ownUserResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(ownUserResponse.msg)
             }
-            isOwnUserLoaded = true
-            ownUser = ownUserResponse.toUserDto()
-            val presence = getUserPresence(ownUser.userId)
-            ownUser.toDomain(presence)
+            storedOwnUser = ownUserResponse.toUserDto()
+            val presence = getUserPresence(storedOwnUser.userId)
+            storedOwnUser.toDomain(presence)
         }
     }
 
@@ -139,7 +133,7 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            if (ownUser.userId == UserDto.UNDEFINED_ID) {
+            if (storedOwnUser.userId == UserDto.UNDEFINED_ID) {
                 getOwnUser()
             }
             val response = apiService.getMessages(
@@ -159,7 +153,10 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
                 MessagePosition(MessagePosition.Type.LAST_POSITION)
             }
             messagesCache.addAll(messagesResponse.messages)
-            MessagesResult(messagesCache.getMessages(filter).toDomain(ownUser.userId), position)
+            MessagesResult(
+                messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                position
+            )
         }
     }
 
@@ -252,15 +249,14 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            val response = apiService.getSingleMessage(messageId)
-            if (!response.isSuccessful) {
-                throw RepositoryError(response.message())
-            }
-            val singleMessageResponse = response.getBodyOrThrow()
-            if (singleMessageResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(singleMessageResponse.msg)
-            }
-            updateReaction(singleMessageResponse.message.reactions, messageId, emoji, filter)
+            messagesCache
+                .updateReaction(messageId, storedOwnUser.userId, emoji.toDto(storedOwnUser.userId))
+            val result = MessagesResult(
+                messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                MessagePosition(MessagePosition.Type.EXACTLY, messageId)
+            )
+            updateReactionOnServer(messageId, emoji)
+            result
         }
     }
 
@@ -362,7 +358,8 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
             MessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(ownUser.userId), MessagePosition()
+                    messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                    MessagePosition()
                 )
             )
         }
@@ -386,7 +383,8 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
             DeleteMessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(ownUser.userId), MessagePosition()
+                    messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                    MessagePosition()
                 )
             )
         }
@@ -410,24 +408,27 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
             ReactionEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(ownUser.userId), MessagePosition()
+                    messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                    MessagePosition()
                 )
             )
         }
     }
 
-    private suspend fun updateReaction(
-        reactions: List<ReactionDto>,
-        messageId: Long,
-        emoji: Emoji,
-        messagesFilter: MessagesFilter,
-    ): MessagesResult {
-        val isAddReaction = null == reactions.find {
-            it.emojiName == emoji.name && it.userId == ownUser.userId
-        }
-        messagesCache.updateReaction(messageId, emoji.toDto(ownUser.userId), isAddReaction)
+    private fun updateReactionOnServer(messageId: Long, emoji: Emoji) {
         CoroutineScope(Dispatchers.IO).launch {
             runCatchingNonCancellation {
+                val response = apiService.getSingleMessage(messageId)
+                if (!response.isSuccessful) {
+                    throw RepositoryError(response.message())
+                }
+                val singleMessageResponse = response.getBodyOrThrow()
+                if (singleMessageResponse.result != RESULT_SUCCESS) {
+                    throw RepositoryError(singleMessageResponse.msg)
+                }
+                val isAddReaction = null == singleMessageResponse.message.reactions.find {
+                    it.emojiName == emoji.name && it.userId == storedOwnUser.userId
+                }
                 if (isAddReaction) {
                     apiService.addReaction(messageId, emoji.name)
                 } else {
@@ -435,10 +436,6 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
                 }
             }
         }
-        return MessagesResult(
-            messagesCache.getMessages(messagesFilter).toDomain(ownUser.userId),
-            MessagePosition(MessagePosition.Type.EXACTLY, messageId)
-        )
     }
 
     private suspend fun getUserPresence(userId: Long): User.Presence = runCatchingNonCancellation {
@@ -525,17 +522,5 @@ class MessagesRepositoryImpl private constructor(private val apiAuthKeeper: Zuli
         private const val UNKNOWN_ERROR = ""
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
-
-        @Volatile
-        private var instance: MessagesRepositoryImpl? = null
-        private val LOCK = Unit
-
-        fun getInstance(apiAuthKeeper: ZulipAuthKeeper): MessagesRepositoryImpl {
-            instance?.let { return it }
-            synchronized(LOCK) {
-                instance?.let { return it }
-                return MessagesRepositoryImpl(apiAuthKeeper).also { instance = it }
-            }
-        }
     }
 }

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/background_700_color"
-    tools:context=".presentation.fragment.MessagesFragment">
+    tools:context=".presentation.feature.messages.MessagesFragment">
 
     <Toolbar
         android:id="@+id/toolbar"

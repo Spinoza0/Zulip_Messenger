@@ -12,7 +12,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:context=".presentation.fragment.menu.ChannelsPageFragment"
+        tools:context=".presentation.feature.channels.ChannelsPageFragment"
         tools:listitem="@layout/channel_item" />
 
     <com.facebook.shimmer.ShimmerFrameLayout

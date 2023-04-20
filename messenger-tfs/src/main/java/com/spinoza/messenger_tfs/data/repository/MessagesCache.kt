@@ -7,8 +7,9 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import java.util.*
+import javax.inject.Inject
 
-class MessagesCache {
+class MessagesCache @Inject constructor() {
 
     private val data = TreeSet<MessageDto>()
     private val lock = Any()
@@ -33,7 +34,12 @@ class MessagesCache {
         }
     }
 
-    fun updateReaction(messageId: Long, reactionDto: ReactionDto, isAddReaction: Boolean) {
+    fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
+        val messages = data.filter { messageId == it.id }
+        if (messages.isEmpty()) return
+        val isAddReaction = null == messages.first().reactions.find {
+            it.emojiName == reactionDto.emojiName && it.userId == userId
+        }
         updateReaction(
             ReactionEventDto(
                 UNDEFINED_EVENT_ID,

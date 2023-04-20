@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.data.network
 
-object ZulipAuthKeeper {
+import javax.inject.Inject
 
-    var authHeader = ""
-}
+class ZulipAuthKeeper @Inject constructor(var authHeader: String)

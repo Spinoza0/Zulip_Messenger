@@ -23,6 +23,8 @@ buildscript {
             kotlinxCoroutines       : "1.6.4",
             kotlinxSerializationJson: "1.5.0",
 
+            dagger                  : "2.45",
+
             androidMaterial         : "1.8.0",
 
             room                    : "2.5.0",
@@ -32,7 +34,7 @@ buildscript {
             shimmer                 : "0.5.0",
 
             retrofit                : "2.9.0",
-            retrofitConverter       : "0.8.0",
+            retrofitConverter       : "1.0.0",
 
             elmslie                 : "2.1.1",
 
@@ -49,6 +51,11 @@ buildscript {
             appcompat       : "androidx.appcompat:appcompat:${versions.androidxAppCompat}",
             crypto          : "androidx.security:security-crypto:${versions.androidxCrypto}",
             constraintlayout: "androidx.constraintlayout:constraintlayout:${versions.androidxConstraintlayout}"
+    ]
+
+    ext.dagger = [
+            dagger  : "com.google.dagger:dagger:${versions.dagger}",
+            compiler: "com.google.dagger:dagger-compiler:${versions.dagger}",
     ]
 
     ext.navigation = [

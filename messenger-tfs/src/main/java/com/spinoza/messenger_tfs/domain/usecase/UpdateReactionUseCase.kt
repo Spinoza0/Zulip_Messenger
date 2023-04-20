@@ -4,8 +4,9 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import javax.inject.Inject
 
-class UpdateReactionUseCase(private val repository: MessagesRepository) {
+class UpdateReactionUseCase @Inject constructor(private val repository: MessagesRepository) {
 
     suspend operator fun invoke(
         messageId: Long,

@@ -16,7 +16,7 @@ android {
         targetSdk versions.targetSdk
         versionCode 1
         versionName "1.0"
-
+        buildConfigField "String", "ZULIP_SERVER_URL", "\"https://tinkoff-android-spring-2023.zulipchat.com\""
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -43,6 +43,9 @@ dependencies {
     implementation androidx.appcompat
     implementation androidx.crypto
     implementation androidx.constraintlayout
+
+    implementation dagger.dagger
+    kapt dagger.compiler
 
     implementation material
 

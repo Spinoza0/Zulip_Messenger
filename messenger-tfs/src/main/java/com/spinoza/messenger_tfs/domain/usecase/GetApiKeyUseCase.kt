@@ -1,8 +1,9 @@
 package com.spinoza.messenger_tfs.domain.usecase
 
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import javax.inject.Inject
 
-class GetApiKeyUseCase(private val repository: MessagesRepository) {
+class GetApiKeyUseCase @Inject constructor(private val repository: MessagesRepository) {
 
     suspend operator fun invoke(
         storedApiKey: String,

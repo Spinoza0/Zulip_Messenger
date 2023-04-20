@@ -4,8 +4,9 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import javax.inject.Inject
 
-class GetReactionEventUseCase(private val repository: MessagesRepository) :
+class GetReactionEventUseCase @Inject constructor(private val repository: MessagesRepository) :
     EventUseCase<ReactionEvent> {
 
     override suspend operator fun invoke(
