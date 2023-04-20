@@ -1,0 +1,28 @@
+<?xml version="1.1" encoding="utf-8"?>
+<resources>
+    <dimen name="profile_fragment_user_avatar_size">256dp</dimen>
+    <dimen name="profile_fragment_user_name_text_size">22sp</dimen>
+    <dimen name="profile_fragment_content_spacing">6dp</dimen>
+
+    <dimen name="search_toolbar_title_text_size">20sp</dimen>
+
+    <dimen name="shimmer_text_view_corner_radius">12dp</dimen>
+
+    <dimen name="global_toolbar_height">54dp</dimen>
+
+    <dimen name="user_item_avatar_view_size">64dp</dimen>
+    <dimen name="user_item_avatar_view_right_margin">8dp</dimen>
+    <dimen name="user_item_user_name_text_size">18sp</dimen>
+    <dimen name="user_item_user_email_text_size">12sp</dimen>
+    <dimen name="user_item_shimmer_email_name_spacing">4dp</dimen>
+
+    <dimen name="shimmer_item_stream_padding">4dp</dimen>
+    <dimen name="shimmer_item_stream_stream_name_height">30dp</dimen>
+    <dimen name="shimmer_item_stream_topic_name_height">25dp</dimen>
+    <dimen name="shimmer_item_stream_stream_and_topic_spacing">6dp</dimen>
+    <dimen name="shimmer_item_stream_topics_right_margin">32dp</dimen>i
+    <dimen name="shimmer_item_stream_topics_spacing">4dp</dimen>
+
+    <dimen name="stream_item_name_left_margin">6dp</dimen>
+    <dimen name="topic_item_name_left_margin">18dp</dimen>
+</resources>

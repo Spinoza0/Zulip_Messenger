@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".presentation.streams.StreamsPagesFragment">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true">
+
+        <org.kimp.tfs.hw7.presentation.base.SearchToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/global_toolbar_height"
+            app:title="@string/streams_fragment_title" />
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/global_toolbar_height"
+            android:background="?attr/colorPrimary"
+            app:tabSelectedTextColor="?attr/colorOnPrimary"
+            app:tabIndicatorColor="?attr/colorOnPrimary"
+            app:tabTextColor="?attr/colorOnPrimary"
+            app:tabIndicatorHeight="4dp"/>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/streams_pager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</LinearLayout>

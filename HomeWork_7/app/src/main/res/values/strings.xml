@@ -1,0 +1,16 @@
+<?xml version="1.1" encoding="UTF-8"?>
+<resources>
+    <string name="app_name">TFS HW7</string>
+
+    <string name="navigation_profile_fragment_title">Profile</string>
+    <string name="navigation_people_fragment_title">People</string>
+    <string name="navigation_streams_fragment_title">Streams</string>
+
+    <string name="search_toolbar_query_string">What do you want?</string>
+
+    <string name="streams_fragment_title">Streams and topics</string>
+    <string name="streams_fragment_subscribed_tab">Subscribed</string>
+    <string name="streams_fragment_all_tab">All</string>
+
+    <string name="profile_fragment_loading_error">Something went wrong… Reload in %1$d seconds</string>
+</resources>
