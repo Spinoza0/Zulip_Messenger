@@ -98,7 +98,8 @@ class ChannelsPageFragment : Fragment() {
                     if (lastVisibleItemPosition == lastItem ||
                         firstVisibleItemPosition == firstItem
                     ) {
-                        updateChannelsList()
+                        loadChannels()
+                        updateMessageCount()
                     }
                 }
             }
@@ -150,9 +151,7 @@ class ChannelsPageFragment : Fragment() {
                 String.format(getString(R.string.error_channels), effect.value)
             )
             is ChannelsPageScreenEffect.Failure.Network ->
-                showCheckInternetConnectionDialog(
-                    { store.accept(ChannelsPageScreenEvent.Ui.Load) }
-                ) {
+                showCheckInternetConnectionDialog({ loadChannels() }) {
                     closeApplication()
                 }
         }
@@ -175,10 +174,14 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        updateChannelsList()
+        updateMessageCount()
     }
 
-    private fun updateChannelsList() {
+    private fun loadChannels() {
+        store.accept(ChannelsPageScreenEvent.Ui.Load)
+    }
+
+    private fun updateMessageCount() {
         store.accept(ChannelsPageScreenEvent.Ui.UpdateMessageCount)
     }
 
