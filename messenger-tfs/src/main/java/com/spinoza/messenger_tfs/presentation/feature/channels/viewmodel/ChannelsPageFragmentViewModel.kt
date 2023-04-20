@@ -200,7 +200,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.Default) {
             while (isActive) {
                 delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
-                getChannelEventsUseCase(eventsQueue.queue).onSuccess { events ->
+                getChannelEventsUseCase(eventsQueue.queue, channelsFilter).onSuccess { events ->
                     val channels = mutableListOf<Channel>()
                     channels.addAll(cache
                         .filterIsInstance<ChannelDelegateItem>()
@@ -310,7 +310,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun Channel.toDelegateItem(): ChannelDelegateItem {
-        return ChannelDelegateItem(ChannelItem(this, channelsFilter.isSubscribed, true))
+        return ChannelDelegateItem(ChannelItem(this, true))
     }
 
     private fun List<Channel>.toDelegateItem(): List<ChannelDelegateItem> {

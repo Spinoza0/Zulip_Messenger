@@ -7,6 +7,7 @@ import kotlinx.parcelize.Parcelize
 data class Channel(
     val channelId: Long = UNDEFINED_ID,
     val name: String = UNDEFINED_NAME,
+    val isSubscribed: Boolean = false,
 ) : Parcelable {
 
     companion object {

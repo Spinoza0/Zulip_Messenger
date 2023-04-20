@@ -4,6 +4,5 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 
 data class ChannelItem(
     val channel: Channel,
-    val isSubscribedItem: Boolean,
     val isFolded: Boolean,
 )

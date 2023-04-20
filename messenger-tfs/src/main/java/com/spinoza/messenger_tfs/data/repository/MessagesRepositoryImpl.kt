@@ -339,7 +339,10 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getChannelEvents(queue: EventsQueue): Result<List<ChannelEvent>> =
+    override suspend fun getChannelEvents(
+        queue: EventsQueue,
+        channelsFilter: ChannelsFilter,
+    ): Result<List<ChannelEvent>> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
                 val eventResponseBody = getNonHeartBeatEventResponse(queue)
@@ -349,7 +352,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 if (eventResponse.result != RESULT_SUCCESS) {
                     throw RepositoryError(eventResponse.msg)
                 }
-                eventResponse.events.listToDomain()
+                eventResponse.events.listToDomain(channelsFilter)
             }
         }
 

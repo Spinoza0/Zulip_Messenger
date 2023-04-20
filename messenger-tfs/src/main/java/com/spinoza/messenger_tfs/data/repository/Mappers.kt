@@ -20,16 +20,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 fun List<StreamDto>.dtoToDomain(channelsFilter: ChannelsFilter): List<Channel> {
-    return filter {
-        it.name.isContainsWords(channelsFilter.name)
-    }.map { it.dtoToDomain() }
+    return filter { it.name.isContainsWords(channelsFilter.name) }
+        .map { it.dtoToDomain(channelsFilter) }
 }
 
 fun List<StreamDbModel>.dbToDomain(channelsFilter: ChannelsFilter): List<Channel> {
     return filter { it.isSubscribed == channelsFilter.isSubscribed }
-        .filter {
-            it.name.isContainsWords(channelsFilter.name)
-        }.map { it.dbToDomain() }
+        .filter { it.name.isContainsWords(channelsFilter.name) }
+        .map { it.dbToDomain(channelsFilter) }
 }
 
 fun List<StreamDto>.toDbModel(channelsFilter: ChannelsFilter): List<StreamDbModel> {
@@ -133,10 +131,12 @@ fun List<EventType>.toStringsList(): List<String> {
     return map { it.toDto().value }
 }
 
-fun List<StreamEventDto>.listToDomain(): List<ChannelEvent> {
+fun List<StreamEventDto>.listToDomain(channelsFilter: ChannelsFilter): List<ChannelEvent> {
     val events = mutableListOf<ChannelEvent>()
     map { streamEventDto ->
-        streamEventDto.streams.forEach { events.add(streamEventDto.toDomain(it)) }
+        streamEventDto.streams.forEach { streamDto ->
+            events.add(streamEventDto.toDomain(streamDto, channelsFilter))
+        }
     }
     return events
 }
@@ -149,11 +149,14 @@ private fun EventType.toDto(): EventTypeDto = when (this) {
     EventType.REACTION -> EventTypeDto.REACTION
 }
 
-private fun StreamEventDto.toDomain(streamDto: StreamDto): ChannelEvent {
+private fun StreamEventDto.toDomain(
+    streamDto: StreamDto,
+    channelsFilter: ChannelsFilter,
+): ChannelEvent {
     val operation =
         if (operation == ChannelEvent.Operation.DELETE.value) ChannelEvent.Operation.DELETE
         else ChannelEvent.Operation.CREATE
-    return ChannelEvent(id, operation, streamDto.dtoToDomain())
+    return ChannelEvent(id, operation, streamDto.dtoToDomain(channelsFilter))
 }
 
 private fun PresenceEventDto.toDomain(): PresenceEvent {
@@ -186,17 +189,19 @@ private fun Long.stripTimeFromTimestamp(): Long {
     return this - (this % SECONDS_IN_DAY)
 }
 
-private fun StreamDto.dtoToDomain(): Channel {
+private fun StreamDto.dtoToDomain(channelsFilter: ChannelsFilter): Channel {
     return Channel(
         channelId = streamId,
-        name = name
+        name = name,
+        isSubscribed = channelsFilter.isSubscribed
     )
 }
 
-private fun StreamDbModel.dbToDomain(): Channel {
+private fun StreamDbModel.dbToDomain(channelsFilter: ChannelsFilter): Channel {
     return Channel(
         channelId = streamId,
-        name = name
+        name = name,
+        isSubscribed = channelsFilter.isSubscribed
     )
 }
 

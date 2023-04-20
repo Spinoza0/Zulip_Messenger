@@ -42,7 +42,10 @@ interface MessagesRepository {
 
     suspend fun getPresenceEvents(queue: EventsQueue): Result<List<PresenceEvent>>
 
-    suspend fun getChannelEvents(queue: EventsQueue): Result<List<ChannelEvent>>
+    suspend fun getChannelEvents(
+        queue: EventsQueue,
+        channelsFilter: ChannelsFilter,
+    ): Result<List<ChannelEvent>>
 
     suspend fun getMessageEvent(queue: EventsQueue, filter: MessagesFilter): Result<MessageEvent>
 
