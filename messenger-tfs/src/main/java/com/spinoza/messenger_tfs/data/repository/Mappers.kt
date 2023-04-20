@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
+import com.spinoza.messenger_tfs.data.database.model.StreamDbModel
 import com.spinoza.messenger_tfs.data.network.model.event.EventTypeDto
 import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventDto
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
@@ -18,12 +19,21 @@ import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun List<StreamDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
-    return filter { subscribedStreamDto ->
-        channelsFilter.name.split(" ").all { word ->
-            subscribedStreamDto.name.contains(word, true)
-        }
-    }.map { it.toDomain() }
+fun List<StreamDto>.dtoToDomain(channelsFilter: ChannelsFilter): List<Channel> {
+    return filter {
+        it.name.isContainsWords(channelsFilter.name)
+    }.map { it.dtoToDomain() }
+}
+
+fun List<StreamDbModel>.dbToDomain(channelsFilter: ChannelsFilter): List<Channel> {
+    return filter { it.isSubscribed == channelsFilter.isSubscribed }
+        .filter {
+            it.name.isContainsWords(channelsFilter.name)
+        }.map { it.dbToDomain() }
+}
+
+fun List<StreamDto>.toDbModel(channelsFilter: ChannelsFilter): List<StreamDbModel> {
+    return map { it.toDbModel(channelsFilter) }
 }
 
 fun MessageDto.toDomain(userId: Long): Message {
@@ -143,7 +153,7 @@ private fun StreamEventDto.toDomain(streamDto: StreamDto): ChannelEvent {
     val operation =
         if (operation == ChannelEvent.Operation.DELETE.value) ChannelEvent.Operation.DELETE
         else ChannelEvent.Operation.CREATE
-    return ChannelEvent(id, operation, streamDto.toDomain())
+    return ChannelEvent(id, operation, streamDto.dtoToDomain())
 }
 
 private fun PresenceEventDto.toDomain(): PresenceEvent {
@@ -176,11 +186,32 @@ private fun Long.stripTimeFromTimestamp(): Long {
     return this - (this % SECONDS_IN_DAY)
 }
 
-private fun StreamDto.toDomain(): Channel {
+private fun StreamDto.dtoToDomain(): Channel {
     return Channel(
         channelId = streamId,
         name = name
     )
+}
+
+private fun StreamDbModel.dbToDomain(): Channel {
+    return Channel(
+        channelId = streamId,
+        name = name
+    )
+}
+
+private fun StreamDto.toDbModel(channelsFilter: ChannelsFilter): StreamDbModel {
+    return StreamDbModel(
+        streamId = streamId,
+        name = name,
+        isSubscribed = channelsFilter.isSubscribed
+    )
+}
+
+private fun String.isContainsWords(words: String): Boolean {
+    return words.split(" ").all { word ->
+        this.contains(word, true)
+    }
 }
 
 private const val DATE_FORMAT = "dd.MM.yyyy"

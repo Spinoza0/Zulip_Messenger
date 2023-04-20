@@ -17,6 +17,8 @@ interface MessagesRepository {
 
     suspend fun getMessages(filter: MessagesFilter): Result<MessagesResult>
 
+    suspend fun getChannelsFromCache(channelsFilter: ChannelsFilter): Result<List<Channel>>
+
     suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>
 
     suspend fun getTopics(channel: Channel): Result<List<Topic>>

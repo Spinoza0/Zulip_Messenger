@@ -30,6 +30,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     @ChannelIsSubscribed isSubscribed: Boolean,
     private val router: Router,
     private val getTopicsUseCase: GetTopicsUseCase,
+    private val getChannelsFromCacheUseCase: GetChannelsFromCacheUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
@@ -85,9 +86,21 @@ class ChannelsPageFragmentViewModel @Inject constructor(
 
     private fun loadItems() {
         viewModelScope.launch(Dispatchers.Default) {
-            _state.emit(state.value.copy(isLoading = true))
+            var cacheIsEmpty = true
+            getChannelsFromCacheUseCase(channelsFilter).onSuccess { channelsFromCache ->
+                if (channelsFromCache.isNotEmpty()) {
+                    cacheIsEmpty = false
+                    updateCacheWithShowedTopicsSaving(channelsFromCache.toDelegateItem())
+                    _state.emit(state.value.copy(items = cache.toList()))
+                }
+            }
+            if (cacheIsEmpty) {
+                _state.emit(state.value.copy(isLoading = true))
+            }
             val result = getChannelsUseCase(channelsFilter)
-            _state.emit(state.value.copy(isLoading = false))
+            if (cacheIsEmpty) {
+                _state.emit(state.value.copy(isLoading = false))
+            }
             result.onSuccess {
                 updateCacheWithShowedTopicsSaving(it.toDelegateItem())
                 _state.emit(state.value.copy(items = cache.toList()))

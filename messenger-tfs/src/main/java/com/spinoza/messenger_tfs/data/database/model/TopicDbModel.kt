@@ -10,21 +10,23 @@ import com.spinoza.messenger_tfs.data.database.model.TopicDbModel.Companion.TABL
     tableName = TABLE_TOPICS,
     foreignKeys = [ForeignKey(
         entity = StreamDbModel::class,
-        parentColumns = [StreamDbModel.RELATION_KEY],
-        childColumns = [TopicDbModel.RELATION_KEY]
+        parentColumns = [StreamDbModel.COLUMN_ID],
+        childColumns = [TopicDbModel.COLUMN_STREAM_ID]
     )]
 )
 data class TopicDbModel(
-    @PrimaryKey
-    val id: Long,
+    @PrimaryKey(autoGenerate = true)
+    val id: Int = DEFAULT_ID,
     val name: String,
-    @ColumnInfo(name = RELATION_KEY, index = true)
+    @ColumnInfo(name = COLUMN_STREAM_ID, index = true)
     val streamId: Long,
+    val isSubscribed: Boolean,
 ) {
 
     companion object {
 
         const val TABLE_TOPICS = "topics"
-        const val RELATION_KEY = "streamId"
+        const val COLUMN_STREAM_ID = "streamId"
+        private const val DEFAULT_ID = 0
     }
 }

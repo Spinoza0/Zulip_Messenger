@@ -162,6 +162,14 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getChannelsFromCache(channelsFilter: ChannelsFilter): Result<List<Channel>> =
+        withContext(Dispatchers.IO) {
+            runCatchingNonCancellation {
+                val streamsList = messengerDao.getStreams()
+                streamsList.dbToDomain(channelsFilter)
+            }
+        }
+
     override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
     ): Result<List<Channel>> = withContext(Dispatchers.IO) {
@@ -192,7 +200,10 @@ class MessagesRepositoryImpl @Inject constructor(
             if (streamsList.isEmpty()) {
                 throw RepositoryError(errorMsg)
             }
-            streamsList.toDomain(channelsFilter)
+            messengerDao.removeTopics(channelsFilter.isSubscribed)
+            messengerDao.removeStreams(channelsFilter.isSubscribed)
+            messengerDao.insertStreams(streamsList.toDbModel(channelsFilter))
+            streamsList.dtoToDomain(channelsFilter)
         }
     }
 

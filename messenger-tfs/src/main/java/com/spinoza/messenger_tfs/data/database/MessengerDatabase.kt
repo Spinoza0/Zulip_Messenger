@@ -15,12 +15,13 @@ abstract class MessengerDatabase : RoomDatabase() {
         @Volatile
         private var db: MessengerDatabase? = null
         private val lock = Any()
-        private const val DATABASE_NAME = "messenger-tfs.db"
+        private const val DATABASE_NAME = "messenger-tfs-cache.db"
 
         fun getInstance(context: Context): MessengerDatabase {
             synchronized(lock) {
                 db?.let { return it }
                 return Room.databaseBuilder(context, MessengerDatabase::class.java, DATABASE_NAME)
+                    .fallbackToDestructiveMigration()
                     .build()
                     .also { db = it }
             }
