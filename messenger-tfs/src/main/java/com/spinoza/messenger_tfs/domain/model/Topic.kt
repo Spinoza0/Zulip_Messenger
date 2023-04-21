@@ -11,11 +11,13 @@ import kotlinx.parcelize.Parcelize
 data class Topic(
     val name: String = UNDEFINED_NAME,
     val messageCount: Int = NO_MESSAGES,
+    val channelId: Long = UNDEFINED_ID,
 ) : Parcelable {
 
     companion object {
 
         const val UNDEFINED_NAME = ""
         const val NO_MESSAGES = 0
+        const val UNDEFINED_ID = -1L
     }
 }

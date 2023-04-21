@@ -147,8 +147,8 @@ fun List<TopicDto>.toDbModel(channel: Channel): List<TopicDbModel> {
     return map { it.toDbModel(channel) }
 }
 
-fun List<TopicDto>.dtoToDomain(): List<Topic> {
-    return map { it.dtoToDomain() }
+fun List<TopicDto>.dtoToDomain(channel: Channel): List<Topic> {
+    return map { it.dtoToDomain(channel) }
 }
 
 fun List<TopicDbModel>.dbToDomain(): List<Topic> {
@@ -156,11 +156,11 @@ fun List<TopicDbModel>.dbToDomain(): List<Topic> {
 }
 
 private fun TopicDbModel.dbToDomain(): Topic {
-    return Topic(name = name, messageCount = NO_MESSAGES)
+    return Topic(name = name, messageCount = NO_MESSAGES, channelId = streamId)
 }
 
-fun TopicDto.dtoToDomain(): Topic {
-    return Topic(name = name, messageCount = NO_MESSAGES)
+fun TopicDto.dtoToDomain(channel: Channel): Topic {
+    return Topic(name = name, messageCount = NO_MESSAGES, channelId = channel.channelId)
 }
 
 private fun TopicDto.toDbModel(channel: Channel): TopicDbModel {

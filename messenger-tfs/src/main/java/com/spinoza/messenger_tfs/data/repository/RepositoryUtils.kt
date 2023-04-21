@@ -18,7 +18,7 @@ suspend fun <R> runCatchingNonCancellation(block: suspend () -> R): Result<R> {
     }
 }
 
-fun MessagesFilter.createNarrowJsonWithOperator(): String {
+fun MessagesFilter.createNarrowJsonForMessages(): String {
     val narrow = mutableListOf<NarrowOperatorItemDto>()
     if (channel.name.isNotEmpty()) {
         narrow.add(

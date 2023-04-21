@@ -140,7 +140,7 @@ class MessagesRepositoryImpl @Inject constructor(
             }
             val response = apiService.getMessages(
                 anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
-                narrow = filter.createNarrowJsonWithOperator()
+                narrow = filter.createNarrowJsonForMessages()
             )
             if (!response.isSuccessful) {
                 throw RepositoryError(response.message())
@@ -228,7 +228,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 }
                 messengerDao.removeTopics(channel.channelId, channel.isSubscribed)
                 messengerDao.insertTopics(topicsResponseDto.topics.toDbModel(channel))
-                topicsResponseDto.topics.dtoToDomain()
+                topicsResponseDto.topics.dtoToDomain(channel)
             }
         }
 
@@ -238,7 +238,8 @@ class MessagesRepositoryImpl @Inject constructor(
             Result.success(
                 Topic(
                     filter.topic.name,
-                    messagesCache.getMessages(filter, true, anchor).size
+                    messagesCache.getMessages(filter, true, anchor).size,
+                    filter.channel.channelId
                 )
             )
         }
@@ -291,7 +292,7 @@ class MessagesRepositoryImpl @Inject constructor(
     ): Long = runCatchingNonCancellation {
         val response = apiService.getMessages(
             anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
-            narrow = filter.createNarrowJsonWithOperator()
+            narrow = filter.createNarrowJsonForMessages()
         )
         if (response.isSuccessful) {
             val messagesResponse = response.getBodyOrThrow()
