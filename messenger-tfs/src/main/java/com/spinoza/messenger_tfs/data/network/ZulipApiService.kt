@@ -55,11 +55,20 @@ interface ZulipApiService {
 
     @GET("messages")
     suspend fun getMessages(
-        @Query(QUERY_NUM_BEFORE) numBefore: Int = DEFAULT_NUM_BEFORE,
-        @Query(QUERY_NUM_AFTER) numAfter: Int = DEFAULT_NUM_AFTER,
-        @Query(QUERY_ANCHOR) anchor: String = ANCHOR_FIRST_UNREAD,
-        @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = true,
+        @Query(QUERY_NUM_BEFORE) numBefore: Int,
+        @Query(QUERY_NUM_AFTER) numAfter: Int,
+        @Query(QUERY_NARROW) narrow: String,
+        @Query(QUERY_ANCHOR) anchor: Long,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
+    ): Response<MessagesResponse>
+
+    @GET("messages")
+    suspend fun getMessages(
+        @Query(QUERY_NUM_BEFORE) numBefore: Int,
+        @Query(QUERY_NUM_AFTER) numAfter: Int,
+        @Query(QUERY_NARROW) narrow: String,
+        @Query(QUERY_ANCHOR) anchor: String,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): Response<MessagesResponse>
 
     @GET("messages/{$QUERY_MESSAGE_ID}")
@@ -91,7 +100,7 @@ interface ZulipApiService {
     suspend fun registerEventQueue(
         @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = true,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): Response<RegisterEventQueueResponse>
 
     @DELETE("events")
@@ -115,6 +124,8 @@ interface ZulipApiService {
         const val ANCHOR_NEWEST = "newest"
         const val ANCHOR_OLDEST = "oldest"
         const val ANCHOR_FIRST_UNREAD = "first_unread"
+        const val DEFAULT_NUM_BEFORE = 10
+        const val DEFAULT_NUM_AFTER = 10
 
         private const val QUERY_USERNAME = "username"
         private const val QUERY_PASSWORD = "password"
@@ -144,9 +155,8 @@ interface ZulipApiService {
         private const val QUERY_TYPE = "type"
         private const val QUERY_CONTENT = "content"
 
-        private const val DEFAULT_NUM_BEFORE = 1000
-        private const val DEFAULT_NUM_AFTER = 1000
         private const val DEFAULT_EMPTY_JSON = "[]"
+        private const val DEFAULT_APPLY_MARKDOWN = true
 
         private const val SEND_MESSAGE_TYPE_PRIVATE = "private"
         private const val SEND_MESSAGE_TYPE_STREAM = "stream"

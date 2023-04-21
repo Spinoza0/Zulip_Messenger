@@ -16,6 +16,10 @@ sealed class MessagesScreenEvent {
 
         object AfterSubmitMessages : Ui()
 
+        object StartReached : Ui()
+
+        object EndReached : Ui()
+
         class SendMessage(val value: CharSequence?) : Ui()
 
         class UpdateReaction(val messageId: Long, val emoji: Emoji) : Ui()

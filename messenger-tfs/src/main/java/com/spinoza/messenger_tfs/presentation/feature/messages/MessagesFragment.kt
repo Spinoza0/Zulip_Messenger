@@ -119,8 +119,33 @@ class MessagesFragment :
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                showArrowDown()
-                store.accept(MessagesScreenEvent.Ui.VisibleMessages(getVisibleMessagesIds()))
+                val layoutManager =
+                    binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+                val adapter = binding.recyclerViewMessages.adapter as MainDelegateAdapter
+                var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+                if (firstVisiblePosition == UNDEFINED_POSITION) {
+                    firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+                }
+                var lastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
+                if (lastVisiblePosition == UNDEFINED_POSITION) {
+                    lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+                }
+                val visibleMessageIds = mutableListOf<Long>()
+                if (firstVisiblePosition != UNDEFINED_POSITION && lastVisiblePosition != UNDEFINED_POSITION)
+                    for (i in firstVisiblePosition..lastVisiblePosition) {
+                        val item = adapter.getItem(i)
+                        if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
+                            visibleMessageIds.add((item.content() as Message).id)
+                        }
+                    }
+                store.accept(MessagesScreenEvent.Ui.VisibleMessages(visibleMessageIds))
+                if (dy < 0 && firstVisiblePosition <= BORDER_POSITION) {
+                    store.accept(MessagesScreenEvent.Ui.StartReached)
+                }
+                if (dy > 0 && lastVisiblePosition >= adapter.itemCount - BORDER_POSITION) {
+                    store.accept(MessagesScreenEvent.Ui.EndReached)
+                }
+                showArrowDown(lastVisiblePosition)
             }
         })
     }
@@ -188,28 +213,6 @@ class MessagesFragment :
         }
     }
 
-    private fun getVisibleMessagesIds(): List<Long> {
-        val layoutManager = binding.recyclerViewMessages.layoutManager as LinearLayoutManager
-        val adapter = binding.recyclerViewMessages.adapter as MainDelegateAdapter
-        var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
-        if (firstVisiblePosition == UNDEFINED_POSITION) {
-            firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
-        }
-        var lastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
-        if (lastVisiblePosition == UNDEFINED_POSITION) {
-            lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
-        }
-        val messageIds = mutableListOf<Long>()
-        if (firstVisiblePosition != UNDEFINED_POSITION && lastVisiblePosition != UNDEFINED_POSITION)
-            for (i in firstVisiblePosition..lastVisiblePosition) {
-                val item = adapter.getItem(i)
-                if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
-                    messageIds.add((item.content() as Message).id)
-                }
-            }
-        return messageIds
-    }
-
     private fun scrollAfterSubmitMessages(result: MessagesResultDelegate) {
         if (recyclerViewState != null) {
             binding.recyclerViewMessages.layoutManager?.onRestoreInstanceState(recyclerViewState)
@@ -222,13 +225,13 @@ class MessagesFragment :
             }
             MessagePosition.Type.UNDEFINED -> {}
         }
-        showArrowDown()
         store.accept(MessagesScreenEvent.Ui.AfterSubmitMessages)
-    }
-
-    private fun showArrowDown() {
         val layoutManager = binding.recyclerViewMessages.layoutManager as LinearLayoutManager
         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+        showArrowDown(lastVisibleItemPosition)
+    }
+
+    private fun showArrowDown(lastVisibleItemPosition: Int) {
         val lastItemPosition = binding.recyclerViewMessages.adapter?.itemCount?.minus(1)
         binding.imageViewArrow.isVisible =
             lastItemPosition != null && lastVisibleItemPosition < lastItemPosition
@@ -315,6 +318,7 @@ class MessagesFragment :
         private const val PARAM_RECYCLERVIEW_STATE = "recyclerViewState"
         private const val NO_ITEMS = 0
         private const val UNDEFINED_POSITION = -1
+        private const val BORDER_POSITION = 5
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {

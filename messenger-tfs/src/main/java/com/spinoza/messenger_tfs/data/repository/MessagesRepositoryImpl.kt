@@ -139,8 +139,10 @@ class MessagesRepositoryImpl @Inject constructor(
                 getOwnUser()
             }
             val response = apiService.getMessages(
-                anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
-                narrow = filter.createNarrowJsonForMessages()
+                numBefore = ZulipApiService.DEFAULT_NUM_BEFORE,
+                numAfter = ZulipApiService.DEFAULT_NUM_AFTER,
+                narrow = filter.createNarrowJsonForMessages(),
+                anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
             )
             if (!response.isSuccessful) {
                 throw RepositoryError(response.message())
@@ -237,10 +239,10 @@ class MessagesRepositoryImpl @Inject constructor(
             var unreadMessagesCount = 0
             runCatchingNonCancellation {
                 val response = apiService.getMessages(
-                    numBefore = GET_TOPIC_INGNORE_PREVIOUS_MESSAGES,
+                    numBefore = GET_TOPIC_IGNORE_PREVIOUS_MESSAGES,
                     numAfter = GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT,
+                    narrow = filter.createNarrowJsonForMessages(),
                     anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
-                    narrow = filter.createNarrowJsonForMessages()
                 )
                 if (response.isSuccessful) {
                     val messagesResponse = response.getBodyOrThrow()
@@ -534,7 +536,7 @@ class MessagesRepositoryImpl @Inject constructor(
         private const val UNKNOWN_ERROR = ""
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
-        private const val GET_TOPIC_INGNORE_PREVIOUS_MESSAGES = 0
+        private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
         private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500
     }
 }

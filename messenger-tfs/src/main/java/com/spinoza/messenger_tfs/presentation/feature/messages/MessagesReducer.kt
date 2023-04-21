@@ -65,6 +65,14 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
     }
 
     override fun Result.ui(event: MessagesScreenEvent.Ui) = when (event) {
+        is MessagesScreenEvent.Ui.VisibleMessages ->
+            commands { +MessagesScreenCommand.SetMessagesRead(event.messageIds) }
+        is MessagesScreenEvent.Ui.StartReached -> {
+            TODO()
+        }
+        is MessagesScreenEvent.Ui.EndReached -> {
+            TODO()
+        }
         is MessagesScreenEvent.Ui.NewMessageText -> {
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
         }
@@ -98,8 +106,6 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                     )
                 }
             }
-        is MessagesScreenEvent.Ui.VisibleMessages ->
-            commands { +MessagesScreenCommand.SetMessagesRead(event.messageIds) }
         is MessagesScreenEvent.Ui.ShowChooseReactionDialog ->
             effects { +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId) }
         is MessagesScreenEvent.Ui.Init -> {}
