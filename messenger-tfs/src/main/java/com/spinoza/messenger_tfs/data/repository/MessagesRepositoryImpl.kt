@@ -234,14 +234,21 @@ class MessagesRepositoryImpl @Inject constructor(
 
     override suspend fun getTopic(filter: MessagesFilter): Result<Topic> =
         withContext(Dispatchers.IO) {
-            val anchor = updateMessagesCache(filter)
-            Result.success(
-                Topic(
-                    filter.topic.name,
-                    messagesCache.getMessages(filter, true, anchor).size,
-                    filter.channel.channelId
+            var unreadMessagesCount = 0
+            runCatchingNonCancellation {
+                val response = apiService.getMessages(
+                    numBefore = GET_TOPIC_INGNORE_PREVIOUS_MESSAGES,
+                    numAfter = GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT,
+                    anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
+                    narrow = filter.createNarrowJsonForMessages()
                 )
-            )
+                if (response.isSuccessful) {
+                    val messagesResponse = response.getBodyOrThrow()
+                    unreadMessagesCount = messagesResponse.messages.size
+                    if (!messagesResponse.foundAnchor) unreadMessagesCount--
+                }
+            }
+            Result.success(Topic(filter.topic.name, unreadMessagesCount, filter.channel.channelId))
         }
 
     override suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long> =
@@ -286,24 +293,6 @@ class MessagesRepositoryImpl @Inject constructor(
                 apiService.setMessageFlagsToRead(Json.encodeToString(messageIds))
             }
         }
-
-    private suspend fun updateMessagesCache(
-        filter: MessagesFilter,
-    ): Long = runCatchingNonCancellation {
-        val response = apiService.getMessages(
-            anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
-            narrow = filter.createNarrowJsonForMessages()
-        )
-        if (response.isSuccessful) {
-            val messagesResponse = response.getBodyOrThrow()
-            messagesCache.addAll(messagesResponse.messages)
-            if (messagesResponse.foundAnchor) messagesResponse.anchor else Message.UNDEFINED_ID
-        } else {
-            Message.UNDEFINED_ID
-        }
-    }.getOrElse {
-        Message.UNDEFINED_ID
-    }
 
     override suspend fun registerEventQueue(
         eventTypes: List<EventType>,
@@ -545,5 +534,7 @@ class MessagesRepositoryImpl @Inject constructor(
         private const val UNKNOWN_ERROR = ""
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
+        private const val GET_TOPIC_INGNORE_PREVIOUS_MESSAGES = 0
+        private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500
     }
 }
