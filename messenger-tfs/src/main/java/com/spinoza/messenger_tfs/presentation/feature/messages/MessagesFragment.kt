@@ -182,9 +182,7 @@ class MessagesFragment :
             )
             is MessagesScreenEffect.Failure.ErrorNetwork -> {
                 showError(String.format(getString(R.string.error_network), effect.value))
-                showCheckInternetConnectionDialog({
-                    store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
-                }) {
+                showCheckInternetConnectionDialog({ store.accept(MessagesScreenEvent.Ui.Reload) }) {
                     goBack()
                 }
             }

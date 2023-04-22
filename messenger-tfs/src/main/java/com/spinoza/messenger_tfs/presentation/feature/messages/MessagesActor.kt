@@ -49,9 +49,15 @@ class MessagesActor @Inject constructor(
     private var deleteMessagesQueue: EventsQueueHolder? = null
     private var reactionsQueue: EventsQueueHolder? = null
     private var isMessageSent = false
-
     private var iconActionResId = R.drawable.ic_add_circle_outline
     private var isIconActionResIdChanged = false
+    private var lastLoadCommand: MessagesScreenCommand? = null
+
+    @Volatile
+    private var isLoadingPreviousPage = false
+
+    @Volatile
+    private var isLoadingNextPage = false
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
@@ -72,12 +78,11 @@ class MessagesActor @Inject constructor(
             val event = when (command) {
                 is MessagesScreenCommand.Load -> {
                     messagesFilter = command.filter
+                    lastLoadCommand = command
                     loadMessages(MessagesAnchor.FIRST_UNREAD)
                 }
-                is MessagesScreenCommand.LoadPage -> when (command.anchor) {
-                    MessagesAnchor.OLDEST, MessagesAnchor.NEWEST -> loadMessages(command.anchor)
-                    else -> throw RuntimeException("Wrong anchor: ${command.anchor}")
-                }
+                is MessagesScreenCommand.LoadPreviousPage -> loadPreviousPage(command)
+                is MessagesScreenCommand.LoadNextPage -> loadNextPage(command)
                 is MessagesScreenCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
                 is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
                 is MessagesScreenCommand.UpdateReaction -> updateReaction(
@@ -88,9 +93,49 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.GetMessagesEvent -> getMessagesEvent()
                 is MessagesScreenCommand.GetDeleteMessagesEvent -> getDeleteMessagesEvent()
                 is MessagesScreenCommand.GetReactionsEvent -> getReactionsEvent()
+                is MessagesScreenCommand.Reload -> {
+                    delay(DELAY_BEFORE_RELOAD)
+                    var result: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
+                    lastLoadCommand?.let { lastCommand ->
+                        when (lastCommand) {
+                            is MessagesScreenCommand.LoadPreviousPage -> {
+                                lastLoadCommand = null
+                                result = loadPreviousPage(lastCommand)
+                            }
+                            is MessagesScreenCommand.LoadNextPage -> {
+                                lastLoadCommand = null
+                                result = loadNextPage(lastCommand)
+                            }
+                            else -> result = loadMessages(MessagesAnchor.FIRST_UNREAD)
+                        }
+                    }
+                    result
+                }
             }
             emit(event)
         }
+
+    private suspend fun loadPreviousPage(
+        command: MessagesScreenCommand,
+    ): MessagesScreenEvent.Internal {
+        if (isLoadingPreviousPage) return MessagesScreenEvent.Internal.Idle
+        isLoadingPreviousPage = true
+        lastLoadCommand = command
+        val result = loadMessages(MessagesAnchor.OLDEST)
+        isLoadingPreviousPage = false
+        return result
+    }
+
+    private suspend fun loadNextPage(
+        command: MessagesScreenCommand,
+    ): MessagesScreenEvent.Internal {
+        if (isLoadingNextPage) return MessagesScreenEvent.Internal.Idle
+        isLoadingNextPage = true
+        lastLoadCommand = command
+        val result = loadMessages(MessagesAnchor.NEWEST)
+        isLoadingNextPage = false
+        return result
+    }
 
     private suspend fun newMessageText(text: CharSequence?): MessagesScreenEvent.Internal {
         newMessageFieldState.emit(text.toString())
@@ -334,6 +379,7 @@ class MessagesActor @Inject constructor(
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_CHECK_ACTION_ICON = 300L
+        const val DELAY_BEFORE_RELOAD = 500L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
     }
 }

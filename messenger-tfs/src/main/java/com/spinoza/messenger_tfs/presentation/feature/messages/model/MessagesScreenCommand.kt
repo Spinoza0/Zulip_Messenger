@@ -1,12 +1,13 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
 import com.spinoza.messenger_tfs.domain.model.Emoji
-import com.spinoza.messenger_tfs.domain.model.MessagesAnchor
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 
 sealed class MessagesScreenCommand {
 
     object GetMessagesEvent : MessagesScreenCommand()
+
+    object Reload : MessagesScreenCommand()
 
     object GetDeleteMessagesEvent : MessagesScreenCommand()
 
@@ -14,7 +15,9 @@ sealed class MessagesScreenCommand {
 
     class Load(val filter: MessagesFilter) : MessagesScreenCommand()
 
-    class LoadPage(val anchor: MessagesAnchor) : MessagesScreenCommand()
+    object LoadPreviousPage : MessagesScreenCommand()
+
+    object LoadNextPage : MessagesScreenCommand()
 
     class SetMessagesRead(val messageIds: List<Long>) : MessagesScreenCommand()
 

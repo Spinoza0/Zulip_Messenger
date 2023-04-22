@@ -11,6 +11,8 @@ sealed class MessagesScreenEvent {
 
         object Init : Ui()
 
+        object Reload : Ui()
+
         class Load(val filter: MessagesFilter) : Ui()
 
         object Exit : Ui()

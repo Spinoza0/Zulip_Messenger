@@ -67,7 +67,7 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getOwnUserId(): Result<Long> {
-        return if (storedOwnUser.userId != UserDto.UNDEFINED_ID) {
+        return if (storedOwnUser.userId != User.UNDEFINED_ID) {
             Result.success(storedOwnUser.userId)
         } else {
             val result = getOwnUser()
@@ -136,15 +136,29 @@ class MessagesRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            if (storedOwnUser.userId == UserDto.UNDEFINED_ID) {
+            if (storedOwnUser.userId == User.UNDEFINED_ID) {
                 getOwnUser()
             }
-            val response = apiService.getMessages(
-                numBefore = ZulipApiService.DEFAULT_NUM_BEFORE,
-                numAfter = ZulipApiService.DEFAULT_NUM_AFTER,
-                narrow = filter.createNarrowJsonForMessages(),
-                anchor = anchor.value
-            )
+            val response = when (anchor) {
+                MessagesAnchor.FIRST_UNREAD -> apiService.getMessages(
+                    numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchor = anchor.value
+                )
+                MessagesAnchor.NEWEST -> apiService.getMessages(
+                    numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchor = messagesCache.lastMessageId()
+                )
+                MessagesAnchor.OLDEST -> apiService.getMessages(
+                    numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchor = messagesCache.firstMessageId()
+                )
+            }
             if (!response.isSuccessful) {
                 throw RepositoryError(response.message())
             }
@@ -152,10 +166,13 @@ class MessagesRepositoryImpl @Inject constructor(
             if (messagesResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(messagesResponse.msg)
             }
-            val position = if (messagesResponse.foundAnchor) {
-                MessagePosition(MessagePosition.Type.EXACTLY, messagesResponse.anchor)
-            } else {
-                MessagePosition(MessagePosition.Type.LAST_POSITION)
+            val position = when (anchor) {
+                MessagesAnchor.FIRST_UNREAD -> if (messagesResponse.foundAnchor) {
+                    MessagePosition(MessagePosition.Type.EXACTLY, messagesResponse.anchor)
+                } else {
+                    MessagePosition(MessagePosition.Type.LAST_POSITION)
+                }
+                else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
             messagesCache.addAll(messagesResponse.messages)
             MessagesResult(

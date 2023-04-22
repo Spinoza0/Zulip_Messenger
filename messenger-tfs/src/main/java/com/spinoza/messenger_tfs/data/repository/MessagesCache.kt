@@ -34,6 +34,14 @@ class MessagesCache @Inject constructor() {
         }
     }
 
+    fun firstMessageId(): Long {
+        return if (data.isNotEmpty()) data.first().id else Message.UNDEFINED_ID
+    }
+
+    fun lastMessageId(): Long {
+        return if (data.isNotEmpty()) data.last().id else Message.UNDEFINED_ID
+    }
+
     fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
         val messages = data.filter { messageId == it.id }
         if (messages.isEmpty()) return

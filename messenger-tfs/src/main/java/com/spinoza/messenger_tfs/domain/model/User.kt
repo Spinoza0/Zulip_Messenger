@@ -17,4 +17,8 @@ data class User(
         IDLE,
         OFFLINE
     }
+
+    companion object {
+        const val UNDEFINED_ID = -1L
+    }
 }

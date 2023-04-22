@@ -121,8 +121,9 @@ interface ZulipApiService {
 
     companion object {
 
-        const val DEFAULT_NUM_BEFORE = 10
-        const val DEFAULT_NUM_AFTER = 10
+        const val MAX_MESSAGES_PACKET = 20
+        const val HALF_MESSAGES_PACKET = 10
+        const val EMPTY_MESSAGES_PACKET = 0
 
         private const val QUERY_USERNAME = "username"
         private const val QUERY_PASSWORD = "password"

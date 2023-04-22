@@ -5,7 +5,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.model.MessagesAnchor
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
@@ -84,10 +83,10 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                 lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
             }
             if (event.dy < 0 && firstVisiblePosition <= BORDER_POSITION) {
-                commands { +MessagesScreenCommand.LoadPage(MessagesAnchor.OLDEST) }
+                commands { +MessagesScreenCommand.LoadPreviousPage }
             }
             if (event.dy > 0 && lastVisiblePosition >= adapter.itemCount - BORDER_POSITION) {
-                commands { +MessagesScreenCommand.LoadPage(MessagesAnchor.NEWEST) }
+                commands { +MessagesScreenCommand.LoadNextPage }
             }
             val ids = getVisibleMessagesIds(adapter, firstVisiblePosition, lastVisiblePosition)
             commands { +MessagesScreenCommand.SetMessagesRead(ids) }
@@ -129,6 +128,10 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         }
         is MessagesScreenEvent.Ui.ShowChooseReactionDialog ->
             effects { +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId) }
+        is MessagesScreenEvent.Ui.Reload -> {
+            state { copy(isLoading = true) }
+            commands { +MessagesScreenCommand.Reload }
+        }
         is MessagesScreenEvent.Ui.Init -> {}
     }
 
