@@ -72,7 +72,11 @@ class MessagesActor @Inject constructor(
             val event = when (command) {
                 is MessagesScreenCommand.Load -> {
                     messagesFilter = command.filter
-                    loadMessages()
+                    loadMessages(MessagesAnchor.FIRST_UNREAD)
+                }
+                is MessagesScreenCommand.LoadPage -> when (command.anchor) {
+                    MessagesAnchor.OLDEST, MessagesAnchor.NEWEST -> loadMessages(command.anchor)
+                    else -> throw RuntimeException("Wrong anchor: ${command.anchor}")
                 }
                 is MessagesScreenCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
                 is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
@@ -130,10 +134,10 @@ class MessagesActor @Inject constructor(
             event
         }
 
-    private suspend fun loadMessages(): MessagesScreenEvent.Internal =
+    private suspend fun loadMessages(anchor: MessagesAnchor): MessagesScreenEvent.Internal =
         withContext(Dispatchers.Default) {
             var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
-            getMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
+            getMessagesUseCase(anchor, messagesFilter).onSuccess { messagesResult ->
                 event = handleMessages(messagesResult)
             }.onFailure { error ->
                 event = handleErrors(error)

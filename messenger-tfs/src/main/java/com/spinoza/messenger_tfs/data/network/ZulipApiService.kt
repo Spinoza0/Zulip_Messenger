@@ -121,9 +121,6 @@ interface ZulipApiService {
 
     companion object {
 
-        const val ANCHOR_NEWEST = "newest"
-        const val ANCHOR_OLDEST = "oldest"
-        const val ANCHOR_FIRST_UNREAD = "first_unread"
         const val DEFAULT_NUM_BEFORE = 10
         const val DEFAULT_NUM_AFTER = 10
 

@@ -132,6 +132,7 @@ class MessagesRepositoryImpl @Inject constructor(
         }
 
     override suspend fun getMessages(
+        anchor: MessagesAnchor,
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
@@ -142,7 +143,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 numBefore = ZulipApiService.DEFAULT_NUM_BEFORE,
                 numAfter = ZulipApiService.DEFAULT_NUM_AFTER,
                 narrow = filter.createNarrowJsonForMessages(),
-                anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
+                anchor = anchor.value
             )
             if (!response.isSuccessful) {
                 throw RepositoryError(response.message())
@@ -242,7 +243,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     numBefore = GET_TOPIC_IGNORE_PREVIOUS_MESSAGES,
                     numAfter = GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
+                    anchor = MessagesAnchor.FIRST_UNREAD.value,
                 )
                 if (response.isSuccessful) {
                     val messagesResponse = response.getBodyOrThrow()
