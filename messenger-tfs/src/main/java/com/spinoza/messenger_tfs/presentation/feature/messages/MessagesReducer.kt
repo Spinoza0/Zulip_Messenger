@@ -1,7 +1,13 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.github.terrakok.cicerone.Router
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
+import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
@@ -65,14 +71,28 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
     }
 
     override fun Result.ui(event: MessagesScreenEvent.Ui) = when (event) {
-        is MessagesScreenEvent.Ui.VisibleMessages ->
-            commands { +MessagesScreenCommand.SetMessagesRead(event.messageIds) }
-        is MessagesScreenEvent.Ui.StartReached -> {
-            TODO()
+        is MessagesScreenEvent.Ui.MessagesOnScrolled -> {
+            val layoutManager = event.recyclerView.layoutManager as LinearLayoutManager
+            val adapter = event.recyclerView.adapter as MainDelegateAdapter
+            var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+            if (firstVisiblePosition == UNDEFINED_POSITION) {
+                firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+            }
+            var lastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
+            if (lastVisiblePosition == UNDEFINED_POSITION) {
+                lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+            }
+            if (event.dy < 0 && firstVisiblePosition <= BORDER_POSITION) {
+                TODO()
+            }
+            if (event.dy > 0 && lastVisiblePosition >= adapter.itemCount - BORDER_POSITION) {
+                TODO()
+            }
+            val ids = getVisibleMessagesIds(adapter, firstVisiblePosition, lastVisiblePosition)
+            commands { +MessagesScreenCommand.SetMessagesRead(ids) }
         }
-        is MessagesScreenEvent.Ui.EndReached -> {
-            TODO()
-        }
+        is MessagesScreenEvent.Ui.MessagesScrollStateIdle ->
+            state { copy(isNextMessageExists = isNextMessageExists(event.recyclerView)) }
         is MessagesScreenEvent.Ui.NewMessageText -> {
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
         }
@@ -96,18 +116,48 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.UpdateReaction ->
             commands { +MessagesScreenCommand.UpdateReaction(event.messageId, event.emoji) }
-        is MessagesScreenEvent.Ui.AfterSubmitMessages ->
-            state.messages?.let { messages ->
-                state {
-                    copy(
-                        messages = messages.copy(
-                            position = messages.position.copy(type = MessagePosition.Type.UNDEFINED)
-                        )
+        is MessagesScreenEvent.Ui.AfterSubmitMessages -> state.messages?.let { messages ->
+            state {
+                copy(
+                    isNextMessageExists = isNextMessageExists(event.recyclerView),
+                    messages = messages.copy(
+                        position = messages.position.copy(type = MessagePosition.Type.UNDEFINED)
                     )
-                }
+                )
             }
+        }
         is MessagesScreenEvent.Ui.ShowChooseReactionDialog ->
             effects { +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId) }
         is MessagesScreenEvent.Ui.Init -> {}
+    }
+
+    private fun getVisibleMessagesIds(
+        adapter: MainDelegateAdapter,
+        firstVisiblePosition: Int,
+        lastVisiblePosition: Int,
+    ): List<Long> {
+        val visibleMessageIds = mutableListOf<Long>()
+        if (firstVisiblePosition != UNDEFINED_POSITION && lastVisiblePosition != UNDEFINED_POSITION) {
+            for (i in firstVisiblePosition..lastVisiblePosition) {
+                val item = adapter.getItem(i)
+                if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
+                    visibleMessageIds.add((item.content() as Message).id)
+                }
+            }
+        }
+        return visibleMessageIds
+    }
+
+    private fun isNextMessageExists(recyclerView: RecyclerView): Boolean {
+        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+        val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+        val lastItemPosition = recyclerView.adapter?.itemCount?.minus(1)
+        return lastItemPosition != null && lastVisibleItemPosition < lastItemPosition
+    }
+
+    private companion object {
+
+        const val UNDEFINED_POSITION = -1
+        const val BORDER_POSITION = 5
     }
 }

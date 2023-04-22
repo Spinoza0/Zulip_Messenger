@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
+import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
@@ -14,19 +15,17 @@ sealed class MessagesScreenEvent {
 
         object Exit : Ui()
 
-        object AfterSubmitMessages : Ui()
-
-        object StartReached : Ui()
-
-        object EndReached : Ui()
+        class AfterSubmitMessages(val recyclerView: RecyclerView) : Ui()
 
         class SendMessage(val value: CharSequence?) : Ui()
+
+        class MessagesOnScrolled(val recyclerView: RecyclerView, val dy: Int) : Ui()
+
+        class MessagesScrollStateIdle(val recyclerView: RecyclerView) : Ui()
 
         class UpdateReaction(val messageId: Long, val emoji: Emoji) : Ui()
 
         class NewMessageText(val value: CharSequence?) : Ui()
-
-        class VisibleMessages(val messageIds: List<Long>) : Ui()
 
         class ShowUserInfo(val message: MessageView) : Ui()
 
