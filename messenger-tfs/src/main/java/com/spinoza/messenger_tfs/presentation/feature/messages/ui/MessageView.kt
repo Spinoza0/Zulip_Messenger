@@ -57,8 +57,12 @@ class MessageView @JvmOverloads constructor(
     private var content: String
         get() = binding.contentTextView.text.toString()
         set(value) {
-            binding.contentTextView.text =
-                Html.fromHtml(value, Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL, imageGetter, null)
+            binding.contentTextView.text = Html.fromHtml(
+                EmojiTagHandler.prepareTag(value),
+                Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL,
+                imageGetter,
+                EmojiTagHandler()
+            )
         }
 
     private val binding by lazy {
