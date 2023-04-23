@@ -28,7 +28,14 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
 
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {
-            state { copy(isLoading = false, isLoadingPage = false, messages = event.value) }
+            state {
+                copy(
+                    isLoading = false,
+                    isLoadingPreviousPage = false,
+                    isLoadingNextPage = false,
+                    messages = event.value
+                )
+            }
             commands {
                 +MessagesScreenCommand.GetMessagesEvent
                 +MessagesScreenCommand.GetDeleteMessagesEvent
@@ -65,11 +72,21 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Internal.IconActionResId ->
             state { copy(iconActionResId = event.value) }
         is MessagesScreenEvent.Internal.ErrorMessages -> {
-            state { copy(isLoading = false, isLoadingPage = false, isSendingMessage = false) }
+            state {
+                copy(
+                    isLoading = false, isLoadingPreviousPage = false,
+                    isLoadingNextPage = false, isSendingMessage = false
+                )
+            }
             effects { +MessagesScreenEffect.Failure.ErrorMessages(event.value) }
         }
         is MessagesScreenEvent.Internal.ErrorNetwork -> {
-            state { copy(isLoading = false, isLoadingPage = false, isSendingMessage = false) }
+            state {
+                copy(
+                    isLoading = false, isLoadingPreviousPage = false,
+                    isLoadingNextPage = false, isSendingMessage = false
+                )
+            }
             effects { +MessagesScreenEffect.Failure.ErrorNetwork(event.value) }
         }
         is MessagesScreenEvent.Internal.Idle -> {}
@@ -87,13 +104,19 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             if (lastVisiblePosition == RecyclerView.NO_POSITION) {
                 lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
             }
-            if (event.dy < 0 && firstVisiblePosition <= BORDER_POSITION) {
-                state { copy(isLoadingPage = true) }
-                commands { +MessagesScreenCommand.LoadPreviousPage }
+            if (event.dy.isScrollUp()) {
+                state { copy(isLoadingNextPage = false) }
+                if (firstVisiblePosition <= BORDER_POSITION) {
+                    state { copy(isLoadingPreviousPage = true) }
+                    commands { +MessagesScreenCommand.LoadPreviousPage }
+                }
             }
-            if (event.dy > 0 && lastVisiblePosition >= adapter.itemCount - BORDER_POSITION) {
-                state { copy(isLoadingPage = true) }
-                commands { +MessagesScreenCommand.LoadNextPage }
+            if (event.dy.isScrollDown()) {
+                state { copy(isLoadingPreviousPage = false) }
+                if (lastVisiblePosition >= adapter.itemCount - BORDER_POSITION) {
+                    state { copy(isLoadingNextPage = true) }
+                    commands { +MessagesScreenCommand.LoadNextPage }
+                }
             }
             val ids = getVisibleMessagesIds(adapter, firstVisiblePosition, lastVisiblePosition)
             commands { +MessagesScreenCommand.SetMessagesRead(ids) }
@@ -104,7 +127,9 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
         }
         is MessagesScreenEvent.Ui.Load -> {
-            state { copy(isLoading = true, isLoadingPage = false) }
+            state {
+                copy(isLoading = true, isLoadingPreviousPage = false, isLoadingNextPage = false)
+            }
             commands { +MessagesScreenCommand.Load(event.filter) }
         }
         is MessagesScreenEvent.Ui.SendMessage -> {
@@ -135,7 +160,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Ui.ShowChooseReactionDialog ->
             effects { +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId) }
         is MessagesScreenEvent.Ui.Reload -> {
-            state { copy(isLoadingPage = true) }
+            state { copy(isLoadingPreviousPage = true) }
             commands { +MessagesScreenCommand.Reload }
         }
         is MessagesScreenEvent.Ui.Exit -> router.exit()
@@ -167,6 +192,10 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         val lastItemPosition = recyclerView.adapter?.itemCount?.minus(1)
         return lastItemPosition != null && lastVisibleItemPosition < lastItemPosition
     }
+
+    private fun Int.isScrollUp() = this < 0
+
+    private fun Int.isScrollDown() = this > 0
 
     private companion object {
 

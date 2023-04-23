@@ -327,13 +327,13 @@ class MessagesActor @Inject constructor(
         onSuccessCallback: (EventsQueueHolder, T, Long) -> MessagesScreenEvent.Internal,
         emptyEvent: MessagesScreenEvent.Internal,
     ): MessagesScreenEvent.Internal = withContext(Dispatchers.Default) {
-        useCase(eventsQueue.queue, messagesFilter).onSuccess { event ->
-            getOwnUserIdUseCase().onSuccess { userId ->
-                return@withContext onSuccessCallback(eventsQueue, event, userId)
-            }.onFailure {
-                delay(DELAY_BEFORE_CHECK_EVENTS)
+        if (eventsQueue.queue.queueId.isNotEmpty()) useCase(eventsQueue.queue, messagesFilter)
+            .onSuccess { event ->
+                getOwnUserIdUseCase().onSuccess { userId ->
+                    return@withContext onSuccessCallback(eventsQueue, event, userId)
+                }
             }
-        }
+        delay(DELAY_BEFORE_CHECK_EVENTS)
         emptyEvent
     }
 

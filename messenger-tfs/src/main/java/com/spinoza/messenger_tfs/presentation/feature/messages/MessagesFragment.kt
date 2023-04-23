@@ -162,7 +162,8 @@ class MessagesFragment :
                 }
 
             }
-            progressBarLoadingPage.isVisible = state.isLoadingPage
+            progressBarLoadingPage.isVisible =
+                state.isLoadingPreviousPage || state.isLoadingNextPage
             imageViewAction.setImageResource(state.iconActionResId)
             imageViewArrow.isVisible = state.isNextMessageExists
         }
