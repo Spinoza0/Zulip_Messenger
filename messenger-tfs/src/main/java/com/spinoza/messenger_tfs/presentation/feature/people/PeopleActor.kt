@@ -33,7 +33,9 @@ class PeopleActor @Inject constructor(
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
-            eventsQueue.deleteQueue()
+            lifecycleScope.launch {
+                eventsQueue.deleteQueue()
+            }
         }
     }
 
@@ -89,7 +91,8 @@ class PeopleActor @Inject constructor(
             usersCache.clear()
             usersCache.addAll(it)
             event = PeopleScreenEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
-            eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
+            eventsQueue
+                .registerQueue(listOf(EventType.PRESENCE), ::handleOnSuccessQueueRegistration)
         }.onFailure { error ->
             event = if (error is RepositoryError) {
                 PeopleScreenEvent.Internal.ErrorUserLoading(error.value)

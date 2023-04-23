@@ -146,7 +146,7 @@ class MessagesFragment :
 
     override fun render(state: MessagesScreenState) {
         with(binding) {
-            if (state.isLoading) {
+            if (state.isLoading && isMessagesListEmpty()) {
                 shimmerLarge.on()
             } else {
                 shimmerLarge.off()
@@ -243,7 +243,7 @@ class MessagesFragment :
         }
     }
 
-    private fun messagesListIsEmpty(): Boolean {
+    private fun isMessagesListEmpty(): Boolean {
         return (binding.recyclerViewMessages.adapter as MainDelegateAdapter).itemCount == NO_ITEMS
     }
 
@@ -254,7 +254,7 @@ class MessagesFragment :
 
     override fun onResume() {
         super.onResume()
-        if (messagesListIsEmpty()) {
+        if (isMessagesListEmpty()) {
             store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
         }
     }

@@ -340,7 +340,7 @@ class MessagesRepositoryImpl @Inject constructor(
             if (registerResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(registerResponse.msg)
             }
-            EventsQueue(registerResponse.queueId, registerResponse.lastEventId)
+            EventsQueue(registerResponse.queueId, registerResponse.lastEventId, eventTypes)
         }
     }
 

@@ -101,7 +101,8 @@ class ChannelsPageFragmentViewModel @Inject constructor(
             }
             result.onSuccess { newChannels ->
                 updateChannelsList(newChannels)
-                eventsQueue.registerQueue(EventType.CHANNEL, ::handleOnSuccessQueueRegistration)
+                eventsQueue
+                    .registerQueue(listOf(EventType.CHANNEL), ::handleOnSuccessQueueRegistration)
             }.onFailure {
                 handleErrors(it)
             }

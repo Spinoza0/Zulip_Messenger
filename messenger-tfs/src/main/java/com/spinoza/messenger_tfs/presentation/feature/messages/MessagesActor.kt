@@ -38,19 +38,26 @@ class MessagesActor @Inject constructor(
     private val getReactionEventUseCase: GetReactionEventUseCase,
     private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
     private val setMessagesFlagToReadUserCase: SetMessagesFlagToReadUserCase,
-    private val registerEventQueueUseCase: RegisterEventQueueUseCase,
-    private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    registerEventQueueUseCase: RegisterEventQueueUseCase,
+    deleteEventQueueUseCase: DeleteEventQueueUseCase,
 ) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
 
     private lateinit var messagesFilter: MessagesFilter
     private val lifecycleScope = lifecycle.coroutineScope
     private val newMessageFieldState = MutableSharedFlow<String>()
-    private var messagesQueue: EventsQueueHolder? = null
-    private var deleteMessagesQueue: EventsQueueHolder? = null
-    private var reactionsQueue: EventsQueueHolder? = null
+    private var messagesQueue: EventsQueueHolder =
+        EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
+    private var deleteMessagesQueue: EventsQueueHolder =
+        EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
+    private var reactionsQueue: EventsQueueHolder =
+        EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var iconActionResId = R.drawable.ic_add_circle_outline
     private var isIconActionResIdChanged = false
     private var lastLoadCommand: MessagesScreenCommand? = null
+
+
+    @Volatile
+    private var isLoadingPageWithFirstUnreadMessage = false
 
     @Volatile
     private var isLoadingPreviousPage = false
@@ -63,7 +70,11 @@ class MessagesActor @Inject constructor(
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
-            deleteAllQueues()
+            lifecycleScope.launch {
+                messagesQueue.deleteQueue()
+                deleteMessagesQueue.deleteQueue()
+                reactionsQueue.deleteQueue()
+            }
         }
     }
 
@@ -78,8 +89,7 @@ class MessagesActor @Inject constructor(
             val event = when (command) {
                 is MessagesScreenCommand.Load -> {
                     messagesFilter = command.filter
-                    lastLoadCommand = command
-                    loadMessages(MessagesAnchor.FIRST_UNREAD)
+                    loadPageWithFirstUnreadMessage(command)
                 }
                 is MessagesScreenCommand.LoadPreviousPage -> loadPreviousPage(command)
                 is MessagesScreenCommand.LoadNextPage -> loadNextPage(command)
@@ -109,7 +119,7 @@ class MessagesActor @Inject constructor(
                                 lastLoadCommand = null
                                 result = loadLastPage(lastCommand)
                             }
-                            else -> result = loadMessages(MessagesAnchor.FIRST_UNREAD)
+                            else -> result = loadPageWithFirstUnreadMessage(lastCommand)
                         }
                     }
                     result
@@ -118,13 +128,18 @@ class MessagesActor @Inject constructor(
             emit(event)
         }
 
-    private fun deleteAllQueues() {
-        messagesQueue?.deleteQueue()
-        deleteMessagesQueue?.deleteQueue()
-        reactionsQueue?.deleteQueue()
-        messagesQueue = null
-        deleteMessagesQueue = null
-        reactionsQueue = null
+    private suspend fun loadPageWithFirstUnreadMessage(
+        command: MessagesScreenCommand,
+    ): MessagesScreenEvent.Internal {
+        if (isLoadingPageWithFirstUnreadMessage) return MessagesScreenEvent.Internal.Idle
+        isLoadingPageWithFirstUnreadMessage = true
+        lastLoadCommand = command
+        val result = loadMessages(MessagesAnchor.FIRST_UNREAD)
+        isLoadingPageWithFirstUnreadMessage = false
+        if (result is MessagesScreenEvent.Internal.Messages) {
+            registerEventQueues()
+        }
+        return result
     }
 
     private suspend fun loadPreviousPage(
@@ -249,33 +264,24 @@ class MessagesActor @Inject constructor(
     }
 
     private suspend fun getMessagesEvent(): MessagesScreenEvent.Internal {
-        messagesQueue?.let { queue ->
-            return getEvent(
-                queue, getMessageEventUseCase, ::onSuccessMessageEvent,
-                MessagesScreenEvent.Internal.EmptyMessagesQueueEvent
-            )
-        }
-        return MessagesScreenEvent.Internal.EmptyMessagesQueueEvent
+        return getEvent(
+            messagesQueue, getMessageEventUseCase, ::onSuccessMessageEvent,
+            MessagesScreenEvent.Internal.EmptyMessagesQueueEvent
+        )
     }
 
     private suspend fun getDeleteMessagesEvent(): MessagesScreenEvent.Internal {
-        deleteMessagesQueue?.let { queue ->
-            return getEvent(
-                queue, getDeleteMessageEventUseCase, ::onSuccessDeleteMessageEvent,
-                MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent
-            )
-        }
-        return MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent
+        return getEvent(
+            deleteMessagesQueue, getDeleteMessageEventUseCase, ::onSuccessDeleteMessageEvent,
+            MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent
+        )
     }
 
     private suspend fun getReactionsEvent(): MessagesScreenEvent.Internal {
-        reactionsQueue?.let { queue ->
-            return getEvent(
-                queue, getReactionEventUseCase, ::onSuccessReactionEvent,
-                MessagesScreenEvent.Internal.EmptyReactionsQueueEvent
-            )
-        }
-        return MessagesScreenEvent.Internal.EmptyReactionsQueueEvent
+        return getEvent(
+            reactionsQueue, getReactionEventUseCase, ::onSuccessReactionEvent,
+            MessagesScreenEvent.Internal.EmptyReactionsQueueEvent
+        )
     }
 
     private fun onSuccessMessageEvent(
@@ -324,6 +330,8 @@ class MessagesActor @Inject constructor(
         useCase(eventsQueue.queue, messagesFilter).onSuccess { event ->
             getOwnUserIdUseCase().onSuccess { userId ->
                 return@withContext onSuccessCallback(eventsQueue, event, userId)
+            }.onFailure {
+                delay(DELAY_BEFORE_CHECK_EVENTS)
             }
         }
         emptyEvent
@@ -337,7 +345,6 @@ class MessagesActor @Inject constructor(
         messagesResult: MessagesResult,
         anchor: MessagesAnchor,
     ): MessagesScreenEvent.Internal {
-        deleteAllQueues()
         var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
         getOwnUserIdUseCase().onSuccess { userId ->
             val messagesResultDelegate = messagesResult.toDelegate(userId)
@@ -346,22 +353,16 @@ class MessagesActor @Inject constructor(
             } else {
                 MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
             }
-            messagesQueue = EventsQueueHolder(
-                lifecycleScope,
-                registerEventQueueUseCase,
-                deleteEventQueueUseCase,
-                messagesFilter
-            ).apply {
-                registerQueue(EventType.MESSAGE)
-                deleteMessagesQueue = EventsQueueHolder(this)
-                reactionsQueue = EventsQueueHolder(this)
-            }
-            deleteMessagesQueue?.registerQueue(EventType.DELETE_MESSAGE)
-            reactionsQueue?.registerQueue(EventType.REACTION)
         }.onFailure {
             event = handleErrors(it)
         }
         return event
+    }
+
+    private fun registerEventQueues() {
+        messagesQueue.registerQueue(listOf(EventType.MESSAGE))
+        deleteMessagesQueue.registerQueue(listOf(EventType.DELETE_MESSAGE))
+        reactionsQueue.registerQueue(listOf(EventType.REACTION))
     }
 
     private fun handleErrors(error: Throwable): MessagesScreenEvent.Internal {
@@ -398,6 +399,7 @@ class MessagesActor @Inject constructor(
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_CHECK_ACTION_ICON = 300L
+        const val DELAY_BEFORE_CHECK_EVENTS = 1000L
         const val DELAY_BEFORE_RELOAD = 500L
         const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
     }

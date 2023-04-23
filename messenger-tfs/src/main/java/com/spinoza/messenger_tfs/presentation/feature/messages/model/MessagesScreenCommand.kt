@@ -5,9 +5,9 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 
 sealed class MessagesScreenCommand {
 
-    object GetMessagesEvent : MessagesScreenCommand()
-
     object Reload : MessagesScreenCommand()
+
+    object GetMessagesEvent : MessagesScreenCommand()
 
     object GetDeleteMessagesEvent : MessagesScreenCommand()
 

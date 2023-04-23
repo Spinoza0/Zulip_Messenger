@@ -80,11 +80,11 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             val layoutManager = event.recyclerView.layoutManager as LinearLayoutManager
             val adapter = event.recyclerView.adapter as MainDelegateAdapter
             var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
-            if (firstVisiblePosition == UNDEFINED_POSITION) {
+            if (firstVisiblePosition == RecyclerView.NO_POSITION) {
                 firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
             }
             var lastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
-            if (lastVisiblePosition == UNDEFINED_POSITION) {
+            if (lastVisiblePosition == RecyclerView.NO_POSITION) {
                 lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
             }
             if (event.dy < 0 && firstVisiblePosition <= BORDER_POSITION) {
@@ -148,7 +148,9 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         lastVisiblePosition: Int,
     ): List<Long> {
         val visibleMessageIds = mutableListOf<Long>()
-        if (firstVisiblePosition != UNDEFINED_POSITION && lastVisiblePosition != UNDEFINED_POSITION) {
+        if (firstVisiblePosition != RecyclerView.NO_POSITION &&
+            lastVisiblePosition != RecyclerView.NO_POSITION
+        ) {
             for (i in firstVisiblePosition..lastVisiblePosition) {
                 val item = adapter.getItem(i)
                 if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
@@ -168,7 +170,6 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
 
     private companion object {
 
-        const val UNDEFINED_POSITION = -1
         const val BORDER_POSITION = 5
     }
 }

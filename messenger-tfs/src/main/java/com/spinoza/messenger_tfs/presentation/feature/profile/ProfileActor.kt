@@ -36,7 +36,9 @@ class ProfileActor @Inject constructor(
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
-            eventsQueue.deleteQueue()
+            lifecycleScope.launch {
+                eventsQueue.deleteQueue()
+            }
         }
     }
 
@@ -83,7 +85,7 @@ class ProfileActor @Inject constructor(
     }
 
     private fun subscribePresence() {
-        eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
+        eventsQueue.registerQueue(listOf(EventType.PRESENCE), ::handleOnSuccessQueueRegistration)
     }
 
     private fun handleOnSuccessQueueRegistration() {

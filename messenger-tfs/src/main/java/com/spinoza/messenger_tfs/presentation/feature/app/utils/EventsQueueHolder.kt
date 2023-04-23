@@ -14,27 +14,24 @@ class EventsQueueHolder(
     private val lifecycleScope: CoroutineScope,
     private val registerEventQueueUseCase: RegisterEventQueueUseCase,
     private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
-    private val messagesFilter: MessagesFilter = MessagesFilter(),
 ) {
 
-    constructor(eventsQueueHolder: EventsQueueHolder) : this(
-        eventsQueueHolder.lifecycleScope,
-        eventsQueueHolder.registerEventQueueUseCase,
-        eventsQueueHolder.deleteEventQueueUseCase,
-        eventsQueueHolder.messagesFilter
-    )
-
     var queue: EventsQueue = EventsQueue()
+
+    @Volatile
     private var isQueueRegistered = false
 
-    fun registerQueue(eventType: EventType, onSuccessCallback: (() -> Unit)? = null) {
+    fun registerQueue(
+        eventTypes: List<EventType>,
+        onSuccessCallback: (() -> Unit)? = null,
+        messagesFilter: MessagesFilter = MessagesFilter(),
+    ) {
         lifecycleScope.launch {
             if (isQueueRegistered) {
-                deleteEventQueueUseCase(queue.queueId)
-                isQueueRegistered = false
+                deleteQueue()
             }
             while (isActive && !isQueueRegistered) {
-                registerEventQueueUseCase(listOf(eventType), messagesFilter).onSuccess {
+                registerEventQueueUseCase(eventTypes, messagesFilter).onSuccess {
                     queue = it
                     onSuccessCallback?.invoke()
                     isQueueRegistered = true
@@ -44,11 +41,12 @@ class EventsQueueHolder(
         }
     }
 
-    fun deleteQueue() {
-        lifecycleScope.launch {
+    suspend fun deleteQueue() {
+        if (queue.queueId.isNotEmpty()) {
             deleteEventQueueUseCase(queue.queueId)
-            isQueueRegistered = false
         }
+        queue = EventsQueue()
+        isQueueRegistered = false
     }
 
     companion object {
