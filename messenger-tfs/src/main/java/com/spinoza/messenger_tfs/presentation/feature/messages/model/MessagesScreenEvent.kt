@@ -38,8 +38,6 @@ sealed class MessagesScreenEvent {
 
         object Idle : Internal()
 
-        object MessageSent : Internal()
-
         object EmptyMessagesQueueEvent : Internal()
 
         object EmptyDeleteMessagesQueueEvent : Internal()
@@ -49,6 +47,8 @@ sealed class MessagesScreenEvent {
         class IconActionResId(val value: Int) : Internal()
 
         class Messages(val value: MessagesResultDelegate) : Internal()
+
+        class MessageSent(val value: MessagesResultDelegate) : Internal()
 
         class MessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
 

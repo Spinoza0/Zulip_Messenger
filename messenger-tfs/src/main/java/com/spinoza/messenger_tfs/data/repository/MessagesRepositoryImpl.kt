@@ -144,7 +144,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                     numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchor = anchor.value
+                    anchor = MessagesAnchor.FIRST_UNREAD.value
                 )
                 MessagesAnchor.NEWEST -> apiService.getMessages(
                     numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
@@ -157,6 +157,12 @@ class MessagesRepositoryImpl @Inject constructor(
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
                     anchor = messagesCache.firstMessageId()
+                )
+                MessagesAnchor.LAST -> apiService.getMessages(
+                    numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchor = MessagesAnchor.NEWEST.value
                 )
             }
             if (!response.isSuccessful) {
@@ -172,6 +178,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 } else {
                     MessagePosition(MessagePosition.Type.LAST_POSITION)
                 }
+                MessagesAnchor.LAST -> MessagePosition(MessagePosition.Type.LAST_POSITION)
                 else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
             messagesCache.addAll(messagesResponse.messages)
@@ -271,24 +278,27 @@ class MessagesRepositoryImpl @Inject constructor(
             Result.success(Topic(filter.topic.name, unreadMessagesCount, filter.channel.channelId))
         }
 
-    override suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long> =
-        withContext(Dispatchers.IO) {
-            runCatchingNonCancellation {
-                val response = apiService.sendMessageToStream(
-                    filter.channel.channelId,
-                    filter.topic.name,
-                    content
-                )
-                if (!response.isSuccessful) {
-                    throw RepositoryError(response.message())
-                }
-                val sendMessageResponse = response.getBodyOrThrow()
-                if (sendMessageResponse.result != RESULT_SUCCESS) {
-                    throw RepositoryError(sendMessageResponse.msg)
-                }
-                sendMessageResponse.messageId
+    override suspend fun sendMessage(
+        content: String,
+        filter: MessagesFilter,
+    ): Result<MessagesResult> = withContext(Dispatchers.IO) {
+        runCatchingNonCancellation {
+            val response =
+                apiService.sendMessageToStream(filter.channel.channelId, filter.topic.name, content)
+            if (!response.isSuccessful) {
+                throw RepositoryError(response.message())
             }
+            val sendMessageResponse = response.getBodyOrThrow()
+            if (sendMessageResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(sendMessageResponse.msg)
+            }
+            var messagesResult = MessagesResult(emptyList(), MessagePosition())
+            getMessages(MessagesAnchor.LAST, filter)
+                .onSuccess { messagesResult = it }
+                .onFailure { throw it }
+            messagesResult
         }
+    }
 
     override suspend fun updateReaction(
         messageId: Long,

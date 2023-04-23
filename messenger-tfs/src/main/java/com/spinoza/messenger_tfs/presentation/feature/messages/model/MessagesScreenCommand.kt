@@ -19,6 +19,8 @@ sealed class MessagesScreenCommand {
 
     object LoadNextPage : MessagesScreenCommand()
 
+    object LoadLastPage : MessagesScreenCommand()
+
     class SetMessagesRead(val messageIds: List<Long>) : MessagesScreenCommand()
 
     class NewMessageText(val value: CharSequence?) : MessagesScreenCommand()

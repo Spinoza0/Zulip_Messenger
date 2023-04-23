@@ -42,13 +42,12 @@ class MessagesActor @Inject constructor(
     private val deleteEventQueueUseCase: DeleteEventQueueUseCase,
 ) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
 
+    private lateinit var messagesFilter: MessagesFilter
     private val lifecycleScope = lifecycle.coroutineScope
     private val newMessageFieldState = MutableSharedFlow<String>()
-    private lateinit var messagesFilter: MessagesFilter
     private var messagesQueue: EventsQueueHolder? = null
     private var deleteMessagesQueue: EventsQueueHolder? = null
     private var reactionsQueue: EventsQueueHolder? = null
-    private var isMessageSent = false
     private var iconActionResId = R.drawable.ic_add_circle_outline
     private var isIconActionResIdChanged = false
     private var lastLoadCommand: MessagesScreenCommand? = null
@@ -59,11 +58,12 @@ class MessagesActor @Inject constructor(
     @Volatile
     private var isLoadingNextPage = false
 
+    @Volatile
+    private var isLoadingLastPage = false
+
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
-            messagesQueue?.deleteQueue()
-            deleteMessagesQueue?.deleteQueue()
-            reactionsQueue?.deleteQueue()
+            deleteAllQueues()
         }
     }
 
@@ -83,12 +83,11 @@ class MessagesActor @Inject constructor(
                 }
                 is MessagesScreenCommand.LoadPreviousPage -> loadPreviousPage(command)
                 is MessagesScreenCommand.LoadNextPage -> loadNextPage(command)
+                is MessagesScreenCommand.LoadLastPage -> loadLastPage(command)
                 is MessagesScreenCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
                 is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
-                is MessagesScreenCommand.UpdateReaction -> updateReaction(
-                    command.messageId,
-                    command.emoji
-                )
+                is MessagesScreenCommand.UpdateReaction ->
+                    updateReaction(command.messageId, command.emoji)
                 is MessagesScreenCommand.SendMessage -> sendMessage(command.value)
                 is MessagesScreenCommand.GetMessagesEvent -> getMessagesEvent()
                 is MessagesScreenCommand.GetDeleteMessagesEvent -> getDeleteMessagesEvent()
@@ -106,6 +105,10 @@ class MessagesActor @Inject constructor(
                                 lastLoadCommand = null
                                 result = loadNextPage(lastCommand)
                             }
+                            is MessagesScreenCommand.LoadLastPage -> {
+                                lastLoadCommand = null
+                                result = loadLastPage(lastCommand)
+                            }
                             else -> result = loadMessages(MessagesAnchor.FIRST_UNREAD)
                         }
                     }
@@ -114,6 +117,15 @@ class MessagesActor @Inject constructor(
             }
             emit(event)
         }
+
+    private fun deleteAllQueues() {
+        messagesQueue?.deleteQueue()
+        deleteMessagesQueue?.deleteQueue()
+        reactionsQueue?.deleteQueue()
+        messagesQueue = null
+        deleteMessagesQueue = null
+        reactionsQueue = null
+    }
 
     private suspend fun loadPreviousPage(
         command: MessagesScreenCommand,
@@ -137,6 +149,17 @@ class MessagesActor @Inject constructor(
         return result
     }
 
+    private suspend fun loadLastPage(
+        command: MessagesScreenCommand,
+    ): MessagesScreenEvent.Internal {
+        if (isLoadingLastPage) return MessagesScreenEvent.Internal.Idle
+        isLoadingLastPage = true
+        lastLoadCommand = command
+        val result = loadMessages(MessagesAnchor.LAST)
+        isLoadingLastPage = false
+        return result
+    }
+
     private suspend fun newMessageText(text: CharSequence?): MessagesScreenEvent.Internal {
         newMessageFieldState.emit(text.toString())
         delay(DELAY_BEFORE_CHECK_ACTION_ICON)
@@ -150,10 +173,10 @@ class MessagesActor @Inject constructor(
     private suspend fun sendMessage(value: String): MessagesScreenEvent.Internal {
         var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
         if (value.isNotEmpty()) {
-            val result = sendMessageUseCase(value, messagesFilter)
-            result.onSuccess {
-                isMessageSent = true
-                event = MessagesScreenEvent.Internal.MessageSent
+            sendMessageUseCase(value, messagesFilter).onSuccess { messagesResult ->
+                event = handleMessages(messagesResult, MessagesAnchor.LAST)
+            }.onFailure { error ->
+                event = handleErrors(error)
             }
         }
         return event
@@ -183,7 +206,7 @@ class MessagesActor @Inject constructor(
         withContext(Dispatchers.Default) {
             var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
             getMessagesUseCase(anchor, messagesFilter).onSuccess { messagesResult ->
-                event = handleMessages(messagesResult)
+                event = handleMessages(messagesResult, anchor)
             }.onFailure { error ->
                 event = handleErrors(error)
             }
@@ -261,14 +284,8 @@ class MessagesActor @Inject constructor(
         userId: Long,
     ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
-        val messagesResult = if (isMessageSent) {
-            isMessageSent = false
-            event.messagesResult.copy(position = MessagePosition(MessagePosition.Type.LAST_POSITION))
-        } else {
-            event.messagesResult
-        }
         return MessagesScreenEvent.Internal.MessagesEventFromQueue(
-            getMessagesResultDelegate(messagesResult, userId)
+            event.messagesResult.toDelegate(userId)
         )
     }
 
@@ -279,7 +296,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
         return MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue(
-            getMessagesResultDelegate(event.messagesResult, userId)
+            event.messagesResult.toDelegate(userId)
         )
     }
 
@@ -290,7 +307,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
         return MessagesScreenEvent.Internal.ReactionsEventFromQueue(
-            getMessagesResultDelegate(event.messagesResult, userId)
+            event.messagesResult.toDelegate(userId)
         )
     }
 
@@ -312,21 +329,23 @@ class MessagesActor @Inject constructor(
         emptyEvent
     }
 
-    private fun getMessagesResultDelegate(
-        messagesResult: MessagesResult,
-        userId: Long,
-    ): MessagesResultDelegate {
-        return MessagesResultDelegate(
-            messagesResult.messages.groupByDate(userId), messagesResult.position
-        )
+    private fun MessagesResult.toDelegate(userId: Long): MessagesResultDelegate {
+        return MessagesResultDelegate(messages.groupByDate(userId), position)
     }
 
-    private suspend fun handleMessages(messagesResult: MessagesResult): MessagesScreenEvent.Internal {
+    private suspend fun handleMessages(
+        messagesResult: MessagesResult,
+        anchor: MessagesAnchor,
+    ): MessagesScreenEvent.Internal {
+        deleteAllQueues()
         var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
         getOwnUserIdUseCase().onSuccess { userId ->
-            event = MessagesScreenEvent.Internal.Messages(
-                getMessagesResultDelegate(messagesResult, userId)
-            )
+            val messagesResultDelegate = messagesResult.toDelegate(userId)
+            event = if (anchor == MessagesAnchor.LAST) {
+                MessagesScreenEvent.Internal.MessageSent(messagesResultDelegate)
+            } else {
+                MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
+            }
             messagesQueue = EventsQueueHolder(
                 lifecycleScope,
                 registerEventQueueUseCase,

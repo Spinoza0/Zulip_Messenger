@@ -145,24 +145,27 @@ class MessagesFragment :
     }
 
     override fun render(state: MessagesScreenState) {
-        if (state.isLoading) {
-            if (messagesListIsEmpty()) binding.shimmerLarge.on()
-        } else {
-            binding.shimmerLarge.off()
-        }
-        if (state.isSendingMessage) {
-            binding.shimmerSending.on()
-        } else {
-            binding.shimmerSending.off()
-        }
-        state.messages?.let {
-            (binding.recyclerViewMessages.adapter as MainDelegateAdapter).submitList(it.messages) {
-                scrollAfterSubmitMessages(it)
+        with(binding) {
+            if (state.isLoading) {
+                shimmerLarge.on()
+            } else {
+                shimmerLarge.off()
             }
+            if (state.isSendingMessage) {
+                shimmerSending.on()
+            } else {
+                shimmerSending.off()
+            }
+            state.messages?.let {
+                (recyclerViewMessages.adapter as MainDelegateAdapter).submitList(it.messages) {
+                    scrollAfterSubmitMessages(it)
+                }
 
+            }
+            progressBarLoadingPage.isVisible = state.isLoadingPage
+            imageViewAction.setImageResource(state.iconActionResId)
+            imageViewArrow.isVisible = state.isNextMessageExists
         }
-        binding.imageViewAction.setImageResource(state.iconActionResId)
-        binding.imageViewArrow.isVisible = state.isNextMessageExists
     }
 
     override fun handleEffect(effect: MessagesScreenEffect) {

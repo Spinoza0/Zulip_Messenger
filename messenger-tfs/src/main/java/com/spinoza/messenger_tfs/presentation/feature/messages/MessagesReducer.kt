@@ -28,7 +28,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
 
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {
-            state { copy(isLoading = false, messages = event.value) }
+            state { copy(isLoading = false, isLoadingPage = false, messages = event.value) }
             commands {
                 +MessagesScreenCommand.GetMessagesEvent
                 +MessagesScreenCommand.GetDeleteMessagesEvent
@@ -54,17 +54,22 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent ->
             commands { +MessagesScreenCommand.GetReactionsEvent }
         is MessagesScreenEvent.Internal.MessageSent -> {
-            state { copy(isSendingMessage = false) }
+            state { copy(isSendingMessage = false, messages = event.value) }
             effects { +MessagesScreenEffect.MessageSent }
+            commands {
+                +MessagesScreenCommand.GetMessagesEvent
+                +MessagesScreenCommand.GetDeleteMessagesEvent
+                +MessagesScreenCommand.GetReactionsEvent
+            }
         }
         is MessagesScreenEvent.Internal.IconActionResId ->
             state { copy(iconActionResId = event.value) }
         is MessagesScreenEvent.Internal.ErrorMessages -> {
-            state { copy(isLoading = false, isSendingMessage = false) }
+            state { copy(isLoading = false, isLoadingPage = false, isSendingMessage = false) }
             effects { +MessagesScreenEffect.Failure.ErrorMessages(event.value) }
         }
         is MessagesScreenEvent.Internal.ErrorNetwork -> {
-            state { copy(isLoading = false, isSendingMessage = false) }
+            state { copy(isLoading = false, isLoadingPage = false, isSendingMessage = false) }
             effects { +MessagesScreenEffect.Failure.ErrorNetwork(event.value) }
         }
         is MessagesScreenEvent.Internal.Idle -> {}
@@ -83,9 +88,11 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                 lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
             }
             if (event.dy < 0 && firstVisiblePosition <= BORDER_POSITION) {
+                state { copy(isLoadingPage = true) }
                 commands { +MessagesScreenCommand.LoadPreviousPage }
             }
             if (event.dy > 0 && lastVisiblePosition >= adapter.itemCount - BORDER_POSITION) {
+                state { copy(isLoadingPage = true) }
                 commands { +MessagesScreenCommand.LoadNextPage }
             }
             val ids = getVisibleMessagesIds(adapter, firstVisiblePosition, lastVisiblePosition)
@@ -97,7 +104,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
         }
         is MessagesScreenEvent.Ui.Load -> {
-            state { copy(isLoading = true) }
+            state { copy(isLoading = true, isLoadingPage = false) }
             commands { +MessagesScreenCommand.Load(event.filter) }
         }
         is MessagesScreenEvent.Ui.SendMessage -> {
@@ -113,7 +120,6 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         }
         is MessagesScreenEvent.Ui.ShowUserInfo ->
             router.navigateTo(Screens.UserProfile(event.message.userId))
-        is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.UpdateReaction ->
             commands { +MessagesScreenCommand.UpdateReaction(event.messageId, event.emoji) }
         is MessagesScreenEvent.Ui.AfterSubmitMessages -> state.messages?.let { messages ->
@@ -129,9 +135,10 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Ui.ShowChooseReactionDialog ->
             effects { +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId) }
         is MessagesScreenEvent.Ui.Reload -> {
-            state { copy(isLoading = true) }
+            state { copy(isLoadingPage = true) }
             commands { +MessagesScreenCommand.Reload }
         }
+        is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.Init -> {}
     }
 

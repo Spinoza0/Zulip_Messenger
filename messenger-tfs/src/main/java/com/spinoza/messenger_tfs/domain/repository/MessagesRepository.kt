@@ -27,7 +27,7 @@ interface MessagesRepository {
 
     suspend fun getTopic(filter: MessagesFilter): Result<Topic>
 
-    suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long>
+    suspend fun sendMessage(content: String, filter: MessagesFilter): Result<MessagesResult>
 
     suspend fun updateReaction(
         messageId: Long,

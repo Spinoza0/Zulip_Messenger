@@ -4,6 +4,7 @@ import com.spinoza.messenger_tfs.R
 
 data class MessagesScreenState(
     val isLoading: Boolean = false,
+    val isLoadingPage: Boolean = false,
     val isSendingMessage: Boolean = false,
     val isNextMessageExists: Boolean = false,
     val messages: MessagesResultDelegate? = null,

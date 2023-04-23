@@ -4,5 +4,6 @@ enum class MessagesAnchor(val value: String) {
 
     NEWEST("newest"),
     OLDEST("oldest"),
-    FIRST_UNREAD("first_unread");
+    FIRST_UNREAD("first_unread"),
+    LAST("last");
 }

@@ -47,6 +47,7 @@ class EventsQueueHolder(
     fun deleteQueue() {
         lifecycleScope.launch {
             deleteEventQueueUseCase(queue.queueId)
+            isQueueRegistered = false
         }
     }
 
