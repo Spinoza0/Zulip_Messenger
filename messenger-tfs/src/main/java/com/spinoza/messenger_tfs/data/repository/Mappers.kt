@@ -156,11 +156,21 @@ fun List<TopicDbModel>.dbToDomain(): List<Topic> {
 }
 
 private fun TopicDbModel.dbToDomain(): Topic {
-    return Topic(name = name, messageCount = NO_MESSAGES, channelId = streamId)
+    return Topic(
+        name = name,
+        messageCount = NO_MESSAGES,
+        channelId = streamId,
+        lastMessageId = Message.UNDEFINED_ID
+    )
 }
 
 fun TopicDto.dtoToDomain(channel: Channel): Topic {
-    return Topic(name = name, messageCount = NO_MESSAGES, channelId = channel.channelId)
+    return Topic(
+        name = name,
+        messageCount = NO_MESSAGES,
+        channelId = channel.channelId,
+        lastMessageId = maxId
+    )
 }
 
 private fun TopicDto.toDbModel(channel: Channel): TopicDbModel {

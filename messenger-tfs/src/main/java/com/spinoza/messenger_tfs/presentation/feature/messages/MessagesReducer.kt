@@ -33,6 +33,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                     isLoading = false,
                     isLoadingPreviousPage = false,
                     isLoadingNextPage = false,
+                    isNewMessageExists = false,
                     messages = event.value
                 )
             }
@@ -43,7 +44,9 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             }
         }
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
-            state { copy(messages = event.value) }
+            state {
+                copy(messages = event.value, isNewMessageExists = event.value.isNewMessageExists)
+            }
             commands { +MessagesScreenCommand.GetMessagesEvent }
         }
         is MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue -> {
@@ -61,7 +64,9 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent ->
             commands { +MessagesScreenCommand.GetReactionsEvent }
         is MessagesScreenEvent.Internal.MessageSent -> {
-            state { copy(isSendingMessage = false, messages = event.value) }
+            state {
+                copy(isSendingMessage = false, isNewMessageExists = false, messages = event.value)
+            }
             effects { +MessagesScreenEffect.MessageSent }
             commands {
                 +MessagesScreenCommand.GetMessagesEvent

@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessagesAnchor
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import java.util.*
 import javax.inject.Inject
@@ -14,6 +15,10 @@ class MessagesCache @Inject constructor() {
     private val data = TreeSet<MessageDto>()
     private val lock = Any()
 
+    fun isNotEmpty(): Boolean {
+        return data.isNotEmpty()
+    }
+
     fun add(messageDto: MessageDto) {
         synchronized(lock) {
             data.remove(messageDto)
@@ -21,7 +26,7 @@ class MessagesCache @Inject constructor() {
         }
     }
 
-    fun addAll(messagesDto: List<MessageDto>) {
+    fun addAll(messagesDto: List<MessageDto>, anchor: MessagesAnchor) {
         synchronized(lock) {
             messagesDto.forEach { data.remove(it) }
             data.addAll(messagesDto)
@@ -120,5 +125,6 @@ class MessagesCache @Inject constructor() {
     private companion object {
 
         private const val UNDEFINED_EVENT_ID = -1L
+        private const val MAX_CACHE_SIZE = 50
     }
 }

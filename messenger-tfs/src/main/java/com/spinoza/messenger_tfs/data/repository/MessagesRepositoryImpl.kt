@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.database.MessengerDao
-import com.spinoza.messenger_tfs.domain.model.AppAuthKeeper
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.model.event.*
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
@@ -20,9 +19,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Credentials
 import javax.inject.Inject
-
-// TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
-// TODO: 2) пагинация для сообщений
 
 class MessagesRepositoryImpl @Inject constructor(
     private val messagesCache: MessagesCache,
@@ -179,7 +175,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 MessagesAnchor.LAST -> MessagePosition(MessagePosition.Type.LAST_POSITION)
                 else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
-            messagesCache.addAll(messagesResponse.messages)
+            messagesCache.addAll(messagesResponse.messages, anchor)
             MessagesResult(
                 messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
                 position
@@ -260,6 +256,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun getTopic(filter: MessagesFilter): Result<Topic> =
         withContext(Dispatchers.IO) {
             var unreadMessagesCount = 0
+            var lastMessageId = Message.UNDEFINED_ID
             runCatchingNonCancellation {
                 val response = apiService.getMessages(
                     numBefore = GET_TOPIC_IGNORE_PREVIOUS_MESSAGES,
@@ -269,11 +266,16 @@ class MessagesRepositoryImpl @Inject constructor(
                 )
                 if (response.isSuccessful) {
                     val messagesResponse = response.getBodyOrThrow()
+                    lastMessageId = messagesResponse.messages.last().id
                     unreadMessagesCount = messagesResponse.messages.size
                     if (!messagesResponse.foundAnchor) unreadMessagesCount--
                 }
             }
-            Result.success(Topic(filter.topic.name, unreadMessagesCount, filter.channel.channelId))
+            Result.success(
+                Topic(
+                    filter.topic.name, unreadMessagesCount, filter.channel.channelId, lastMessageId
+                )
+            )
         }
 
     override suspend fun sendMessage(
@@ -392,14 +394,20 @@ class MessagesRepositoryImpl @Inject constructor(
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
             }
-            eventResponse.events.forEach { messageEventDto ->
-                messagesCache.add(messageEventDto.message)
+            if (messagesCache.isNotEmpty() &&
+                filter.topic.lastMessageId == messagesCache.lastMessageId()
+            ) {
+                eventResponse.events.forEach { messageEventDto ->
+                    messagesCache.add(messageEventDto.message)
+                    filter.topic.lastMessageId = messageEventDto.message.id
+                }
             }
             MessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
                     messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
-                    MessagePosition()
+                    MessagePosition(),
+                    eventResponse.events.isNotEmpty()
                 )
             )
         }

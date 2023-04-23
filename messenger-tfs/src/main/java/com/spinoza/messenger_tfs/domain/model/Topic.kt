@@ -12,6 +12,7 @@ data class Topic(
     val name: String = UNDEFINED_NAME,
     val messageCount: Int = NO_MESSAGES,
     val channelId: Long = Channel.UNDEFINED_ID,
+    var lastMessageId: Long = Message.UNDEFINED_ID,
 ) : Parcelable {
 
     companion object {

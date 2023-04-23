@@ -8,6 +8,7 @@ data class MessagesScreenState(
     val isLoadingNextPage: Boolean = false,
     val isSendingMessage: Boolean = false,
     val isNextMessageExists: Boolean = false,
+    val isNewMessageExists: Boolean = false,
     val messages: MessagesResultDelegate? = null,
     val iconActionResId: Int = R.drawable.ic_add_circle_outline,
 )

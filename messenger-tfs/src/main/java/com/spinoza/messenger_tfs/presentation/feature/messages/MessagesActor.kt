@@ -212,9 +212,7 @@ class MessagesActor @Inject constructor(
             updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
                 getOwnUserIdUseCase().onSuccess { userId ->
                     return@withContext MessagesScreenEvent.Internal.Messages(
-                        MessagesResultDelegate(
-                            messagesResult.messages.groupByDate(userId), messagesResult.position
-                        )
+                        messagesResult.toDelegate(userId)
                     )
                 }.onFailure { error ->
                     return@withContext handleErrors(error)
@@ -343,7 +341,7 @@ class MessagesActor @Inject constructor(
     }
 
     private fun MessagesResult.toDelegate(userId: Long): MessagesResultDelegate {
-        return MessagesResultDelegate(messages.groupByDate(userId), position)
+        return MessagesResultDelegate(messages.groupByDate(userId), position, isNewMessageExists)
     }
 
     private suspend fun handleMessages(

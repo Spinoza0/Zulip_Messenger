@@ -11,7 +11,6 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.AppAuthKeeper
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
 import com.spinoza.messenger_tfs.domain.model.*
@@ -178,7 +177,7 @@ class MessagesFragment :
             progressBarLoadingPage.isVisible =
                 state.isLoadingPreviousPage || state.isLoadingNextPage
             imageViewAction.setImageResource(state.iconActionResId)
-            imageViewArrow.isVisible = state.isNextMessageExists
+            imageViewArrow.isVisible = state.isNextMessageExists || state.isNewMessageExists
         }
     }
 
