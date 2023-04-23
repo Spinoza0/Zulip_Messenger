@@ -14,10 +14,7 @@ import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolde
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegateItem
-import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
-import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEffect
-import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
-import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenState
+import com.spinoza.messenger_tfs.presentation.feature.channels.model.*
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -65,6 +62,8 @@ class ChannelsPageFragmentViewModel @Inject constructor(
             is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
             is ChannelsPageScreenEvent.Ui.OnTopicClick ->
                 router.navigateTo(Screens.Messages(event.messagesFilter))
+            is ChannelsPageScreenEvent.Ui.RegisterEventQueue -> registerEventQueue()
+            is ChannelsPageScreenEvent.Ui.DeleteEventQueue -> deleteEventQueue()
         }
     }
 
@@ -72,9 +71,6 @@ class ChannelsPageFragmentViewModel @Inject constructor(
         super.onCleared()
         stopUpdateMessagesCountJob()
         cache.clear()
-        viewModelScope.launch {
-            eventsQueue.deleteQueue()
-        }
     }
 
     private fun setChannelsFilter(newFilter: ChannelsFilter) {
@@ -101,8 +97,6 @@ class ChannelsPageFragmentViewModel @Inject constructor(
             }
             result.onSuccess { newChannels ->
                 updateChannelsList(newChannels)
-                eventsQueue
-                    .registerQueue(listOf(EventType.CHANNEL), ::handleOnSuccessQueueRegistration)
             }.onFailure {
                 handleErrors(it)
             }
@@ -343,6 +337,18 @@ class ChannelsPageFragmentViewModel @Inject constructor(
             }
         }
         return result
+    }
+
+    private fun registerEventQueue() {
+        viewModelScope.launch {
+            eventsQueue.registerQueue(listOf(EventType.CHANNEL), ::handleOnSuccessQueueRegistration)
+        }
+    }
+
+    private fun deleteEventQueue() {
+        viewModelScope.launch {
+            eventsQueue.deleteQueue()
+        }
     }
 
     private companion object {

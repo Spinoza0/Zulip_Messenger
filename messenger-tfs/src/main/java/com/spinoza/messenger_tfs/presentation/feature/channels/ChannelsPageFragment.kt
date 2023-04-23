@@ -175,6 +175,7 @@ class ChannelsPageFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         updateMessageCount()
+        store.accept(ChannelsPageScreenEvent.Ui.RegisterEventQueue)
     }
 
     private fun loadChannels() {
@@ -188,6 +189,7 @@ class ChannelsPageFragment : Fragment() {
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
+        store.accept(ChannelsPageScreenEvent.Ui.DeleteEventQueue)
     }
 
     override fun onDestroyView() {
