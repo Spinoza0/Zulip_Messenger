@@ -8,6 +8,8 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.widget.TextView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
 import com.spinoza.messenger_tfs.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,12 +23,21 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
         drawable?.run { draw(canvas) }
     }
 
-    suspend fun loadImage(context: Context, imageUrl: String, textView: TextView) {
+    suspend fun loadImage(
+        context: Context,
+        imageUrl: String,
+        textView: TextView,
+        authData: String,
+    ) {
         val fullUrl = if (isFullUrl(imageUrl)) imageUrl else "${IMAGE_BASE_URL}$imageUrl"
         runCatching {
+            val glideUrl = GlideUrl(
+                fullUrl,
+                LazyHeaders.Builder().addHeader(HEADER_AUTHORIZATION, authData).build()
+            )
             val bitmap = Glide.with(context)
                 .asBitmap()
-                .load(fullUrl)
+                .load(glideUrl)
                 .submit().get()
             val newDrawable = BitmapDrawable(resources, bitmap)
             val scale =
@@ -55,5 +66,6 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
         const val IMAGE_BASE_URL = BuildConfig.ZULIP_SERVER_URL
         const val IMAGE_URL_SECURED_PREFIX = "https://"
         const val IMAGE_URL_BASIC_PREFIX = "http://"
+        const val HEADER_AUTHORIZATION = "Authorization"
     }
 }

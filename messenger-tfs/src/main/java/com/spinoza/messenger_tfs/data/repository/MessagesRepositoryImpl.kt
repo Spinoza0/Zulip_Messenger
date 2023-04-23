@@ -1,8 +1,8 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.database.MessengerDao
+import com.spinoza.messenger_tfs.domain.model.AppAuthKeeper
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
-import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.network.model.event.*
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
@@ -28,7 +28,7 @@ class MessagesRepositoryImpl @Inject constructor(
     private val messagesCache: MessagesCache,
     private val messengerDao: MessengerDao,
     private val apiService: ZulipApiService,
-    private val apiAuthKeeper: ZulipAuthKeeper,
+    private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
 ) : MessagesRepository {
 
@@ -40,7 +40,7 @@ class MessagesRepositoryImpl @Inject constructor(
         password: String,
     ): Result<String> = withContext(Dispatchers.IO) {
         if (storedApiKey.isNotBlank()) {
-            apiAuthKeeper.authHeader = Credentials.basic(email, storedApiKey)
+            apiAuthKeeper.data = Credentials.basic(email, storedApiKey)
             getOwnUser().onSuccess {
                 return@withContext Result.success(storedApiKey)
             }
@@ -54,8 +54,7 @@ class MessagesRepositoryImpl @Inject constructor(
             if (apiKeyResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(apiKeyResponse.msg)
             }
-            apiAuthKeeper.authHeader =
-                Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
+            apiAuthKeeper.data = Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
             apiKeyResponse.apiKey
         }
     }
@@ -95,21 +94,20 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUser(userId: Long): Result<User> =
-        withContext(Dispatchers.IO) {
-            runCatchingNonCancellation {
-                val response = apiService.getUser(userId)
-                if (!response.isSuccessful) {
-                    throw RepositoryError(response.message())
-                }
-                val userResponse = response.getBodyOrThrow()
-                if (userResponse.result != RESULT_SUCCESS) {
-                    throw RepositoryError(userResponse.msg)
-                }
-                val presence = getUserPresence(userResponse.user.userId)
-                userResponse.user.toDomain(presence)
+    override suspend fun getUser(userId: Long): Result<User> = withContext(Dispatchers.IO) {
+        runCatchingNonCancellation {
+            val response = apiService.getUser(userId)
+            if (!response.isSuccessful) {
+                throw RepositoryError(response.message())
             }
+            val userResponse = response.getBodyOrThrow()
+            if (userResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(userResponse.msg)
+            }
+            val presence = getUserPresence(userResponse.user.userId)
+            userResponse.user.toDomain(presence)
         }
+    }
 
     override suspend fun getUsersByFilter(usersFilter: String): Result<List<User>> =
         withContext(Dispatchers.IO) {

@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.domain.model.AppAuthKeeper
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
 import com.spinoza.messenger_tfs.domain.model.*
@@ -42,6 +43,9 @@ class MessagesFragment :
             MessagesScreenState,
             MessagesScreenEffect,
             MessagesScreenCommand>
+
+    @Inject
+    lateinit var appAuthKeeper: AppAuthKeeper
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
@@ -105,10 +109,19 @@ class MessagesFragment :
         val messagesAdapter = MainDelegateAdapter().apply {
             addDelegate(
                 UserMessageDelegate(
-                    ::onReactionAddClickListener, ::onReactionClickListener, ::onAvatarClickListener
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener,
+                    ::onAvatarClickListener,
+                    appAuthKeeper.data
                 )
             )
-            addDelegate(OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener))
+            addDelegate(
+                OwnMessageDelegate(
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener,
+                    appAuthKeeper.data
+                )
+            )
             addDelegate(DateDelegate())
         }
         binding.recyclerViewMessages.adapter = messagesAdapter

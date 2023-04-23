@@ -5,8 +5,8 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
+import com.spinoza.messenger_tfs.domain.model.AppAuthKeeper
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
-import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import dagger.Binds
@@ -33,7 +33,6 @@ interface DataModule {
         private const val MEDIA_TYPE_JSON = "application/json"
         private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
         private const val TIME_OUT_SECONDS = 15L
-        private const val EMPTY_STRING = ""
 
         @ApplicationScope
         @Provides
@@ -48,11 +47,7 @@ interface DataModule {
 
         @ApplicationScope
         @Provides
-        fun provideZulipAuthKeeper(): ZulipAuthKeeper = ZulipAuthKeeper(EMPTY_STRING)
-
-        @ApplicationScope
-        @Provides
-        fun provideZulipApiService(zulipAuthKeeper: ZulipAuthKeeper): ZulipApiService {
+        fun provideZulipApiService(appAuthKeeper: AppAuthKeeper): ZulipApiService {
             val json = Json {
                 ignoreUnknownKeys = true
                 coerceInputValues = true
@@ -68,7 +63,7 @@ interface DataModule {
                         return@authenticator null
                     request.newBuilder().header(
                         HEADER_AUTHORIZATION,
-                        zulipAuthKeeper.authHeader
+                        appAuthKeeper.data
                     ).build()
                 }
                 .build()

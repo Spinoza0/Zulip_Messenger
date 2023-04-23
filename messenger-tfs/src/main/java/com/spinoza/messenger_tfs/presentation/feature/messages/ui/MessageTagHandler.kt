@@ -7,7 +7,7 @@ import org.xml.sax.XMLReader
 import java.lang.reflect.Field
 import java.util.regex.Pattern
 
-class EmojiTagHandler : Html.TagHandler {
+class MessageTagHandler : Html.TagHandler {
 
     private val emojiPattern = Pattern.compile(EMOJI_CODE_REGEXP)
     private val attributes = HashMap<String, String>()
@@ -73,10 +73,11 @@ class EmojiTagHandler : Html.TagHandler {
         private const val EMOJI_CODE_INDEX = 1
         private const val EMPTY_EMOJI_CODE = ""
 
-        private val prepareTagRegex = Regex("<span(.+?class=\"emoji.+?):\\w+?:</span>")
+        private val emojiTagRegex = Regex("<span(.+?class=\"emoji.+?):\\w+?:</span>")
 
+        // TODO: prepare href -> make full url
         fun prepareTag(source: String): String {
-            return source.replace(prepareTagRegex, "<emojiSpan$1</emojiSpan>")
+            return source.replace(emojiTagRegex, "<emojiSpan$1</emojiSpan>")
         }
     }
 }

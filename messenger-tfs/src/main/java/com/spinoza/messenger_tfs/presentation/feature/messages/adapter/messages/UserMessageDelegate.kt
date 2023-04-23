@@ -18,6 +18,7 @@ class UserMessageDelegate(
     private val onReactionAddClickListener: (MessageView) -> Unit,
     private val onReactionClickListener: (MessageView, ReactionView) -> Unit,
     private val onAvatarClickListener: (MessageView) -> Unit,
+    private val authData: String,
 ) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -39,7 +40,8 @@ class UserMessageDelegate(
             item as UserMessageDelegateItem,
             onReactionAddClickListener,
             onReactionClickListener,
-            onAvatarClickListener
+            onAvatarClickListener,
+            authData
         )
     }
 
@@ -67,11 +69,12 @@ class UserMessageDelegate(
             item: UserMessageDelegateItem,
             onReactionAddClickListener: (MessageView) -> Unit,
             onReactionClickListener: (MessageView, ReactionView) -> Unit,
-            onAvatarClickListener: ((MessageView) -> Unit)? = null,
+            onAvatarClickListener: ((MessageView) -> Unit)?,
+            authData: String,
         ) {
             with(binding.messageView) {
                 val message = item.content() as Message
-                setMessage(message, item.getGravity())
+                setMessage(message, authData, item.getGravity())
                 Glide.with(avatarImage)
                     .load(message.user.avatarUrl)
                     .circleCrop()

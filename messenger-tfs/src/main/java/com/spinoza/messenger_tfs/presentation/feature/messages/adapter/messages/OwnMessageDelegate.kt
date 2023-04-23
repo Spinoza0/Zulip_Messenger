@@ -17,6 +17,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 class OwnMessageDelegate(
     private val onReactionAddClickListener: (MessageView) -> Unit,
     private val onReactionClickListener: (MessageView, ReactionView) -> Unit,
+    private val authData: String,
 ) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -38,6 +39,7 @@ class OwnMessageDelegate(
             item as OwnMessageDelegateItem,
             onReactionAddClickListener,
             onReactionClickListener,
+            authData
         )
     }
 
@@ -64,10 +66,11 @@ class OwnMessageDelegate(
             item: OwnMessageDelegateItem,
             onReactionAddClickListener: (MessageView) -> Unit,
             onReactionClickListener: (MessageView, ReactionView) -> Unit,
+            authData: String,
         ) {
             with(binding.messageView) {
                 val message = item.content() as Message
-                setMessage(message, item.getGravity())
+                setMessage(message, authData, item.getGravity())
                 Glide.with(avatarImage)
                     .load(message.user.avatarUrl)
                     .circleCrop()

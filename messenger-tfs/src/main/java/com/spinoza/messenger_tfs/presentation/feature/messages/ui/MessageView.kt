@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.presentation.feature.messages.ui
 import android.content.Context
 import android.text.Html
 import android.text.Html.ImageGetter
+import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -44,13 +45,14 @@ class MessageView @JvmOverloads constructor(
     val avatarImage: ImageView
         get() = binding.avatarImageView
 
+    private var authData = DEFAULT_AUTH_DATA
     private var imageJob: Job? = null
 
     private val imageGetter = ImageGetter { imageUrl ->
         val holder = DrawableHolder(resources)
         imageJob?.cancel()
         imageJob = CoroutineScope(Dispatchers.IO).launch {
-            holder.loadImage(context, imageUrl, binding.contentTextView)
+            holder.loadImage(context, imageUrl, binding.contentTextView, authData)
         }
         holder
     }
@@ -59,10 +61,10 @@ class MessageView @JvmOverloads constructor(
         get() = binding.contentTextView.text.toString()
         set(value) {
             binding.contentTextView.text = Html.fromHtml(
-                EmojiTagHandler.prepareTag(value),
+                MessageTagHandler.prepareTag(value),
                 Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL,
                 imageGetter,
-                EmojiTagHandler()
+                MessageTagHandler()
             )
         }
 
@@ -101,6 +103,7 @@ class MessageView @JvmOverloads constructor(
                 )
             }
         }
+        binding.contentTextView.movementMethod = LinkMovementMethod.getInstance()
     }
 
     override fun onDetachedFromWindow() {
@@ -234,11 +237,12 @@ class MessageView @JvmOverloads constructor(
         }
     }
 
-    fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
+    fun setMessage(message: Message, authData: String, reactionsGravity: FlexBoxGravity) {
         messageId = message.id
         userId = message.user.userId
         name = message.user.fullName
         content = message.content
+        this.authData = authData
         this.reactionsGravity = reactionsGravity
         setReactions(message.reactions)
     }
@@ -272,5 +276,6 @@ class MessageView @JvmOverloads constructor(
 
         const val REACTION_PADDING_HORIZONTAL = 10f
         const val REACTION_PADDING_VERTICAL = 7f
+        const val DEFAULT_AUTH_DATA = ""
     }
 }

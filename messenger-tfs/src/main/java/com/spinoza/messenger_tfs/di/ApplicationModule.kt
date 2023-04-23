@@ -3,11 +3,14 @@ package com.spinoza.messenger_tfs.di
 import com.github.terrakok.cicerone.Cicerone
 import com.github.terrakok.cicerone.NavigatorHolder
 import com.github.terrakok.cicerone.Router
+import com.spinoza.messenger_tfs.domain.model.AppAuthKeeper
 import dagger.Module
 import dagger.Provides
 
 @Module
 object ApplicationModule {
+
+    private const val EMPTY_STRING = ""
 
     @ApplicationScope
     @Provides
@@ -22,4 +25,8 @@ object ApplicationModule {
     @Provides
     fun provideGlobalNavigatorHolder(cicerone: Cicerone<Router>): NavigatorHolder =
         cicerone.getNavigatorHolder()
+
+    @ApplicationScope
+    @Provides
+    fun provideAppAuthKeeper(): AppAuthKeeper = AppAuthKeeper(EMPTY_STRING)
 }
