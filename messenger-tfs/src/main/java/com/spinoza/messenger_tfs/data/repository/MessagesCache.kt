@@ -7,34 +7,38 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesAnchor
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.*
 import javax.inject.Inject
 
 class MessagesCache @Inject constructor() {
 
     private val data = TreeSet<MessageDto>()
-    private val lock = Any()
+    private val dataMutex = Mutex()
 
     fun isNotEmpty(): Boolean {
         return data.isNotEmpty()
     }
 
-    fun add(messageDto: MessageDto, isLastMessageVisible: Boolean) {
-        synchronized(lock) {
+    suspend fun add(messageDto: MessageDto, isLastMessageVisible: Boolean) {
+        dataMutex.withLock {
             data.remove(messageDto)
             data.add(messageDto)
+            reduceCacheSize(!isLastMessageVisible)
         }
     }
 
-    fun addAll(messagesDto: List<MessageDto>, anchor: MessagesAnchor) {
-        synchronized(lock) {
+    suspend fun addAll(messagesDto: List<MessageDto>, anchor: MessagesAnchor) {
+        dataMutex.withLock {
             messagesDto.forEach { data.remove(it) }
             data.addAll(messagesDto)
+            reduceCacheSize(anchor == MessagesAnchor.OLDEST)
         }
     }
 
-    fun remove(messageId: Long) {
-        synchronized(lock) {
+    suspend fun remove(messageId: Long) {
+        dataMutex.withLock {
             data.removeIf { it.id == messageId }
         }
     }
@@ -47,7 +51,7 @@ class MessagesCache @Inject constructor() {
         return if (data.isNotEmpty()) data.last().id else Message.UNDEFINED_ID
     }
 
-    fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
+    suspend fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
         val messages = data.filter { messageId == it.id }
         if (messages.isEmpty()) return
         val isAddReaction = null == messages.first().reactions.find {
@@ -67,8 +71,8 @@ class MessagesCache @Inject constructor() {
         )
     }
 
-    fun updateReaction(reactionEventDto: ReactionEventDto) {
-        synchronized(lock) {
+    suspend fun updateReaction(reactionEventDto: ReactionEventDto) {
+        dataMutex.withLock {
             data.find { it.id == reactionEventDto.messageId }?.let { messageDto ->
                 val isUserReactionExisting = messageDto.reactions.find {
                     it.emojiName == reactionEventDto.emoji_name &&
@@ -94,12 +98,12 @@ class MessagesCache @Inject constructor() {
         }
     }
 
-    fun getMessages(
+    suspend fun getMessages(
         filter: MessagesFilter,
         isUseAnchor: Boolean = false,
         anchor: Long = Message.UNDEFINED_ID,
     ): List<MessageDto> {
-        synchronized(lock) {
+        dataMutex.withLock {
             val streamMessages =
                 if (filter.channel.channelId != Channel.UNDEFINED_ID) {
                     data.filter { filter.channel.channelId == it.streamId }
@@ -123,9 +127,18 @@ class MessagesCache @Inject constructor() {
     }
 
     private fun replace(messageDto: MessageDto) {
-        synchronized(lock) {
-            data.remove(messageDto)
-            data.add(messageDto)
+        data.remove(messageDto)
+        data.add(messageDto)
+    }
+
+    private fun reduceCacheSize(isReducingFromTail: Boolean) {
+        if (data.size > MAX_CACHE_SIZE) {
+            val delta = data.size - MAX_CACHE_SIZE
+            if (isReducingFromTail) {
+                data.tailSet(data.elementAt(data.size - delta), true).clear()
+            } else {
+                data.headSet(data.elementAt(delta), true).clear()
+            }
         }
     }
 
