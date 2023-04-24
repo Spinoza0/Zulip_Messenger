@@ -357,7 +357,7 @@ class MessagesActor @Inject constructor(
     }
 
     private fun MessagesResult.toDelegate(userId: Long): MessagesResultDelegate {
-        return MessagesResultDelegate(messages.groupByDate(userId), position, isNewMessageExists)
+        return MessagesResultDelegate(messages.groupByDate(userId), position, isNewMessageExisting)
     }
 
     private suspend fun handleMessages(

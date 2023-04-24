@@ -45,7 +45,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         }
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
             state {
-                copy(messages = event.value, isNewMessageExisting = event.value.isNewMessageExists)
+                copy(messages = event.value, isNewMessageExisting = event.value.isNewMessageExisting)
             }
             commands { +MessagesScreenCommand.GetMessagesEvent }
         }

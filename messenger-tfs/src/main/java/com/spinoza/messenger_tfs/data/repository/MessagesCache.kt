@@ -70,12 +70,12 @@ class MessagesCache @Inject constructor() {
     fun updateReaction(reactionEventDto: ReactionEventDto) {
         synchronized(lock) {
             data.find { it.id == reactionEventDto.messageId }?.let { messageDto ->
-                val isUserReactionExists = messageDto.reactions.find {
+                val isUserReactionExisting = messageDto.reactions.find {
                     it.emojiName == reactionEventDto.emoji_name &&
                             it.userId == reactionEventDto.userId
                 } != null
                 if (reactionEventDto.operation == ReactionEventDto.Operation.ADD.value &&
-                    !isUserReactionExists
+                    !isUserReactionExisting
                 ) {
                     val reactions = mutableListOf<ReactionDto>()
                     reactions.addAll(messageDto.reactions)
@@ -83,7 +83,7 @@ class MessagesCache @Inject constructor() {
                     add(messageDto.copy(reactions = reactions))
                 }
                 if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value &&
-                    isUserReactionExists
+                    isUserReactionExisting
                 ) {
                     val reactions = mutableListOf<ReactionDto>()
                     val reactionToRemove = reactionEventDto.toReactionDto()
