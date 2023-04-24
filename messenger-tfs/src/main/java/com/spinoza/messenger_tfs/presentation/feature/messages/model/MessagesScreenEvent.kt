@@ -13,17 +13,17 @@ sealed class MessagesScreenEvent {
 
         object Reload : Ui()
 
-        class Load(val filter: MessagesFilter) : Ui()
+        class Load(val recyclerView: RecyclerView, val filter: MessagesFilter) : Ui()
 
         object Exit : Ui()
 
-        class AfterSubmitMessages(val recyclerView: RecyclerView) : Ui()
+        object AfterSubmitMessages : Ui()
+
+        object MessagesScrollStateIdle : Ui()
 
         class SendMessage(val value: CharSequence?) : Ui()
 
-        class MessagesOnScrolled(val recyclerView: RecyclerView, val dy: Int) : Ui()
-
-        class MessagesScrollStateIdle(val recyclerView: RecyclerView) : Ui()
+        class MessagesOnScrolled(val dy: Int) : Ui()
 
         class UpdateReaction(val messageId: Long, val emoji: Emoji) : Ui()
 

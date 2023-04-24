@@ -385,6 +385,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun getMessageEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
     ): Result<MessageEvent> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             val responseBody = getNonHeartBeatEventResponse(queue)
@@ -398,7 +399,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 filter.topic.lastMessageId == messagesCache.lastMessageId()
             ) {
                 eventResponse.events.forEach { messageEventDto ->
-                    messagesCache.add(messageEventDto.message)
+                    messagesCache.add(messageEventDto.message, isLastMessageVisible)
                     filter.topic.lastMessageId = messageEventDto.message.id
                 }
             }
@@ -416,6 +417,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun getDeleteMessageEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
     ): Result<DeleteMessageEvent> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             val responseBody = getNonHeartBeatEventResponse(queue)
@@ -441,6 +443,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun getReactionEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
     ): Result<ReactionEvent> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             val responseBody = getNonHeartBeatEventResponse(queue)

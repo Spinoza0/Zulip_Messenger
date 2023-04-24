@@ -7,5 +7,6 @@ interface EventUseCase<T> {
     suspend operator fun invoke(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
+        isLastMessageVisible: Boolean
     ): Result<T>
 }

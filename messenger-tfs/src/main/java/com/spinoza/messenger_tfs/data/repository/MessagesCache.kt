@@ -19,7 +19,7 @@ class MessagesCache @Inject constructor() {
         return data.isNotEmpty()
     }
 
-    fun add(messageDto: MessageDto) {
+    fun add(messageDto: MessageDto, isLastMessageVisible: Boolean) {
         synchronized(lock) {
             data.remove(messageDto)
             data.add(messageDto)
@@ -80,7 +80,7 @@ class MessagesCache @Inject constructor() {
                     val reactions = mutableListOf<ReactionDto>()
                     reactions.addAll(messageDto.reactions)
                     reactions.add(reactionEventDto.toReactionDto())
-                    add(messageDto.copy(reactions = reactions))
+                    replace(messageDto.copy(reactions = reactions))
                 }
                 if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value &&
                     isUserReactionExisting
@@ -88,7 +88,7 @@ class MessagesCache @Inject constructor() {
                     val reactions = mutableListOf<ReactionDto>()
                     val reactionToRemove = reactionEventDto.toReactionDto()
                     reactions.addAll(messageDto.reactions.filter { it != reactionToRemove })
-                    add(messageDto.copy(reactions = reactions))
+                    replace(messageDto.copy(reactions = reactions))
                 }
             }
         }
@@ -119,6 +119,13 @@ class MessagesCache @Inject constructor() {
                     emptyList()
             } else
                 topicMessages.toList()
+        }
+    }
+
+    private fun replace(messageDto: MessageDto) {
+        synchronized(lock) {
+            data.remove(messageDto)
+            data.add(messageDto)
         }
     }
 

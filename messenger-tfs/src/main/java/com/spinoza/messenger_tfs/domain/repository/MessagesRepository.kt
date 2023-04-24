@@ -49,16 +49,22 @@ interface MessagesRepository {
         channelsFilter: ChannelsFilter,
     ): Result<List<ChannelEvent>>
 
-    suspend fun getMessageEvent(queue: EventsQueue, filter: MessagesFilter): Result<MessageEvent>
+    suspend fun getMessageEvent(
+        queue: EventsQueue,
+        filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
+    ): Result<MessageEvent>
 
     suspend fun getDeleteMessageEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
     ): Result<DeleteMessageEvent>
 
     suspend fun getReactionEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
     ): Result<ReactionEvent>
 
     suspend fun setOwnStatusActive()

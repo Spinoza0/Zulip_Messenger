@@ -128,13 +128,13 @@ class MessagesFragment :
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                store.accept(MessagesScreenEvent.Ui.MessagesOnScrolled(recyclerView, dy))
+                store.accept(MessagesScreenEvent.Ui.MessagesOnScrolled(dy))
             }
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 if (newState == RecyclerView.SCROLL_STATE_IDLE)
-                    store.accept(MessagesScreenEvent.Ui.MessagesScrollStateIdle(recyclerView))
+                    store.accept(MessagesScreenEvent.Ui.MessagesScrollStateIdle)
             }
         })
     }
@@ -217,7 +217,7 @@ class MessagesFragment :
             }
             MessagePosition.Type.UNDEFINED -> {}
         }
-        store.accept(MessagesScreenEvent.Ui.AfterSubmitMessages(binding.recyclerViewMessages))
+        store.accept(MessagesScreenEvent.Ui.AfterSubmitMessages)
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
@@ -268,7 +268,7 @@ class MessagesFragment :
     override fun onResume() {
         super.onResume()
         if (isMessagesListEmpty()) {
-            store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
+            store.accept(MessagesScreenEvent.Ui.Load(binding.recyclerViewMessages, messagesFilter))
         }
     }
 

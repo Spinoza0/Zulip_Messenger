@@ -7,11 +7,11 @@ sealed class MessagesScreenCommand {
 
     object Reload : MessagesScreenCommand()
 
-    object GetMessagesEvent : MessagesScreenCommand()
+    class GetMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
 
-    object GetDeleteMessagesEvent : MessagesScreenCommand()
+    class GetDeleteMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
 
-    object GetReactionsEvent : MessagesScreenCommand()
+    class GetReactionsEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
 
     class Load(val filter: MessagesFilter) : MessagesScreenCommand()
 

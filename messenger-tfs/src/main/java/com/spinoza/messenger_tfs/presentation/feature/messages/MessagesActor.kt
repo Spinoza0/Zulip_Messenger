@@ -99,9 +99,12 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.UpdateReaction ->
                     updateReaction(command.messageId, command.emoji)
                 is MessagesScreenCommand.SendMessage -> sendMessage(command.value)
-                is MessagesScreenCommand.GetMessagesEvent -> getMessagesEvent()
-                is MessagesScreenCommand.GetDeleteMessagesEvent -> getDeleteMessagesEvent()
-                is MessagesScreenCommand.GetReactionsEvent -> getReactionsEvent()
+                is MessagesScreenCommand.GetMessagesEvent ->
+                    getMessagesEvent(command.isLastMessageVisible)
+                is MessagesScreenCommand.GetDeleteMessagesEvent ->
+                    getDeleteMessagesEvent(command.isLastMessageVisible)
+                is MessagesScreenCommand.GetReactionsEvent ->
+                    getReactionsEvent(command.isLastMessageVisible)
                 is MessagesScreenCommand.IsNextPageExisting ->
                     isNextPageExisting(command.messagesResultDelegate)
                 is MessagesScreenCommand.Reload -> {
@@ -282,24 +285,33 @@ class MessagesActor @Inject constructor(
             .launchIn(lifecycleScope)
     }
 
-    private suspend fun getMessagesEvent(): MessagesScreenEvent.Internal {
+    private suspend fun getMessagesEvent(
+        isLastMessageVisible: Boolean,
+    ): MessagesScreenEvent.Internal {
         return getEvent(
             messagesQueue, getMessageEventUseCase, ::onSuccessMessageEvent,
-            MessagesScreenEvent.Internal.EmptyMessagesQueueEvent
+            MessagesScreenEvent.Internal.EmptyMessagesQueueEvent,
+            isLastMessageVisible
         )
     }
 
-    private suspend fun getDeleteMessagesEvent(): MessagesScreenEvent.Internal {
+    private suspend fun getDeleteMessagesEvent(
+        isLastMessageVisible: Boolean,
+    ): MessagesScreenEvent.Internal {
         return getEvent(
             deleteMessagesQueue, getDeleteMessageEventUseCase, ::onSuccessDeleteMessageEvent,
-            MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent
+            MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent,
+            isLastMessageVisible
         )
     }
 
-    private suspend fun getReactionsEvent(): MessagesScreenEvent.Internal {
+    private suspend fun getReactionsEvent(
+        isLastMessageVisible: Boolean,
+    ): MessagesScreenEvent.Internal {
         return getEvent(
             reactionsQueue, getReactionEventUseCase, ::onSuccessReactionEvent,
-            MessagesScreenEvent.Internal.EmptyReactionsQueueEvent
+            MessagesScreenEvent.Internal.EmptyReactionsQueueEvent,
+            isLastMessageVisible
         )
     }
 
@@ -345,13 +357,17 @@ class MessagesActor @Inject constructor(
         useCase: EventUseCase<T>,
         onSuccessCallback: (EventsQueueHolder, T, Long) -> MessagesScreenEvent.Internal,
         emptyEvent: MessagesScreenEvent.Internal,
+        isLastMessageVisible: Boolean,
     ): MessagesScreenEvent.Internal = withContext(Dispatchers.Default) {
-        if (eventsQueue.queue.queueId.isNotEmpty()) useCase(eventsQueue.queue, messagesFilter)
-            .onSuccess { event ->
-                getOwnUserIdUseCase().onSuccess { userId ->
-                    return@withContext onSuccessCallback(eventsQueue, event, userId)
-                }
+        if (eventsQueue.queue.queueId.isNotEmpty()) useCase(
+            eventsQueue.queue,
+            messagesFilter,
+            isLastMessageVisible
+        ).onSuccess { event ->
+            getOwnUserIdUseCase().onSuccess { userId ->
+                return@withContext onSuccessCallback(eventsQueue, event, userId)
             }
+        }
         delay(DELAY_BEFORE_CHECK_EVENTS)
         emptyEvent
     }

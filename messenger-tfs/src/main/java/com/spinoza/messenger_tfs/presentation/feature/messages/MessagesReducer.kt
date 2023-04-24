@@ -26,6 +26,10 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
     MessagesScreenEvent.Ui::class, MessagesScreenEvent.Internal::class
 ) {
 
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var layoutManager: LinearLayoutManager
+    private lateinit var delegateAdapter: MainDelegateAdapter
+
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {
             state {
@@ -37,42 +41,41 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                     messages = event.value
                 )
             }
+            val isLastMessageVisible = isLastMessageVisible()
             commands {
-                +MessagesScreenCommand.GetMessagesEvent
-                +MessagesScreenCommand.GetDeleteMessagesEvent
-                +MessagesScreenCommand.GetReactionsEvent
+                +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
             }
         }
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
             state {
-                copy(messages = event.value, isNewMessageExisting = event.value.isNewMessageExisting)
+                copy(
+                    messages = event.value,
+                    isNewMessageExisting = event.value.isNewMessageExisting
+                )
             }
-            commands { +MessagesScreenCommand.GetMessagesEvent }
+            commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible()) }
         }
         is MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue -> {
             state { copy(messages = event.value) }
-            commands { +MessagesScreenCommand.GetDeleteMessagesEvent }
+            commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible()) }
         }
         is MessagesScreenEvent.Internal.ReactionsEventFromQueue -> {
             state { copy(messages = event.value) }
-            commands { +MessagesScreenCommand.GetReactionsEvent }
+            commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible()) }
         }
         is MessagesScreenEvent.Internal.EmptyMessagesQueueEvent ->
-            commands { +MessagesScreenCommand.GetMessagesEvent }
+            commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible()) }
         is MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent ->
-            commands { +MessagesScreenCommand.GetDeleteMessagesEvent }
+            commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible()) }
         is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent ->
-            commands { +MessagesScreenCommand.GetReactionsEvent }
+            commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible()) }
         is MessagesScreenEvent.Internal.MessageSent -> {
             state {
                 copy(isSendingMessage = false, isNewMessageExisting = false, messages = event.value)
             }
             effects { +MessagesScreenEffect.MessageSent }
-            commands {
-                +MessagesScreenCommand.GetMessagesEvent
-                +MessagesScreenCommand.GetDeleteMessagesEvent
-                +MessagesScreenCommand.GetReactionsEvent
-            }
         }
         is MessagesScreenEvent.Internal.IconActionResId ->
             state { copy(iconActionResId = event.value) }
@@ -103,8 +106,6 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
 
     override fun Result.ui(event: MessagesScreenEvent.Ui) = when (event) {
         is MessagesScreenEvent.Ui.MessagesOnScrolled -> {
-            val layoutManager = event.recyclerView.layoutManager as LinearLayoutManager
-            val adapter = event.recyclerView.adapter as MainDelegateAdapter
             var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
             if (firstVisiblePosition == RecyclerView.NO_POSITION) {
                 firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
@@ -122,7 +123,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             }
             if (event.dy.isScrollDown()) {
                 state { copy(isLoadingPreviousPage = false) }
-                if (lastVisiblePosition >= adapter.itemCount - BORDER_POSITION) {
+                if (lastVisiblePosition >= delegateAdapter.itemCount - BORDER_POSITION) {
                     state.messages?.let {
                         commands { +MessagesScreenCommand.IsNextPageExisting(it) }
                     } ?: {
@@ -131,15 +132,18 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                     }
                 }
             }
-            val ids = getVisibleMessagesIds(adapter, firstVisiblePosition, lastVisiblePosition)
+            val ids = getVisibleMessagesIds(firstVisiblePosition, lastVisiblePosition)
             commands { +MessagesScreenCommand.SetMessagesRead(ids) }
         }
         is MessagesScreenEvent.Ui.MessagesScrollStateIdle ->
-            state { copy(isNextMessageExisting = isNextMessageExisting(event.recyclerView)) }
+            state { copy(isNextMessageExisting = isNextMessageExisting()) }
         is MessagesScreenEvent.Ui.NewMessageText -> {
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
         }
         is MessagesScreenEvent.Ui.Load -> {
+            recyclerView = event.recyclerView
+            layoutManager = recyclerView.layoutManager as LinearLayoutManager
+            delegateAdapter = recyclerView.adapter as MainDelegateAdapter
             state {
                 copy(isLoading = true, isLoadingPreviousPage = false, isLoadingNextPage = false)
             }
@@ -163,7 +167,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Ui.AfterSubmitMessages -> state.messages?.let { messages ->
             state {
                 copy(
-                    isNextMessageExisting = isNextMessageExisting(event.recyclerView),
+                    isNextMessageExisting = isNextMessageExisting(),
                     messages = messages.copy(
                         position = messages.position.copy(type = MessagePosition.Type.UNDEFINED)
                     )
@@ -181,7 +185,6 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
     }
 
     private fun getVisibleMessagesIds(
-        adapter: MainDelegateAdapter,
         firstVisiblePosition: Int,
         lastVisiblePosition: Int,
     ): List<Long> {
@@ -190,7 +193,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             lastVisiblePosition != RecyclerView.NO_POSITION
         ) {
             for (i in firstVisiblePosition..lastVisiblePosition) {
-                val item = adapter.getItem(i)
+                val item = delegateAdapter.getItem(i)
                 if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
                     visibleMessageIds.add((item.content() as Message).id)
                 }
@@ -199,11 +202,14 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         return visibleMessageIds
     }
 
-    private fun isNextMessageExisting(recyclerView: RecyclerView): Boolean {
-        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+    private fun isLastMessageVisible(): Boolean {
+        val lastItemPosition = delegateAdapter.itemCount.minus(1)
         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-        val lastItemPosition = recyclerView.adapter?.itemCount?.minus(1)
-        return lastItemPosition != null && lastVisibleItemPosition < lastItemPosition
+        return lastVisibleItemPosition == lastItemPosition
+    }
+
+    private fun isNextMessageExisting(): Boolean {
+        return layoutManager.findLastVisibleItemPosition() < delegateAdapter.itemCount.minus(1)
     }
 
     private fun Int.isScrollUp() = this < 0

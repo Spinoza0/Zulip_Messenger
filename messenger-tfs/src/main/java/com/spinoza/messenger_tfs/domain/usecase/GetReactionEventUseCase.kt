@@ -12,7 +12,8 @@ class GetReactionEventUseCase @Inject constructor(private val repository: Messag
     override suspend operator fun invoke(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
+        isLastMessageVisible: Boolean
     ): Result<ReactionEvent> {
-        return repository.getReactionEvent(queue, messagesFilter)
+        return repository.getReactionEvent(queue, messagesFilter, isLastMessageVisible)
     }
 }

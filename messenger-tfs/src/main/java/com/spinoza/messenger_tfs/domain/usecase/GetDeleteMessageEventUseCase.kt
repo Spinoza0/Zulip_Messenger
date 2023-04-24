@@ -12,7 +12,8 @@ class GetDeleteMessageEventUseCase @Inject constructor(private val repository: M
     override suspend operator fun invoke(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
+        isLastMessageVisible: Boolean
     ): Result<DeleteMessageEvent> {
-        return repository.getDeleteMessageEvent(queue, messagesFilter)
+        return repository.getDeleteMessageEvent(queue, messagesFilter, isLastMessageVisible)
     }
 }
