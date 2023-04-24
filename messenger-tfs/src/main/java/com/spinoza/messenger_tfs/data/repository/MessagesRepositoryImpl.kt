@@ -127,6 +127,18 @@ class MessagesRepositoryImpl @Inject constructor(
             }
         }
 
+    override suspend fun getStoredMessages(
+        filter: MessagesFilter,
+    ): Result<MessagesResult> = withContext(Dispatchers.IO) {
+        runCatchingNonCancellation {
+            messagesCache.reload()
+            MessagesResult(
+                messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                MessagePosition(MessagePosition.Type.LAST_POSITION)
+            )
+        }
+    }
+
     override suspend fun getMessages(
         anchor: MessagesAnchor,
         filter: MessagesFilter,
@@ -154,7 +166,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     narrow = filter.createNarrowJsonForMessages(),
                     anchor = messagesCache.firstMessageId()
                 )
-                MessagesAnchor.LAST -> apiService.getMessages(
+                MessagesAnchor.LAST, MessagesAnchor.STORED -> apiService.getMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),

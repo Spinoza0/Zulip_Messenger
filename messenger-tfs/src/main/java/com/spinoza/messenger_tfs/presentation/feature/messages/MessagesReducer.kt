@@ -49,6 +49,17 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                 +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
             }
         }
+        is MessagesScreenEvent.Internal.StoredMessages -> {
+            state {
+                copy(
+                    isLoading = event.value.messages.isEmpty(),
+                    isLoadingPreviousPage = false,
+                    isLoadingNextPage = false,
+                    messages = event.value
+                )
+            }
+            commands { +MessagesScreenCommand.Load }
+        }
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
             state {
                 copy(
@@ -149,10 +160,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             recyclerView = event.recyclerView
             layoutManager = recyclerView.layoutManager as LinearLayoutManager
             delegateAdapter = recyclerView.adapter as MainDelegateAdapter
-            state {
-                copy(isLoading = true, isLoadingPreviousPage = false, isLoadingNextPage = false)
-            }
-            commands { +MessagesScreenCommand.Load(event.filter) }
+            commands { +MessagesScreenCommand.LoadStored(event.filter) }
         }
         is MessagesScreenEvent.Ui.SendMessage -> {
             val text = event.value.toString().trim()

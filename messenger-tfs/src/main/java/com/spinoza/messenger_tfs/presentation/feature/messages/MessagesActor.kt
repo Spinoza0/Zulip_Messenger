@@ -30,6 +30,7 @@ import javax.inject.Inject
 class MessagesActor @Inject constructor(
     lifecycle: Lifecycle,
     private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
+    private val getStoredMessagesUseCase: GetStoredMessagesUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
@@ -88,10 +89,7 @@ class MessagesActor @Inject constructor(
         flow {
             val event = when (command) {
                 is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
-                is MessagesScreenCommand.Load -> {
-                    messagesFilter = command.filter
-                    loadPageWithFirstUnreadMessage(command)
-                }
+                is MessagesScreenCommand.Load -> loadPageWithFirstUnreadMessage(command)
                 is MessagesScreenCommand.LoadPreviousPage -> loadPreviousPage(command)
                 is MessagesScreenCommand.LoadNextPage -> loadNextPage(command)
                 is MessagesScreenCommand.LoadLastPage -> loadLastPage(command)
@@ -132,6 +130,10 @@ class MessagesActor @Inject constructor(
                     }
                     result
                 }
+                is MessagesScreenCommand.LoadStored -> {
+                    messagesFilter = command.filter
+                    loadStoredMessages()
+                }
             }
             emit(event)
         }
@@ -154,6 +156,16 @@ class MessagesActor @Inject constructor(
         }
         return getIdleEvent()
     }
+
+    private suspend fun loadStoredMessages(): MessagesScreenEvent.Internal =
+        withContext(Dispatchers.Default) {
+            getStoredMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
+                return@withContext handleMessages(messagesResult, MessagesAnchor.STORED)
+            }.onFailure { error ->
+                return@withContext handleErrors(error)
+            }
+            getIdleEvent()
+        }
 
     private suspend fun loadPageWithFirstUnreadMessage(
         command: MessagesScreenCommand,
@@ -382,10 +394,12 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         getOwnUserIdUseCase().onSuccess { userId ->
             val messagesResultDelegate = messagesResult.toDelegate(userId)
-            return if (anchor == MessagesAnchor.LAST) {
-                MessagesScreenEvent.Internal.MessageSent(messagesResultDelegate)
-            } else {
-                MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
+            return when (anchor) {
+                MessagesAnchor.LAST ->
+                    MessagesScreenEvent.Internal.MessageSent(messagesResultDelegate)
+                MessagesAnchor.STORED ->
+                    MessagesScreenEvent.Internal.StoredMessages(messagesResultDelegate)
+                else -> MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
             }
         }.onFailure {
             return handleErrors(it)

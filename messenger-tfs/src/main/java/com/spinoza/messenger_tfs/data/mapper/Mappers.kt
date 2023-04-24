@@ -24,6 +24,10 @@ fun TreeSet<MessageDto>.toDbModel(): List<MessageDbModel> {
     return map { it.toDbModel() }
 }
 
+fun List<MessageDbModel>.dbModelToDto(): List<MessageDto> {
+    return map { it.dbModelToDto() }
+}
+
 fun List<StreamDto>.dtoToDomain(channelsFilter: ChannelsFilter): List<Channel> {
     return filter { it.name.isContainsWords(channelsFilter.name) }
         .map { it.dtoToDomain(channelsFilter) }
@@ -221,17 +225,6 @@ private fun PresenceEventDto.toDomain(): PresenceEvent {
     )
 }
 
-private fun Long.unixTimeToString(): String {
-    return SimpleDateFormat(
-        DATE_FORMAT,
-        Locale.getDefault()
-    ).format(Date(this * MILLIS_IN_SECOND))
-}
-
-private fun Long.stripTimeFromTimestamp(): Long {
-    return this - (this % SECONDS_IN_DAY)
-}
-
 private fun StreamDto.dtoToDomain(channelsFilter: ChannelsFilter): Channel {
     return Channel(
         channelId = streamId,
@@ -250,6 +243,36 @@ private fun StreamDbModel.dbToDomain(channelsFilter: ChannelsFilter): Channel {
 
 private fun MessageDto.toDbModel(): MessageDbModel {
     return MessageDbModel(this.toDataDbModel(), this.reactions.toDbModel(this.id))
+}
+
+private fun MessageDbModel.dbModelToDto(): MessageDto {
+    return MessageDto(
+        id = message.id,
+        streamId = message.streamId,
+        senderId = message.senderId,
+        content = message.content,
+        recipientId = message.recipientId,
+        timestamp = message.timestamp,
+        subject = message.subject,
+        isMeMessage = message.isMeMessage,
+        reactions = reactions.toDto(),
+        senderFullName = message.senderFullName,
+        senderEmail = message.senderEmail,
+        avatarUrl = message.avatarUrl
+    )
+}
+
+private fun List<ReactionDbModel>.toDto(): List<ReactionDto> {
+    return map { it.toDto() }
+}
+
+private fun ReactionDbModel.toDto(): ReactionDto {
+    return ReactionDto(
+        emojiName = emojiName,
+        emojiCode = emojiCode,
+        reactionType = reactionType,
+        userId = userId
+    )
 }
 
 private fun MessageDto.toDataDbModel(): MessageDataDbModel {
@@ -294,6 +317,17 @@ private fun String.isContainsWords(words: String): Boolean {
     return words.split(" ").all { word ->
         this.contains(word, true)
     }
+}
+
+private fun Long.unixTimeToString(): String {
+    return SimpleDateFormat(
+        DATE_FORMAT,
+        Locale.getDefault()
+    ).format(Date(this * MILLIS_IN_SECOND))
+}
+
+private fun Long.stripTimeFromTimestamp(): Long {
+    return this - (this % SECONDS_IN_DAY)
 }
 
 private const val DATE_FORMAT = "dd.MM.yyyy"

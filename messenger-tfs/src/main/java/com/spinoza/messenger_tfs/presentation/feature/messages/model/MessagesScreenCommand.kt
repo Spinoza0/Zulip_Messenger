@@ -13,7 +13,9 @@ sealed class MessagesScreenCommand {
 
     class GetReactionsEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
 
-    class Load(val filter: MessagesFilter) : MessagesScreenCommand()
+    class LoadStored(val filter: MessagesFilter) : MessagesScreenCommand()
+
+    object Load : MessagesScreenCommand()
 
     object LoadPreviousPage : MessagesScreenCommand()
 

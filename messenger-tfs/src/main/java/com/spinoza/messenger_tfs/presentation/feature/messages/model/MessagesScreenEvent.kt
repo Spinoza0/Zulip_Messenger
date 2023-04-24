@@ -50,6 +50,8 @@ sealed class MessagesScreenEvent {
 
         class Messages(val value: MessagesResultDelegate) : Internal()
 
+        class StoredMessages(val value: MessagesResultDelegate) : Internal()
+
         class MessageSent(val value: MessagesResultDelegate) : Internal()
 
         class MessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()

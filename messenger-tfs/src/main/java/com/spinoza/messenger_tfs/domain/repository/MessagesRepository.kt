@@ -15,6 +15,8 @@ interface MessagesRepository {
 
     suspend fun getUsersByFilter(usersFilter: String): Result<List<User>>
 
+    suspend fun getStoredMessages(filter: MessagesFilter): Result<MessagesResult>
+
     suspend fun getMessages(anchor: MessagesAnchor, filter: MessagesFilter): Result<MessagesResult>
 
     suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>

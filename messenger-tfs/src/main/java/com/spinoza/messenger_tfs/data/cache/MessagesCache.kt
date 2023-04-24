@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.data.cache
 
 import com.spinoza.messenger_tfs.data.database.MessengerDao
+import com.spinoza.messenger_tfs.data.mapper.dbModelToDto
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
@@ -22,6 +23,13 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
 
     fun isNotEmpty(): Boolean {
         return data.isNotEmpty()
+    }
+
+    suspend fun reload() {
+        dataMutex.withLock {
+            data.clear()
+            data.addAll(messengerDao.getMessages().dbModelToDto())
+        }
     }
 
     suspend fun add(messageDto: MessageDto, isLastMessageVisible: Boolean) {
