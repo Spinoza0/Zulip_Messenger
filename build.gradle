@@ -4,7 +4,7 @@ buildscript {
 
             androidxCore            : "1.9.0",
             androidxAppCompat       : "1.6.1",
-            androidxCrypto          : "1.1.0-alpha05",
+            androidxCrypto          : "1.1.0-alpha06",
             androidxConstraintlayout: "2.1.4",
 
             navigation              : "2.5.3",
