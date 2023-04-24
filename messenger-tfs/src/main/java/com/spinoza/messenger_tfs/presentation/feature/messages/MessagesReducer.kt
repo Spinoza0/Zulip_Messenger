@@ -29,6 +29,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
     private lateinit var recyclerView: RecyclerView
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var delegateAdapter: MainDelegateAdapter
+    private val visibleMessageIds = mutableSetOf<Long>()
 
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {
@@ -132,11 +133,15 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                     }
                 }
             }
-            val ids = getVisibleMessagesIds(firstVisiblePosition, lastVisiblePosition)
-            commands { +MessagesScreenCommand.SetMessagesRead(ids) }
+            saveVisibleMessagesIds(firstVisiblePosition, lastVisiblePosition)
         }
-        is MessagesScreenEvent.Ui.MessagesScrollStateIdle ->
+        is MessagesScreenEvent.Ui.MessagesScrollStateIdle -> {
+            commands { +MessagesScreenCommand.SetMessagesRead(visibleMessageIds.toList()) }
+            if (visibleMessageIds.size > MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS) {
+                visibleMessageIds.clear()
+            }
             state { copy(isNextMessageExisting = isNextMessageExisting()) }
+        }
         is MessagesScreenEvent.Ui.NewMessageText -> {
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
         }
@@ -184,11 +189,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Ui.Init -> {}
     }
 
-    private fun getVisibleMessagesIds(
-        firstVisiblePosition: Int,
-        lastVisiblePosition: Int,
-    ): List<Long> {
-        val visibleMessageIds = mutableListOf<Long>()
+    private fun saveVisibleMessagesIds(firstVisiblePosition: Int, lastVisiblePosition: Int) {
         if (firstVisiblePosition != RecyclerView.NO_POSITION &&
             lastVisiblePosition != RecyclerView.NO_POSITION
         ) {
@@ -199,7 +200,6 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                 }
             }
         }
-        return visibleMessageIds
     }
 
     private fun isLastMessageVisible(): Boolean {
@@ -219,5 +219,6 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
     private companion object {
 
         const val BORDER_POSITION = 5
+        const val MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS = 50
     }
 }
