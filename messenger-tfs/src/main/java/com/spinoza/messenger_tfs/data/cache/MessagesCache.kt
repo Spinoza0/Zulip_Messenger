@@ -1,8 +1,11 @@
-package com.spinoza.messenger_tfs.data.repository
+package com.spinoza.messenger_tfs.data.cache
 
+import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
+import com.spinoza.messenger_tfs.data.mapper.toDbModel
+import com.spinoza.messenger_tfs.data.mapper.toReactionDto
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesAnchor
@@ -12,7 +15,7 @@ import kotlinx.coroutines.sync.withLock
 import java.util.*
 import javax.inject.Inject
 
-class MessagesCache @Inject constructor() {
+class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) {
 
     private val data = TreeSet<MessageDto>()
     private val dataMutex = Mutex()
@@ -25,7 +28,7 @@ class MessagesCache @Inject constructor() {
         dataMutex.withLock {
             data.remove(messageDto)
             data.add(messageDto)
-            reduceCacheSize(!isLastMessageVisible)
+            saveToDatabase(!isLastMessageVisible)
         }
     }
 
@@ -33,7 +36,7 @@ class MessagesCache @Inject constructor() {
         dataMutex.withLock {
             messagesDto.forEach { data.remove(it) }
             data.addAll(messagesDto)
-            reduceCacheSize(anchor == MessagesAnchor.OLDEST)
+            saveToDatabase(anchor == MessagesAnchor.OLDEST)
         }
     }
 
@@ -131,7 +134,7 @@ class MessagesCache @Inject constructor() {
         data.add(messageDto)
     }
 
-    private fun reduceCacheSize(isReducingFromTail: Boolean) {
+    private suspend fun saveToDatabase(isReducingFromTail: Boolean) {
         if (data.size > MAX_CACHE_SIZE) {
             val delta = data.size - MAX_CACHE_SIZE
             if (isReducingFromTail) {
@@ -140,6 +143,8 @@ class MessagesCache @Inject constructor() {
                 data.headSet(data.elementAt(delta), true).clear()
             }
         }
+        messengerDao.removeMessages()
+        messengerDao.insertMessages(data.toDbModel())
     }
 
     private companion object {

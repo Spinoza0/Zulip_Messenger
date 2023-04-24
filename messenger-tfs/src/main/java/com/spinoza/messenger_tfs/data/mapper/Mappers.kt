@@ -1,7 +1,6 @@
-package com.spinoza.messenger_tfs.data.repository
+package com.spinoza.messenger_tfs.data.mapper
 
-import com.spinoza.messenger_tfs.data.database.model.StreamDbModel
-import com.spinoza.messenger_tfs.data.database.model.TopicDbModel
+import com.spinoza.messenger_tfs.data.database.model.*
 import com.spinoza.messenger_tfs.data.network.model.event.EventTypeDto
 import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventDto
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
@@ -20,6 +19,10 @@ import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import java.text.SimpleDateFormat
 import java.util.*
+
+fun TreeSet<MessageDto>.toDbModel(): List<MessageDbModel> {
+    return map { it.toDbModel() }
+}
 
 fun List<StreamDto>.dtoToDomain(channelsFilter: ChannelsFilter): List<Channel> {
     return filter { it.name.isContainsWords(channelsFilter.name) }
@@ -242,6 +245,40 @@ private fun StreamDbModel.dbToDomain(channelsFilter: ChannelsFilter): Channel {
         channelId = streamId,
         name = name,
         isSubscribed = channelsFilter.isSubscribed
+    )
+}
+
+private fun MessageDto.toDbModel(): MessageDbModel {
+    return MessageDbModel(this.toDataDbModel(), this.reactions.toDbModel(this.id))
+}
+
+private fun MessageDto.toDataDbModel(): MessageDataDbModel {
+    return MessageDataDbModel(
+        id = id,
+        streamId = streamId,
+        senderId = senderId,
+        content = content,
+        recipientId = recipientId,
+        timestamp = timestamp,
+        subject = subject,
+        isMeMessage = isMeMessage,
+        senderFullName = senderFullName,
+        senderEmail = senderEmail,
+        avatarUrl = avatarUrl ?: ""
+    )
+}
+
+private fun List<ReactionDto>.toDbModel(messageId: Long): List<ReactionDbModel> {
+    return map { it.toDbModel(messageId) }
+}
+
+private fun ReactionDto.toDbModel(messageId: Long): ReactionDbModel {
+    return ReactionDbModel(
+        emojiName = emojiName,
+        emojiCode = emojiCode,
+        reactionType = reactionType,
+        userId = userId,
+        messageId = messageId
     )
 }
 
