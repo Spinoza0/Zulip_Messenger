@@ -87,6 +87,7 @@ class MessagesActor @Inject constructor(
     override fun execute(command: MessagesScreenCommand): Flow<MessagesScreenEvent.Internal> =
         flow {
             val event = when (command) {
+                is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
                 is MessagesScreenCommand.Load -> {
                     messagesFilter = command.filter
                     loadPageWithFirstUnreadMessage(command)
@@ -95,13 +96,14 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.LoadNextPage -> loadNextPage(command)
                 is MessagesScreenCommand.LoadLastPage -> loadLastPage(command)
                 is MessagesScreenCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
-                is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
                 is MessagesScreenCommand.UpdateReaction ->
                     updateReaction(command.messageId, command.emoji)
                 is MessagesScreenCommand.SendMessage -> sendMessage(command.value)
                 is MessagesScreenCommand.GetMessagesEvent -> getMessagesEvent()
                 is MessagesScreenCommand.GetDeleteMessagesEvent -> getDeleteMessagesEvent()
                 is MessagesScreenCommand.GetReactionsEvent -> getReactionsEvent()
+                is MessagesScreenCommand.IsNextPageExisting ->
+                    isNextPageExisting(command.messagesResultDelegate)
                 is MessagesScreenCommand.Reload -> {
                     delay(DELAY_BEFORE_RELOAD)
                     var result: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
@@ -134,6 +136,20 @@ class MessagesActor @Inject constructor(
     private suspend fun getIdleEvent(): MessagesScreenEvent.Internal.Idle {
         delay(DELAY_BEFORE_RETURN_IDLE_EVENT)
         return MessagesScreenEvent.Internal.Idle
+    }
+
+    private suspend fun isNextPageExisting(
+        messagesResultDelegate: MessagesResultDelegate,
+    ): MessagesScreenEvent.Internal {
+        if (messagesResultDelegate.messages.isEmpty()) return getIdleEvent()
+        val lastItem = messagesResultDelegate.messages.last()
+        if (lastItem !is UserMessageDelegateItem && lastItem !is OwnMessageDelegateItem) {
+            return getIdleEvent()
+        }
+        if ((lastItem.content() as Message).id != messagesFilter.topic.lastMessageId) {
+            return MessagesScreenEvent.Internal.NextPageExists
+        }
+        return getIdleEvent()
     }
 
     private suspend fun loadPageWithFirstUnreadMessage(

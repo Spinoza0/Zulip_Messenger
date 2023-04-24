@@ -44,6 +44,8 @@ sealed class MessagesScreenEvent {
 
         object EmptyReactionsQueueEvent : Internal()
 
+        object NextPageExists : Internal()
+
         class IconActionResId(val value: Int) : Internal()
 
         class Messages(val value: MessagesResultDelegate) : Internal()
