@@ -58,7 +58,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                     messages = event.value
                 )
             }
-            commands { +MessagesScreenCommand.Load }
+            commands { +MessagesScreenCommand.LoadFirstPage(event.value.messages.isEmpty()) }
         }
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
             state {

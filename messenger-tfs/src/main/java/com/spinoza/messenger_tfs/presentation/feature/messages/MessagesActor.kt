@@ -89,7 +89,7 @@ class MessagesActor @Inject constructor(
         flow {
             val event = when (command) {
                 is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
-                is MessagesScreenCommand.Load -> loadPageWithFirstUnreadMessage(command)
+                is MessagesScreenCommand.LoadFirstPage -> loadFirstPage(command)
                 is MessagesScreenCommand.LoadPreviousPage -> loadPreviousPage(command)
                 is MessagesScreenCommand.LoadNextPage -> loadNextPage(command)
                 is MessagesScreenCommand.LoadLastPage -> loadLastPage(command)
@@ -110,6 +110,8 @@ class MessagesActor @Inject constructor(
                     var result: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
                     lastLoadCommand?.let { lastCommand ->
                         when (lastCommand) {
+                            is MessagesScreenCommand.LoadFirstPage ->
+                                result = loadFirstPage(lastCommand)
                             is MessagesScreenCommand.LoadPreviousPage -> {
                                 lastLoadCommand = null
                                 result = loadPreviousPage(lastCommand)
@@ -122,7 +124,7 @@ class MessagesActor @Inject constructor(
                                 lastLoadCommand = null
                                 result = loadLastPage(lastCommand)
                             }
-                            else -> result = loadPageWithFirstUnreadMessage(lastCommand)
+                            else -> throw RuntimeException("Invalid command: $lastCommand")
                         }
                     }
                     if (result is MessagesScreenEvent.Internal.Idle) {
@@ -167,13 +169,19 @@ class MessagesActor @Inject constructor(
             getIdleEvent()
         }
 
-    private suspend fun loadPageWithFirstUnreadMessage(
+    private suspend fun loadFirstPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
         if (isLoadingPageWithFirstUnreadMessage) return getIdleEvent()
         isLoadingPageWithFirstUnreadMessage = true
         lastLoadCommand = command
-        val event = loadMessages(MessagesType.FIRST_UNREAD)
+        val messagesType =
+            if ((command as MessagesScreenCommand.LoadFirstPage).isMessagesListEmpty) {
+                MessagesType.FIRST_UNREAD
+            } else {
+                MessagesType.NEWEST
+            }
+        val event = loadMessages(messagesType)
         isLoadingPageWithFirstUnreadMessage = false
         if (event is MessagesScreenEvent.Internal.Messages) {
             registerEventQueues()

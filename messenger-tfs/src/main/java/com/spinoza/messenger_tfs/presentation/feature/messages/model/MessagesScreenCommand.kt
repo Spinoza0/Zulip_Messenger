@@ -15,7 +15,7 @@ sealed class MessagesScreenCommand {
 
     class LoadStored(val filter: MessagesFilter) : MessagesScreenCommand()
 
-    object Load : MessagesScreenCommand()
+    class LoadFirstPage(val isMessagesListEmpty: Boolean) : MessagesScreenCommand()
 
     object LoadPreviousPage : MessagesScreenCommand()
 
