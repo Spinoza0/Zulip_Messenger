@@ -4,7 +4,9 @@ import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.mapper.*
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
+import com.spinoza.messenger_tfs.data.network.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.event.*
+import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
@@ -20,6 +22,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Credentials
+import retrofit2.Response
 import javax.inject.Inject
 
 class MessagesRepositoryImpl @Inject constructor(
@@ -154,40 +157,20 @@ class MessagesRepositoryImpl @Inject constructor(
                     narrow = filter.createNarrowJsonForMessages(),
                     anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
                 )
-                MessagesType.NEWEST -> {
-                    if (messagesCache.isNotEmpty()) {
-                        apiService.getMessages(
-                            numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                            numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
-                            narrow = filter.createNarrowJsonForMessages(),
-                            anchor = messagesCache.lastMessageId()
-                        )
-                    } else {
-                        apiService.getMessages(
-                            numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                            numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
-                            narrow = filter.createNarrowJsonForMessages(),
-                            anchor = ZulipApiService.ANCHOR_NEWEST
-                        )
-                    }
-                }
-                MessagesType.OLDEST -> {
-                    if (messagesCache.isNotEmpty()) {
-                        apiService.getMessages(
-                            numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
-                            numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                            narrow = filter.createNarrowJsonForMessages(),
-                            anchor = messagesCache.firstMessageId()
-                        )
-                    } else {
-                        apiService.getMessages(
-                            numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
-                            numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                            narrow = filter.createNarrowJsonForMessages(),
-                            anchor = ZulipApiService.ANCHOR_OLDEST
-                        )
-                    }
-                }
+                MessagesType.NEWEST -> apiGetMessages(
+                    numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchorId = messagesCache.lastMessageId(),
+                    ZulipApiService.ANCHOR_NEWEST
+                )
+                MessagesType.OLDEST -> apiGetMessages(
+                    numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchorId = messagesCache.firstMessageId(),
+                    ZulipApiService.ANCHOR_OLDEST
+                )
                 MessagesType.LAST, MessagesType.STORED -> apiService.getMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
@@ -502,6 +485,20 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
+    private suspend fun apiGetMessages(
+        numBefore: Int,
+        numAfter: Int,
+        narrow: String,
+        anchorId: Long,
+        anchor: String,
+    ): Response<MessagesResponse> {
+        return if (anchorId != Message.UNDEFINED_ID) {
+            apiService.getMessages(numBefore, numAfter, narrow, anchorId)
+        } else {
+            apiService.getMessages(numBefore, numAfter, narrow, anchor)
+        }
+    }
+
     private fun updateReactionOnServer(messageId: Long, emoji: Emoji) {
         CoroutineScope(Dispatchers.IO).launch {
             runCatchingNonCancellation {
@@ -559,7 +556,7 @@ class MessagesRepositoryImpl @Inject constructor(
             }
             heartBeatEventsResponse.events.forEach { heartBeatEventDto ->
                 lastEventId = heartBeatEventDto.id
-                isHeartBeat = heartBeatEventDto.type == EVENT_HEARTBEAT
+                isHeartBeat = heartBeatEventDto.type == ZulipApiService.EVENT_HEARTBEAT
             }
         } while (isHeartBeat)
         return responseBody
@@ -604,8 +601,6 @@ class MessagesRepositoryImpl @Inject constructor(
 
     companion object {
 
-        private const val RESULT_SUCCESS = "success"
-        private const val EVENT_HEARTBEAT = "heartbeat"
         private const val UNKNOWN_ERROR = ""
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180

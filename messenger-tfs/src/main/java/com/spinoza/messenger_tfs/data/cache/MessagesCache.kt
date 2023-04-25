@@ -2,15 +2,15 @@ package com.spinoza.messenger_tfs.data.cache
 
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.mapper.dbModelToDto
+import com.spinoza.messenger_tfs.data.mapper.toDbModel
+import com.spinoza.messenger_tfs.data.mapper.toReactionDto
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
-import com.spinoza.messenger_tfs.data.mapper.toDbModel
-import com.spinoza.messenger_tfs.data.mapper.toReactionDto
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessagesType
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.*
@@ -36,7 +36,7 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
         dataMutex.withLock {
             data.remove(messageDto)
             data.add(messageDto)
-            saveToDatabase(!isLastMessageVisible)
+            saveToDatabase(!isLastMessageVisible, messageDto.subject)
         }
     }
 
@@ -44,7 +44,9 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
         dataMutex.withLock {
             messagesDto.forEach { data.remove(it) }
             data.addAll(messagesDto)
-            saveToDatabase(messagesType == MessagesType.OLDEST)
+            if (data.isNotEmpty()) {
+                saveToDatabase(messagesType == MessagesType.OLDEST, messagesDto.first().subject)
+            }
         }
     }
 
@@ -142,7 +144,10 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
         data.add(messageDto)
     }
 
-    private suspend fun saveToDatabase(isReducingFromTail: Boolean) {
+    private suspend fun saveToDatabase(isReducingFromTail: Boolean, subject: String) {
+        if (data.size > MAX_CACHE_SIZE && subject.isNotEmpty()) {
+            data.removeIf { it.subject != subject }
+        }
         if (data.size > MAX_CACHE_SIZE) {
             val delta = data.size - MAX_CACHE_SIZE
             if (isReducingFromTail) {
