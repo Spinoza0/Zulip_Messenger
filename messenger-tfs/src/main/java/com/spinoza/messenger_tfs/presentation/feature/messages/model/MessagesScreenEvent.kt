@@ -21,6 +21,8 @@ sealed class MessagesScreenEvent {
 
         object MessagesScrollStateIdle : Ui()
 
+        object ScrollToLastMessage : Ui()
+
         class SendMessage(val value: CharSequence?) : Ui()
 
         class MessagesOnScrolled(val dy: Int) : Ui()
@@ -44,7 +46,7 @@ sealed class MessagesScreenEvent {
 
         object EmptyReactionsQueueEvent : Internal()
 
-        object NextPageExists : Internal()
+        class NextPageExists(val value: Boolean, val isGoingToLastMessage: Boolean) : Internal()
 
         class IconActionResId(val value: Int) : Internal()
 

@@ -18,7 +18,7 @@ interface MessagesRepository {
     suspend fun getStoredMessages(filter: MessagesFilter): Result<MessagesResult>
 
     suspend fun getMessages(
-        messagesType: MessagesType,
+        messagesPageType: MessagesPageType,
         filter: MessagesFilter,
     ): Result<MessagesResult>
 

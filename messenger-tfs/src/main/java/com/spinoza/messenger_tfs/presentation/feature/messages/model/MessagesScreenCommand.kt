@@ -23,8 +23,10 @@ sealed class MessagesScreenCommand {
 
     object LoadLastPage : MessagesScreenCommand()
 
-    class IsNextPageExisting(val messagesResultDelegate: MessagesResultDelegate) :
-        MessagesScreenCommand()
+    class IsNextPageExisting(
+        val messagesResultDelegate: MessagesResultDelegate,
+        val isGoingToLastMessage: Boolean,
+    ) : MessagesScreenCommand()
 
     class SetMessagesRead(val messageIds: List<Long>) : MessagesScreenCommand()
 

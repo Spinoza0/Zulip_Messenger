@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.data.mapper
+package com.spinoza.messenger_tfs.data.utils
 
 import com.spinoza.messenger_tfs.data.database.model.*
 import com.spinoza.messenger_tfs.data.network.model.event.EventTypeDto

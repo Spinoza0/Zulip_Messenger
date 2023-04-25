@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.domain.usecase
 
-import com.spinoza.messenger_tfs.domain.model.MessagesType
+import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -9,9 +9,9 @@ import javax.inject.Inject
 class GetMessagesUseCase @Inject constructor(private val repository: MessagesRepository) {
 
     suspend operator fun invoke(
-        messagesType: MessagesType,
+        messagesPageType: MessagesPageType,
         messagesFilter: MessagesFilter,
     ): Result<MessagesResult> {
-        return repository.getMessages(messagesType, messagesFilter)
+        return repository.getMessages(messagesPageType, messagesFilter)
     }
 }

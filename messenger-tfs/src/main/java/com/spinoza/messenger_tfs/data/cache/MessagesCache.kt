@@ -1,16 +1,17 @@
 package com.spinoza.messenger_tfs.data.cache
 
 import com.spinoza.messenger_tfs.data.database.MessengerDao
-import com.spinoza.messenger_tfs.data.mapper.dbModelToDto
-import com.spinoza.messenger_tfs.data.mapper.toDbModel
-import com.spinoza.messenger_tfs.data.mapper.toReactionDto
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
+import com.spinoza.messenger_tfs.data.utils.dbModelToDto
+import com.spinoza.messenger_tfs.data.utils.isEqualTopicName
+import com.spinoza.messenger_tfs.data.utils.toDbModel
+import com.spinoza.messenger_tfs.data.utils.toReactionDto
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.domain.model.MessagesType
+import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.*
@@ -40,12 +41,14 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
         }
     }
 
-    suspend fun addAll(messagesDto: List<MessageDto>, messagesType: MessagesType) {
+    suspend fun addAll(messagesDto: List<MessageDto>, messagesPageType: MessagesPageType) {
         dataMutex.withLock {
             messagesDto.forEach { data.remove(it) }
             data.addAll(messagesDto)
             if (data.isNotEmpty()) {
-                saveToDatabase(messagesType == MessagesType.OLDEST, messagesDto.first().subject)
+                saveToDatabase(
+                    messagesPageType == MessagesPageType.OLDEST, messagesDto.first().subject
+                )
             }
         }
     }
@@ -57,12 +60,12 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
     }
 
     fun firstMessageId(filter: MessagesFilter): Long {
-        val message = data.find { filter.topic.name.equals(it.subject, true) }
+        val message = data.find { filter.isEqualTopicName(it.subject) }
         return message?.id ?: Message.UNDEFINED_ID
     }
 
     fun lastMessageId(filter: MessagesFilter): Long {
-        val message = data.findLast { filter.topic.name.equals(it.subject, true) }
+        val message = data.findLast { filter.isEqualTopicName(it.subject) }
         return message?.id ?: Message.UNDEFINED_ID
     }
 
@@ -123,7 +126,7 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
                 }
             val topicMessages =
                 if (filter.topic.name.isNotEmpty()) {
-                    streamMessages.filter { filter.topic.name.equals(it.subject, true) }
+                    streamMessages.filter { filter.isEqualTopicName(it.subject) }
                 } else {
                     streamMessages
                 }

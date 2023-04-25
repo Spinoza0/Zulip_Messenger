@@ -151,7 +151,7 @@ class MessagesFragment :
                 store.accept(MessagesScreenEvent.Ui.NewMessageText(text))
             }
             imageViewArrow.setOnClickListener {
-                binding.recyclerViewMessages.smoothScrollToLastPosition()
+                store.accept(MessagesScreenEvent.Ui.ScrollToLastMessage)
             }
         }
     }
@@ -184,6 +184,8 @@ class MessagesFragment :
     override fun handleEffect(effect: MessagesScreenEffect) {
         when (effect) {
             is MessagesScreenEffect.MessageSent -> binding.editTextMessage.text?.clear()
+            is MessagesScreenEffect.ScrollToLastMessage ->
+                binding.recyclerViewMessages.smoothScrollToLastPosition()
             is MessagesScreenEffect.ShowChooseReactionDialog -> {
                 val dialog = ChooseReactionDialogFragment.newInstance(
                     effect.messageId,

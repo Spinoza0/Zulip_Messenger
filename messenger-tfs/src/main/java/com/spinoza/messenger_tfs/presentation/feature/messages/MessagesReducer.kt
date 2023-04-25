@@ -92,8 +92,17 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Internal.IconActionResId ->
             state { copy(iconActionResId = event.value) }
         is MessagesScreenEvent.Internal.NextPageExists -> {
-            state { copy(isLoadingNextPage = true) }
-            commands { +MessagesScreenCommand.LoadNextPage }
+            if (event.isGoingToLastMessage) {
+                if (event.value) {
+                    state { copy(isLoadingNextPage = true) }
+                    commands { +MessagesScreenCommand.LoadLastPage }
+                } else {
+                    effects { +MessagesScreenEffect.ScrollToLastMessage }
+                }
+            } else {
+                state { copy(isLoadingNextPage = event.value) }
+                commands { +MessagesScreenCommand.LoadNextPage }
+            }
         }
         is MessagesScreenEvent.Internal.ErrorMessages -> {
             state {
@@ -137,7 +146,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                 state { copy(isLoadingPreviousPage = false) }
                 if (lastVisiblePosition >= delegateAdapter.itemCount - BORDER_POSITION) {
                     state.messages?.let {
-                        commands { +MessagesScreenCommand.IsNextPageExisting(it) }
+                        commands { +MessagesScreenCommand.IsNextPageExisting(it, false) }
                     } ?: {
                         state { copy(isLoadingNextPage = true) }
                         commands { +MessagesScreenCommand.LoadNextPage }
@@ -192,6 +201,12 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Ui.Reload -> {
             state { copy(isLoadingPreviousPage = true) }
             commands { +MessagesScreenCommand.Reload }
+        }
+        is MessagesScreenEvent.Ui.ScrollToLastMessage -> state.messages?.let {
+            commands { +MessagesScreenCommand.IsNextPageExisting(it, true) }
+        } ?: {
+            state { copy(isLoadingNextPage = true) }
+            commands { +MessagesScreenCommand.LoadLastPage }
         }
         is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.Init -> {}

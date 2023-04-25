@@ -2,7 +2,6 @@ package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDao
-import com.spinoza.messenger_tfs.data.mapper.*
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.event.*
@@ -11,6 +10,7 @@ import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesRespons
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
+import com.spinoza.messenger_tfs.data.utils.*
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
@@ -143,35 +143,35 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getMessages(
-        messagesType: MessagesType,
+        messagesPageType: MessagesPageType,
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             if (storedOwnUser.userId == User.UNDEFINED_ID) {
                 getOwnUser()
             }
-            val response = when (messagesType) {
-                MessagesType.FIRST_UNREAD -> apiService.getMessages(
+            val response = when (messagesPageType) {
+                MessagesPageType.FIRST_UNREAD -> apiService.getMessages(
                     numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                     numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
                     anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
                 )
-                MessagesType.NEWEST -> apiGetMessages(
+                MessagesPageType.NEWEST -> apiGetMessages(
                     numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
                     anchorId = messagesCache.lastMessageId(filter),
                     ZulipApiService.ANCHOR_NEWEST
                 )
-                MessagesType.OLDEST -> apiGetMessages(
+                MessagesPageType.OLDEST -> apiGetMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
                     anchorId = messagesCache.firstMessageId(filter),
                     ZulipApiService.ANCHOR_OLDEST
                 )
-                MessagesType.LAST, MessagesType.STORED -> apiService.getMessages(
+                MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
@@ -185,16 +185,16 @@ class MessagesRepositoryImpl @Inject constructor(
             if (messagesResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(messagesResponse.msg)
             }
-            val position = when (messagesType) {
-                MessagesType.FIRST_UNREAD -> if (messagesResponse.foundAnchor) {
+            val position = when (messagesPageType) {
+                MessagesPageType.FIRST_UNREAD -> if (messagesResponse.foundAnchor) {
                     MessagePosition(MessagePosition.Type.EXACTLY, messagesResponse.anchor)
                 } else {
                     MessagePosition(MessagePosition.Type.LAST_POSITION)
                 }
-                MessagesType.LAST -> MessagePosition(MessagePosition.Type.LAST_POSITION)
+                MessagesPageType.LAST -> MessagePosition(MessagePosition.Type.LAST_POSITION)
                 else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
-            messagesCache.addAll(messagesResponse.messages, messagesType)
+            messagesCache.addAll(messagesResponse.messages, messagesPageType)
             MessagesResult(
                 messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
                 position
@@ -312,7 +312,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 throw RepositoryError(sendMessageResponse.msg)
             }
             var messagesResult = MessagesResult(emptyList(), MessagePosition())
-            getMessages(MessagesType.LAST, filter)
+            getMessages(MessagesPageType.LAST, filter)
                 .onSuccess { messagesResult = it }
                 .onFailure { throw it }
             messagesResult
@@ -419,7 +419,6 @@ class MessagesRepositoryImpl @Inject constructor(
             ) {
                 eventResponse.events.forEach { messageEventDto ->
                     messagesCache.add(messageEventDto.message, isLastMessageVisible)
-                    filter.topic.lastMessageId = messageEventDto.message.id
                 }
             }
             MessageEvent(
