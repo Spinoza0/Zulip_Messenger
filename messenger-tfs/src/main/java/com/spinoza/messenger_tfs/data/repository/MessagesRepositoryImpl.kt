@@ -297,6 +297,28 @@ class MessagesRepositoryImpl @Inject constructor(
             )
         }
 
+    override suspend fun getUpdatedMessageFilter(filter: MessagesFilter): MessagesFilter =
+        withContext(Dispatchers.IO) {
+            var topic = filter.topic
+            runCatchingNonCancellation {
+                val response = apiService.getTopics(filter.channel.channelId)
+                if (!response.isSuccessful) {
+                    return@runCatchingNonCancellation
+                }
+                val topicsResponseDto = response.getBodyOrThrow()
+                if (topicsResponseDto.result != RESULT_SUCCESS) {
+                    return@runCatchingNonCancellation
+                }
+                val newTopic = topicsResponseDto.topics.find {
+                    filter.isEqualTopicName(it.name)
+                }
+                if (newTopic != null) {
+                    topic = topic.copy(lastMessageId = newTopic.maxId)
+                }
+            }
+            filter.copy(topic = topic)
+        }
+
     override suspend fun sendMessage(
         content: String,
         filter: MessagesFilter,

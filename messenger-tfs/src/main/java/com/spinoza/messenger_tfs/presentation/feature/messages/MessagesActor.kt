@@ -39,11 +39,12 @@ class MessagesActor @Inject constructor(
     private val getReactionEventUseCase: GetReactionEventUseCase,
     private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
     private val setMessagesFlagToReadUserCase: SetMessagesFlagToReadUserCase,
+    private val getUpdatedMessageFilterUserCase: GetUpdatedMessageFilterUserCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
 ) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
 
-    private lateinit var messagesFilter: MessagesFilter
+    private var messagesFilter: MessagesFilter = MessagesFilter()
     private val lifecycleScope = lifecycle.coroutineScope
     private val newMessageFieldState = MutableSharedFlow<String>()
     private var messagesQueue: EventsQueueHolder =
@@ -55,7 +56,6 @@ class MessagesActor @Inject constructor(
     private var iconActionResId = R.drawable.ic_add_circle_outline
     private var isIconActionResIdChanged = false
     private var lastLoadCommand: MessagesScreenCommand? = null
-
 
     @Volatile
     private var isLoadingFirstPage = false
@@ -82,7 +82,7 @@ class MessagesActor @Inject constructor(
     init {
         lifecycle.addObserver(lifecycleObserver)
         subscribeToNewMessageFieldChanges()
-        setOwnStatusToActive()
+        startUpdatingInfo()
     }
 
     override fun execute(command: MessagesScreenCommand): Flow<MessagesScreenEvent.Internal> =
@@ -275,11 +275,13 @@ class MessagesActor @Inject constructor(
         return getIdleEvent()
     }
 
-    private fun setOwnStatusToActive() {
+    private fun startUpdatingInfo() {
         lifecycleScope.launch {
             while (isActive) {
                 setOwnStatusActiveUseCase()
-                delay(DELAY_BEFORE_UPDATE_OWN_STATUS)
+                delay(DELAY_BEFORE_UPDATE_MESSAGE_FILTER)
+                messagesFilter = getUpdatedMessageFilterUserCase(messagesFilter)
+                delay(DELAY_AFTER_UPDATE_MESSAGE_FILTER)
             }
         }
     }
@@ -459,6 +461,7 @@ class MessagesActor @Inject constructor(
         const val DELAY_BEFORE_RETURN_IDLE_EVENT = 1000L
         const val DELAY_BEFORE_CHECK_EVENTS = 1000L
         const val DELAY_BEFORE_RELOAD = 500L
-        const val DELAY_BEFORE_UPDATE_OWN_STATUS = 60_000L
+        const val DELAY_BEFORE_UPDATE_MESSAGE_FILTER = 55_000L
+        const val DELAY_AFTER_UPDATE_MESSAGE_FILTER = 5_000L
     }
 }

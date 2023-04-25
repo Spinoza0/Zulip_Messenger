@@ -32,6 +32,8 @@ interface MessagesRepository {
 
     suspend fun getTopic(filter: MessagesFilter): Result<Topic>
 
+    suspend fun getUpdatedMessageFilter(filter: MessagesFilter): MessagesFilter
+
     suspend fun sendMessage(content: String, filter: MessagesFilter): Result<MessagesResult>
 
     suspend fun updateReaction(
