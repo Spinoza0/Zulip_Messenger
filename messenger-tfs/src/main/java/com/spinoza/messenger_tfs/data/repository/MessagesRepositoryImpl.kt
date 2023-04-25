@@ -161,14 +161,14 @@ class MessagesRepositoryImpl @Inject constructor(
                     numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchorId = messagesCache.lastMessageId(),
+                    anchorId = messagesCache.lastMessageId(filter),
                     ZulipApiService.ANCHOR_NEWEST
                 )
                 MessagesType.OLDEST -> apiGetMessages(
-                    numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                    numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
+                    numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchorId = messagesCache.firstMessageId(),
+                    anchorId = messagesCache.firstMessageId(filter),
                     ZulipApiService.ANCHOR_OLDEST
                 )
                 MessagesType.LAST, MessagesType.STORED -> apiService.getMessages(
@@ -415,7 +415,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 throw RepositoryError(eventResponse.msg)
             }
             if (messagesCache.isNotEmpty() &&
-                filter.topic.lastMessageId == messagesCache.lastMessageId()
+                filter.topic.lastMessageId == messagesCache.lastMessageId(filter)
             ) {
                 eventResponse.events.forEach { messageEventDto ->
                     messagesCache.add(messageEventDto.message, isLastMessageVisible)

@@ -58,7 +58,7 @@ class MessagesActor @Inject constructor(
 
 
     @Volatile
-    private var isLoadingPageWithFirstUnreadMessage = false
+    private var isLoadingFirstPage = false
 
     @Volatile
     private var isLoadingPreviousPage = false
@@ -172,8 +172,8 @@ class MessagesActor @Inject constructor(
     private suspend fun loadFirstPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        if (isLoadingPageWithFirstUnreadMessage) return getIdleEvent()
-        isLoadingPageWithFirstUnreadMessage = true
+        if (isLoadingFirstPage) return getIdleEvent()
+        isLoadingFirstPage = true
         lastLoadCommand = command
         val messagesType =
             if ((command as MessagesScreenCommand.LoadFirstPage).isMessagesListEmpty) {
@@ -182,7 +182,7 @@ class MessagesActor @Inject constructor(
                 MessagesType.NEWEST
             }
         val event = loadMessages(messagesType)
-        isLoadingPageWithFirstUnreadMessage = false
+        isLoadingFirstPage = false
         if (event is MessagesScreenEvent.Internal.Messages) {
             registerEventQueues()
         }

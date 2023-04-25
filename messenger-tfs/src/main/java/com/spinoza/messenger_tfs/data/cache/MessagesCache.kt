@@ -56,12 +56,14 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
         }
     }
 
-    fun firstMessageId(): Long {
-        return if (data.isNotEmpty()) data.first().id else Message.UNDEFINED_ID
+    fun firstMessageId(filter: MessagesFilter): Long {
+        val message = data.find { filter.topic.name.equals(it.subject, true) }
+        return message?.id ?: Message.UNDEFINED_ID
     }
 
-    fun lastMessageId(): Long {
-        return if (data.isNotEmpty()) data.last().id else Message.UNDEFINED_ID
+    fun lastMessageId(filter: MessagesFilter): Long {
+        val message = data.findLast { filter.topic.name.equals(it.subject, true) }
+        return message?.id ?: Message.UNDEFINED_ID
     }
 
     suspend fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
@@ -111,11 +113,7 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
         }
     }
 
-    suspend fun getMessages(
-        filter: MessagesFilter,
-        isUseAnchor: Boolean = false,
-        anchor: Long = Message.UNDEFINED_ID,
-    ): List<MessageDto> {
+    suspend fun getMessages(filter: MessagesFilter): List<MessageDto> {
         dataMutex.withLock {
             val streamMessages =
                 if (filter.channel.channelId != Channel.UNDEFINED_ID) {
@@ -129,13 +127,7 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
                 } else {
                     streamMessages
                 }
-            return if (isUseAnchor) {
-                if (anchor != Message.UNDEFINED_ID)
-                    topicMessages.filter { it.id >= anchor }.toList()
-                else
-                    emptyList()
-            } else
-                topicMessages.toList()
+            return topicMessages.toList()
         }
     }
 
