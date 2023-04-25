@@ -17,7 +17,10 @@ interface MessagesRepository {
 
     suspend fun getStoredMessages(filter: MessagesFilter): Result<MessagesResult>
 
-    suspend fun getMessages(anchor: MessagesAnchor, filter: MessagesFilter): Result<MessagesResult>
+    suspend fun getMessages(
+        messagesType: MessagesType,
+        filter: MessagesFilter,
+    ): Result<MessagesResult>
 
     suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>
 

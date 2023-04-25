@@ -9,7 +9,7 @@ import com.spinoza.messenger_tfs.data.mapper.toDbModel
 import com.spinoza.messenger_tfs.data.mapper.toReactionDto
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessagesAnchor
+import com.spinoza.messenger_tfs.domain.model.MessagesType
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -40,11 +40,11 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
         }
     }
 
-    suspend fun addAll(messagesDto: List<MessageDto>, anchor: MessagesAnchor) {
+    suspend fun addAll(messagesDto: List<MessageDto>, messagesType: MessagesType) {
         dataMutex.withLock {
             messagesDto.forEach { data.remove(it) }
             data.addAll(messagesDto)
-            saveToDatabase(anchor == MessagesAnchor.OLDEST)
+            saveToDatabase(messagesType == MessagesType.OLDEST)
         }
     }
 

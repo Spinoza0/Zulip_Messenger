@@ -140,37 +140,59 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getMessages(
-        anchor: MessagesAnchor,
+        messagesType: MessagesType,
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             if (storedOwnUser.userId == User.UNDEFINED_ID) {
                 getOwnUser()
             }
-            val response = when (anchor) {
-                MessagesAnchor.FIRST_UNREAD -> apiService.getMessages(
+            val response = when (messagesType) {
+                MessagesType.FIRST_UNREAD -> apiService.getMessages(
                     numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                     numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchor = MessagesAnchor.FIRST_UNREAD.value
+                    anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
                 )
-                MessagesAnchor.NEWEST -> apiService.getMessages(
-                    numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                    numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
-                    narrow = filter.createNarrowJsonForMessages(),
-                    anchor = messagesCache.lastMessageId()
-                )
-                MessagesAnchor.OLDEST -> apiService.getMessages(
+                MessagesType.NEWEST -> {
+                    if (messagesCache.isNotEmpty()) {
+                        apiService.getMessages(
+                            numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                            numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
+                            narrow = filter.createNarrowJsonForMessages(),
+                            anchor = messagesCache.lastMessageId()
+                        )
+                    } else {
+                        apiService.getMessages(
+                            numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                            numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
+                            narrow = filter.createNarrowJsonForMessages(),
+                            anchor = ZulipApiService.ANCHOR_NEWEST
+                        )
+                    }
+                }
+                MessagesType.OLDEST -> {
+                    if (messagesCache.isNotEmpty()) {
+                        apiService.getMessages(
+                            numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
+                            numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                            narrow = filter.createNarrowJsonForMessages(),
+                            anchor = messagesCache.firstMessageId()
+                        )
+                    } else {
+                        apiService.getMessages(
+                            numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
+                            numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                            narrow = filter.createNarrowJsonForMessages(),
+                            anchor = ZulipApiService.ANCHOR_OLDEST
+                        )
+                    }
+                }
+                MessagesType.LAST, MessagesType.STORED -> apiService.getMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchor = messagesCache.firstMessageId()
-                )
-                MessagesAnchor.LAST, MessagesAnchor.STORED -> apiService.getMessages(
-                    numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
-                    numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                    narrow = filter.createNarrowJsonForMessages(),
-                    anchor = MessagesAnchor.NEWEST.value
+                    anchor = ZulipApiService.ANCHOR_NEWEST
                 )
             }
             if (!response.isSuccessful) {
@@ -180,16 +202,16 @@ class MessagesRepositoryImpl @Inject constructor(
             if (messagesResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(messagesResponse.msg)
             }
-            val position = when (anchor) {
-                MessagesAnchor.FIRST_UNREAD -> if (messagesResponse.foundAnchor) {
+            val position = when (messagesType) {
+                MessagesType.FIRST_UNREAD -> if (messagesResponse.foundAnchor) {
                     MessagePosition(MessagePosition.Type.EXACTLY, messagesResponse.anchor)
                 } else {
                     MessagePosition(MessagePosition.Type.LAST_POSITION)
                 }
-                MessagesAnchor.LAST -> MessagePosition(MessagePosition.Type.LAST_POSITION)
+                MessagesType.LAST -> MessagePosition(MessagePosition.Type.LAST_POSITION)
                 else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
-            messagesCache.addAll(messagesResponse.messages, anchor)
+            messagesCache.addAll(messagesResponse.messages, messagesType)
             MessagesResult(
                 messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
                 position
@@ -276,7 +298,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     numBefore = GET_TOPIC_IGNORE_PREVIOUS_MESSAGES,
                     numAfter = GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchor = MessagesAnchor.FIRST_UNREAD.value,
+                    anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
                 )
                 if (response.isSuccessful) {
                     val messagesResponse = response.getBodyOrThrow()
@@ -307,7 +329,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 throw RepositoryError(sendMessageResponse.msg)
             }
             var messagesResult = MessagesResult(emptyList(), MessagePosition())
-            getMessages(MessagesAnchor.LAST, filter)
+            getMessages(MessagesType.LAST, filter)
                 .onSuccess { messagesResult = it }
                 .onFailure { throw it }
             messagesResult

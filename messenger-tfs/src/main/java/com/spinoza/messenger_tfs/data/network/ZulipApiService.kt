@@ -121,6 +121,10 @@ interface ZulipApiService {
 
     companion object {
 
+        const val ANCHOR_NEWEST = "newest"
+        const val ANCHOR_OLDEST = "oldest"
+        const val ANCHOR_FIRST_UNREAD = "first_unread"
+
         const val MAX_MESSAGES_PACKET = 20
         const val HALF_MESSAGES_PACKET = 10
         const val EMPTY_MESSAGES_PACKET = 0

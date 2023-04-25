@@ -160,7 +160,7 @@ class MessagesActor @Inject constructor(
     private suspend fun loadStoredMessages(): MessagesScreenEvent.Internal =
         withContext(Dispatchers.Default) {
             getStoredMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
-                return@withContext handleMessages(messagesResult, MessagesAnchor.STORED)
+                return@withContext handleMessages(messagesResult, MessagesType.STORED)
             }.onFailure { error ->
                 return@withContext handleErrors(error)
             }
@@ -173,7 +173,7 @@ class MessagesActor @Inject constructor(
         if (isLoadingPageWithFirstUnreadMessage) return getIdleEvent()
         isLoadingPageWithFirstUnreadMessage = true
         lastLoadCommand = command
-        val event = loadMessages(MessagesAnchor.FIRST_UNREAD)
+        val event = loadMessages(MessagesType.FIRST_UNREAD)
         isLoadingPageWithFirstUnreadMessage = false
         if (event is MessagesScreenEvent.Internal.Messages) {
             registerEventQueues()
@@ -187,7 +187,7 @@ class MessagesActor @Inject constructor(
         if (isLoadingPreviousPage) return getIdleEvent()
         isLoadingPreviousPage = true
         lastLoadCommand = command
-        val event = loadMessages(MessagesAnchor.OLDEST)
+        val event = loadMessages(MessagesType.OLDEST)
         isLoadingPreviousPage = false
         return event
     }
@@ -198,7 +198,7 @@ class MessagesActor @Inject constructor(
         if (isLoadingNextPage) return getIdleEvent()
         isLoadingNextPage = true
         lastLoadCommand = command
-        val event = loadMessages(MessagesAnchor.NEWEST)
+        val event = loadMessages(MessagesType.NEWEST)
         isLoadingNextPage = false
         return event
     }
@@ -209,7 +209,7 @@ class MessagesActor @Inject constructor(
         if (isLoadingLastPage) return getIdleEvent()
         isLoadingLastPage = true
         lastLoadCommand = command
-        val event = loadMessages(MessagesAnchor.LAST)
+        val event = loadMessages(MessagesType.LAST)
         isLoadingLastPage = false
         return event
     }
@@ -227,7 +227,7 @@ class MessagesActor @Inject constructor(
     private suspend fun sendMessage(value: String): MessagesScreenEvent.Internal {
         if (value.isNotEmpty()) {
             sendMessageUseCase(value, messagesFilter).onSuccess { messagesResult ->
-                return handleMessages(messagesResult, MessagesAnchor.LAST)
+                return handleMessages(messagesResult, MessagesType.LAST)
             }.onFailure { error ->
                 return handleErrors(error)
             }
@@ -252,10 +252,10 @@ class MessagesActor @Inject constructor(
             getIdleEvent()
         }
 
-    private suspend fun loadMessages(anchor: MessagesAnchor): MessagesScreenEvent.Internal =
+    private suspend fun loadMessages(messagesType: MessagesType): MessagesScreenEvent.Internal =
         withContext(Dispatchers.Default) {
-            getMessagesUseCase(anchor, messagesFilter).onSuccess { messagesResult ->
-                return@withContext handleMessages(messagesResult, anchor)
+            getMessagesUseCase(messagesType, messagesFilter).onSuccess { messagesResult ->
+                return@withContext handleMessages(messagesResult, messagesType)
             }.onFailure { error ->
                 return@withContext handleErrors(error)
             }
@@ -390,14 +390,14 @@ class MessagesActor @Inject constructor(
 
     private suspend fun handleMessages(
         messagesResult: MessagesResult,
-        anchor: MessagesAnchor,
+        messagesType: MessagesType,
     ): MessagesScreenEvent.Internal {
         getOwnUserIdUseCase().onSuccess { userId ->
             val messagesResultDelegate = messagesResult.toDelegate(userId)
-            return when (anchor) {
-                MessagesAnchor.LAST ->
+            return when (messagesType) {
+                MessagesType.LAST ->
                     MessagesScreenEvent.Internal.MessageSent(messagesResultDelegate)
-                MessagesAnchor.STORED ->
+                MessagesType.STORED ->
                     MessagesScreenEvent.Internal.StoredMessages(messagesResultDelegate)
                 else -> MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
             }
