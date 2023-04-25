@@ -10,7 +10,6 @@ import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
 import com.bumptech.glide.load.model.LazyHeaders
-import com.spinoza.messenger_tfs.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -29,10 +28,9 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
         textView: TextView,
         authData: String,
     ) {
-        val fullUrl = if (isFullUrl(imageUrl)) imageUrl else "${IMAGE_BASE_URL}$imageUrl"
         runCatching {
             val glideUrl = GlideUrl(
-                fullUrl,
+                imageUrl.getFullUrl(),
                 LazyHeaders.Builder().addHeader(HEADER_AUTHORIZATION, authData).build()
             )
             val bitmap = Glide.with(context)
@@ -53,19 +51,11 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
         }
     }
 
-    private fun isFullUrl(url: String): Boolean {
-        return url.startsWith(IMAGE_URL_SECURED_PREFIX, ignoreCase = true) ||
-                url.startsWith(IMAGE_URL_BASIC_PREFIX, ignoreCase = true)
-    }
-
     private companion object {
 
         const val IMAGE_TOP_BOUND = 0
         const val IMAGE_LEFT_BOUND = 0
         const val IMAGE_SCALE = 1.25f
-        const val IMAGE_BASE_URL = BuildConfig.ZULIP_SERVER_URL
-        const val IMAGE_URL_SECURED_PREFIX = "https://"
-        const val IMAGE_URL_BASIC_PREFIX = "http://"
         const val HEADER_AUTHORIZATION = "Authorization"
     }
 }

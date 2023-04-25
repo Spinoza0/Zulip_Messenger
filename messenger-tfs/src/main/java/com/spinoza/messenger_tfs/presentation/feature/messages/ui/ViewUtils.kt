@@ -7,6 +7,7 @@ import androidx.core.view.*
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
@@ -109,3 +110,17 @@ fun ShimmerFrameLayout.off() {
     stopShimmer()
     isVisible = false
 }
+
+fun String.getFullUrl(): String {
+    return if (this.startsWith(URL_SECURED_PREFIX, ignoreCase = true) ||
+        this.startsWith(URL_BASIC_PREFIX, ignoreCase = true)
+    ) {
+        this
+    } else {
+        "${BASE_URL}$this"
+    }
+}
+
+private const val BASE_URL = BuildConfig.ZULIP_SERVER_URL
+private const val URL_SECURED_PREFIX = "https://"
+private const val URL_BASIC_PREFIX = "http://"
