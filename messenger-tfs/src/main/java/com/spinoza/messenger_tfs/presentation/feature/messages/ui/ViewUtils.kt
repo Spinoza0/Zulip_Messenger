@@ -121,6 +121,11 @@ fun String.getFullUrl(): String {
     }
 }
 
+fun String.isUserUploadsUrl(): Boolean {
+    return this.startsWith(URL_USER_UPLOADS_PREFIX, ignoreCase = true)
+}
+
 private const val BASE_URL = BuildConfig.ZULIP_SERVER_URL
 private const val URL_SECURED_PREFIX = "https://"
 private const val URL_BASIC_PREFIX = "http://"
+private const val URL_USER_UPLOADS_PREFIX = "$BASE_URL/user_uploads"

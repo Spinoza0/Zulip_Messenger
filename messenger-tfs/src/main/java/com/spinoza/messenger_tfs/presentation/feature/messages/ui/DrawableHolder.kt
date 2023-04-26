@@ -29,8 +29,9 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
         authData: String,
     ) {
         runCatching {
+            val fullUrl = imageUrl.getFullUrl()
             val glideUrl = GlideUrl(
-                imageUrl.getFullUrl(),
+                fullUrl,
                 LazyHeaders.Builder().addHeader(HEADER_AUTHORIZATION, authData).build()
             )
             val bitmap = Glide.with(context)
@@ -38,8 +39,9 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
                 .load(glideUrl)
                 .submit().get()
             val newDrawable = BitmapDrawable(resources, bitmap)
-            val scale =
-                textView.width / newDrawable.intrinsicWidth.toFloat() / IMAGE_SCALE
+            val scaleUsingUrlType =
+                if (fullUrl.isUserUploadsUrl()) USER_IMAGE_SCALE else ZULIP_IMAGE_SCALE
+            val scale = textView.width / newDrawable.intrinsicWidth.toFloat() / scaleUsingUrlType
             val width = (newDrawable.intrinsicWidth * scale).toInt()
             val height = (newDrawable.intrinsicHeight * scale).toInt()
             newDrawable.setBounds(IMAGE_LEFT_BOUND, IMAGE_TOP_BOUND, width, height)
@@ -55,7 +57,8 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
 
         const val IMAGE_TOP_BOUND = 0
         const val IMAGE_LEFT_BOUND = 0
-        const val IMAGE_SCALE = 1.25f
+        const val ZULIP_IMAGE_SCALE = 1.25f
+        const val USER_IMAGE_SCALE = 0.5f
         const val HEADER_AUTHORIZATION = "Authorization"
     }
 }
