@@ -6,6 +6,7 @@ buildscript {
             androidxAppCompat       : "1.6.1",
             androidxCrypto          : "1.1.0-alpha06",
             androidxConstraintlayout: "2.1.4",
+            androidxActivity        : "1.7.1",
 
             navigation              : "2.5.3",
             cicerone                : "7.1",
@@ -48,6 +49,7 @@ buildscript {
 
     ext.androidx = [
             core            : "androidx.core:core-ktx:${versions.androidxCore}",
+            activity        : "androidx.activity:activity-ktx:${versions.androidxActivity}",
             appcompat       : "androidx.appcompat:appcompat:${versions.androidxAppCompat}",
             crypto          : "androidx.security:security-crypto:${versions.androidxCrypto}",
             constraintlayout: "androidx.constraintlayout:constraintlayout:${versions.androidxConstraintlayout}"
