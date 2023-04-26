@@ -38,7 +38,9 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
             val newDrawable = BitmapDrawable(resources, bitmap)
             val scaleUsingUrlType =
                 if (webUtil.isUserUploadsUrl(fullUrl)) USER_IMAGE_SCALE else ZULIP_IMAGE_SCALE
-            val scale = textView.width / newDrawable.intrinsicWidth.toFloat() / scaleUsingUrlType
+            val scaleWidth = textView.width / newDrawable.intrinsicWidth.toFloat()
+            val scaleHeight = textView.height / newDrawable.intrinsicHeight.toFloat()
+            val scale = minOf(scaleWidth, scaleHeight) / scaleUsingUrlType
             val width = (newDrawable.intrinsicWidth * scale).toInt()
             val height = (newDrawable.intrinsicHeight * scale).toInt()
             newDrawable.setBounds(IMAGE_LEFT_BOUND, IMAGE_TOP_BOUND, width, height)
