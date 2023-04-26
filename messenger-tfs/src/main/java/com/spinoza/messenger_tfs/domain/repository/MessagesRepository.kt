@@ -1,8 +1,8 @@
 package com.spinoza.messenger_tfs.domain.repository
 
+import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
-import java.io.InputStream
 
 interface MessagesRepository {
 
@@ -79,5 +79,5 @@ interface MessagesRepository {
 
     suspend fun setMessagesFlagToRead(messageIds: List<Long>)
 
-    suspend fun uploadFile(name: String, inputStream: InputStream): Result<String>
+    suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String>
 }

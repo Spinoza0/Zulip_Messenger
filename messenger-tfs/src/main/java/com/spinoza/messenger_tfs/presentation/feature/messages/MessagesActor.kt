@@ -40,6 +40,7 @@ class MessagesActor @Inject constructor(
     private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
     private val setMessagesFlagToReadUserCase: SetMessagesFlagToReadUserCase,
     private val getUpdatedMessageFilterUserCase: GetUpdatedMessageFilterUserCase,
+    private val uploadFileUseCase: UploadFileUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
 ) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
@@ -136,6 +137,7 @@ class MessagesActor @Inject constructor(
                     messagesFilter = command.filter
                     loadStoredMessages()
                 }
+                is MessagesScreenCommand.UploadFile -> uploadFile(command)
             }
             emit(event)
         }
@@ -179,7 +181,7 @@ class MessagesActor @Inject constructor(
             if ((command as MessagesScreenCommand.LoadFirstPage).isMessagesListEmpty) {
                 MessagesPageType.FIRST_UNREAD
             } else {
-                MessagesPageType.NEWEST
+                MessagesPageType.AFTER_STORED
             }
         val event = loadMessages(messagesPageType)
         isLoadingFirstPage = false
@@ -422,6 +424,17 @@ class MessagesActor @Inject constructor(
         messagesQueue.registerQueue(listOf(EventType.MESSAGE))
         deleteMessagesQueue.registerQueue(listOf(EventType.DELETE_MESSAGE))
         reactionsQueue.registerQueue(listOf(EventType.REACTION))
+    }
+
+    private suspend fun uploadFile(
+        command: MessagesScreenCommand.UploadFile,
+    ): MessagesScreenEvent.Internal {
+        uploadFileUseCase(command.oldMessageText, command.uri).onSuccess {
+            return MessagesScreenEvent.Internal.FileUploaded(it)
+        }.onFailure {
+            return handleErrors(it)
+        }
+        return getIdleEvent()
     }
 
     private fun handleErrors(error: Throwable): MessagesScreenEvent.Internal {

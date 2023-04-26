@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
+import android.net.Uri
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -34,6 +35,8 @@ sealed class MessagesScreenEvent {
         class ShowUserInfo(val message: MessageView) : Ui()
 
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
+
+        class UploadFile(val message: CharSequence?, val uri: Uri) : Ui()
     }
 
     sealed class Internal : MessagesScreenEvent() {
@@ -61,6 +64,8 @@ sealed class MessagesScreenEvent {
         class DeleteMessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
         class ReactionsEventFromQueue(val value: MessagesResultDelegate) : Internal()
+
+        class FileUploaded(val newMessageText: String) : Internal()
 
         class ErrorNetwork(val value: String) : Internal()
 

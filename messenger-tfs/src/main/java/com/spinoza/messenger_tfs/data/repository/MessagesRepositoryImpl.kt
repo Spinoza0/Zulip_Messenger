@@ -1,5 +1,11 @@
 package com.spinoza.messenger_tfs.data.repository
 
+import android.content.Context
+import android.database.Cursor
+import android.net.Uri
+import android.provider.MediaStore
+import android.provider.OpenableColumns
+import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
@@ -26,10 +32,11 @@ import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
-import java.io.InputStream
+import java.io.File
 import javax.inject.Inject
 
 class MessagesRepositoryImpl @Inject constructor(
+    private val context: Context,
     private val messagesCache: MessagesCache,
     private val messengerDao: MessengerDao,
     private val apiService: ZulipApiService,
@@ -174,6 +181,13 @@ class MessagesRepositoryImpl @Inject constructor(
                     narrow = filter.createNarrowJsonForMessages(),
                     anchorId = messagesCache.firstMessageId(filter),
                     ZulipApiService.ANCHOR_OLDEST
+                )
+                MessagesPageType.AFTER_STORED -> apiGetMessages(
+                    numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchorId = messagesCache.lastMessageId(filter),
+                    ZulipApiService.ANCHOR_NEWEST
                 )
                 MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
@@ -510,13 +524,24 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun uploadFile(name: String, inputStream: InputStream): Result<String> =
+    override suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
-                val requestFile =
-                    RequestBody.create(MediaType.parse("image/*"), inputStream.readBytes())
+                val cursor = context.contentResolver.query(uri, null, null, null, null)
+                    ?: throw RepositoryError(context.getString(R.string.error_uri))
+                val path = getFileData(cursor, MediaStore.Images.Media.DATA, cursor::getString)
+                    ?: throw RepositoryError(context.getString(R.string.error_file_not_found))
+                val size = getFileData(cursor, OpenableColumns.SIZE, cursor::getLong)
+                    ?: throw RepositoryError(context.getString(R.string.error_uri))
+                if (size == MAX_FILE_SIZE) {
+                    throw RepositoryError(context.getString(R.string.error_file_size))
+                }
+                val contentType = context.contentResolver.getType(uri)
+                    ?: throw RepositoryError(context.getString(R.string.error_unknown_file_type))
+                val file = File(path)
+                val requestFile = RequestBody.create(MediaType.parse(contentType), file)
                 val filePart =
-                    MultipartBody.Part.createFormData("image", name, requestFile)
+                    MultipartBody.Part.createFormData(oldMessageText, oldMessageText, requestFile)
                 val response = apiService.uploadFile(filePart)
                 if (!response.isSuccessful) {
                     throw RepositoryError(response.message())
@@ -528,6 +553,14 @@ class MessagesRepositoryImpl @Inject constructor(
                 responseBody.uri
             }
         }
+
+    private fun <T> getFileData(cursor: Cursor, param: String, getParam: (Int) -> T): T? {
+        var data: T? = null
+        if (cursor.moveToFirst()) {
+            data = getParam(cursor.getColumnIndexOrThrow(param))
+        }
+        return data
+    }
 
     private suspend fun apiGetMessages(
         numBefore: Int,
@@ -650,5 +683,6 @@ class MessagesRepositoryImpl @Inject constructor(
         private const val OFFLINE_TIME = 180
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
         private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500
+        private const val MAX_FILE_SIZE = 10 * 1024 * 1024L
     }
 }

@@ -6,5 +6,6 @@ enum class MessagesPageType {
     OLDEST,
     FIRST_UNREAD,
     LAST,
-    STORED
+    STORED,
+    AFTER_STORED
 }

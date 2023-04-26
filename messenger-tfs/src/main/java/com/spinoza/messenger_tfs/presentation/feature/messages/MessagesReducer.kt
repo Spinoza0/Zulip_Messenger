@@ -36,8 +36,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             state {
                 copy(
                     isLoading = false,
-                    isLoadingPreviousPage = false,
-                    isLoadingNextPage = false,
+                    isLongOperation = false,
                     isNewMessageExisting = false,
                     messages = event.value
                 )
@@ -53,8 +52,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
             state {
                 copy(
                     isLoading = event.value.messages.isEmpty(),
-                    isLoadingPreviousPage = false,
-                    isLoadingNextPage = false,
+                    isLongOperation = false,
                     messages = event.value
                 )
             }
@@ -94,32 +92,26 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Internal.NextPageExists -> {
             if (event.isGoingToLastMessage) {
                 if (event.value) {
-                    state { copy(isLoadingNextPage = true) }
+                    state { copy(isLongOperation = true) }
                     commands { +MessagesScreenCommand.LoadLastPage }
                 } else {
                     effects { +MessagesScreenEffect.ScrollToLastMessage }
                 }
             } else {
-                state { copy(isLoadingNextPage = event.value) }
+                state { copy(isLongOperation = event.value) }
                 commands { +MessagesScreenCommand.LoadNextPage }
             }
         }
+        is MessagesScreenEvent.Internal.FileUploaded -> {
+            state { copy(isLongOperation = false) }
+            effects { +MessagesScreenEffect.FileUploaded(event.newMessageText) }
+        }
         is MessagesScreenEvent.Internal.ErrorMessages -> {
-            state {
-                copy(
-                    isLoading = false, isLoadingPreviousPage = false,
-                    isLoadingNextPage = false, isSendingMessage = false
-                )
-            }
+            state { copy(isLoading = false, isLongOperation = false, isSendingMessage = false) }
             effects { +MessagesScreenEffect.Failure.ErrorMessages(event.value) }
         }
         is MessagesScreenEvent.Internal.ErrorNetwork -> {
-            state {
-                copy(
-                    isLoading = false, isLoadingPreviousPage = false,
-                    isLoadingNextPage = false, isSendingMessage = false
-                )
-            }
+            state { copy(isLoading = false, isLongOperation = false, isSendingMessage = false) }
             effects { +MessagesScreenEffect.Failure.ErrorNetwork(event.value) }
         }
         is MessagesScreenEvent.Internal.Idle -> {}
@@ -136,19 +128,19 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                 lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
             }
             if (event.dy.isScrollUp()) {
-                state { copy(isLoadingNextPage = false) }
+                state { copy(isLongOperation = false) }
                 if (firstVisiblePosition <= BORDER_POSITION) {
-                    state { copy(isLoadingPreviousPage = true) }
+                    state { copy(isLongOperation = true) }
                     commands { +MessagesScreenCommand.LoadPreviousPage }
                 }
             }
             if (event.dy.isScrollDown()) {
-                state { copy(isLoadingPreviousPage = false) }
+                state { copy(isLongOperation = false) }
                 if (lastVisiblePosition >= delegateAdapter.itemCount - BORDER_POSITION) {
                     state.messages?.let {
                         commands { +MessagesScreenCommand.IsNextPageExisting(it, false) }
                     } ?: {
-                        state { copy(isLoadingNextPage = true) }
+                        state { copy(isLongOperation = true) }
                         commands { +MessagesScreenCommand.LoadNextPage }
                     }
                 }
@@ -199,14 +191,18 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         is MessagesScreenEvent.Ui.ShowChooseReactionDialog ->
             effects { +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId) }
         is MessagesScreenEvent.Ui.Reload -> {
-            state { copy(isLoadingPreviousPage = true) }
+            state { copy(isLongOperation = true) }
             commands { +MessagesScreenCommand.Reload }
         }
         is MessagesScreenEvent.Ui.ScrollToLastMessage -> state.messages?.let {
             commands { +MessagesScreenCommand.IsNextPageExisting(it, true) }
         } ?: {
-            state { copy(isLoadingNextPage = true) }
+            state { copy(isLongOperation = true) }
             commands { +MessagesScreenCommand.LoadLastPage }
+        }
+        is MessagesScreenEvent.Ui.UploadFile -> {
+            state { copy(isLongOperation = true) }
+            commands { +MessagesScreenCommand.UploadFile(event.message.toString(), event.uri) }
         }
         is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.Init -> {}

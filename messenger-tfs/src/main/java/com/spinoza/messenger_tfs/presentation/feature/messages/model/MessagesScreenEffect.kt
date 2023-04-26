@@ -10,6 +10,8 @@ sealed class MessagesScreenEffect {
 
     class ShowChooseReactionDialog(val messageId: Long) : MessagesScreenEffect()
 
+    class FileUploaded(val newMessageText: String) : MessagesScreenEffect()
+
     sealed class Failure : MessagesScreenEffect() {
 
         class ErrorNetwork(val value: String) : Failure()
