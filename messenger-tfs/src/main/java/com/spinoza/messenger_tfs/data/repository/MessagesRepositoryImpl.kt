@@ -543,7 +543,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 if (responseBody.result != RESULT_SUCCESS) {
                     throw RepositoryError(responseBody.msg)
                 }
-                "$oldMessageText\n${webUtil.getFullUrl(responseBody.uri)}\n"
+                "$oldMessageText\n[$fileName](${webUtil.getFullUrl(responseBody.uri)})\n"
             }
         }
 
