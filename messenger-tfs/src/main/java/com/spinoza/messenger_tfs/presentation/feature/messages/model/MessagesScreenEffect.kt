@@ -6,6 +6,8 @@ sealed class MessagesScreenEffect {
 
     object ScrollToLastMessage : MessagesScreenEffect()
 
+    object AddAttachment : MessagesScreenEffect()
+
     class ShowChooseReactionDialog(val messageId: Long) : MessagesScreenEffect()
 
     sealed class Failure : MessagesScreenEffect() {

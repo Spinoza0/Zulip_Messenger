@@ -1,12 +1,18 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
+import android.provider.OpenableColumns
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.RecyclerView
@@ -52,6 +58,7 @@ class MessagesFragment :
 
     private lateinit var messagesFilter: MessagesFilter
     private lateinit var onBackPressedCallback: OnBackPressedCallback
+    private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
     private var recyclerViewState: Parcelable? = null
 
     override val storeHolder:
@@ -65,6 +72,7 @@ class MessagesFragment :
     override fun onAttach(context: Context) {
         super.onAttach(context)
         DaggerMessagesComponent.factory().create(context.getAppComponent(), lifecycle).inject(this)
+        pickMedia = registerForActivityResult(PickVisualMedia()) { handlePickMediaResult(it) }
     }
 
     override fun onCreateView(
@@ -204,7 +212,31 @@ class MessagesFragment :
                     goBack()
                 }
             }
+            is MessagesScreenEffect.AddAttachment -> addAttachment()
         }
+    }
+
+    private fun addAttachment() {
+        pickMedia.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+    }
+
+    private fun handlePickMediaResult(uri: Uri?) {
+        if (uri != null) {
+            Log.d("PhotoPicker", "Selected URI: $uri, filename: ${getFileNameFromUri(uri)}")
+        } else {
+            Log.d("PhotoPicker", "No media selected")
+        }
+    }
+
+    private fun getFileNameFromUri(uri: Uri): String? {
+        val cursor = requireContext().contentResolver.query(uri, null, null, null, null)
+        cursor?.use {
+            it.moveToFirst()
+            val columnIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            if (columnIndex < 0) return@use
+            return it.getString(columnIndex)
+        }
+        return null
     }
 
     private fun scrollAfterSubmitMessages(result: MessagesResultDelegate) {

@@ -179,7 +179,7 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
                     commands { +MessagesScreenCommand.SendMessage(text) }
                 }
                 // TODO: show field for creating new topic or add attachment
-                false -> {}
+                false -> effects { +MessagesScreenEffect.AddAttachment }
             }
         }
         is MessagesScreenEvent.Ui.ShowUserInfo ->
