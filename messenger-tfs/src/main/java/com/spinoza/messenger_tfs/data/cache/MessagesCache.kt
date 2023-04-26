@@ -46,9 +46,12 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
             messagesDto.forEach { data.remove(it) }
             data.addAll(messagesDto)
             if (data.isNotEmpty()) {
-                saveToDatabase(
-                    messagesPageType == MessagesPageType.OLDEST, messagesDto.first().subject
-                )
+                val subject = if (messagesDto.isNotEmpty()) {
+                    messagesDto.first().subject
+                } else {
+                    EMPTY_SUBJECT
+                }
+                saveToDatabase(messagesPageType == MessagesPageType.OLDEST, subject)
             }
         }
     }
@@ -159,5 +162,6 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
 
         private const val UNDEFINED_EVENT_ID = -1L
         private const val MAX_CACHE_SIZE = 50
+        private const val EMPTY_SUBJECT = ""
     }
 }
