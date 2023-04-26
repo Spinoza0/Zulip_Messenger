@@ -17,6 +17,7 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.FlexBoxGravity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,14 +46,14 @@ class MessageView @JvmOverloads constructor(
     val avatarImage: ImageView
         get() = binding.avatarImageView
 
-    private var authData = DEFAULT_AUTH_DATA
+    private lateinit var webUtil: WebUtil
     private var imageJob: Job? = null
 
     private val imageGetter = ImageGetter { imageUrl ->
         val holder = DrawableHolder(resources)
         imageJob?.cancel()
         imageJob = CoroutineScope(Dispatchers.IO).launch {
-            holder.loadImage(context, imageUrl, binding.contentTextView, authData)
+            holder.loadImage(context, webUtil, imageUrl, binding.contentTextView)
         }
         holder
     }
@@ -237,12 +238,12 @@ class MessageView @JvmOverloads constructor(
         }
     }
 
-    fun setMessage(message: Message, authData: String, reactionsGravity: FlexBoxGravity) {
+    fun setMessage(message: Message, webUtil: WebUtil, reactionsGravity: FlexBoxGravity) {
         messageId = message.id
         userId = message.user.userId
         name = message.user.fullName
         content = message.content
-        this.authData = authData
+        this.webUtil = webUtil
         this.reactionsGravity = reactionsGravity
         setReactions(message.reactions)
     }
@@ -276,6 +277,5 @@ class MessageView @JvmOverloads constructor(
 
         const val REACTION_PADDING_HORIZONTAL = 10f
         const val REACTION_PADDING_VERTICAL = 7f
-        const val DEFAULT_AUTH_DATA = ""
     }
 }

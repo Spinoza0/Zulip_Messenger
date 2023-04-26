@@ -9,7 +9,7 @@ import android.graphics.drawable.Drawable
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
-import com.bumptech.glide.load.model.LazyHeaders
+import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -24,23 +24,20 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
 
     suspend fun loadImage(
         context: Context,
+        webUtil: WebUtil,
         imageUrl: String,
         textView: TextView,
-        authData: String,
     ) {
         runCatching {
-            val fullUrl = imageUrl.getFullUrl()
-            val glideUrl = GlideUrl(
-                fullUrl,
-                LazyHeaders.Builder().addHeader(HEADER_AUTHORIZATION, authData).build()
-            )
+            val fullUrl = webUtil.getFullUrl(imageUrl)
+            val glideUrl = GlideUrl(fullUrl, webUtil.getLazyHeaders())
             val bitmap = Glide.with(context)
                 .asBitmap()
                 .load(glideUrl)
                 .submit().get()
             val newDrawable = BitmapDrawable(resources, bitmap)
             val scaleUsingUrlType =
-                if (fullUrl.isUserUploadsUrl()) USER_IMAGE_SCALE else ZULIP_IMAGE_SCALE
+                if (webUtil.isUserUploadsUrl(fullUrl)) USER_IMAGE_SCALE else ZULIP_IMAGE_SCALE
             val scale = textView.width / newDrawable.intrinsicWidth.toFloat() / scaleUsingUrlType
             val width = (newDrawable.intrinsicWidth * scale).toInt()
             val height = (newDrawable.intrinsicHeight * scale).toInt()
@@ -59,6 +56,5 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
         const val IMAGE_LEFT_BOUND = 0
         const val ZULIP_IMAGE_SCALE = 1.25f
         const val USER_IMAGE_SCALE = 0.5f
-        const val HEADER_AUTHORIZATION = "Authorization"
     }
 }

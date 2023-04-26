@@ -19,6 +19,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.usecase.*
+import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.*
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
@@ -45,7 +46,7 @@ class MessagesFragment :
             MessagesScreenCommand>
 
     @Inject
-    lateinit var appAuthKeeper: AppAuthKeeper
+    lateinit var webUtil: WebUtil
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
@@ -114,15 +115,11 @@ class MessagesFragment :
                     ::onReactionAddClickListener,
                     ::onReactionClickListener,
                     ::onAvatarClickListener,
-                    appAuthKeeper.data
+                    webUtil
                 )
             )
             addDelegate(
-                OwnMessageDelegate(
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener,
-                    appAuthKeeper.data
-                )
+                OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener, webUtil)
             )
             addDelegate(DateDelegate())
         }

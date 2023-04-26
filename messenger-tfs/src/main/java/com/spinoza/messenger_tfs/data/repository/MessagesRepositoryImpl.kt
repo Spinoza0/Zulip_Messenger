@@ -1,9 +1,7 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import android.content.Context
-import android.database.Cursor
 import android.net.Uri
-import android.provider.MediaStore
 import android.provider.OpenableColumns
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
@@ -21,6 +19,7 @@ import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
+import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,7 +31,9 @@ import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 class MessagesRepositoryImpl @Inject constructor(
@@ -42,6 +43,7 @@ class MessagesRepositoryImpl @Inject constructor(
     private val apiService: ZulipApiService,
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
+    private val webUtil: WebUtil,
 ) : MessagesRepository {
 
     private var storedOwnUser: UserDto = UserDto()
@@ -527,21 +529,12 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
-                val cursor = context.contentResolver.query(uri, null, null, null, null)
-                    ?: throw RepositoryError(context.getString(R.string.error_uri))
-                val path = getFileData(cursor, MediaStore.Images.Media.DATA, cursor::getString)
-                    ?: throw RepositoryError(context.getString(R.string.error_file_not_found))
-                val size = getFileData(cursor, OpenableColumns.SIZE, cursor::getLong)
-                    ?: throw RepositoryError(context.getString(R.string.error_uri))
-                if (size == MAX_FILE_SIZE) {
-                    throw RepositoryError(context.getString(R.string.error_file_size))
-                }
                 val contentType = context.contentResolver.getType(uri)
                     ?: throw RepositoryError(context.getString(R.string.error_unknown_file_type))
-                val file = File(path)
-                val requestFile = RequestBody.create(MediaType.parse(contentType), file)
-                val filePart =
-                    MultipartBody.Part.createFormData(oldMessageText, oldMessageText, requestFile)
+                val tempFile = getTempFile(uri)
+                val requestFile = RequestBody.create(MediaType.parse(contentType), tempFile)
+                val fileName = uri.getFileName()
+                val filePart = MultipartBody.Part.createFormData(fileName, fileName, requestFile)
                 val response = apiService.uploadFile(filePart)
                 if (!response.isSuccessful) {
                     throw RepositoryError(response.message())
@@ -550,16 +543,53 @@ class MessagesRepositoryImpl @Inject constructor(
                 if (responseBody.result != RESULT_SUCCESS) {
                     throw RepositoryError(responseBody.msg)
                 }
-                responseBody.uri
+                "$oldMessageText\n${webUtil.getFullUrl(responseBody.uri)}\n"
             }
         }
 
-    private fun <T> getFileData(cursor: Cursor, param: String, getParam: (Int) -> T): T? {
-        var data: T? = null
-        if (cursor.moveToFirst()) {
-            data = getParam(cursor.getColumnIndexOrThrow(param))
+    private suspend fun getTempFile(uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw RepositoryError(context.getString(R.string.error_uri))
+        val bufferSize = BUFFER_SIZE
+        val buffer = ByteArray(bufferSize)
+        val filesDir = context.filesDir
+        val tempFile = File(filesDir, TEMP_FILE_NAME).also { it.deleteOnExit() }
+        var fileSize = 0L
+        val bufferedOutputStream = withContext(Dispatchers.IO) {
+            BufferedOutputStream(
+                FileOutputStream(tempFile),
+                bufferSize
+            )
         }
-        return data
+        inputStream.use { input ->
+            bufferedOutputStream.use { output ->
+                var len = input.read(buffer)
+                while (len != END_OF_FILE) {
+                    fileSize += len
+                    output.write(buffer, NO_OFFSET, len)
+                    len = inputStream.read(buffer)
+                }
+                output.flush()
+            }
+        }
+        if (fileSize <= MIN_FILE_SIZE) {
+            throw RepositoryError(context.getString(R.string.error_uri))
+        }
+        if (fileSize >= MAX_FILE_SIZE) {
+            throw RepositoryError(context.getString(R.string.error_file_size))
+        }
+        return tempFile
+    }
+
+    private fun Uri.getFileName(): String {
+        var fileName: String = DEFAULT_FILE_NAME
+        context.contentResolver.query(this, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                fileName =
+                    cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+            }
+        }
+        return fileName.ifBlank { DEFAULT_FILE_NAME }
     }
 
     private suspend fun apiGetMessages(
@@ -683,6 +713,13 @@ class MessagesRepositoryImpl @Inject constructor(
         private const val OFFLINE_TIME = 180
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
         private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500
+
         private const val MAX_FILE_SIZE = 10 * 1024 * 1024L
+        private const val MIN_FILE_SIZE = 0L
+        private const val DEFAULT_FILE_NAME = "file"
+        private const val TEMP_FILE_NAME = "temp_file"
+        private const val BUFFER_SIZE = 512 * 1024
+        private const val NO_OFFSET = 0
+        private const val END_OF_FILE = -1
     }
 }

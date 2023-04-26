@@ -9,7 +9,6 @@ import java.util.regex.Pattern
 
 class MessageTagHandler : Html.TagHandler {
 
-    private val emojiPattern = Pattern.compile(EMOJI_CODE_REGEXP)
     private val attributes = HashMap<String, String>()
 
     override fun handleTag(
@@ -73,6 +72,7 @@ class MessageTagHandler : Html.TagHandler {
         private const val EMOJI_CODE_INDEX = 1
         private const val EMPTY_EMOJI_CODE = ""
 
+        private val emojiPattern = Pattern.compile(EMOJI_CODE_REGEXP)
         private val emojiTagRegex = Regex("<span(.+?class=\"emoji.+?):\\w+?:</span>")
 
         // TODO: prepare href -> make full url
