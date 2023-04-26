@@ -115,11 +115,10 @@ class MessagesFragment :
                     ::onReactionAddClickListener,
                     ::onReactionClickListener,
                     ::onAvatarClickListener,
-                    webUtil
                 )
             )
             addDelegate(
-                OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener, webUtil)
+                OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener)
             )
             addDelegate(DateDelegate())
         }

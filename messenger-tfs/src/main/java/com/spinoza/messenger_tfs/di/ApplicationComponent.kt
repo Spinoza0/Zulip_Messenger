@@ -23,7 +23,7 @@ interface ApplicationComponent {
 
     fun messagesRepositoryAuthKeeper(): AppAuthKeeper
 
-    fun urlUtil(): WebUtil
+    fun webUtil(): WebUtil
 
     @Component.Factory
     interface Factory {

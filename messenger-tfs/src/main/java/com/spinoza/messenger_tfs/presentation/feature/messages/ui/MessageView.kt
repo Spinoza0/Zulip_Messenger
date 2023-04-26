@@ -17,7 +17,7 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.webutil.WebUtil
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.FlexBoxGravity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +46,7 @@ class MessageView @JvmOverloads constructor(
     val avatarImage: ImageView
         get() = binding.avatarImageView
 
-    private lateinit var webUtil: WebUtil
+    private val webUtil = context.getAppComponent().webUtil()
     private var imageJob: Job? = null
 
     private val imageGetter = ImageGetter { imageUrl ->
@@ -238,12 +238,11 @@ class MessageView @JvmOverloads constructor(
         }
     }
 
-    fun setMessage(message: Message, webUtil: WebUtil, reactionsGravity: FlexBoxGravity) {
+    fun setMessage(message: Message, reactionsGravity: FlexBoxGravity) {
         messageId = message.id
         userId = message.user.userId
         name = message.user.fullName
         content = message.content
-        this.webUtil = webUtil
         this.reactionsGravity = reactionsGravity
         setReactions(message.reactions)
     }

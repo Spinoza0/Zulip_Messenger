@@ -9,7 +9,6 @@ import com.spinoza.messenger_tfs.databinding.OwnMessageItemBinding
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
-import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
@@ -18,7 +17,6 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 class OwnMessageDelegate(
     private val onReactionAddClickListener: (MessageView) -> Unit,
     private val onReactionClickListener: (MessageView, ReactionView) -> Unit,
-    private val webUtil: WebUtil,
 ) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -40,7 +38,6 @@ class OwnMessageDelegate(
             item as OwnMessageDelegateItem,
             onReactionAddClickListener,
             onReactionClickListener,
-            webUtil
         )
     }
 
@@ -67,11 +64,10 @@ class OwnMessageDelegate(
             item: OwnMessageDelegateItem,
             onReactionAddClickListener: (MessageView) -> Unit,
             onReactionClickListener: (MessageView, ReactionView) -> Unit,
-            webUtil: WebUtil,
         ) {
             with(binding.messageView) {
                 val message = item.content() as Message
-                setMessage(message, webUtil, item.getGravity())
+                setMessage(message, item.getGravity())
                 Glide.with(avatarImage)
                     .load(message.user.avatarUrl)
                     .circleCrop()
