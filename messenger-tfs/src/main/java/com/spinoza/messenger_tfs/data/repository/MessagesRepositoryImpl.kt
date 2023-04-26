@@ -171,6 +171,13 @@ class MessagesRepositoryImpl @Inject constructor(
                     anchorId = messagesCache.firstMessageId(filter),
                     ZulipApiService.ANCHOR_OLDEST
                 )
+                MessagesPageType.AFTER_STORED -> apiGetMessages(
+                    numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchorId = messagesCache.lastMessageId(filter),
+                    ZulipApiService.ANCHOR_NEWEST
+                )
                 MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,

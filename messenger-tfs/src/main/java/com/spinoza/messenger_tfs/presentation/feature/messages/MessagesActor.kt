@@ -179,7 +179,7 @@ class MessagesActor @Inject constructor(
             if ((command as MessagesScreenCommand.LoadFirstPage).isMessagesListEmpty) {
                 MessagesPageType.FIRST_UNREAD
             } else {
-                MessagesPageType.NEWEST
+                MessagesPageType.AFTER_STORED
             }
         val event = loadMessages(messagesPageType)
         isLoadingFirstPage = false
