@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.data.network
 
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
+import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
@@ -14,6 +15,7 @@ import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserResponse
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
@@ -118,6 +120,10 @@ interface ZulipApiService {
         @Query(QUERY_OPERATION) operation: String = QUERY_OPERATION_ADD,
         @Query(QUERY_FLAG) flag: String = QUERY_FLAG_READ,
     ): Response<BasicResponse>
+
+    @Multipart
+    @POST("user_uploads")
+    suspend fun uploadFile(@Part filePart: MultipartBody.Part): Response<UploadFileResponse>
 
     companion object {
 

@@ -22,7 +22,11 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Credentials
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
+import java.io.InputStream
 import javax.inject.Inject
 
 class MessagesRepositoryImpl @Inject constructor(
@@ -505,6 +509,25 @@ class MessagesRepositoryImpl @Inject constructor(
             )
         }
     }
+
+    override suspend fun uploadFile(name: String, inputStream: InputStream): Result<String> =
+        withContext(Dispatchers.IO) {
+            runCatchingNonCancellation {
+                val requestFile =
+                    RequestBody.create(MediaType.parse("image/*"), inputStream.readBytes())
+                val filePart =
+                    MultipartBody.Part.createFormData("image", name, requestFile)
+                val response = apiService.uploadFile(filePart)
+                if (!response.isSuccessful) {
+                    throw RepositoryError(response.message())
+                }
+                val responseBody = response.getBodyOrThrow()
+                if (responseBody.result != RESULT_SUCCESS) {
+                    throw RepositoryError(responseBody.msg)
+                }
+                responseBody.uri
+            }
+        }
 
     private suspend fun apiGetMessages(
         numBefore: Int,
