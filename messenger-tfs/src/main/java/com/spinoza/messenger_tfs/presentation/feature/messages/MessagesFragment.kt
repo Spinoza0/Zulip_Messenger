@@ -146,6 +146,10 @@ class MessagesFragment :
             imageViewAction.setOnClickListener {
                 store.accept(MessagesScreenEvent.Ui.SendMessage(editTextMessage.text))
             }
+            imageViewAction.setOnLongClickListener {
+                addAttachment()
+                true
+            }
             editTextMessage.doOnTextChanged { text, _, _, _ ->
                 store.accept(MessagesScreenEvent.Ui.NewMessageText(text))
             }
