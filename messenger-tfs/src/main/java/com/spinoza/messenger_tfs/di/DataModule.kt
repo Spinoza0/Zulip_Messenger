@@ -1,15 +1,16 @@
 package com.spinoza.messenger_tfs.di
 
 import android.content.Context
+import androidx.room.Room
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
 import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
-import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
+import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.data.network.WebUtilImpl
+import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import dagger.Binds
@@ -40,6 +41,7 @@ interface DataModule {
 
     companion object {
 
+        private const val DATABASE_NAME = "messenger-tfs-cache.db"
         private const val HEADER_AUTHORIZATION = "Authorization"
         private const val MEDIA_TYPE_JSON = "application/json"
         private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
@@ -47,8 +49,15 @@ interface DataModule {
 
         @ApplicationScope
         @Provides
-        fun provideMessengerDao(context: Context): MessengerDao =
-            MessengerDatabase.getInstance(context).dao()
+        fun provideMessengerDatabase(context: Context): MessengerDatabase =
+            Room.databaseBuilder(context, MessengerDatabase::class.java, DATABASE_NAME)
+                .fallbackToDestructiveMigration()
+                .build()
+
+        @ApplicationScope
+        @Provides
+        fun provideMessengerDao(messengerDatabase: MessengerDatabase): MessengerDao =
+            messengerDatabase.dao()
 
         @Provides
         fun provideJsonConverter(): Json = Json {
