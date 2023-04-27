@@ -5,6 +5,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
+import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
@@ -16,7 +17,10 @@ import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 import javax.inject.Inject
 
-class MessagesReducer @Inject constructor(private val router: Router) : ScreenDslReducer<
+class MessagesReducer @Inject constructor(
+    private val router: Router,
+    private val webUtil: WebUtil,
+) : ScreenDslReducer<
         MessagesScreenEvent,
         MessagesScreenEvent.Ui,
         MessagesScreenEvent.Internal,
@@ -156,6 +160,16 @@ class MessagesReducer @Inject constructor(private val router: Router) : ScreenDs
         }
         is MessagesScreenEvent.Ui.NewMessageText -> {
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
+        }
+        is MessagesScreenEvent.Ui.OnMessageLongClick -> {
+            val attachments = webUtil.getAttachmentsUrls(event.messageView.rawContent)
+            if (attachments.isNotEmpty()) {
+                effects { +MessagesScreenEffect.ShowMessageMenu(attachments, event.messageView) }
+            } else {
+                effects {
+                    +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId)
+                }
+            }
         }
         is MessagesScreenEvent.Ui.Load -> {
             recyclerView = event.recyclerView

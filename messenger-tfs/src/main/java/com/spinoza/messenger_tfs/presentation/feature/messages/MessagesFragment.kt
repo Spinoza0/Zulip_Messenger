@@ -11,6 +11,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.*
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.RecyclerView
@@ -112,13 +113,18 @@ class MessagesFragment :
         val messagesAdapter = MainDelegateAdapter().apply {
             addDelegate(
                 UserMessageDelegate(
+                    ::onMessageLongClickListener,
                     ::onReactionAddClickListener,
                     ::onReactionClickListener,
                     ::onAvatarClickListener,
                 )
             )
             addDelegate(
-                OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener)
+                OwnMessageDelegate(
+                    ::onMessageLongClickListener,
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener
+                )
             )
             addDelegate(DateDelegate())
         }
@@ -188,6 +194,7 @@ class MessagesFragment :
             is MessagesScreenEffect.MessageSent -> binding.editTextMessage.text?.clear()
             is MessagesScreenEffect.ScrollToLastMessage ->
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
+            is MessagesScreenEffect.ShowMessageMenu -> showMessageMenu(effect)
             is MessagesScreenEffect.ShowChooseReactionDialog -> {
                 val dialog = ChooseReactionDialogFragment.newInstance(
                     effect.messageId,
@@ -210,6 +217,25 @@ class MessagesFragment :
             is MessagesScreenEffect.FileUploaded ->
                 binding.editTextMessage.setText(effect.newMessageText)
         }
+    }
+
+    private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
+        val popupMenu = PopupMenu(requireContext(), effect.messageView)
+        popupMenu.inflate(R.menu.menu_long_click_on_message)
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.itemAddReaction -> {
+                    onReactionAddClickListener(effect.messageView)
+                    true
+                }
+                R.id.itemSaveAttachments -> {
+                    TODO()
+                    true
+                }
+                else -> false
+            }
+        }
+        popupMenu.show()
     }
 
     private fun addAttachment() {
@@ -239,6 +265,10 @@ class MessagesFragment :
 
     private fun onAvatarClickListener(messageView: MessageView) {
         store.accept(MessagesScreenEvent.Ui.ShowUserInfo(messageView))
+    }
+
+    private fun onMessageLongClickListener(messageView: MessageView) {
+        store.accept(MessagesScreenEvent.Ui.OnMessageLongClick(messageView))
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {

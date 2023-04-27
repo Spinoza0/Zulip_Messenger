@@ -34,6 +34,8 @@ sealed class MessagesScreenEvent {
 
         class ShowUserInfo(val message: MessageView) : Ui()
 
+        class OnMessageLongClick(val messageView: MessageView) : Ui()
+
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
         class UploadFile(val message: CharSequence?, val uri: Uri) : Ui()

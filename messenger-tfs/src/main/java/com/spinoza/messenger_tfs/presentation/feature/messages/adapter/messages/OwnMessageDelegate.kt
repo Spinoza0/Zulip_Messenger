@@ -15,6 +15,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 
 class OwnMessageDelegate(
+    private val onMessageLongClickListener: (MessageView) -> Unit,
     private val onReactionAddClickListener: (MessageView) -> Unit,
     private val onReactionClickListener: (MessageView, ReactionView) -> Unit,
 ) : AdapterDelegate {
@@ -36,6 +37,7 @@ class OwnMessageDelegate(
     ) {
         (holder as ViewHolder).bind(
             item as OwnMessageDelegateItem,
+            onMessageLongClickListener,
             onReactionAddClickListener,
             onReactionClickListener,
         )
@@ -62,6 +64,7 @@ class OwnMessageDelegate(
 
         fun bind(
             item: OwnMessageDelegateItem,
+            onMessageLongClickListener: (MessageView) -> Unit,
             onReactionAddClickListener: (MessageView) -> Unit,
             onReactionClickListener: (MessageView, ReactionView) -> Unit,
         ) {
@@ -74,7 +77,8 @@ class OwnMessageDelegate(
                     .error(R.drawable.ic_default_avatar)
                     .into(avatarImage)
                 setReactions(message.reactions)
-                setOnMessageLongClickListener(onReactionAddClickListener)
+                setOnMessageLongClickListener(onMessageLongClickListener)
+                setOnReactionAddClickListener(onReactionAddClickListener)
                 setOnReactionClickListener(onReactionClickListener)
             }
         }

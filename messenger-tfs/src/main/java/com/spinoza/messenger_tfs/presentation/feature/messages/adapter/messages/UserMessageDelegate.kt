@@ -15,6 +15,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 
 class UserMessageDelegate(
+    private val onMessageLongClickListener: (MessageView) -> Unit,
     private val onReactionAddClickListener: (MessageView) -> Unit,
     private val onReactionClickListener: (MessageView, ReactionView) -> Unit,
     private val onAvatarClickListener: (MessageView) -> Unit,
@@ -37,6 +38,7 @@ class UserMessageDelegate(
     ) {
         (holder as ViewHolder).bind(
             item as UserMessageDelegateItem,
+            onMessageLongClickListener,
             onReactionAddClickListener,
             onReactionClickListener,
             onAvatarClickListener,
@@ -65,6 +67,7 @@ class UserMessageDelegate(
 
         fun bind(
             item: UserMessageDelegateItem,
+            onMessageLongClickListener: (MessageView) -> Unit,
             onReactionAddClickListener: (MessageView) -> Unit,
             onReactionClickListener: (MessageView, ReactionView) -> Unit,
             onAvatarClickListener: ((MessageView) -> Unit)?,
@@ -79,7 +82,8 @@ class UserMessageDelegate(
                     .into(avatarImage)
                 setReactions(message.reactions)
                 setOnAvatarClickListener(onAvatarClickListener)
-                setOnMessageLongClickListener(onReactionAddClickListener)
+                setOnMessageLongClickListener(onMessageLongClickListener)
+                setOnReactionAddClickListener(onReactionAddClickListener)
                 setOnReactionClickListener(onReactionClickListener)
             }
         }
