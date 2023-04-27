@@ -28,7 +28,7 @@ class WebUtilImpl @Inject constructor(private val authKeeper: AppAuthKeeper) : W
 
     override fun getLazyHeaders(): LazyHeaders =
         LazyHeaders.Builder()
-            .addHeader(HEADER_AUTHORIZATION_TITLE, authKeeper.getData()).build()
+            .addHeader(authKeeper.getKey(), authKeeper.getValue()).build()
 
     override fun getAttachmentsUrls(content: String): List<String> {
         val links = mutableSetOf<String>()
@@ -55,6 +55,5 @@ class WebUtilImpl @Inject constructor(private val authKeeper: AppAuthKeeper) : W
         const val URL_HTTP_BASIC_PREFIX = "http://"
         const val URL_SLASH = "/"
         const val URL_USER_UPLOADS_PREFIX = "$BASE_URL/user_uploads"
-        const val HEADER_AUTHORIZATION_TITLE = "Authorization"
     }
 }

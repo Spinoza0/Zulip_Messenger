@@ -94,7 +94,7 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
     override fun handleEffect(effect: PeopleScreenEffect) {
         when (effect) {
             is PeopleScreenEffect.Failure.ErrorLoadingUsers ->
-                showError(String.format(getString(R.string.error_loading_users), effect.value))
+                showError("${getString(R.string.error_loading_users)} ${effect.value}")
             is PeopleScreenEffect.Failure.ErrorNetwork ->
                 showCheckInternetConnectionDialog(
                     { store.accept(PeopleScreenEvent.Ui.Load) }

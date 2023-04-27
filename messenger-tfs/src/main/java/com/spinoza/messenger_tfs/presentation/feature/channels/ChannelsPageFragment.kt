@@ -134,9 +134,8 @@ class ChannelsPageFragment : Fragment() {
 
     private fun handleEffect(effect: ChannelsPageScreenEffect) {
         when (effect) {
-            is ChannelsPageScreenEffect.Failure.Error -> showError(
-                String.format(getString(R.string.error_channels), effect.value)
-            )
+            is ChannelsPageScreenEffect.Failure.Error ->
+                showError("${getString(R.string.error_channels)} ${effect.value}")
             is ChannelsPageScreenEffect.Failure.Network ->
                 showCheckInternetConnectionDialog({
                     store.accept(ChannelsPageScreenEvent.Ui.Load)

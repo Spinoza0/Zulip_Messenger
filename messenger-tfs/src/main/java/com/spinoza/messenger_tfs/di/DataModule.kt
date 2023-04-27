@@ -6,10 +6,12 @@ import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
 import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
-import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
+import com.spinoza.messenger_tfs.data.network.AttachmentHandlerImpl
+import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.data.network.WebUtilImpl
+import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.repository.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import dagger.Binds
@@ -38,9 +40,12 @@ interface DataModule {
     @Binds
     fun bindAppAuthKeeper(impl: AppAuthKeeperImpl): AppAuthKeeper
 
+    @ApplicationScope
+    @Binds
+    fun bindAttachmentHandler(impl: AttachmentHandlerImpl): AttachmentHandler
+
     companion object {
 
-        private const val HEADER_AUTHORIZATION = "Authorization"
         private const val MEDIA_TYPE_JSON = "application/json"
         private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
         private const val TIME_OUT_SECONDS = 15L
@@ -58,7 +63,7 @@ interface DataModule {
 
         @ApplicationScope
         @Provides
-        fun provideZulipApiService(appAuthKeeper: AppAuthKeeper): ZulipApiService {
+        fun provideZulipApiService(authKeeper: AppAuthKeeper): ZulipApiService {
             val json = Json {
                 ignoreUnknownKeys = true
                 coerceInputValues = true
@@ -70,11 +75,11 @@ interface DataModule {
                 .writeTimeout(TIME_OUT_SECONDS, TimeUnit.SECONDS)
                 .authenticator { _: Route?, response: Response ->
                     val request = response.request()
-                    if (request.header(HEADER_AUTHORIZATION) != null)
+                    if (request.header(authKeeper.getKey()) != null)
                         return@authenticator null
                     request.newBuilder().header(
-                        HEADER_AUTHORIZATION,
-                        appAuthKeeper.getData()
+                        authKeeper.getKey(),
+                        authKeeper.getValue()
                     ).build()
                 }
                 .build()

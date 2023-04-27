@@ -204,11 +204,10 @@ class MessagesFragment :
                     requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG
                 )
             }
-            is MessagesScreenEffect.Failure.ErrorMessages -> showError(
-                String.format(getString(R.string.error_messages), effect.value)
-            )
+            is MessagesScreenEffect.Failure.ErrorMessages ->
+                showError("${getString(R.string.error_messages)} ${effect.value}")
             is MessagesScreenEffect.Failure.ErrorNetwork -> {
-                showError(String.format(getString(R.string.error_network), effect.value))
+                showError("${getString(R.string.error_network)} ${effect.value}")
                 showCheckInternetConnectionDialog({ store.accept(MessagesScreenEvent.Ui.Reload) }) {
                     goBack()
                 }
