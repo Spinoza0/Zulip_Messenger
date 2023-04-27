@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.people.model
 
+import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.domain.model.User
 
 sealed class PeopleScreenEvent {
@@ -13,6 +14,8 @@ sealed class PeopleScreenEvent {
         class Filter(val value: String) : Ui()
 
         class ShowUserInfo(val userId: Long) : Ui()
+
+        class OnScrolled(val recyclerView: RecyclerView, val dy: Int) : Ui()
 
         object OpenMainMenu : Ui()
     }

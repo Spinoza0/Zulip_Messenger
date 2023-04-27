@@ -49,6 +49,9 @@ class ChannelsPageFragmentViewModel @Inject constructor(
         EventsQueueHolder(viewModelScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var updateMessagesCountJob: Job? = null
 
+    @Volatile
+    private var isLoading = false
+
     init {
         subscribeToChannelsQueryChanges()
         updateTopicsMessageCount()
@@ -57,6 +60,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     fun accept(event: ChannelsPageScreenEvent) {
         when (event) {
             is ChannelsPageScreenEvent.Ui.Filter -> setChannelsFilter(event.filter)
+            is ChannelsPageScreenEvent.Ui.OnScrolled -> onScrolled(event)
             is ChannelsPageScreenEvent.Ui.Load -> loadItems()
             is ChannelsPageScreenEvent.Ui.UpdateMessageCount -> updateMessagesCount()
             is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
@@ -80,7 +84,10 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun loadItems() {
+        if (isLoading) return
         viewModelScope.launch(Dispatchers.Default) {
+            isLoading = true
+            stopUpdateMessagesCountJob()
             var storedChannels = emptyList<Channel>()
             getStoredChannelsUseCase(channelsFilter).onSuccess { channels ->
                 storedChannels = channels
@@ -95,6 +102,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
             if (storedChannels.isEmpty()) {
                 _state.emit(state.value.copy(isLoading = false))
             }
+            isLoading = false
             result.onSuccess { newChannels ->
                 updateChannelsList(newChannels)
             }.onFailure {
@@ -103,7 +111,16 @@ class ChannelsPageFragmentViewModel @Inject constructor(
         }
     }
 
+    private fun onScrolled(event: ChannelsPageScreenEvent.Ui.OnScrolled) {
+        if ((!event.recyclerView.canScrollVertically(DIRECTION_UP) && event.dy <= DIRECTION_UP) ||
+            (!event.recyclerView.canScrollVertically(DIRECTION_DOWN) && event.dy >= DIRECTION_DOWN)
+        ) {
+            loadItems()
+        }
+    }
+
     private fun updateMessagesCount() {
+        stopUpdateMessagesCountJob()
         updateMessagesCountJob = viewModelScope.launch(Dispatchers.Default) {
             for (i in 0 until cache.size) {
                 if (!isActive) return@launch
@@ -233,6 +250,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
         cache.clear()
         cache.addAll(newCache)
         _state.emit(state.value.copy(items = cache.groupByChannel()))
+        updateMessagesCount()
     }
 
     private fun updateStoredChannels(
@@ -356,5 +374,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
         const val EMPTY_NAME = ""
         const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
         const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
+        const val DIRECTION_UP = -1
+        const val DIRECTION_DOWN = 1
     }
 }

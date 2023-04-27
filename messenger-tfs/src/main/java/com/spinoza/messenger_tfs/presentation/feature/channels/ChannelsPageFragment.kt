@@ -10,7 +10,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
@@ -87,21 +86,9 @@ class ChannelsPageFragment : Fragment() {
         )
         binding.recyclerViewChannels.adapter = channelsAdapter
         binding.recyclerViewChannels.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
-                val lastItem = layoutManager.itemCount - 1
-                val firstItem = 0
-                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
-                    if (lastVisibleItemPosition == lastItem ||
-                        firstVisibleItemPosition == firstItem
-                    ) {
-                        loadChannels()
-                        updateMessageCount()
-                    }
-                }
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                store.accept(ChannelsPageScreenEvent.Ui.OnScrolled(recyclerView, dy))
             }
         })
     }
@@ -151,7 +138,9 @@ class ChannelsPageFragment : Fragment() {
                 String.format(getString(R.string.error_channels), effect.value)
             )
             is ChannelsPageScreenEffect.Failure.Network ->
-                showCheckInternetConnectionDialog({ loadChannels() }) {
+                showCheckInternetConnectionDialog({
+                    store.accept(ChannelsPageScreenEvent.Ui.Load)
+                }) {
                     closeApplication()
                 }
         }
@@ -174,16 +163,8 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        updateMessageCount()
-        store.accept(ChannelsPageScreenEvent.Ui.RegisterEventQueue)
-    }
-
-    private fun loadChannels() {
-        store.accept(ChannelsPageScreenEvent.Ui.Load)
-    }
-
-    private fun updateMessageCount() {
         store.accept(ChannelsPageScreenEvent.Ui.UpdateMessageCount)
+        store.accept(ChannelsPageScreenEvent.Ui.RegisterEventQueue)
     }
 
     override fun onPause() {
