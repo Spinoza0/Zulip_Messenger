@@ -165,21 +165,21 @@ class MessagesRepositoryImpl @Inject constructor(
                     numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchorId = messagesCache.lastMessageId(filter),
+                    anchorId = messagesCache.getLastMessageId(filter),
                     ZulipApiService.ANCHOR_NEWEST
                 )
                 MessagesPageType.OLDEST -> apiGetMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchorId = messagesCache.firstMessageId(filter),
+                    anchorId = messagesCache.getFirstMessageId(filter),
                     ZulipApiService.ANCHOR_OLDEST
                 )
                 MessagesPageType.AFTER_STORED -> apiGetMessages(
                     numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                     numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
                     narrow = filter.createNarrowJsonForMessages(),
-                    anchorId = messagesCache.lastMessageId(filter),
+                    anchorId = messagesCache.getLastMessageId(filter),
                     ZulipApiService.ANCHOR_NEWEST
                 )
                 MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
@@ -448,7 +448,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 throw RepositoryError(eventResponse.msg)
             }
             if (messagesCache.isNotEmpty() &&
-                filter.topic.lastMessageId == messagesCache.lastMessageId(filter)
+                filter.topic.lastMessageId == messagesCache.getLastMessageId(filter)
             ) {
                 eventResponse.events.forEach { messageEventDto ->
                     messagesCache.add(messageEventDto.message, isLastMessageVisible)

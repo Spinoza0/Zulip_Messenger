@@ -53,9 +53,9 @@ class MessagesFragment :
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
 
-    private lateinit var messagesFilter: MessagesFilter
-    private lateinit var onBackPressedCallback: OnBackPressedCallback
-    private lateinit var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>
+    private var messagesFilter = MessagesFilter()
+    private var onBackPressedCallback: OnBackPressedCallback? = null
+    private var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     private var recyclerViewState: Parcelable? = null
 
     override val storeHolder:
@@ -98,8 +98,7 @@ class MessagesFragment :
             override fun handleOnBackPressed() {
                 goBack()
             }
-        }
-        requireActivity().onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
+        }.also { requireActivity().onBackPressedDispatcher.addCallback(this, it) }
     }
 
     private fun setupStatusBar() {
@@ -238,7 +237,7 @@ class MessagesFragment :
     }
 
     private fun addAttachment() {
-        pickMedia.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+        pickMedia?.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
     }
 
     private fun handlePickMediaResult(uri: Uri?) {
@@ -326,7 +325,8 @@ class MessagesFragment :
 
     override fun onStop() {
         super.onStop()
-        onBackPressedCallback.remove()
+        onBackPressedCallback?.remove()
+        onBackPressedCallback = null
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

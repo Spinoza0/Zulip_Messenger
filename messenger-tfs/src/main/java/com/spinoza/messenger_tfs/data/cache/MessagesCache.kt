@@ -62,12 +62,12 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
         }
     }
 
-    fun firstMessageId(filter: MessagesFilter): Long {
+    fun getFirstMessageId(filter: MessagesFilter): Long {
         val message = data.find { filter.isEqualTopicName(it.subject) }
         return message?.id ?: Message.UNDEFINED_ID
     }
 
-    fun lastMessageId(filter: MessagesFilter): Long {
+    fun getLastMessageId(filter: MessagesFilter): Long {
         val message = data.findLast { filter.isEqualTopicName(it.subject) }
         return message?.id ?: Message.UNDEFINED_ID
     }
