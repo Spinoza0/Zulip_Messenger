@@ -17,9 +17,9 @@ import com.spinoza.messenger_tfs.data.network.model.user.UserDto
 import com.spinoza.messenger_tfs.data.utils.*
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
+import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -43,7 +43,6 @@ class MessagesRepositoryImpl @Inject constructor(
     private val apiService: ZulipApiService,
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
-    private val webUtil: WebUtil,
 ) : MessagesRepository {
 
     private var storedOwnUser: UserDto = UserDto()
@@ -54,7 +53,7 @@ class MessagesRepositoryImpl @Inject constructor(
         password: String,
     ): Result<String> = withContext(Dispatchers.IO) {
         if (storedApiKey.isNotBlank()) {
-            apiAuthKeeper.data = Credentials.basic(email, storedApiKey)
+            apiAuthKeeper.setData(Credentials.basic(email, storedApiKey))
             getOwnUser().onSuccess {
                 return@withContext Result.success(storedApiKey)
             }
@@ -68,7 +67,7 @@ class MessagesRepositoryImpl @Inject constructor(
             if (apiKeyResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(apiKeyResponse.msg)
             }
-            apiAuthKeeper.data = Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
+            apiAuthKeeper.setData(Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey))
             apiKeyResponse.apiKey
         }
     }
@@ -543,7 +542,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 if (responseBody.result != RESULT_SUCCESS) {
                     throw RepositoryError(responseBody.msg)
                 }
-                "$oldMessageText\n[$fileName](${webUtil.getFullUrl(responseBody.uri)})\n"
+                "$oldMessageText\n[$fileName](${responseBody.uri})\n"
             }
         }
 

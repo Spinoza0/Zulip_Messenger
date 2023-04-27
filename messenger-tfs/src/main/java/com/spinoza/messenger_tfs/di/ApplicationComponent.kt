@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.di
 
 import android.content.Context
 import com.github.terrakok.cicerone.Router
-import com.spinoza.messenger_tfs.domain.model.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity

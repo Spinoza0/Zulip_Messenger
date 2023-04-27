@@ -5,10 +5,13 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
-import com.spinoza.messenger_tfs.domain.model.AppAuthKeeper
+import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
+import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
+import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -26,6 +29,14 @@ interface DataModule {
     @ApplicationScope
     @Binds
     fun bindMessagesRepository(impl: MessagesRepositoryImpl): MessagesRepository
+
+    @ApplicationScope
+    @Binds
+    fun bindWebUtil(impl: WebUtilImpl): WebUtil
+
+    @ApplicationScope
+    @Binds
+    fun bindAppAuthKeeper(impl: AppAuthKeeperImpl): AppAuthKeeper
 
     companion object {
 
@@ -63,7 +74,7 @@ interface DataModule {
                         return@authenticator null
                     request.newBuilder().header(
                         HEADER_AUTHORIZATION,
-                        appAuthKeeper.data
+                        appAuthKeeper.getData()
                     ).build()
                 }
                 .build()
