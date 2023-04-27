@@ -36,13 +36,9 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
                 .load(glideUrl)
                 .submit().get()
             val newDrawable = BitmapDrawable(resources, bitmap)
-            val scaleUsingUrlType =
-                if (webUtil.isUserUploadsUrl(fullUrl)) USER_IMAGE_SCALE else ZULIP_IMAGE_SCALE
-            val scaleWidth = textView.width / newDrawable.intrinsicWidth.toFloat()
-            val scaleHeight = textView.height / newDrawable.intrinsicHeight.toFloat()
-            val scale = minOf(scaleWidth, scaleHeight) / scaleUsingUrlType
-            val width = (newDrawable.intrinsicWidth * scale).toInt()
-            val height = (newDrawable.intrinsicHeight * scale).toInt()
+            val scale = newDrawable.bitmap.width.toFloat() / textView.maxWidth
+            val width: Int = textView.maxWidth - textView.paddingStart - textView.paddingEnd
+            val height = (newDrawable.bitmap.height / scale).toInt()
             newDrawable.setBounds(IMAGE_LEFT_BOUND, IMAGE_TOP_BOUND, width, height)
             drawable = newDrawable
             setBounds(IMAGE_LEFT_BOUND, IMAGE_TOP_BOUND, width, height)
@@ -56,7 +52,5 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
 
         const val IMAGE_TOP_BOUND = 0
         const val IMAGE_LEFT_BOUND = 0
-        const val ZULIP_IMAGE_SCALE = 1.25f
-        const val USER_IMAGE_SCALE = 0.5f
     }
 }

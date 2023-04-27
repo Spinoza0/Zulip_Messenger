@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
@@ -114,6 +115,7 @@ class MessageView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val widthSize = MeasureSpec.getSize(widthMeasureSpec)
         var offsetX = paddingLeft
         var offsetY = paddingTop
         var maxChildWidth = 0
@@ -136,6 +138,7 @@ class MessageView @JvmOverloads constructor(
                 heightMeasureSpec,
                 offsetY
             )
+            binding.nameTextView.setMaxWidthUsingOffset(widthSize, offsetX)
             maxChildWidth = binding.nameTextView.getWidthWithMargins()
             offsetY += binding.nameTextView.getHeightWithMargins()
         }
@@ -147,6 +150,7 @@ class MessageView @JvmOverloads constructor(
             heightMeasureSpec,
             offsetY
         )
+        binding.contentTextView.setMaxWidthUsingOffset(widthSize, offsetX)
         maxChildWidth = maxOf(maxChildWidth, binding.contentTextView.getWidthWithMargins())
         offsetY += binding.contentTextView.getHeightWithMargins()
 
@@ -253,6 +257,10 @@ class MessageView @JvmOverloads constructor(
         reactions.forEach {
             addReaction(it.key, it.value)
         }
+    }
+
+    private fun TextView.setMaxWidthUsingOffset(widthSize: Int, offset: Int) {
+        this.maxWidth = widthSize - offset
     }
 
     private fun addReaction(reaction: Emoji, reactionParam: ReactionParam) {
