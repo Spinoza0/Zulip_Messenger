@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels.model
 
-import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 
@@ -22,5 +21,12 @@ sealed class ChannelsPageScreenEvent {
 
         class OnTopicClick(val messagesFilter: MessagesFilter) : Ui()
 
-        class OnScrolled(val recyclerView: RecyclerView, val dy: Int) : Ui()    }
+        class OnScrolled(val canScrollUp: Boolean, val canScrollDown: Boolean, val dy: Int) : Ui()
+    }
+
+    companion object {
+
+        const val DIRECTION_UP = -1
+        const val DIRECTION_DOWN = 1
+    }
 }
