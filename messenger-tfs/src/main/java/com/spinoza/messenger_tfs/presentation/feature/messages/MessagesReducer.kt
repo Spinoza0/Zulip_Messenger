@@ -96,13 +96,11 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Internal.NextPageExists -> {
             if (event.isGoingToLastMessage) {
                 if (event.value) {
-                    state { copy(isLongOperation = true) }
                     commands { +MessagesScreenCommand.LoadLastPage }
                 } else {
                     effects { +MessagesScreenEffect.ScrollToLastMessage }
                 }
             } else {
-                state { copy(isLongOperation = event.value) }
                 commands { +MessagesScreenCommand.LoadNextPage }
             }
         }
@@ -138,7 +136,6 @@ class MessagesReducer @Inject constructor(
                     state.messages?.let {
                         commands { +MessagesScreenCommand.IsNextPageExisting(it, false) }
                     } ?: {
-                        state { copy(isLongOperation = true) }
                         commands { +MessagesScreenCommand.LoadNextPage }
                     }
                 }
