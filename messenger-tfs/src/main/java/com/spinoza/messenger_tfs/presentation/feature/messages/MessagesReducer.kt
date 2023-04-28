@@ -2,13 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
-<<<<<<< HEAD
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
-import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
-=======
->>>>>>> origin/HomeWork_9_(attachments)
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
@@ -154,7 +148,6 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Ui.NewMessageText -> {
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
         }
-<<<<<<< HEAD
         is MessagesScreenEvent.Ui.OnMessageLongClick -> {
             val attachments = webUtil.getAttachmentsUrls(event.messageView.rawContent)
             if (attachments.isNotEmpty()) {
@@ -165,13 +158,7 @@ class MessagesReducer @Inject constructor(
                 }
             }
         }
-        is MessagesScreenEvent.Ui.Load -> {
-            recyclerView = event.recyclerView
-            layoutManager = recyclerView.layoutManager as LinearLayoutManager
-            delegateAdapter = recyclerView.adapter as MainDelegateAdapter
-=======
         is MessagesScreenEvent.Ui.Load ->
->>>>>>> origin/HomeWork_9_(attachments)
             commands { +MessagesScreenCommand.LoadStored(event.filter) }
         is MessagesScreenEvent.Ui.SendMessage -> {
             val text = event.value.toString().trim()

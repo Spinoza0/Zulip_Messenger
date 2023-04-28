@@ -65,12 +65,19 @@ class MessagesFragment :
         MainDelegateAdapter().apply {
             addDelegate(
                 UserMessageDelegate(
+                    ::onMessageLongClickListener,
                     ::onReactionAddClickListener,
                     ::onReactionClickListener,
                     ::onAvatarClickListener,
                 )
             )
-            addDelegate(OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener))
+            addDelegate(
+                OwnMessageDelegate(
+                    ::onMessageLongClickListener,
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener
+                )
+            )
             addDelegate(DateDelegate())
         }
     }
@@ -130,27 +137,6 @@ class MessagesFragment :
     }
 
     private fun setupRecyclerView() {
-<<<<<<< HEAD
-        val messagesAdapter = MainDelegateAdapter().apply {
-            addDelegate(
-                UserMessageDelegate(
-                    ::onMessageLongClickListener,
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener,
-                    ::onAvatarClickListener,
-                )
-            )
-            addDelegate(
-                OwnMessageDelegate(
-                    ::onMessageLongClickListener,
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener
-                )
-            )
-            addDelegate(DateDelegate())
-        }
-=======
->>>>>>> origin/HomeWork_9_(attachments)
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -257,7 +243,6 @@ class MessagesFragment :
         }
     }
 
-<<<<<<< HEAD
     private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
         val popupMenu = PopupMenu(requireContext(), effect.messageView)
         popupMenu.inflate(R.menu.menu_long_click_on_message)
@@ -275,7 +260,8 @@ class MessagesFragment :
             }
         }
         popupMenu.show()
-=======
+    }
+
     private fun getVisibleMessagesIds(
         firstVisiblePosition: Int,
         lastVisiblePosition: Int,
@@ -300,7 +286,6 @@ class MessagesFragment :
 
     private fun isLastMessageVisible(lastVisibleItemPosition: Int): Boolean {
         return lastVisibleItemPosition == messagesAdapter.itemCount.minus(LAST_ITEM_OFFSET)
->>>>>>> origin/HomeWork_9_(attachments)
     }
 
     private fun addAttachment() {
