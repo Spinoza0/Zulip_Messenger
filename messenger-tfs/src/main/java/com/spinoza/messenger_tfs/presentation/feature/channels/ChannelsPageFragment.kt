@@ -23,7 +23,12 @@ import com.spinoza.messenger_tfs.presentation.feature.app.utils.showCheckInterne
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegate
-import com.spinoza.messenger_tfs.presentation.feature.channels.model.*
+import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
+import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEffect
+import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
+import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenState
+import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenState
+import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsPageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.factory.ViewModelFactory
@@ -48,6 +53,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private var isSubscribed = true
+
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsPageBinding == null")
@@ -97,6 +103,7 @@ class ChannelsPageFragment : Fragment() {
                 )
             }
         })
+        binding.recyclerViewChannels.itemAnimator = null
     }
 
     private fun onChannelClickListener(channelItem: ChannelItem) {
@@ -142,6 +149,7 @@ class ChannelsPageFragment : Fragment() {
         when (effect) {
             is ChannelsPageScreenEffect.Failure.Error ->
                 showError("${getString(R.string.error_channels)} ${effect.value}")
+
             is ChannelsPageScreenEffect.Failure.Network ->
                 showCheckInternetConnectionDialog({
                     store.accept(ChannelsPageScreenEvent.Ui.Load)
@@ -153,8 +161,7 @@ class ChannelsPageFragment : Fragment() {
 
     private fun handleSharedScreenState(state: ChannelsScreenState) {
         state.filter?.let { filter ->
-            val filterIsSubscribed = filter.screenPosition % 2 == 0
-            if (filterIsSubscribed == isSubscribed) {
+            if (filter.isSubscribed() == isSubscribed) {
                 store.accept(
                     ChannelsPageScreenEvent.Ui.Filter(ChannelsFilter(filter.text, isSubscribed))
                 )
@@ -184,6 +191,8 @@ class ChannelsPageFragment : Fragment() {
         binding.recyclerViewChannels.adapter = null
         _binding = null
     }
+
+    private fun SearchQuery.isSubscribed() = screenPosition % 2 == 0
 
     companion object {
 
