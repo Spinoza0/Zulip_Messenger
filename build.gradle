@@ -40,6 +40,12 @@ buildscript {
             elmslie                 : "2.1.1",
 
             junit4                  : "4.13.2",
+            androidxCoreTesting     : "2.2.0",
+            androidxJUnit           : "1.1.5",
+            androidxRunner          : "1.5.2",
+            kaspresso               : "1.5.2",
+            mockWebServer           : "4.10.0",
+            orchestrator            : "1.4.2",
 
             androidxTestExt         : "1.1.5",
             androidxEspresso        : "3.5.1",
@@ -96,6 +102,20 @@ buildscript {
             android   : "com.github.vivid-money.elmslie:elmslie-android:${versions.elmslie}",
             core      : "com.github.vivid-money.elmslie:elmslie-core:${versions.elmslie}",
             coroutines: "com.github.vivid-money.elmslie:elmslie-coroutines:${versions.elmslie}",
+    ]
+
+    ext.test = [
+            junit4      : "junit:junit:${versions.junit4}",
+            coroutines  : "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.kotlinxCoroutines}",
+            androidxCore: "androidx.arch.core:core-testing:${versions.androidxCoreTesting}"
+    ]
+
+    ext.androidTest = [
+            junit         : "androidx.test.ext:junit:${versions.androidxJUnit}",
+            kaspresso     : "com.kaspersky.android-components:kaspresso:${versions.kaspresso}",
+            mockWebServer : "com.squareup.okhttp3:mockwebserver:${versions.mockWebServer}",
+            androidxRunner: "androidx.test:runner:${versions.androidxRunner}",
+            orchestrator  : "androidx.test:orchestrator:${versions.orchestrator}"
     ]
 
     repositories {
