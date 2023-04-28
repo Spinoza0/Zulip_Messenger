@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts.*
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
@@ -26,7 +27,9 @@ import com.spinoza.messenger_tfs.presentation.feature.app.utils.*
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegate
+import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegate
+import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.*
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.*
 import vivid.money.elmslie.android.base.ElmFragment
@@ -57,6 +60,24 @@ class MessagesFragment :
     private var onBackPressedCallback: OnBackPressedCallback? = null
     private var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     private var recyclerViewState: Parcelable? = null
+
+    private val messagesAdapter by lazy {
+        MainDelegateAdapter().apply {
+            addDelegate(
+                UserMessageDelegate(
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener,
+                    ::onAvatarClickListener,
+                )
+            )
+            addDelegate(OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener))
+            addDelegate(DateDelegate())
+        }
+    }
+
+    private val layoutManager by lazy {
+        binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+    }
 
     override val storeHolder:
             StoreHolder<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState> by lazy {
@@ -109,6 +130,7 @@ class MessagesFragment :
     }
 
     private fun setupRecyclerView() {
+<<<<<<< HEAD
         val messagesAdapter = MainDelegateAdapter().apply {
             addDelegate(
                 UserMessageDelegate(
@@ -127,12 +149,31 @@ class MessagesFragment :
             )
             addDelegate(DateDelegate())
         }
+=======
+>>>>>>> origin/HomeWork_9_(attachments)
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                store.accept(MessagesScreenEvent.Ui.MessagesOnScrolled(dy))
+                var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
+                if (firstVisiblePosition == RecyclerView.NO_POSITION) {
+                    firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+                }
+                var lastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
+                if (lastVisiblePosition == RecyclerView.NO_POSITION) {
+                    lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+                }
+                store.accept(
+                    MessagesScreenEvent.Ui.MessagesOnScrolled(
+                        recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_UP),
+                        recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_DOWN),
+                        getVisibleMessagesIds(firstVisiblePosition, lastVisiblePosition),
+                        firstVisiblePosition, lastVisiblePosition, messagesAdapter.itemCount, dy,
+                        isNextMessageExisting(lastVisiblePosition),
+                        isLastMessageVisible(lastVisiblePosition)
+                    )
+                )
             }
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -177,10 +218,9 @@ class MessagesFragment :
                 shimmerSending.off()
             }
             state.messages?.let {
-                (recyclerViewMessages.adapter as MainDelegateAdapter).submitList(it.messages) {
+                messagesAdapter.submitList(it.messages) {
                     scrollAfterSubmitMessages(it)
                 }
-
             }
             progressBarLoadingPage.isVisible = state.isLongOperation
             imageViewAction.setImageResource(state.iconActionResId)
@@ -217,6 +257,7 @@ class MessagesFragment :
         }
     }
 
+<<<<<<< HEAD
     private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
         val popupMenu = PopupMenu(requireContext(), effect.messageView)
         popupMenu.inflate(R.menu.menu_long_click_on_message)
@@ -234,6 +275,32 @@ class MessagesFragment :
             }
         }
         popupMenu.show()
+=======
+    private fun getVisibleMessagesIds(
+        firstVisiblePosition: Int,
+        lastVisiblePosition: Int,
+    ): List<Long> {
+        val visibleMessageIds = mutableListOf<Long>()
+        if (firstVisiblePosition != RecyclerView.NO_POSITION &&
+            lastVisiblePosition != RecyclerView.NO_POSITION
+        ) {
+            for (i in firstVisiblePosition..lastVisiblePosition) {
+                val item = messagesAdapter.getItem(i)
+                if (item is UserMessageDelegateItem || item is OwnMessageDelegateItem) {
+                    visibleMessageIds.add((item.content() as Message).id)
+                }
+            }
+        }
+        return visibleMessageIds.toList()
+    }
+
+    private fun isNextMessageExisting(lastVisibleItemPosition: Int): Boolean {
+        return lastVisibleItemPosition < messagesAdapter.itemCount.minus(LAST_ITEM_OFFSET)
+    }
+
+    private fun isLastMessageVisible(lastVisibleItemPosition: Int): Boolean {
+        return lastVisibleItemPosition == messagesAdapter.itemCount.minus(LAST_ITEM_OFFSET)
+>>>>>>> origin/HomeWork_9_(attachments)
     }
 
     private fun addAttachment() {
@@ -258,7 +325,13 @@ class MessagesFragment :
             }
             MessagePosition.Type.UNDEFINED -> {}
         }
-        store.accept(MessagesScreenEvent.Ui.AfterSubmitMessages)
+        val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+        store.accept(
+            MessagesScreenEvent.Ui.AfterSubmitMessages(
+                isNextMessageExisting(lastVisibleItemPosition),
+                isLastMessageVisible(lastVisibleItemPosition)
+            )
+        )
     }
 
     private fun onAvatarClickListener(messageView: MessageView) {
@@ -302,7 +375,7 @@ class MessagesFragment :
     }
 
     private fun isMessagesListEmpty(): Boolean {
-        return (binding.recyclerViewMessages.adapter as MainDelegateAdapter).itemCount == NO_ITEMS
+        return messagesAdapter.itemCount == NO_ITEMS
     }
 
     override fun onStart() {
@@ -313,7 +386,7 @@ class MessagesFragment :
     override fun onResume() {
         super.onResume()
         if (isMessagesListEmpty()) {
-            store.accept(MessagesScreenEvent.Ui.Load(binding.recyclerViewMessages, messagesFilter))
+            store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
         }
     }
 
@@ -337,7 +410,7 @@ class MessagesFragment :
 
     override fun onDestroyView() {
         super.onDestroyView()
-        (binding.recyclerViewMessages.adapter as MainDelegateAdapter).clear()
+        messagesAdapter.clear()
         _binding = null
     }
 
@@ -346,6 +419,7 @@ class MessagesFragment :
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
         private const val PARAM_RECYCLERVIEW_STATE = "recyclerViewState"
         private const val NO_ITEMS = 0
+        private const val LAST_ITEM_OFFSET = 1
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {

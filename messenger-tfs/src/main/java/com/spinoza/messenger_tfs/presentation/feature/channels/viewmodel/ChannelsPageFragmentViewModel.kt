@@ -112,8 +112,8 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun onScrolled(event: ChannelsPageScreenEvent.Ui.OnScrolled) {
-        if ((!event.recyclerView.canScrollVertically(DIRECTION_UP) && event.dy <= DIRECTION_UP) ||
-            (!event.recyclerView.canScrollVertically(DIRECTION_DOWN) && event.dy >= DIRECTION_DOWN)
+        if ((!event.canScrollUp && event.dy <= ChannelsPageScreenEvent.DIRECTION_UP) ||
+            (!event.canScrollDown && event.dy >= ChannelsPageScreenEvent.DIRECTION_DOWN)
         ) {
             loadItems()
         }
@@ -374,7 +374,5 @@ class ChannelsPageFragmentViewModel @Inject constructor(
         const val EMPTY_NAME = ""
         const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
         const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
-        const val DIRECTION_UP = -1
-        const val DIRECTION_DOWN = 1
     }
 }

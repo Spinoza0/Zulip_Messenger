@@ -88,7 +88,13 @@ class ChannelsPageFragment : Fragment() {
         binding.recyclerViewChannels.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                store.accept(ChannelsPageScreenEvent.Ui.OnScrolled(recyclerView, dy))
+                store.accept(
+                    ChannelsPageScreenEvent.Ui.OnScrolled(
+                        recyclerView.canScrollVertically(ChannelsPageScreenEvent.DIRECTION_UP),
+                        recyclerView.canScrollVertically(ChannelsPageScreenEvent.DIRECTION_DOWN),
+                        dy
+                    )
+                )
             }
         })
     }

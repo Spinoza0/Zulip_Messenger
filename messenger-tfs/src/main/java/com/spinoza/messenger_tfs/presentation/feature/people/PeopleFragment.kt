@@ -71,7 +71,13 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
         binding.recyclerViewUsers.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                store.accept(PeopleScreenEvent.Ui.OnScrolled(recyclerView, dy))
+                store.accept(
+                    PeopleScreenEvent.Ui.OnScrolled(
+                        recyclerView.canScrollVertically(PeopleScreenEvent.DIRECTION_UP),
+                        recyclerView.canScrollVertically(PeopleScreenEvent.DIRECTION_DOWN),
+                        dy
+                    )
+                )
             }
         })
     }
