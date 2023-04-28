@@ -13,7 +13,6 @@ object ApplicationModule {
     @Provides
     fun provideCicerone(): Cicerone<Router> = Cicerone.create()
 
-
     @ApplicationScope
     @Provides
     fun provideGlobalRouter(cicerone: Cicerone<Router>): Router = cicerone.router

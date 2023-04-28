@@ -253,7 +253,7 @@ class MessagesFragment :
                     true
                 }
                 R.id.itemSaveAttachments -> {
-                    TODO()
+                    store.accept(MessagesScreenEvent.Ui.SaveAttachments(effect.urls))
                     true
                 }
                 else -> false

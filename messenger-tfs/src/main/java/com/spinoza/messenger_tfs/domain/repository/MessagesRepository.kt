@@ -80,4 +80,6 @@ interface MessagesRepository {
     suspend fun setMessagesFlagToRead(messageIds: List<Long>)
 
     suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String>
+
+    fun saveAttachments(urls: List<String>)
 }

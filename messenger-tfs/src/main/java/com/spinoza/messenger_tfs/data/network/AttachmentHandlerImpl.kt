@@ -1,18 +1,15 @@
 package com.spinoza.messenger_tfs.data.network
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.provider.OpenableColumns
-import androidx.core.app.NotificationCompat
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.utils.getBodyOrThrow
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.AttachmentHandler
+import com.spinoza.messenger_tfs.domain.repository.AttachmentNotificator
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,10 +29,10 @@ class AttachmentHandlerImpl @Inject constructor(
     private val context: Context,
     private val authKeeper: AppAuthKeeper,
     private val apiService: ZulipApiService,
+    private val notificator: AttachmentNotificator,
 ) : AttachmentHandler {
 
-    override fun downloadAndNotify(context: Context, urls: List<String>) {
-        createNotificationChannel(context)
+    override fun saveAttachments(urls: List<String>) {
         val downloadsDirectory =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         CoroutineScope(Dispatchers.IO).launch {
@@ -46,14 +43,14 @@ class AttachmentHandlerImpl @Inject constructor(
                 runCatching {
                     downloadFile(url, uniqueFile)
                     withContext(Dispatchers.Main) {
-                        showDownloadNotification(
-                            "${context.getString(R.string.file_downloaded)}: ${uniqueFile.name}"
+                        notificator.showNotification(
+                            "${uniqueFile.name} - ${context.getString(R.string.downloaded)}"
                         )
                     }
                 }.onFailure {
                     withContext(Dispatchers.Main) {
-                        showDownloadNotification(
-                            "${context.getString(R.string.error_file_download)}: ${uniqueFile.name}"
+                        notificator.showNotification(
+                            "${uniqueFile.name} - ${context.getString(R.string.error_downloading)}"
                         )
                     }
                 }
@@ -115,29 +112,6 @@ class AttachmentHandlerImpl @Inject constructor(
         return uniqueFile
     }
 
-    private fun createNotificationChannel(context: Context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val importance = NotificationManager.IMPORTANCE_DEFAULT
-            val channel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, importance)
-                .apply { description = CHANNEL_DESCRIPTION }
-            val notificationManager =
-                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.createNotificationChannel(channel)
-        }
-    }
-
-    private fun showDownloadNotification(message: String) {
-        val notificationBuilder = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_download_complete)
-            .setContentTitle(context.getString(R.string.download_complete))
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-        val notificationManager =
-            context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
-    }
-
     private suspend fun getTempFile(uri: Uri): File {
         val inputStream = context.contentResolver.openInputStream(uri)
             ?: throw RepositoryError(context.getString(R.string.error_uri))
@@ -186,10 +160,6 @@ class AttachmentHandlerImpl @Inject constructor(
         const val END_OF_FILE = -1
         const val NO_OFFSET = 0
         const val FILENAME_INDEX = 1
-        const val NOTIFICATION_ID = 1
-        const val CHANNEL_NAME = "Downloads"
-        const val CHANNEL_DESCRIPTION = "Channel for download notifications"
-        const val CHANNEL_ID = "downloads_channel"
         const val MAX_FILE_SIZE = 10 * 1024 * 1024L
         const val MIN_FILE_SIZE = 0L
         const val DEFAULT_FILE_NAME = "file"

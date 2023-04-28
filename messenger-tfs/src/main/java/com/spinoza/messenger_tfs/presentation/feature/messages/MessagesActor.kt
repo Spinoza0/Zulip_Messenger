@@ -41,6 +41,7 @@ class MessagesActor @Inject constructor(
     private val setMessagesFlagToReadUserCase: SetMessagesFlagToReadUserCase,
     private val getUpdatedMessageFilterUserCase: GetUpdatedMessageFilterUserCase,
     private val uploadFileUseCase: UploadFileUseCase,
+    private val saveAttachmentsUseCase: SaveAttachmentsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
 ) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
@@ -138,6 +139,7 @@ class MessagesActor @Inject constructor(
                     loadStoredMessages()
                 }
                 is MessagesScreenCommand.UploadFile -> uploadFile(command)
+                is MessagesScreenCommand.SaveAttachments -> saveAttachments(command.urls)
             }
             emit(event)
         }
@@ -434,6 +436,11 @@ class MessagesActor @Inject constructor(
         }.onFailure {
             return handleErrors(it)
         }
+        return getIdleEvent()
+    }
+
+    private suspend fun saveAttachments(attachments: List<String>): MessagesScreenEvent.Internal {
+        saveAttachmentsUseCase(attachments)
         return getIdleEvent()
     }
 

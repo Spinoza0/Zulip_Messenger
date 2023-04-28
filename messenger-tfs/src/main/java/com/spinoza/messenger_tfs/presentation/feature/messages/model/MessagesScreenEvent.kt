@@ -51,6 +51,8 @@ sealed class MessagesScreenEvent {
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
         class UploadFile(val message: CharSequence?, val uri: Uri) : Ui()
+
+        class SaveAttachments(val urls: List<String>) : Ui()
     }
 
     sealed class Internal : MessagesScreenEvent() {

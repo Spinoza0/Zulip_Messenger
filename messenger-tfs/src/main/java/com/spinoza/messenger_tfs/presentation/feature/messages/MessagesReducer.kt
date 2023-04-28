@@ -202,6 +202,8 @@ class MessagesReducer @Inject constructor(
             state { copy(isLongOperation = true) }
             commands { +MessagesScreenCommand.UploadFile(event.message.toString(), event.uri) }
         }
+        is MessagesScreenEvent.Ui.SaveAttachments ->
+            commands { +MessagesScreenCommand.SaveAttachments(event.urls) }
         is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.Init -> {}
     }

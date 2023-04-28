@@ -10,7 +10,7 @@ sealed class MessagesScreenEffect {
 
     object AddAttachment : MessagesScreenEffect()
 
-    class ShowMessageMenu(val attachments: List<String>, val messageView: MessageView) :
+    class ShowMessageMenu(val urls: List<String>, val messageView: MessageView) :
         MessagesScreenEffect()
 
     class ShowChooseReactionDialog(val messageId: Long) : MessagesScreenEffect()

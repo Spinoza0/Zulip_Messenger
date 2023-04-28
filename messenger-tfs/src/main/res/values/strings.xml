@@ -15,8 +15,8 @@
     <string name="messages_topic_template">Topic: #%s</string>
     <string name="add_reaction">Add reaction</string>
     <string name="save_attachments">Save attachments</string>
-    <string name="download_complete">Download Complete</string>
-    <string name="file_downloaded">File downloaded</string>
+    <string name="download_complete">Download complete</string>
+    <string name="downloaded">saved to Download folder</string>
 
     <!-- Fragment Channels -->
     <string name="search">Search...</string>
@@ -58,7 +58,7 @@
     <string name="error_uri">Invalid uri.</string>
     <string name="error_file_size">File is too big.</string>
     <string name="error_unknown_file_type">Unknown file type.</string>
-    <string name="error_file_download">File downloading error</string>
+    <string name="error_downloading">downloading error</string>
     <string name="check_internet_connection">Check your internet connection</string>
     <string name="button_ok">OK</string>
     <string name="button_close">Close</string>
