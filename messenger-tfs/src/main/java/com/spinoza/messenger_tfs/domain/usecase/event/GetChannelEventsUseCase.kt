@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.usecase
+package com.spinoza.messenger_tfs.domain.usecase.event
 
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent

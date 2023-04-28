@@ -1,17 +1,18 @@
-package com.spinoza.messenger_tfs.domain.usecase
+package com.spinoza.messenger_tfs.domain.usecase.messages
 
-import com.spinoza.messenger_tfs.domain.model.MessagesPageType
+import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import javax.inject.Inject
 
-class GetMessagesUseCase @Inject constructor(private val repository: MessagesRepository) {
+class UpdateReactionUseCase @Inject constructor(private val repository: MessagesRepository) {
 
     suspend operator fun invoke(
-        messagesPageType: MessagesPageType,
+        messageId: Long,
+        emoji: Emoji,
         messagesFilter: MessagesFilter,
     ): Result<MessagesResult> {
-        return repository.getMessages(messagesPageType, messagesFilter)
+        return repository.updateReaction(messageId, emoji, messagesFilter)
     }
 }

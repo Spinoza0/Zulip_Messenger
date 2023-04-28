@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.usecase
+package com.spinoza.messenger_tfs.domain.usecase.event
 
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
@@ -12,7 +12,7 @@ class GetDeleteMessageEventUseCase @Inject constructor(private val repository: M
     override suspend operator fun invoke(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
-        isLastMessageVisible: Boolean
+        isLastMessageVisible: Boolean,
     ): Result<DeleteMessageEvent> {
         return repository.getDeleteMessageEvent(queue, messagesFilter, isLastMessageVisible)
     }

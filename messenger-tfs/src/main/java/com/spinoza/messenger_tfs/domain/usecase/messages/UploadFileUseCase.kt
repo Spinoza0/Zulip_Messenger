@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.usecase
+package com.spinoza.messenger_tfs.domain.usecase.messages
 
 import android.net.Uri
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository

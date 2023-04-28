@@ -3,8 +3,8 @@ package com.spinoza.messenger_tfs.presentation.feature.app.utils
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
-import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
-import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive

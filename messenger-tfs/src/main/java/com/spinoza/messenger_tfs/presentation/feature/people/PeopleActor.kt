@@ -7,8 +7,8 @@ import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.people.GetUsersByFilterUseCase
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand

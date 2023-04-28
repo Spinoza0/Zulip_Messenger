@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.login
 
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.GetApiKeyUseCase
+import com.spinoza.messenger_tfs.domain.usecase.login.GetApiKeyUseCase
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
