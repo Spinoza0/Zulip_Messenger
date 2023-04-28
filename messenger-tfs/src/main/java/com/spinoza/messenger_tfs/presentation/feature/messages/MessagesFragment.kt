@@ -244,7 +244,7 @@ class MessagesFragment :
     }
 
     private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
-        val popupMenu = PopupMenu(requireContext(), effect.messageView)
+        val popupMenu = PopupMenu(requireContext(), binding.textViewTopic)
         popupMenu.inflate(R.menu.menu_long_click_on_message)
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
