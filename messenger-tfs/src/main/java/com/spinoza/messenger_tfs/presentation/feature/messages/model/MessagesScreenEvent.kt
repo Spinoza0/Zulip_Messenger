@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
 import android.net.Uri
-import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
@@ -14,11 +13,9 @@ sealed class MessagesScreenEvent {
 
         object Reload : Ui()
 
-        class Load(val recyclerView: RecyclerView, val filter: MessagesFilter) : Ui()
+        class Load(val filter: MessagesFilter) : Ui()
 
         object Exit : Ui()
-
-        object AfterSubmitMessages : Ui()
 
         object MessagesScrollStateIdle : Ui()
 
@@ -26,7 +23,22 @@ sealed class MessagesScreenEvent {
 
         class SendMessage(val value: CharSequence?) : Ui()
 
-        class MessagesOnScrolled(val dy: Int) : Ui()
+        class AfterSubmitMessages(
+            val isNextMessageExisting: Boolean,
+            val isLastMessageVisible: Boolean,
+        ) : Ui()
+
+        class MessagesOnScrolled(
+            val canScrollUp: Boolean,
+            val canScrollDown: Boolean,
+            val visibleMessagesIds: List<Long>,
+            val firstVisiblePosition: Int,
+            val lastVisiblePosition: Int,
+            val itemCount: Int,
+            val dy: Int,
+            val isNextMessageExisting: Boolean,
+            val isLastMessageVisible: Boolean,
+        ) : Ui()
 
         class UpdateReaction(val messageId: Long, val emoji: Emoji) : Ui()
 
@@ -70,5 +82,11 @@ sealed class MessagesScreenEvent {
         class ErrorNetwork(val value: String) : Internal()
 
         class ErrorMessages(val value: String) : Internal()
+    }
+
+    companion object {
+
+        const val DIRECTION_UP = -1
+        const val DIRECTION_DOWN = 1
     }
 }
