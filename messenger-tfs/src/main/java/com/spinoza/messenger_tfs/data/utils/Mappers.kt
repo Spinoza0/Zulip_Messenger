@@ -1,6 +1,10 @@
 package com.spinoza.messenger_tfs.data.utils
 
-import com.spinoza.messenger_tfs.data.database.model.*
+import com.spinoza.messenger_tfs.data.database.model.MessageDataDbModel
+import com.spinoza.messenger_tfs.data.database.model.MessageDbModel
+import com.spinoza.messenger_tfs.data.database.model.ReactionDbModel
+import com.spinoza.messenger_tfs.data.database.model.StreamDbModel
+import com.spinoza.messenger_tfs.data.database.model.TopicDbModel
 import com.spinoza.messenger_tfs.data.network.model.event.EventTypeDto
 import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventDto
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
@@ -13,12 +17,21 @@ import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.stream.TopicDto
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
-import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
+import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.ReactionParam
+import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.TreeSet
 
 fun TreeSet<MessageDto>.toDbModel(): List<MessageDbModel> {
     return map { it.toDbModel() }
@@ -29,13 +42,15 @@ fun List<MessageDbModel>.dbModelToDto(): List<MessageDto> {
 }
 
 fun List<StreamDto>.dtoToDomain(channelsFilter: ChannelsFilter): List<Channel> {
-    return filter { it.name.isContainsWords(channelsFilter.name) }
+    val words = channelsFilter.splitToWords()
+    return filter { it.name.isContainsWords(words) }
         .map { it.dtoToDomain(channelsFilter) }
 }
 
 fun List<StreamDbModel>.dbToDomain(channelsFilter: ChannelsFilter): List<Channel> {
+    val words = channelsFilter.splitToWords()
     return filter { it.isSubscribed == channelsFilter.isSubscribed }
-        .filter { it.name.isContainsWords(channelsFilter.name) }
+        .filter { it.name.isContainsWords(words) }
         .map { it.dbToDomain(channelsFilter) }
 }
 
@@ -313,8 +328,12 @@ private fun StreamDto.toDbModel(channelsFilter: ChannelsFilter): StreamDbModel {
     )
 }
 
-private fun String.isContainsWords(words: String): Boolean {
-    return words.split(" ").all { word ->
+private fun ChannelsFilter.splitToWords(): List<String> {
+    return name.split(" ")
+}
+
+private fun String.isContainsWords(words: List<String>): Boolean {
+    return words.all { word ->
         this.contains(word, true)
     }
 }
