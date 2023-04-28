@@ -333,7 +333,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun sendMessage(
         content: String,
         filter: MessagesFilter,
-    ): Result<MessagesResult> = withContext(Dispatchers.IO) {
+    ): Result<Long> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             val response =
                 apiService.sendMessageToStream(filter.channel.channelId, filter.topic.name, content)
@@ -344,11 +344,7 @@ class MessagesRepositoryImpl @Inject constructor(
             if (sendMessageResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(sendMessageResponse.msg)
             }
-            var messagesResult = MessagesResult(emptyList(), MessagePosition())
-            getMessages(MessagesPageType.LAST, filter)
-                .onSuccess { messagesResult = it }
-                .onFailure { throw it }
-            messagesResult
+            sendMessageResponse.messageId
         }
     }
 

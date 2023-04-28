@@ -35,7 +35,7 @@ interface MessagesRepository {
 
     suspend fun getUpdatedMessageFilter(filter: MessagesFilter): MessagesFilter
 
-    suspend fun sendMessage(content: String, filter: MessagesFilter): Result<MessagesResult>
+    suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long>
 
     suspend fun updateReaction(
         messageId: Long,

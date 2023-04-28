@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
 import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 
 sealed class MessagesScreenCommand {
@@ -27,6 +28,7 @@ sealed class MessagesScreenCommand {
     class IsNextPageExisting(
         val messagesResultDelegate: MessagesResultDelegate,
         val isGoingToLastMessage: Boolean,
+        val messageSentId: Long = Message.UNDEFINED_ID,
     ) : MessagesScreenCommand()
 
     class SetMessagesRead(val messageIds: List<Long>) : MessagesScreenCommand()

@@ -10,7 +10,7 @@ class SendMessageUseCase @Inject constructor(private val repository: MessagesRep
     suspend operator fun invoke(
         content: String,
         messagesFilter: MessagesFilter,
-    ): Result<MessagesResult> {
+    ): Result<Long> {
         return repository.sendMessage(content, messagesFilter)
     }
 }

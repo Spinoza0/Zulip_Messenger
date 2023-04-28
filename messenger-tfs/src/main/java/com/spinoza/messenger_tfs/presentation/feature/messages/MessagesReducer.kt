@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import com.github.terrakok.cicerone.Router
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
@@ -26,6 +27,7 @@ class MessagesReducer @Inject constructor(
 
     private val visibleMessageIds = mutableSetOf<Long>()
     private var isLastMessageVisible = false
+    private var messageSentId = Message.UNDEFINED_ID
 
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {
@@ -60,6 +62,12 @@ class MessagesReducer @Inject constructor(
                     isNewMessageExisting = event.value.isNewMessageExisting
                 )
             }
+            if (messageSentId != Message.UNDEFINED_ID) {
+                state.messages?.let {
+                    commands { +MessagesScreenCommand.IsNextPageExisting(it, true, messageSentId) }
+                }
+                messageSentId = Message.UNDEFINED_ID
+            }
             commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
         }
         is MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue -> {
@@ -77,10 +85,11 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent ->
             commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible) }
         is MessagesScreenEvent.Internal.MessageSent -> {
-            state {
-                copy(isSendingMessage = false, isNewMessageExisting = false, messages = event.value)
+            if (event.messageId != Message.UNDEFINED_ID) {
+                messageSentId = event.messageId
+                effects { +MessagesScreenEffect.MessageSent }
             }
-            effects { +MessagesScreenEffect.MessageSent }
+            state { copy(isSendingMessage = false, isNewMessageExisting = false) }
         }
         is MessagesScreenEvent.Internal.IconActionResId ->
             state { copy(iconActionResId = event.value) }
@@ -167,7 +176,6 @@ class MessagesReducer @Inject constructor(
                     state { copy(isSendingMessage = true) }
                     commands { +MessagesScreenCommand.SendMessage(text) }
                 }
-                // TODO: show field for creating new topic or add attachment
                 false -> effects { +MessagesScreenEffect.AddAttachment }
             }
         }
