@@ -40,14 +40,14 @@ class ChannelsFragmentSharedViewModel @Inject constructor() : ViewModel() {
     private fun subscribeToSearchQueryChanges() {
         searchQueryState
             .distinctUntilChanged()
-            .debounce(DURATION_MILLIS)
+            .debounce(DELAY_BEFORE_FILTER_CHANGE)
             .flatMapLatest { flow { emit(it) } }
             .onEach { _state.emit(state.value.copy(filter = it)) }
             .flowOn(Dispatchers.Default)
             .launchIn(viewModelScope)
     }
 
-    private companion object {
-        const val DURATION_MILLIS = 300L
+    companion object {
+        const val DELAY_BEFORE_FILTER_CHANGE = 300L
     }
 }
