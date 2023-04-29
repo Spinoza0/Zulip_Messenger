@@ -7,12 +7,15 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.Topic
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class MessagesCacheTest {
 
     private var id = 0L
@@ -25,7 +28,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `messagesCache is empty after creating`() = runBlocking {
+    fun `messagesCache is empty after creating`() = runTest {
         val messagesCache = createEmptyMessagesCache()
 
         assertNotEquals(true, messagesCache.isNotEmpty())
@@ -33,7 +36,7 @@ class MessagesCacheTest {
 
 
     @Test
-    fun `messagesCache not empty after adding one message`() = runBlocking {
+    fun `messagesCache not empty after adding one message`() = runTest {
         val messagesCache = createEmptyMessagesCache()
         val message = createMessageDto()
 
@@ -43,7 +46,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `messagesCache not empty after adding list of messages`() = runBlocking {
+    fun `messagesCache not empty after adding list of messages`() = runTest {
         val messagesCache = createEmptyMessagesCache()
         val messages = listOf(createMessageDto(), createMessageDto())
         val messagesPageType = provideMessagePageType()
@@ -54,7 +57,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `messagesCache is empty after reload`() = runBlocking {
+    fun `messagesCache is empty after reload`() = runTest {
         val messagesCache = createEmptyMessagesCache()
         val message = createMessageDto()
 
@@ -65,7 +68,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `updateReaction changes reactions`() = runBlocking {
+    fun `updateReaction changes reactions`() = runTest {
         val messagesCache = createNotEmptyMessagesCache()
         val messagesBefore = messagesCache.getMessages(provideMessagesFilter())
         val reactionsBefore = messagesBefore.find { it.senderId == id }?.reactions
@@ -79,7 +82,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `getMessages returns empty list after creating messagesCache`() = runBlocking {
+    fun `getMessages returns empty list after creating messagesCache`() = runTest {
         val messagesCache = createEmptyMessagesCache()
 
         val messages = messagesCache.getMessages(provideMessagesFilter())
@@ -88,7 +91,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `getMessages returns not empty list after adding messages`() = runBlocking {
+    fun `getMessages returns not empty list after adding messages`() = runTest {
         val messagesCache = createEmptyMessagesCache()
 
         messagesCache.addAll(
@@ -101,7 +104,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `remove method removes the message from messagesCache`() = runBlocking {
+    fun `remove method removes the message from messagesCache`() = runTest {
         val messagesCache = createNotEmptyMessagesCache()
         val messagesBefore = messagesCache.getMessages(provideMessagesFilter())
         val messagesSizeBefore = messagesBefore.size
@@ -116,7 +119,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `getFirstMessageId returns id of the first message`() = runBlocking {
+    fun `getFirstMessageId returns id of the first message`() = runTest {
         val messagesCache = createNotEmptyMessagesCache()
         val messagesFilter = provideMessagesFilter()
         val messages = messagesCache.getMessages(messagesFilter)
@@ -128,7 +131,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `getLastMessageId returns id of the last message`() = runBlocking {
+    fun `getLastMessageId returns id of the last message`() = runTest {
         val messagesCache = createNotEmptyMessagesCache()
         val messagesFilter = provideMessagesFilter()
         val messages = messagesCache.getMessages(messagesFilter)
@@ -141,7 +144,7 @@ class MessagesCacheTest {
 
     @Test
     fun `result of the getLastMessageId not equals result of the getFirstMessageId`() =
-        runBlocking {
+        runTest {
             val messagesCache = createNotEmptyMessagesCache()
             val messagesFilter = provideMessagesFilter()
 
