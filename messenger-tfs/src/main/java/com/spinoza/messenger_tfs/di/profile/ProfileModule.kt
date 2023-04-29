@@ -4,7 +4,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
+import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.feature.profile.ProfileActor
 import com.spinoza.messenger_tfs.presentation.feature.profile.ProfileReducer
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand

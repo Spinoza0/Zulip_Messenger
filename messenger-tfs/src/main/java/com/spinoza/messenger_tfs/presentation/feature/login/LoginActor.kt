@@ -3,14 +3,22 @@ package com.spinoza.messenger_tfs.presentation.feature.login
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.login.GetApiKeyUseCase
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
+import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import vivid.money.elmslie.coroutines.Actor
 import javax.inject.Inject
 

@@ -6,8 +6,8 @@ import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.TopicItemBinding
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 
 class TopicDelegate(
     private val evenColor: Int,

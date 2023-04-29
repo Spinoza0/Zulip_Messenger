@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels.adapter
 
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 
 class TopicDelegateItem(private val value: MessagesFilter) : DelegateAdapterItem {
 

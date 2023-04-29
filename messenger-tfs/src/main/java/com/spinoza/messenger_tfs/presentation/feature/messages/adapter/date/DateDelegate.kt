@@ -5,8 +5,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.DateItemBinding
 import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 
 class DateDelegate : AdapterDelegate {
 

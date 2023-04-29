@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.data.cache
 
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
-import com.spinoza.messenger_tfs.data.stub.MessengerDaoStub
+import com.spinoza.messenger_tfs.stub.MessengerDaoStub
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType

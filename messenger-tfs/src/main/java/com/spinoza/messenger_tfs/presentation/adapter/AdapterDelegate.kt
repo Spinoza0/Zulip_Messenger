@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.feature.app.adapter
+package com.spinoza.messenger_tfs.presentation.adapter
 
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView

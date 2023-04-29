@@ -16,11 +16,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.di.channels.DaggerChannelsComponent
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.closeApplication
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.showCheckInternetConnectionDialog
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
+import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
@@ -32,9 +28,13 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsPageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.factory.ViewModelFactory
+import com.spinoza.messenger_tfs.presentation.util.closeApplication
+import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import com.spinoza.messenger_tfs.presentation.util.getThemeColor
 import com.spinoza.messenger_tfs.presentation.util.off
 import com.spinoza.messenger_tfs.presentation.util.on
+import com.spinoza.messenger_tfs.presentation.util.showCheckInternetConnectionDialog
+import com.spinoza.messenger_tfs.presentation.util.showError
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

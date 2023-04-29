@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.feature.app.utils
+package com.spinoza.messenger_tfs.presentation.util
 
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.event.EventType

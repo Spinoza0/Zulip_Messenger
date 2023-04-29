@@ -9,12 +9,26 @@ import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.people.GetUsersByFilterUseCase
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEvent
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
+import com.spinoza.messenger_tfs.presentation.util.getErrorText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import vivid.money.elmslie.coroutines.Actor
 import javax.inject.Inject
 
@@ -56,6 +70,7 @@ class PeopleActor @Inject constructor(
                 } else {
                     loadUsers()
                 }
+
             is PeopleScreenCommand.Load -> loadUsers()
             is PeopleScreenCommand.GetEvent -> if (isUsersCacheChanged) {
                 isUsersCacheChanged = false

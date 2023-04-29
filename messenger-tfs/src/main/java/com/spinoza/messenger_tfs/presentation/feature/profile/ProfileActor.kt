@@ -7,13 +7,13 @@ import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.profile.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.profile.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.profile.GetUserUseCase
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
+import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
+import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -58,6 +58,7 @@ class ProfileActor @Inject constructor(
                 delay(DELAY_BEFORE_UPDATE_INFO)
                 ProfileScreenEvent.Internal.EmptyQueueEvent
             }
+
             is ProfileScreenCommand.SubscribePresence -> {
                 changeUser(command.user)
                 subscribePresence()

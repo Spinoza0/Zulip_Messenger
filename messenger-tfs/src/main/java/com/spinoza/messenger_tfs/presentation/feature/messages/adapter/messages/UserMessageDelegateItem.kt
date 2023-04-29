@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages
 
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 
 class UserMessageDelegateItem(private val value: Message) : DelegateAdapterItem {
 

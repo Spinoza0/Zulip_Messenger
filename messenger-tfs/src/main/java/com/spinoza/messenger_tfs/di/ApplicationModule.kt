@@ -1,24 +1,20 @@
 package com.spinoza.messenger_tfs.di
 
-import com.github.terrakok.cicerone.Cicerone
-import com.github.terrakok.cicerone.NavigatorHolder
-import com.github.terrakok.cicerone.Router
+import com.spinoza.messenger_tfs.presentation.navigation.AppNavigatorHolder
+import com.spinoza.messenger_tfs.presentation.navigation.AppNavigatorHolderImpl
+import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
+import com.spinoza.messenger_tfs.presentation.navigation.AppRouterImpl
+import dagger.Binds
 import dagger.Module
-import dagger.Provides
 
 @Module
-object ApplicationModule {
+interface ApplicationModule {
 
     @ApplicationScope
-    @Provides
-    fun provideCicerone(): Cicerone<Router> = Cicerone.create()
+    @Binds
+    fun bindAppRouter(impl: AppRouterImpl): AppRouter
 
     @ApplicationScope
-    @Provides
-    fun provideGlobalRouter(cicerone: Cicerone<Router>): Router = cicerone.router
-
-    @ApplicationScope
-    @Provides
-    fun provideGlobalNavigatorHolder(cicerone: Cicerone<Router>): NavigatorHolder =
-        cicerone.getNavigatorHolder()
+    @Binds
+    fun bindAppNavigatorHolder(impl: AppNavigatorHolderImpl): AppNavigatorHolder
 }

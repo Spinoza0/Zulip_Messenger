@@ -2,22 +2,22 @@ package com.spinoza.messenger_tfs.presentation.feature.app
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.github.terrakok.cicerone.NavigatorHolder
-import com.github.terrakok.cicerone.Router
 import com.github.terrakok.cicerone.androidx.AppNavigator
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.ActivityMainBinding
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
+import com.spinoza.messenger_tfs.presentation.navigation.AppNavigatorHolder
+import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import javax.inject.Inject
 
 class MainActivity : AppCompatActivity() {
 
     @Inject
-    lateinit var navigatorHolder: NavigatorHolder
+    lateinit var navigatorHolder: AppNavigatorHolder
 
     @Inject
-    lateinit var router: Router
+    lateinit var router: AppRouter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,11 +32,11 @@ class MainActivity : AppCompatActivity() {
     override fun onResumeFragments() {
         super.onResumeFragments()
         val navigator = AppNavigator(this, R.id.mainFragmentContainer)
-        navigatorHolder.setNavigator(navigator)
+        navigatorHolder.getHolder().setNavigator(navigator)
     }
 
     override fun onPause() {
         super.onPause()
-        navigatorHolder.removeNavigator()
+        navigatorHolder.getHolder().removeNavigator()
     }
 }

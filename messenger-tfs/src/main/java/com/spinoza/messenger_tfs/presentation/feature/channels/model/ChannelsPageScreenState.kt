@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels.model
 
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 
 data class ChannelsPageScreenState(
     val isLoading: Boolean = false,

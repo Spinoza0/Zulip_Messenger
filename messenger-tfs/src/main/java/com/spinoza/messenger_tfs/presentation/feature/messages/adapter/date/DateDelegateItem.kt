@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date
 
 import com.spinoza.messenger_tfs.domain.model.MessageDate
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 
 class DateDelegateItem(
     private val value: MessageDate,

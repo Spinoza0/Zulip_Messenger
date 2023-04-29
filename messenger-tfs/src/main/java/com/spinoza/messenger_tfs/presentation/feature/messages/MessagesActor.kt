@@ -5,27 +5,60 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesPageType
+import com.spinoza.messenger_tfs.domain.model.MessagesResult
 import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.event.*
-import com.spinoza.messenger_tfs.domain.usecase.messages.*
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
+import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.EventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetMessageEventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetReactionEventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetMessagesUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetOwnUserIdUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetStoredMessagesUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetUpdatedMessageFilterUserCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.SaveAttachmentsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.SendMessageUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.SetMessagesFlagToReadUserCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.SetOwnStatusActiveUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.UploadFileUseCase
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
+import com.spinoza.messenger_tfs.presentation.util.getErrorText
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import vivid.money.elmslie.coroutines.Actor
-import java.util.*
+import java.util.TreeSet
 import javax.inject.Inject
 
 class MessagesActor @Inject constructor(
@@ -99,13 +132,17 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
                 is MessagesScreenCommand.UpdateReaction ->
                     updateReaction(command.messageId, command.emoji)
+
                 is MessagesScreenCommand.SendMessage -> sendMessage(command.value)
                 is MessagesScreenCommand.GetMessagesEvent ->
                     getMessagesEvent(command.isLastMessageVisible)
+
                 is MessagesScreenCommand.GetDeleteMessagesEvent ->
                     getDeleteMessagesEvent(command.isLastMessageVisible)
+
                 is MessagesScreenCommand.GetReactionsEvent ->
                     getReactionsEvent(command.isLastMessageVisible)
+
                 is MessagesScreenCommand.IsNextPageExisting -> isNextPageExisting(command)
                 is MessagesScreenCommand.Reload -> {
                     delay(DELAY_BEFORE_RELOAD)
@@ -114,18 +151,22 @@ class MessagesActor @Inject constructor(
                         when (lastCommand) {
                             is MessagesScreenCommand.LoadFirstPage ->
                                 result = loadFirstPage(lastCommand)
+
                             is MessagesScreenCommand.LoadPreviousPage -> {
                                 lastLoadCommand = null
                                 result = loadPreviousPage(lastCommand)
                             }
+
                             is MessagesScreenCommand.LoadNextPage -> {
                                 lastLoadCommand = null
                                 result = loadNextPage(lastCommand)
                             }
+
                             is MessagesScreenCommand.LoadLastPage -> {
                                 lastLoadCommand = null
                                 result = loadLastPage(lastCommand)
                             }
+
                             else -> throw RuntimeException("Invalid command: $lastCommand")
                         }
                     }
@@ -134,10 +175,12 @@ class MessagesActor @Inject constructor(
                     }
                     result
                 }
+
                 is MessagesScreenCommand.LoadStored -> {
                     messagesFilter = command.filter
                     loadStoredMessages()
                 }
+
                 is MessagesScreenCommand.UploadFile -> uploadFile(command)
                 is MessagesScreenCommand.SaveAttachments -> saveAttachments(command.urls)
             }

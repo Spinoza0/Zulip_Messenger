@@ -2,7 +2,6 @@ package com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
@@ -13,13 +12,14 @@ import com.spinoza.messenger_tfs.domain.usecase.channels.*
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.*
+import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
+import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
@@ -27,7 +27,7 @@ import javax.inject.Inject
 
 class ChannelsPageFragmentViewModel @Inject constructor(
     @ChannelIsSubscribed isSubscribed: Boolean,
-    private val router: Router,
+    private val router: AppRouter,
     private val getStoredTopicsUseCase: GetStoredTopicsUseCase,
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getStoredChannelsUseCase: GetStoredChannelsUseCase,
@@ -70,6 +70,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
             is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
             is ChannelsPageScreenEvent.Ui.OnTopicClick ->
                 router.navigateTo(Screens.Messages(event.messagesFilter))
+
             is ChannelsPageScreenEvent.Ui.RegisterEventQueue -> registerEventQueue()
             is ChannelsPageScreenEvent.Ui.DeleteEventQueue -> deleteEventQueue()
         }

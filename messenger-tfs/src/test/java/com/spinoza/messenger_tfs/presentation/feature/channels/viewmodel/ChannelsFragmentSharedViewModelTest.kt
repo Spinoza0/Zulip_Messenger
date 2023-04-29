@@ -28,7 +28,7 @@ class ChannelsFragmentSharedViewModelTest {
 
         viewModel.accept(event)
 
-        delay(ChannelsFragmentSharedViewModel.DELAY_BEFORE_FILTER_CHANGE * 2)
+        delay((ChannelsFragmentSharedViewModel.DELAY_BEFORE_FILTER_CHANGE * 1.1f).toLong())
         val searchQueryAfter = viewModel.state.value.filter
         assertNotEquals(newSearchQuery, searchQueryBefore)
         assertEquals(newSearchQuery, searchQueryAfter)

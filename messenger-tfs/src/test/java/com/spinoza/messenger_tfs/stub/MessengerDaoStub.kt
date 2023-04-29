@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.data.stub
+package com.spinoza.messenger_tfs.stub
 
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.model.MessageDataDbModel

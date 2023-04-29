@@ -6,8 +6,8 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.ChannelItemBinding
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
 
 class ChannelDelegate(
