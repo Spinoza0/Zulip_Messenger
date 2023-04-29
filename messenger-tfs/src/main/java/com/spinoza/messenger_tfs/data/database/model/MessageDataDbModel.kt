@@ -13,7 +13,7 @@ data class MessageDataDbModel(
     val streamId: Long,
     val senderId: Long,
     val content: String,
-    val recipientId: Int,
+    val recipientId: Long,
     val timestamp: Long,
     val subject: String,
     val isMeMessage: Boolean,
