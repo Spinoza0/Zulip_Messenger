@@ -4,7 +4,7 @@ import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 
-interface MessagesRepository {
+interface MessengerRepository {
 
     suspend fun getApiKey(storedApiKey: String, email: String, password: String): Result<String>
 

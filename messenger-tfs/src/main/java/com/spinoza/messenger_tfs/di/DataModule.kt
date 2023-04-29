@@ -6,12 +6,16 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
-import com.spinoza.messenger_tfs.data.network.*
+import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
+import com.spinoza.messenger_tfs.data.network.AttachmentHandlerImpl
+import com.spinoza.messenger_tfs.data.network.AttachmentNotificatorImpl
+import com.spinoza.messenger_tfs.data.network.WebUtilImpl
+import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.repository.AttachmentNotificator
-import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import dagger.Binds
 import dagger.Module
@@ -29,7 +33,7 @@ interface DataModule {
 
     @ApplicationScope
     @Binds
-    fun bindMessagesRepository(impl: MessagesRepositoryImpl): MessagesRepository
+    fun bindMessengerRepository(impl: MessagesRepositoryImpl): MessengerRepository
 
     @ApplicationScope
     @Binds

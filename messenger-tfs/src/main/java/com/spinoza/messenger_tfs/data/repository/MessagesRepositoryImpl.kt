@@ -16,7 +16,7 @@ import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
 import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +35,7 @@ class MessagesRepositoryImpl @Inject constructor(
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
     private val attachmentHandler: AttachmentHandler,
-) : MessagesRepository {
+) : MessengerRepository {
 
     private var storedOwnUser: UserDto = UserDto()
 

@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.di
 
 import android.content.Context
-import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
+import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
@@ -16,7 +16,7 @@ interface ApplicationComponent {
 
     fun context(): Context
 
-    fun messagesRepository(): MessagesRepository
+    fun messengerRepository(): MessengerRepository
 
     fun appRouter(): AppRouter
 
