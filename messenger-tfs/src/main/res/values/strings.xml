@@ -51,6 +51,10 @@
     <string name="error_loading_users">Error loading users. %s</string>
     <string name="error_network">Network error. %s</string>
     <string name="error_login">Error checking email and password. %s</string>
+    <string name="error_file_not_found">File not found.</string>
+    <string name="error_uri">Invalid uri.</string>
+    <string name="error_file_size">File is too big.</string>
+    <string name="error_unknown_file_type">Unknown file type.</string>
     <string name="check_internet_connection">Check your internet connection</string>
     <string name="button_ok">OK</string>
     <string name="button_close">Close</string>

@@ -9,6 +9,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.spinoza.messenger_tfs.databinding.FragmentDialogChooseReactionBinding
 import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 
@@ -20,7 +21,7 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     private val binding: FragmentDialogChooseReactionBinding
         get() = _binding ?: throw RuntimeException("FragmentDialogChooseReactionBinding == null")
 
-    private var messageId = UNDEFINED_ID
+    private var messageId = Message.UNDEFINED_ID
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -81,16 +82,14 @@ class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
     }
 
     private fun parseParams() {
-        messageId = arguments?.getLong(MESSAGE_ID) ?: UNDEFINED_ID
-        if (messageId == UNDEFINED_ID)
+        messageId = arguments?.getLong(MESSAGE_ID) ?: Message.UNDEFINED_ID
+        if (messageId == Message.UNDEFINED_ID)
             dismiss()
     }
 
     companion object {
         const val TAG = "ChooseReactionDialog"
         private const val REACTION_PADDING = 4f
-        private const val UNDEFINED_ID = -1L
-
         private const val MESSAGE_ID = "messageId"
 
         fun newInstance(messageId: Long): ChooseReactionDialogFragment {

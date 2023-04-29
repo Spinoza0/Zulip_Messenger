@@ -12,7 +12,8 @@ class GetMessageEventUseCase @Inject constructor(private val repository: Message
     override suspend operator fun invoke(
         queue: EventsQueue,
         messagesFilter: MessagesFilter,
+        isLastMessageVisible: Boolean
     ): Result<MessageEvent> {
-        return repository.getMessageEvent(queue, messagesFilter)
+        return repository.getMessageEvent(queue, messagesFilter, isLastMessageVisible)
     }
 }

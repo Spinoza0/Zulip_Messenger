@@ -9,7 +9,6 @@ data class MessageDto(
     @SerialName("stream_id") val streamId: Long,
     @SerialName("sender_id") val senderId: Long,
     @SerialName("content") val content: String,
-    @SerialName("content_type") val content_type: String,
     @SerialName("recipient_id") val recipientId: Int,
     @SerialName("timestamp") val timestamp: Long,
     @SerialName("subject") val subject: String,

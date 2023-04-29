@@ -1,14 +1,23 @@
 package com.spinoza.messenger_tfs.data.repository
 
+import android.content.Context
+import android.net.Uri
+import android.provider.OpenableColumns
+import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.data.cache.MessagesCache
+import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
-import com.spinoza.messenger_tfs.data.network.ZulipAuthKeeper
+import com.spinoza.messenger_tfs.data.network.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.event.*
+import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
+import com.spinoza.messenger_tfs.data.utils.*
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.*
+import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import kotlinx.coroutines.CoroutineScope
@@ -18,15 +27,21 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.Credentials
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import retrofit2.Response
+import java.io.BufferedOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import javax.inject.Inject
 
-// TODO: 1) отрефакторить - не все сообщения сразу отправлять, а только новые или измененные
-// TODO: 2) пагинация для сообщений
-
 class MessagesRepositoryImpl @Inject constructor(
+    private val context: Context,
     private val messagesCache: MessagesCache,
+    private val messengerDao: MessengerDao,
     private val apiService: ZulipApiService,
-    private val apiAuthKeeper: ZulipAuthKeeper,
+    private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
 ) : MessagesRepository {
 
@@ -38,7 +53,7 @@ class MessagesRepositoryImpl @Inject constructor(
         password: String,
     ): Result<String> = withContext(Dispatchers.IO) {
         if (storedApiKey.isNotBlank()) {
-            apiAuthKeeper.authHeader = Credentials.basic(email, storedApiKey)
+            apiAuthKeeper.setData(Credentials.basic(email, storedApiKey))
             getOwnUser().onSuccess {
                 return@withContext Result.success(storedApiKey)
             }
@@ -52,8 +67,7 @@ class MessagesRepositoryImpl @Inject constructor(
             if (apiKeyResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(apiKeyResponse.msg)
             }
-            apiAuthKeeper.authHeader =
-                Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey)
+            apiAuthKeeper.setData(Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey))
             apiKeyResponse.apiKey
         }
     }
@@ -65,7 +79,7 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getOwnUserId(): Result<Long> {
-        return if (storedOwnUser.userId != UserDto.UNDEFINED_ID) {
+        return if (storedOwnUser.userId != User.UNDEFINED_ID) {
             Result.success(storedOwnUser.userId)
         } else {
             val result = getOwnUser()
@@ -93,21 +107,20 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUser(userId: Long): Result<User> =
-        withContext(Dispatchers.IO) {
-            runCatchingNonCancellation {
-                val response = apiService.getUser(userId)
-                if (!response.isSuccessful) {
-                    throw RepositoryError(response.message())
-                }
-                val userResponse = response.getBodyOrThrow()
-                if (userResponse.result != RESULT_SUCCESS) {
-                    throw RepositoryError(userResponse.msg)
-                }
-                val presence = getUserPresence(userResponse.user.userId)
-                userResponse.user.toDomain(presence)
+    override suspend fun getUser(userId: Long): Result<User> = withContext(Dispatchers.IO) {
+        runCatchingNonCancellation {
+            val response = apiService.getUser(userId)
+            if (!response.isSuccessful) {
+                throw RepositoryError(response.message())
             }
+            val userResponse = response.getBodyOrThrow()
+            if (userResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(userResponse.msg)
+            }
+            val presence = getUserPresence(userResponse.user.userId)
+            userResponse.user.toDomain(presence)
         }
+    }
 
     override suspend fun getUsersByFilter(usersFilter: String): Result<List<User>> =
         withContext(Dispatchers.IO) {
@@ -129,17 +142,61 @@ class MessagesRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun getMessages(
+    override suspend fun getStoredMessages(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
-            if (storedOwnUser.userId == UserDto.UNDEFINED_ID) {
+            messagesCache.reload()
+            MessagesResult(
+                messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                MessagePosition(MessagePosition.Type.LAST_POSITION)
+            )
+        }
+    }
+
+    override suspend fun getMessages(
+        messagesPageType: MessagesPageType,
+        filter: MessagesFilter,
+    ): Result<MessagesResult> = withContext(Dispatchers.IO) {
+        runCatchingNonCancellation {
+            if (storedOwnUser.userId == User.UNDEFINED_ID) {
                 getOwnUser()
             }
-            val response = apiService.getMessages(
-                anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
-                narrow = filter.createNarrowJsonWithOperator()
-            )
+            val response = when (messagesPageType) {
+                MessagesPageType.FIRST_UNREAD -> apiService.getMessages(
+                    numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
+                )
+                MessagesPageType.NEWEST -> apiGetMessages(
+                    numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchorId = messagesCache.getLastMessageId(filter),
+                    ZulipApiService.ANCHOR_NEWEST
+                )
+                MessagesPageType.OLDEST -> apiGetMessages(
+                    numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchorId = messagesCache.getFirstMessageId(filter),
+                    ZulipApiService.ANCHOR_OLDEST
+                )
+                MessagesPageType.AFTER_STORED -> apiGetMessages(
+                    numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchorId = messagesCache.getLastMessageId(filter),
+                    ZulipApiService.ANCHOR_NEWEST
+                )
+                MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
+                    numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
+                    numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchor = ZulipApiService.ANCHOR_NEWEST
+                )
+            }
             if (!response.isSuccessful) {
                 throw RepositoryError(response.message())
             }
@@ -147,18 +204,30 @@ class MessagesRepositoryImpl @Inject constructor(
             if (messagesResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(messagesResponse.msg)
             }
-            val position = if (messagesResponse.foundAnchor) {
-                MessagePosition(MessagePosition.Type.EXACTLY, messagesResponse.anchor)
-            } else {
-                MessagePosition(MessagePosition.Type.LAST_POSITION)
+            val position = when (messagesPageType) {
+                MessagesPageType.FIRST_UNREAD -> if (messagesResponse.foundAnchor) {
+                    MessagePosition(MessagePosition.Type.EXACTLY, messagesResponse.anchor)
+                } else {
+                    MessagePosition(MessagePosition.Type.LAST_POSITION)
+                }
+                MessagesPageType.LAST -> MessagePosition(MessagePosition.Type.LAST_POSITION)
+                else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
-            messagesCache.addAll(messagesResponse.messages)
+            messagesCache.addAll(messagesResponse.messages, messagesPageType)
             MessagesResult(
                 messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
                 position
             )
         }
     }
+
+    override suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> =
+        withContext(Dispatchers.IO) {
+            runCatchingNonCancellation {
+                val storedStreams = messengerDao.getStreams()
+                storedStreams.dbToDomain(channelsFilter)
+            }
+        }
 
     override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
@@ -190,9 +259,20 @@ class MessagesRepositoryImpl @Inject constructor(
             if (streamsList.isEmpty()) {
                 throw RepositoryError(errorMsg)
             }
-            streamsList.toDomain(channelsFilter)
+            messengerDao.removeStreams(channelsFilter.isSubscribed)
+            messengerDao.insertStreams(streamsList.toDbModel(channelsFilter))
+            streamsList.dtoToDomain(channelsFilter)
         }
     }
+
+    override suspend fun getStoredTopics(channel: Channel): Result<List<Topic>> =
+        withContext(Dispatchers.IO)
+        {
+            runCatchingNonCancellation {
+                val storedTopics = messengerDao.getTopics(channel.channelId, channel.isSubscribed)
+                storedTopics.dbToDomain()
+            }
+        }
 
     override suspend fun getTopics(channel: Channel): Result<List<Topic>> =
         withContext(Dispatchers.IO) {
@@ -205,43 +285,80 @@ class MessagesRepositoryImpl @Inject constructor(
                 if (topicsResponseDto.result != RESULT_SUCCESS) {
                     throw RepositoryError(topicsResponseDto.msg)
                 }
-                val topics = mutableListOf<Topic>()
-                topicsResponseDto.topics.forEach { topicDto ->
-                    topics.add(Topic(topicDto.name, 0))
-                }
-                topics
+                messengerDao.removeTopics(channel.channelId, channel.isSubscribed)
+                messengerDao.insertTopics(topicsResponseDto.topics.toDbModel(channel))
+                topicsResponseDto.topics.dtoToDomain(channel)
             }
         }
 
     override suspend fun getTopic(filter: MessagesFilter): Result<Topic> =
         withContext(Dispatchers.IO) {
-            val anchor = updateMessagesCache(filter)
+            var unreadMessagesCount = 0
+            var lastMessageId = Message.UNDEFINED_ID
+            runCatchingNonCancellation {
+                val response = apiService.getMessages(
+                    numBefore = GET_TOPIC_IGNORE_PREVIOUS_MESSAGES,
+                    numAfter = GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT,
+                    narrow = filter.createNarrowJsonForMessages(),
+                    anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
+                )
+                if (response.isSuccessful) {
+                    val messagesResponse = response.getBodyOrThrow()
+                    lastMessageId = messagesResponse.messages.last().id
+                    unreadMessagesCount = messagesResponse.messages.size
+                    if (!messagesResponse.foundAnchor) unreadMessagesCount--
+                }
+            }
             Result.success(
                 Topic(
-                    filter.topic.name,
-                    messagesCache.getMessages(filter, true, anchor).size
+                    filter.topic.name, unreadMessagesCount, filter.channel.channelId, lastMessageId
                 )
             )
         }
 
-    override suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long> =
+    override suspend fun getUpdatedMessageFilter(filter: MessagesFilter): MessagesFilter =
         withContext(Dispatchers.IO) {
+            var topic = filter.topic
             runCatchingNonCancellation {
-                val response = apiService.sendMessageToStream(
-                    filter.channel.channelId,
-                    filter.topic.name,
-                    content
-                )
+                val response = apiService.getTopics(filter.channel.channelId)
                 if (!response.isSuccessful) {
-                    throw RepositoryError(response.message())
+                    return@runCatchingNonCancellation
                 }
-                val sendMessageResponse = response.getBodyOrThrow()
-                if (sendMessageResponse.result != RESULT_SUCCESS) {
-                    throw RepositoryError(sendMessageResponse.msg)
+                val topicsResponseDto = response.getBodyOrThrow()
+                if (topicsResponseDto.result != RESULT_SUCCESS) {
+                    return@runCatchingNonCancellation
                 }
-                sendMessageResponse.messageId
+                val newTopic = topicsResponseDto.topics.find {
+                    filter.isEqualTopicName(it.name)
+                }
+                if (newTopic != null) {
+                    topic = topic.copy(lastMessageId = newTopic.maxId)
+                }
             }
+            filter.copy(topic = topic)
         }
+
+    override suspend fun sendMessage(
+        content: String,
+        filter: MessagesFilter,
+    ): Result<MessagesResult> = withContext(Dispatchers.IO) {
+        runCatchingNonCancellation {
+            val response =
+                apiService.sendMessageToStream(filter.channel.channelId, filter.topic.name, content)
+            if (!response.isSuccessful) {
+                throw RepositoryError(response.message())
+            }
+            val sendMessageResponse = response.getBodyOrThrow()
+            if (sendMessageResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(sendMessageResponse.msg)
+            }
+            var messagesResult = MessagesResult(emptyList(), MessagePosition())
+            getMessages(MessagesPageType.LAST, filter)
+                .onSuccess { messagesResult = it }
+                .onFailure { throw it }
+            messagesResult
+        }
+    }
 
     override suspend fun updateReaction(
         messageId: Long,
@@ -267,24 +384,6 @@ class MessagesRepositoryImpl @Inject constructor(
             }
         }
 
-    private suspend fun updateMessagesCache(
-        filter: MessagesFilter,
-    ): Long = runCatchingNonCancellation {
-        val response = apiService.getMessages(
-            anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
-            narrow = filter.createNarrowJsonWithOperator()
-        )
-        if (response.isSuccessful) {
-            val messagesResponse = response.getBodyOrThrow()
-            messagesCache.addAll(messagesResponse.messages)
-            if (messagesResponse.foundAnchor) messagesResponse.anchor else Message.UNDEFINED_ID
-        } else {
-            Message.UNDEFINED_ID
-        }
-    }.getOrElse {
-        Message.UNDEFINED_ID
-    }
-
     override suspend fun registerEventQueue(
         eventTypes: List<EventType>,
         messagesFilter: MessagesFilter,
@@ -301,7 +400,7 @@ class MessagesRepositoryImpl @Inject constructor(
             if (registerResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(registerResponse.msg)
             }
-            EventsQueue(registerResponse.queueId, registerResponse.lastEventId)
+            EventsQueue(registerResponse.queueId, registerResponse.lastEventId, eventTypes)
         }
     }
 
@@ -326,7 +425,10 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getChannelEvents(queue: EventsQueue): Result<List<ChannelEvent>> =
+    override suspend fun getChannelEvents(
+        queue: EventsQueue,
+        channelsFilter: ChannelsFilter,
+    ): Result<List<ChannelEvent>> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
                 val eventResponseBody = getNonHeartBeatEventResponse(queue)
@@ -336,13 +438,14 @@ class MessagesRepositoryImpl @Inject constructor(
                 if (eventResponse.result != RESULT_SUCCESS) {
                     throw RepositoryError(eventResponse.msg)
                 }
-                eventResponse.events.listToDomain()
+                eventResponse.events.listToDomain(channelsFilter)
             }
         }
 
     override suspend fun getMessageEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
     ): Result<MessageEvent> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             val responseBody = getNonHeartBeatEventResponse(queue)
@@ -352,14 +455,19 @@ class MessagesRepositoryImpl @Inject constructor(
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
             }
-            eventResponse.events.forEach { messageEventDto ->
-                messagesCache.add(messageEventDto.message)
+            if (messagesCache.isNotEmpty() &&
+                filter.topic.lastMessageId == messagesCache.getLastMessageId(filter)
+            ) {
+                eventResponse.events.forEach { messageEventDto ->
+                    messagesCache.add(messageEventDto.message, isLastMessageVisible)
+                }
             }
             MessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
                     messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
-                    MessagePosition()
+                    MessagePosition(),
+                    eventResponse.events.isNotEmpty()
                 )
             )
         }
@@ -368,6 +476,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun getDeleteMessageEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
     ): Result<DeleteMessageEvent> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             val responseBody = getNonHeartBeatEventResponse(queue)
@@ -393,6 +502,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun getReactionEvent(
         queue: EventsQueue,
         filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
     ): Result<ReactionEvent> = withContext(Dispatchers.IO) {
         runCatchingNonCancellation {
             val responseBody = getNonHeartBeatEventResponse(queue)
@@ -412,6 +522,86 @@ class MessagesRepositoryImpl @Inject constructor(
                     MessagePosition()
                 )
             )
+        }
+    }
+
+    override suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String> =
+        withContext(Dispatchers.IO) {
+            runCatchingNonCancellation {
+                val contentType = context.contentResolver.getType(uri)
+                    ?: throw RepositoryError(context.getString(R.string.error_unknown_file_type))
+                val tempFile = getTempFile(uri)
+                val requestFile = RequestBody.create(MediaType.parse(contentType), tempFile)
+                val fileName = uri.getFileName()
+                val filePart = MultipartBody.Part.createFormData(fileName, fileName, requestFile)
+                val response = apiService.uploadFile(filePart)
+                if (!response.isSuccessful) {
+                    throw RepositoryError(response.message())
+                }
+                val responseBody = response.getBodyOrThrow()
+                if (responseBody.result != RESULT_SUCCESS) {
+                    throw RepositoryError(responseBody.msg)
+                }
+                "$oldMessageText\n[$fileName](${responseBody.uri})\n"
+            }
+        }
+
+    private suspend fun getTempFile(uri: Uri): File {
+        val inputStream = context.contentResolver.openInputStream(uri)
+            ?: throw RepositoryError(context.getString(R.string.error_uri))
+        val bufferSize = BUFFER_SIZE
+        val buffer = ByteArray(bufferSize)
+        val filesDir = context.filesDir
+        val tempFile = File(filesDir, TEMP_FILE_NAME).also { it.deleteOnExit() }
+        var fileSize = 0L
+        val bufferedOutputStream = withContext(Dispatchers.IO) {
+            BufferedOutputStream(
+                FileOutputStream(tempFile),
+                bufferSize
+            )
+        }
+        inputStream.use { input ->
+            bufferedOutputStream.use { output ->
+                var len = input.read(buffer)
+                while (len != END_OF_FILE) {
+                    fileSize += len
+                    output.write(buffer, NO_OFFSET, len)
+                    len = inputStream.read(buffer)
+                }
+                output.flush()
+            }
+        }
+        if (fileSize <= MIN_FILE_SIZE) {
+            throw RepositoryError(context.getString(R.string.error_uri))
+        }
+        if (fileSize >= MAX_FILE_SIZE) {
+            throw RepositoryError(context.getString(R.string.error_file_size))
+        }
+        return tempFile
+    }
+
+    private fun Uri.getFileName(): String {
+        var fileName: String = DEFAULT_FILE_NAME
+        context.contentResolver.query(this, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                fileName =
+                    cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
+            }
+        }
+        return fileName.ifBlank { DEFAULT_FILE_NAME }
+    }
+
+    private suspend fun apiGetMessages(
+        numBefore: Int,
+        numAfter: Int,
+        narrow: String,
+        anchorId: Long,
+        anchor: String,
+    ): Response<MessagesResponse> {
+        return if (anchorId != Message.UNDEFINED_ID) {
+            apiService.getMessages(numBefore, numAfter, narrow, anchorId)
+        } else {
+            apiService.getMessages(numBefore, numAfter, narrow, anchor)
         }
     }
 
@@ -472,7 +662,7 @@ class MessagesRepositoryImpl @Inject constructor(
             }
             heartBeatEventsResponse.events.forEach { heartBeatEventDto ->
                 lastEventId = heartBeatEventDto.id
-                isHeartBeat = heartBeatEventDto.type == EVENT_HEARTBEAT
+                isHeartBeat = heartBeatEventDto.type == ZulipApiService.EVENT_HEARTBEAT
             }
         } while (isHeartBeat)
         return responseBody
@@ -517,10 +707,18 @@ class MessagesRepositoryImpl @Inject constructor(
 
     companion object {
 
-        private const val RESULT_SUCCESS = "success"
-        private const val EVENT_HEARTBEAT = "heartbeat"
         private const val UNKNOWN_ERROR = ""
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
+        private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
+        private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500
+
+        private const val MAX_FILE_SIZE = 10 * 1024 * 1024L
+        private const val MIN_FILE_SIZE = 0L
+        private const val DEFAULT_FILE_NAME = "file"
+        private const val TEMP_FILE_NAME = "temp_file"
+        private const val BUFFER_SIZE = 512 * 1024
+        private const val NO_OFFSET = 0
+        private const val END_OF_FILE = -1
     }
 }

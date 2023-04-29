@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.data.network
 
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
+import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
@@ -14,6 +15,7 @@ import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserResponse
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
@@ -55,11 +57,20 @@ interface ZulipApiService {
 
     @GET("messages")
     suspend fun getMessages(
-        @Query(QUERY_NUM_BEFORE) numBefore: Int = DEFAULT_NUM_BEFORE,
-        @Query(QUERY_NUM_AFTER) numAfter: Int = DEFAULT_NUM_AFTER,
-        @Query(QUERY_ANCHOR) anchor: String = ANCHOR_FIRST_UNREAD,
-        @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = true,
+        @Query(QUERY_NUM_BEFORE) numBefore: Int,
+        @Query(QUERY_NUM_AFTER) numAfter: Int,
+        @Query(QUERY_NARROW) narrow: String,
+        @Query(QUERY_ANCHOR) anchor: Long,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
+    ): Response<MessagesResponse>
+
+    @GET("messages")
+    suspend fun getMessages(
+        @Query(QUERY_NUM_BEFORE) numBefore: Int,
+        @Query(QUERY_NUM_AFTER) numAfter: Int,
+        @Query(QUERY_NARROW) narrow: String,
+        @Query(QUERY_ANCHOR) anchor: String,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): Response<MessagesResponse>
 
     @GET("messages/{$QUERY_MESSAGE_ID}")
@@ -91,7 +102,7 @@ interface ZulipApiService {
     suspend fun registerEventQueue(
         @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = true,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): Response<RegisterEventQueueResponse>
 
     @DELETE("events")
@@ -110,11 +121,20 @@ interface ZulipApiService {
         @Query(QUERY_FLAG) flag: String = QUERY_FLAG_READ,
     ): Response<BasicResponse>
 
+    @Multipart
+    @POST("user_uploads")
+    suspend fun uploadFile(@Part filePart: MultipartBody.Part): Response<UploadFileResponse>
+
     companion object {
 
+        const val RESULT_SUCCESS = "success"
+        const val EVENT_HEARTBEAT = "heartbeat"
         const val ANCHOR_NEWEST = "newest"
         const val ANCHOR_OLDEST = "oldest"
         const val ANCHOR_FIRST_UNREAD = "first_unread"
+        const val MAX_MESSAGES_PACKET = 20
+        const val HALF_MESSAGES_PACKET = 10
+        const val EMPTY_MESSAGES_PACKET = 0
 
         private const val QUERY_USERNAME = "username"
         private const val QUERY_PASSWORD = "password"
@@ -144,9 +164,8 @@ interface ZulipApiService {
         private const val QUERY_TYPE = "type"
         private const val QUERY_CONTENT = "content"
 
-        private const val DEFAULT_NUM_BEFORE = 1000
-        private const val DEFAULT_NUM_AFTER = 1000
         private const val DEFAULT_EMPTY_JSON = "[]"
+        private const val DEFAULT_APPLY_MARKDOWN = true
 
         private const val SEND_MESSAGE_TYPE_PRIVATE = "private"
         private const val SEND_MESSAGE_TYPE_STREAM = "stream"

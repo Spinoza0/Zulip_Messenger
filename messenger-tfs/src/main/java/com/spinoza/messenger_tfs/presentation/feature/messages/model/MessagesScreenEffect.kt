@@ -4,7 +4,13 @@ sealed class MessagesScreenEffect {
 
     object MessageSent : MessagesScreenEffect()
 
+    object ScrollToLastMessage : MessagesScreenEffect()
+
+    object AddAttachment : MessagesScreenEffect()
+
     class ShowChooseReactionDialog(val messageId: Long) : MessagesScreenEffect()
+
+    class FileUploaded(val newMessageText: String) : MessagesScreenEffect()
 
     sealed class Failure : MessagesScreenEffect() {
 

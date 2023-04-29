@@ -39,7 +39,7 @@ class UserMessageDelegate(
             item as UserMessageDelegateItem,
             onReactionAddClickListener,
             onReactionClickListener,
-            onAvatarClickListener
+            onAvatarClickListener,
         )
     }
 
@@ -67,7 +67,7 @@ class UserMessageDelegate(
             item: UserMessageDelegateItem,
             onReactionAddClickListener: (MessageView) -> Unit,
             onReactionClickListener: (MessageView, ReactionView) -> Unit,
-            onAvatarClickListener: ((MessageView) -> Unit)? = null,
+            onAvatarClickListener: ((MessageView) -> Unit)?,
         ) {
             with(binding.messageView) {
                 val message = item.content() as Message

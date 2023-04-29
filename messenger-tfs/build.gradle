@@ -40,6 +40,7 @@ android {
 
 dependencies {
     implementation androidx.core
+    implementation androidx.activity
     implementation androidx.appcompat
     implementation androidx.crypto
     implementation androidx.constraintlayout
@@ -66,6 +67,10 @@ dependencies {
     implementation elmslie.core
     implementation elmslie.android
     implementation elmslie.coroutines
+
+    implementation room.runtime
+    kapt(room.compiler)
+    implementation room.ktx
 
     debugImplementation leakcanary
 }

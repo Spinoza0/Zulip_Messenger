@@ -6,4 +6,5 @@ import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapte
 data class MessagesResultDelegate(
     val messages: List<DelegateAdapterItem>,
     val position: MessagePosition,
+    val isNewMessageExisting: Boolean
 )

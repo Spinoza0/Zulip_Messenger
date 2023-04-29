@@ -35,8 +35,8 @@ class ChannelsFragment : Fragment() {
         viewModelFactory
     }
 
-    private lateinit var tabLayoutMediator: TabLayoutMediator
     private lateinit var onPageChangeCallback: ViewPager2.OnPageChangeCallback
+    private var tabLayoutMediator: TabLayoutMediator? = null
 
     private var _binding: FragmentChannelsBinding? = null
     private val binding: FragmentChannelsBinding
@@ -92,8 +92,7 @@ class ChannelsFragment : Fragment() {
                     TAB_ALL -> tab.setText(R.string.all_streams)
                     else -> throw RuntimeException("Unknown tab position: $position")
                 }
-            }
-        tabLayoutMediator.attach()
+            }.apply { attach() }
     }
 
     private fun setupListeners() {
@@ -127,7 +126,8 @@ class ChannelsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         binding.tabLayout.removeAllTabs()
-        tabLayoutMediator.detach()
+        tabLayoutMediator?.detach()
+        tabLayoutMediator = null
         binding.viewPager.unregisterOnPageChangeCallback(onPageChangeCallback)
         binding.viewPager.adapter = null
         _binding = null

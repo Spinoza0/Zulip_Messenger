@@ -1,5 +1,6 @@
-package com.spinoza.messenger_tfs.data.repository
+package com.spinoza.messenger_tfs.data.utils
 
+import com.spinoza.messenger_tfs.data.database.model.*
 import com.spinoza.messenger_tfs.data.network.model.event.EventTypeDto
 import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventDto
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
@@ -9,6 +10,7 @@ import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.network.model.presence.PresenceDto
 import com.spinoza.messenger_tfs.data.network.model.presence.PresenceTypeDto
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
+import com.spinoza.messenger_tfs.data.network.model.stream.TopicDto
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
 import com.spinoza.messenger_tfs.domain.model.*
@@ -18,12 +20,27 @@ import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun List<StreamDto>.toDomain(channelsFilter: ChannelsFilter): List<Channel> {
-    return filter { subscribedStreamDto ->
-        channelsFilter.name.split(" ").all { word ->
-            subscribedStreamDto.name.contains(word, true)
-        }
-    }.map { it.toDomain() }
+fun TreeSet<MessageDto>.toDbModel(): List<MessageDbModel> {
+    return map { it.toDbModel() }
+}
+
+fun List<MessageDbModel>.dbModelToDto(): List<MessageDto> {
+    return map { it.dbModelToDto() }
+}
+
+fun List<StreamDto>.dtoToDomain(channelsFilter: ChannelsFilter): List<Channel> {
+    return filter { it.name.isContainsWords(channelsFilter.name) }
+        .map { it.dtoToDomain(channelsFilter) }
+}
+
+fun List<StreamDbModel>.dbToDomain(channelsFilter: ChannelsFilter): List<Channel> {
+    return filter { it.isSubscribed == channelsFilter.isSubscribed }
+        .filter { it.name.isContainsWords(channelsFilter.name) }
+        .map { it.dbToDomain(channelsFilter) }
+}
+
+fun List<StreamDto>.toDbModel(channelsFilter: ChannelsFilter): List<StreamDbModel> {
+    return map { it.toDbModel(channelsFilter) }
 }
 
 fun MessageDto.toDomain(userId: Long): Message {
@@ -123,12 +140,52 @@ fun List<EventType>.toStringsList(): List<String> {
     return map { it.toDto().value }
 }
 
-fun List<StreamEventDto>.listToDomain(): List<ChannelEvent> {
+fun List<StreamEventDto>.listToDomain(channelsFilter: ChannelsFilter): List<ChannelEvent> {
     val events = mutableListOf<ChannelEvent>()
     map { streamEventDto ->
-        streamEventDto.streams.forEach { events.add(streamEventDto.toDomain(it)) }
+        streamEventDto.streams.forEach { streamDto ->
+            events.add(streamEventDto.toDomain(streamDto, channelsFilter))
+        }
     }
     return events
+}
+
+fun List<TopicDto>.toDbModel(channel: Channel): List<TopicDbModel> {
+    return map { it.toDbModel(channel) }
+}
+
+fun List<TopicDto>.dtoToDomain(channel: Channel): List<Topic> {
+    return map { it.dtoToDomain(channel) }
+}
+
+fun List<TopicDbModel>.dbToDomain(): List<Topic> {
+    return map { it.dbToDomain() }
+}
+
+private fun TopicDbModel.dbToDomain(): Topic {
+    return Topic(
+        name = name,
+        messageCount = NO_MESSAGES,
+        channelId = streamId,
+        lastMessageId = Message.UNDEFINED_ID
+    )
+}
+
+fun TopicDto.dtoToDomain(channel: Channel): Topic {
+    return Topic(
+        name = name,
+        messageCount = NO_MESSAGES,
+        channelId = channel.channelId,
+        lastMessageId = maxId
+    )
+}
+
+private fun TopicDto.toDbModel(channel: Channel): TopicDbModel {
+    return TopicDbModel(
+        name = name,
+        streamId = channel.channelId,
+        isSubscribed = channel.isSubscribed
+    )
 }
 
 private fun EventType.toDto(): EventTypeDto = when (this) {
@@ -139,11 +196,14 @@ private fun EventType.toDto(): EventTypeDto = when (this) {
     EventType.REACTION -> EventTypeDto.REACTION
 }
 
-private fun StreamEventDto.toDomain(streamDto: StreamDto): ChannelEvent {
+private fun StreamEventDto.toDomain(
+    streamDto: StreamDto,
+    channelsFilter: ChannelsFilter,
+): ChannelEvent {
     val operation =
         if (operation == ChannelEvent.Operation.DELETE.value) ChannelEvent.Operation.DELETE
         else ChannelEvent.Operation.CREATE
-    return ChannelEvent(id, operation, streamDto.toDomain())
+    return ChannelEvent(id, operation, streamDto.dtoToDomain(channelsFilter))
 }
 
 private fun PresenceEventDto.toDomain(): PresenceEvent {
@@ -165,6 +225,100 @@ private fun PresenceEventDto.toDomain(): PresenceEvent {
     )
 }
 
+private fun StreamDto.dtoToDomain(channelsFilter: ChannelsFilter): Channel {
+    return Channel(
+        channelId = streamId,
+        name = name,
+        isSubscribed = channelsFilter.isSubscribed
+    )
+}
+
+private fun StreamDbModel.dbToDomain(channelsFilter: ChannelsFilter): Channel {
+    return Channel(
+        channelId = streamId,
+        name = name,
+        isSubscribed = channelsFilter.isSubscribed
+    )
+}
+
+private fun MessageDto.toDbModel(): MessageDbModel {
+    return MessageDbModel(this.toDataDbModel(), this.reactions.toDbModel(this.id))
+}
+
+private fun MessageDbModel.dbModelToDto(): MessageDto {
+    return MessageDto(
+        id = message.id,
+        streamId = message.streamId,
+        senderId = message.senderId,
+        content = message.content,
+        recipientId = message.recipientId,
+        timestamp = message.timestamp,
+        subject = message.subject,
+        isMeMessage = message.isMeMessage,
+        reactions = reactions.toDto(),
+        senderFullName = message.senderFullName,
+        senderEmail = message.senderEmail,
+        avatarUrl = message.avatarUrl
+    )
+}
+
+private fun List<ReactionDbModel>.toDto(): List<ReactionDto> {
+    return map { it.toDto() }
+}
+
+private fun ReactionDbModel.toDto(): ReactionDto {
+    return ReactionDto(
+        emojiName = emojiName,
+        emojiCode = emojiCode,
+        reactionType = reactionType,
+        userId = userId
+    )
+}
+
+private fun MessageDto.toDataDbModel(): MessageDataDbModel {
+    return MessageDataDbModel(
+        id = id,
+        streamId = streamId,
+        senderId = senderId,
+        content = content,
+        recipientId = recipientId,
+        timestamp = timestamp,
+        subject = subject,
+        isMeMessage = isMeMessage,
+        senderFullName = senderFullName,
+        senderEmail = senderEmail,
+        avatarUrl = avatarUrl ?: ""
+    )
+}
+
+private fun List<ReactionDto>.toDbModel(messageId: Long): List<ReactionDbModel> {
+    return map { it.toDbModel(messageId) }
+}
+
+private fun ReactionDto.toDbModel(messageId: Long): ReactionDbModel {
+    return ReactionDbModel(
+        emojiName = emojiName,
+        emojiCode = emojiCode,
+        reactionType = reactionType,
+        userId = userId,
+        messageId = messageId
+    )
+}
+
+private fun StreamDto.toDbModel(channelsFilter: ChannelsFilter): StreamDbModel {
+    return StreamDbModel(
+        streamId = streamId,
+        name = name,
+        isSubscribed = channelsFilter.isSubscribed
+    )
+}
+
+private fun String.isContainsWords(words: String): Boolean {
+    return words.split(" ").all { word ->
+        this.contains(word, true)
+    }
+}
+
 private fun Long.unixTimeToString(): String {
     return SimpleDateFormat(
         DATE_FORMAT,
@@ -176,13 +330,7 @@ private fun Long.stripTimeFromTimestamp(): Long {
     return this - (this % SECONDS_IN_DAY)
 }
 
-private fun StreamDto.toDomain(): Channel {
-    return Channel(
-        channelId = streamId,
-        name = name
-    )
-}
-
 private const val DATE_FORMAT = "dd.MM.yyyy"
 private const val MILLIS_IN_SECOND = 1000L
 private const val SECONDS_IN_DAY = 24 * 60 * 60
+private const val NO_MESSAGES = 0

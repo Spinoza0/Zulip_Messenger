@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.data.repository
+package com.spinoza.messenger_tfs.data.utils
 
 import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperator
 import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperatorItemDto
@@ -18,7 +18,7 @@ suspend fun <R> runCatchingNonCancellation(block: suspend () -> R): Result<R> {
     }
 }
 
-fun MessagesFilter.createNarrowJsonWithOperator(): String {
+fun MessagesFilter.createNarrowJsonForMessages(): String {
     val narrow = mutableListOf<NarrowOperatorItemDto>()
     if (channel.name.isNotEmpty()) {
         narrow.add(
@@ -40,6 +40,10 @@ fun MessagesFilter.createNarrowJsonForEvents(): String {
         narrow.add(listOf(NarrowOperator.TOPIC.value, topic.name))
     }
     return Json.encodeToString(narrow)
+}
+
+fun MessagesFilter.isEqualTopicName(otherName: String): Boolean {
+    return topic.name.equals(otherName, true)
 }
 
 inline fun <reified T> Response<T>?.getBodyOrThrow(): T {

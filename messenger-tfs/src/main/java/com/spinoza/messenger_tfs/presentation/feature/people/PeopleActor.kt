@@ -31,9 +31,14 @@ class PeopleActor @Inject constructor(
     private var isUsersCacheChanged = false
     private var usersFilter = ""
 
+    @Volatile
+    private var isLoading = false
+
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
-            eventsQueue.deleteQueue()
+            lifecycleScope.launch {
+                eventsQueue.deleteQueue()
+            }
         }
     }
 
@@ -84,12 +89,15 @@ class PeopleActor @Inject constructor(
     }
 
     private suspend fun loadUsers(): PeopleScreenEvent.Internal {
+        if (isLoading) return getIdleEvent()
+        isLoading = true
         var event: PeopleScreenEvent.Internal = PeopleScreenEvent.Internal.Idle
         getUsersByFilterUseCase(NO_FILTER).onSuccess {
             usersCache.clear()
             usersCache.addAll(it)
             event = PeopleScreenEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
-            eventsQueue.registerQueue(EventType.PRESENCE, ::handleOnSuccessQueueRegistration)
+            eventsQueue
+                .registerQueue(listOf(EventType.PRESENCE), ::handleOnSuccessQueueRegistration)
         }.onFailure { error ->
             event = if (error is RepositoryError) {
                 PeopleScreenEvent.Internal.ErrorUserLoading(error.value)
@@ -97,6 +105,7 @@ class PeopleActor @Inject constructor(
                 PeopleScreenEvent.Internal.ErrorNetwork(error.getErrorText())
             }
         }
+        isLoading = false
         return event
     }
 
@@ -132,6 +141,11 @@ class PeopleActor @Inject constructor(
         }
     }
 
+    private suspend fun getIdleEvent(): PeopleScreenEvent.Internal.Idle {
+        delay(DELAY_BEFORE_RETURN_IDLE_EVENT)
+        return PeopleScreenEvent.Internal.Idle
+    }
+
     private suspend fun List<User>.toSortedList(filter: String = NO_FILTER): List<User> =
         withContext(Dispatchers.Default) {
             val sortedList = ArrayList(this@toSortedList)
@@ -154,5 +168,6 @@ class PeopleActor @Inject constructor(
         const val INDEX_NOT_FOUND = -1
         const val MILLIS_IN_SECOND = 1000
         const val OFFLINE_TIME = 180
+        const val DELAY_BEFORE_RETURN_IDLE_EVENT = 1000L
     }
 }

@@ -54,6 +54,16 @@ class PeopleReducer @Inject constructor(private val router: Router) : ScreenDslR
         is PeopleScreenEvent.Ui.OpenMainMenu -> router.navigateTo(Screens.MainMenu())
         is PeopleScreenEvent.Ui.ShowUserInfo -> router.navigateTo(Screens.UserProfile(event.userId))
         is PeopleScreenEvent.Ui.Filter -> commands { +PeopleScreenCommand.SetNewFilter(event.value) }
+        is PeopleScreenEvent.Ui.OnScrolled -> {
+            if (!event.canScrollUp && event.dy <= PeopleScreenEvent.DIRECTION_UP) {
+                state { copy(isLoading = true) }
+                commands { +PeopleScreenCommand.Load }
+            } else if (!event.canScrollDown && event.dy >= PeopleScreenEvent.DIRECTION_DOWN) {
+                state { copy(isLoading = true) }
+                commands { +PeopleScreenCommand.Load }
+            }
+            effects {}
+        }
         is PeopleScreenEvent.Ui.Init -> {}
     }
 }

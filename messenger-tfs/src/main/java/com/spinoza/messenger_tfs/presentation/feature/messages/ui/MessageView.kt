@@ -3,11 +3,13 @@ package com.spinoza.messenger_tfs.presentation.feature.messages.ui
 import android.content.Context
 import android.text.Html
 import android.text.Html.ImageGetter
+import android.text.method.LinkMovementMethod
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.core.content.withStyledAttributes
 import androidx.core.view.isVisible
 import com.spinoza.messenger_tfs.R
@@ -15,6 +17,8 @@ import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
+import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.FlexBoxGravity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,10 +32,10 @@ class MessageView @JvmOverloads constructor(
     private val defStyleRes: Int = 0,
 ) : ViewGroup(context, attrs, defStyleAttr, defStyleRes) {
 
-    var messageId: Long = UNDEFINED_ID
+    var messageId: Long = Message.UNDEFINED_ID
         private set
 
-    var userId: Long = UNDEFINED_ID
+    var userId: Long = User.UNDEFINED_ID
         private set
 
     var name: String
@@ -43,13 +47,14 @@ class MessageView @JvmOverloads constructor(
     val avatarImage: ImageView
         get() = binding.avatarImageView
 
+    private val webUtil = context.getAppComponent().webUtil()
     private var imageJob: Job? = null
 
     private val imageGetter = ImageGetter { imageUrl ->
         val holder = DrawableHolder(resources)
         imageJob?.cancel()
         imageJob = CoroutineScope(Dispatchers.IO).launch {
-            holder.loadImage(context, imageUrl, binding.contentTextView)
+            holder.loadImage(context, webUtil, imageUrl, binding.contentTextView)
         }
         holder
     }
@@ -57,8 +62,12 @@ class MessageView @JvmOverloads constructor(
     private var content: String
         get() = binding.contentTextView.text.toString()
         set(value) {
-            binding.contentTextView.text =
-                Html.fromHtml(value, Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL, imageGetter, null)
+            binding.contentTextView.text = Html.fromHtml(
+                MessageTagHandler.prepareTag(value),
+                Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL,
+                imageGetter,
+                MessageTagHandler()
+            )
         }
 
     private val binding by lazy {
@@ -96,6 +105,7 @@ class MessageView @JvmOverloads constructor(
                 )
             }
         }
+        binding.contentTextView.movementMethod = LinkMovementMethod.getInstance()
     }
 
     override fun onDetachedFromWindow() {
@@ -105,6 +115,7 @@ class MessageView @JvmOverloads constructor(
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val widthSize = MeasureSpec.getSize(widthMeasureSpec)
         var offsetX = paddingLeft
         var offsetY = paddingTop
         var maxChildWidth = 0
@@ -127,6 +138,7 @@ class MessageView @JvmOverloads constructor(
                 heightMeasureSpec,
                 offsetY
             )
+            binding.nameTextView.setMaxWidthUsingOffset(widthSize, offsetX)
             maxChildWidth = binding.nameTextView.getWidthWithMargins()
             offsetY += binding.nameTextView.getHeightWithMargins()
         }
@@ -138,6 +150,7 @@ class MessageView @JvmOverloads constructor(
             heightMeasureSpec,
             offsetY
         )
+        binding.contentTextView.setMaxWidthUsingOffset(widthSize, offsetX)
         maxChildWidth = maxOf(maxChildWidth, binding.contentTextView.getWidthWithMargins())
         offsetY += binding.contentTextView.getHeightWithMargins()
 
@@ -246,6 +259,10 @@ class MessageView @JvmOverloads constructor(
         }
     }
 
+    private fun TextView.setMaxWidthUsingOffset(widthSize: Int, offset: Int) {
+        this.maxWidth = widthSize - offset
+    }
+
     private fun addReaction(reaction: Emoji, reactionParam: ReactionParam) {
         val reactionView =
             ReactionView(context, attrs, defStyleAttr, defStyleRes).apply {
@@ -265,7 +282,6 @@ class MessageView @JvmOverloads constructor(
 
     private companion object {
 
-        const val UNDEFINED_ID = -1L
         const val REACTION_PADDING_HORIZONTAL = 10f
         const val REACTION_PADDING_VERTICAL = 7f
     }

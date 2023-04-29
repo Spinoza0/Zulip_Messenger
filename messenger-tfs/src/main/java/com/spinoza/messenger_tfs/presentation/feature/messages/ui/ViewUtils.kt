@@ -51,6 +51,7 @@ fun View.layoutWithMargins(offsetX: Int, offsetY: Int, minWidth: Int = this.meas
 }
 
 fun RecyclerView.smoothScrollToTargetPosition(targetPosition: Int) {
+    if (targetPosition == RecyclerView.NO_POSITION) return
     val lastVisiblePosition = (layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
     if ((targetPosition - lastVisiblePosition) > MAX_DISTANCE) {
         scrollToPosition(targetPosition - MAX_DISTANCE)

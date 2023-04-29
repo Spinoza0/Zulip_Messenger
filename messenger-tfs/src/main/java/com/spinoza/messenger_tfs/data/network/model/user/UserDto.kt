@@ -1,12 +1,13 @@
 package com.spinoza.messenger_tfs.data.network.model.user
 
+import com.spinoza.messenger_tfs.domain.model.User
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserDto(
     @SerialName("email") val email: String = "",
-    @SerialName("user_id") val userId: Long = UNDEFINED_ID,
+    @SerialName("user_id") val userId: Long = User.UNDEFINED_ID,
     @SerialName("avatar_version") val avatarVersion: Int = 0,
     @SerialName("is_admin") val isAdmin: Boolean = false,
     @SerialName("is_owner") val isOwner: Boolean = false,
@@ -23,10 +24,4 @@ data class UserDto(
     @SerialName("bot_type") val botType: Int? = null,
     @SerialName("bot_owner_id") val botOwnerId: Int? = null,
     @SerialName("profile_data") val profileData: Map<String, ProfileDataDto> = emptyMap(),
-) {
-
-    companion object {
-
-        const val UNDEFINED_ID = -1L
-    }
-}
+)

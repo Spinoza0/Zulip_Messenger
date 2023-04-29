@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.widget.doOnTextChanged
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentPeopleBinding
@@ -70,20 +69,15 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
     private fun setupRecyclerView() {
         binding.recyclerViewUsers.adapter = PeopleAdapter(::onUserClickListener)
         binding.recyclerViewUsers.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
-                val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
-                val lastItem = layoutManager.itemCount - 1
-                val firstItem = 0
-                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
-                    if (lastVisibleItemPosition == lastItem ||
-                        firstVisibleItemPosition == firstItem
-                    ) {
-                        store.accept(PeopleScreenEvent.Ui.Load)
-                    }
-                }
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                store.accept(
+                    PeopleScreenEvent.Ui.OnScrolled(
+                        recyclerView.canScrollVertically(PeopleScreenEvent.DIRECTION_UP),
+                        recyclerView.canScrollVertically(PeopleScreenEvent.DIRECTION_DOWN),
+                        dy
+                    )
+                )
             }
         })
     }
@@ -96,15 +90,11 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
 
     override fun render(state: PeopleScreenState) {
         if (state.isLoading) {
-            binding.shimmerLarge.on()
+            if (isPeopleListEmpty()) binding.shimmerLarge.on()
         } else {
             binding.shimmerLarge.off()
         }
-        state.users?.let {
-            (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(it) {
-                binding.recyclerViewUsers.scrollToPosition(FIRST_ITEM)
-            }
-        }
+        state.users?.let { (binding.recyclerViewUsers.adapter as PeopleAdapter).submitList(it) }
     }
 
     override fun handleEffect(effect: PeopleScreenEffect) {
@@ -124,6 +114,10 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
         store.accept(PeopleScreenEvent.Ui.ShowUserInfo(userId))
     }
 
+    private fun isPeopleListEmpty(): Boolean {
+        return (binding.recyclerViewUsers.adapter as PeopleAdapter).itemCount == NO_ITEMS
+    }
+
     override fun onResume() {
         super.onResume()
         store.accept(PeopleScreenEvent.Ui.Filter(binding.editTextSearch.text.toString()))
@@ -141,7 +135,7 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
 
     companion object {
 
-        private const val FIRST_ITEM = 0
+        private const val NO_ITEMS = 0
 
         fun newInstance(): PeopleFragment {
             return PeopleFragment()
