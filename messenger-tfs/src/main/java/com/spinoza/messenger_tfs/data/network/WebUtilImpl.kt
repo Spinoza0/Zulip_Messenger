@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.data.network
 
 import com.bumptech.glide.load.model.LazyHeaders
 import com.spinoza.messenger_tfs.BuildConfig
-import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import javax.inject.Inject
 

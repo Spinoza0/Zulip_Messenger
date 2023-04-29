@@ -7,10 +7,10 @@ import android.provider.OpenableColumns
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.utils.getBodyOrThrow
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
-import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
-import com.spinoza.messenger_tfs.domain.repository.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.repository.AttachmentNotificator
-import com.spinoza.messenger_tfs.domain.repository.RepositoryError
+import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
+import com.spinoza.messenger_tfs.domain.attachment.AttachmentNotificator
+import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -12,9 +12,9 @@ import com.spinoza.messenger_tfs.data.network.AttachmentNotificatorImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
-import com.spinoza.messenger_tfs.domain.repository.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.repository.AttachmentNotificator
+import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
+import com.spinoza.messenger_tfs.domain.attachment.AttachmentNotificator
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import dagger.Binds

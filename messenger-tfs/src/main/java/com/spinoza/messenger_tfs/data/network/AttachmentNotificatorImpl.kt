@@ -6,7 +6,7 @@ import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.domain.repository.AttachmentNotificator
+import com.spinoza.messenger_tfs.domain.attachment.AttachmentNotificator
 import javax.inject.Inject
 
 class AttachmentNotificatorImpl @Inject constructor(private val context: Context) :
