@@ -15,9 +15,8 @@ import com.google.android.material.navigation.NavigationBarView.OnItemSelectedLi
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMainMenuBinding
 import com.spinoza.messenger_tfs.presentation.feature.app.utils.closeApplication
-import com.spinoza.messenger_tfs.presentation.feature.messages.ui.getThemeColor
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
-
+import com.spinoza.messenger_tfs.presentation.util.getThemeColor
 
 class MainMenuFragment : Fragment(), OnItemSelectedListener {
 

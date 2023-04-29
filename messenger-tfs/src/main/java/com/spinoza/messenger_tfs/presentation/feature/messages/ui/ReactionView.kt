@@ -9,6 +9,7 @@ import android.view.View
 import androidx.core.content.withStyledAttributes
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.presentation.util.getThemeColor
 
 class ReactionView @JvmOverloads constructor(
     context: Context,

@@ -32,9 +32,9 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsPageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.factory.ViewModelFactory
-import com.spinoza.messenger_tfs.presentation.feature.messages.ui.getThemeColor
-import com.spinoza.messenger_tfs.presentation.feature.messages.ui.off
-import com.spinoza.messenger_tfs.presentation.feature.messages.ui.on
+import com.spinoza.messenger_tfs.presentation.util.getThemeColor
+import com.spinoza.messenger_tfs.presentation.util.off
+import com.spinoza.messenger_tfs.presentation.util.on
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 

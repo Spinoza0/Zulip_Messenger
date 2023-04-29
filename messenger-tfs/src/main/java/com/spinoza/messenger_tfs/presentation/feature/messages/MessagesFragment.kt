@@ -10,7 +10,7 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts.*
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
@@ -19,24 +19,41 @@ import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
-import com.spinoza.messenger_tfs.domain.model.*
-import com.spinoza.messenger_tfs.domain.usecase.*
+import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessagePosition
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.*
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.getParam
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.showCheckInternetConnectionDialog
+import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
-import com.spinoza.messenger_tfs.presentation.feature.messages.model.*
-import com.spinoza.messenger_tfs.presentation.feature.messages.ui.*
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
+import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToLastPosition
+import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToMessage
+import com.spinoza.messenger_tfs.presentation.util.getInstanceState
+import com.spinoza.messenger_tfs.presentation.util.getThemeColor
+import com.spinoza.messenger_tfs.presentation.util.off
+import com.spinoza.messenger_tfs.presentation.util.on
+import com.spinoza.messenger_tfs.presentation.util.restoreInstanceState
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
 import vivid.money.elmslie.coroutines.ElmStoreCompat
-import java.util.*
 import javax.inject.Inject
 
 class MessagesFragment :
@@ -63,10 +80,7 @@ class MessagesFragment :
     private var onBackPressedCallback: OnBackPressedCallback? = null
     private var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     private var recyclerViewState: Parcelable? = null
-    private var recyclerViewStateOnStop: Parcelable? = null
-
-    private val layoutManager: LinearLayoutManager
-        get() = binding.recyclerViewMessages.layoutManager as LinearLayoutManager
+    private var recyclerViewStateOnDestroy: Parcelable? = null
 
     override val storeHolder:
             StoreHolder<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState> by lazy {
@@ -140,6 +154,7 @@ class MessagesFragment :
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
                 var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
                 if (firstVisiblePosition == RecyclerView.NO_POSITION) {
                     firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
@@ -304,7 +319,7 @@ class MessagesFragment :
 
     private fun scrollAfterSubmitMessages(result: MessagesResultDelegate) {
         if (recyclerViewState != null) {
-            binding.recyclerViewMessages.layoutManager?.onRestoreInstanceState(recyclerViewState)
+            binding.recyclerViewMessages.restoreInstanceState(recyclerViewState)
             recyclerViewState = null
         } else when (result.position.type) {
             MessagePosition.Type.LAST_POSITION ->
@@ -316,7 +331,9 @@ class MessagesFragment :
 
             MessagePosition.Type.UNDEFINED -> {}
         }
-        val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
+        val lastVisibleItemPosition =
+            (binding.recyclerViewMessages.layoutManager as LinearLayoutManager)
+                .findLastVisibleItemPosition()
         store.accept(
             MessagesScreenEvent.Ui.AfterSubmitMessages(
                 isNextMessageExisting(lastVisibleItemPosition),
@@ -349,7 +366,6 @@ class MessagesFragment :
         store.accept(MessagesScreenEvent.Ui.Exit)
     }
 
-    @Suppress("deprecation")
     private fun parseParams(savedInstanceState: Bundle?) {
         val newMessagesFilter = arguments?.getParam<MessagesFilter>(PARAM_CHANNEL_FILTER)
         if (newMessagesFilter == null ||
@@ -361,7 +377,7 @@ class MessagesFragment :
             messagesFilter = newMessagesFilter
         }
         savedInstanceState?.let {
-            recyclerViewState = it.getParcelable(PARAM_RECYCLERVIEW_STATE)
+            recyclerViewState = it.getParam<Parcelable>(PARAM_RECYCLERVIEW_STATE)
         }
     }
 
@@ -389,19 +405,23 @@ class MessagesFragment :
 
     override fun onStop() {
         super.onStop()
-        recyclerViewStateOnStop = layoutManager.onSaveInstanceState()
         onBackPressedCallback?.remove()
         onBackPressedCallback = null
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        recyclerViewState = recyclerViewStateOnStop
+        recyclerViewState = if (_binding != null) {
+            binding.recyclerViewMessages.getInstanceState()
+        } else {
+            recyclerViewStateOnDestroy
+        }
         outState.putParcelable(PARAM_RECYCLERVIEW_STATE, recyclerViewState)
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        recyclerViewStateOnDestroy = binding.recyclerViewMessages.getInstanceState()
         messagesAdapter.clear()
         _binding = null
     }
