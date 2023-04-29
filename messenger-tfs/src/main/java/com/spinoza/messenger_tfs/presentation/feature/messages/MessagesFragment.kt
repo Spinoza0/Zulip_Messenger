@@ -52,6 +52,9 @@ class MessagesFragment :
     @Inject
     lateinit var webUtil: WebUtil
 
+    @Inject
+    lateinit var messagesAdapter: MainDelegateAdapter
+
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
@@ -60,31 +63,10 @@ class MessagesFragment :
     private var onBackPressedCallback: OnBackPressedCallback? = null
     private var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     private var recyclerViewState: Parcelable? = null
+    private var recyclerViewStateOnStop: Parcelable? = null
 
-    private val messagesAdapter by lazy {
-        MainDelegateAdapter().apply {
-            addDelegate(
-                UserMessageDelegate(
-                    ::onMessageLongClickListener,
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener,
-                    ::onAvatarClickListener,
-                )
-            )
-            addDelegate(
-                OwnMessageDelegate(
-                    ::onMessageLongClickListener,
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener
-                )
-            )
-            addDelegate(DateDelegate())
-        }
-    }
-
-    private val layoutManager by lazy {
-        binding.recyclerViewMessages.layoutManager as LinearLayoutManager
-    }
+    private val layoutManager: LinearLayoutManager
+        get() = binding.recyclerViewMessages.layoutManager as LinearLayoutManager
 
     override val storeHolder:
             StoreHolder<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState> by lazy {
@@ -137,6 +119,22 @@ class MessagesFragment :
     }
 
     private fun setupRecyclerView() {
+        messagesAdapter.addDelegate(
+            UserMessageDelegate(
+                ::onMessageLongClickListener,
+                ::onReactionAddClickListener,
+                ::onReactionClickListener,
+                ::onAvatarClickListener,
+            )
+        )
+        messagesAdapter.addDelegate(
+            OwnMessageDelegate(
+                ::onMessageLongClickListener,
+                ::onReactionAddClickListener,
+                ::onReactionClickListener
+            )
+        )
+        messagesAdapter.addDelegate(DateDelegate())
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -219,6 +217,7 @@ class MessagesFragment :
             is MessagesScreenEffect.MessageSent -> binding.editTextMessage.text?.clear()
             is MessagesScreenEffect.ScrollToLastMessage ->
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
+
             is MessagesScreenEffect.ShowMessageMenu -> showMessageMenu(effect)
             is MessagesScreenEffect.ShowChooseReactionDialog -> {
                 val dialog = ChooseReactionDialogFragment.newInstance(
@@ -229,14 +228,17 @@ class MessagesFragment :
                     requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG
                 )
             }
+
             is MessagesScreenEffect.Failure.ErrorMessages ->
                 showError("${getString(R.string.error_messages)} ${effect.value}")
+
             is MessagesScreenEffect.Failure.ErrorNetwork -> {
                 showError("${getString(R.string.error_network)} ${effect.value}")
                 showCheckInternetConnectionDialog({ store.accept(MessagesScreenEvent.Ui.Reload) }) {
                     goBack()
                 }
             }
+
             is MessagesScreenEffect.AddAttachment -> addAttachment()
             is MessagesScreenEffect.FileUploaded ->
                 binding.editTextMessage.setText(effect.newMessageText)
@@ -252,10 +254,12 @@ class MessagesFragment :
                     onReactionAddClickListener(effect.messageView)
                     true
                 }
+
                 R.id.itemSaveAttachments -> {
                     store.accept(MessagesScreenEvent.Ui.SaveAttachments(effect.urls))
                     true
                 }
+
                 else -> false
             }
         }
@@ -305,9 +309,11 @@ class MessagesFragment :
         } else when (result.position.type) {
             MessagePosition.Type.LAST_POSITION ->
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
+
             MessagePosition.Type.EXACTLY -> {
                 binding.recyclerViewMessages.smoothScrollToMessage(result.position.messageId)
             }
+
             MessagePosition.Type.UNDEFINED -> {}
         }
         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
@@ -383,13 +389,14 @@ class MessagesFragment :
 
     override fun onStop() {
         super.onStop()
+        recyclerViewStateOnStop = layoutManager.onSaveInstanceState()
         onBackPressedCallback?.remove()
         onBackPressedCallback = null
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        recyclerViewState = binding.recyclerViewMessages.layoutManager?.onSaveInstanceState()
+        recyclerViewState = recyclerViewStateOnStop
         outState.putParcelable(PARAM_RECYCLERVIEW_STATE, recyclerViewState)
     }
 
