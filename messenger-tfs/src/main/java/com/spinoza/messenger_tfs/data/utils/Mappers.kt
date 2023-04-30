@@ -39,6 +39,10 @@ fun TreeSet<MessageDto>.toDbModel(): List<MessageDbModel> {
     return map { it.toDbModel() }
 }
 
+fun MessageDto.toDbModel(): MessageDbModel {
+    return MessageDbModel(this.toDataDbModel(), this.reactions.toDbModel(this.id))
+}
+
 fun List<MessageDbModel>.dbModelToDto(): List<MessageDto> {
     return map { it.dbModelToDto() }
 }
@@ -256,10 +260,6 @@ private fun StreamDbModel.dbToDomain(channelsFilter: ChannelsFilter): Channel {
         name = name,
         isSubscribed = channelsFilter.isSubscribed
     )
-}
-
-private fun MessageDto.toDbModel(): MessageDbModel {
-    return MessageDbModel(this.toDataDbModel(), this.reactions.toDbModel(this.id))
 }
 
 private fun MessageDbModel.dbModelToDto(): MessageDto {

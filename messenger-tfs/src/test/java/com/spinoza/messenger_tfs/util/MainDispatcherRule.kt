@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.util
+package com.spinoza.messenger_tfs.util
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi

@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.stub
 
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 
-class MessagesDtoStub {
+class MessagesGenerator {
 
     private var id = 0L
     private val streamId = 0L
@@ -18,7 +18,15 @@ class MessagesDtoStub {
 
     fun getTopicName() = topicName
 
-    fun getNextMessage(): MessageDto {
+    fun getListOfMessagesDto(): List<MessageDto> {
+        val messages = mutableListOf<MessageDto>()
+        repeat(5) {
+            messages.add(getNextMessageDto())
+        }
+        return messages.toList()
+    }
+
+    fun getNextMessageDto(): MessageDto {
         id++
         return MessageDto(
             id = id, streamId = streamId, senderId = id, content = "content",

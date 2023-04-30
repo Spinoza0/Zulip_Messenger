@@ -10,7 +10,7 @@ import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
-import com.spinoza.messenger_tfs.presentation.util.MainDispatcherRule
+import com.spinoza.messenger_tfs.util.MainDispatcherRule
 import com.spinoza.messenger_tfs.stub.AppRouterStub
 import com.spinoza.messenger_tfs.stub.MessengerRepositoryStub
 import kotlinx.coroutines.CoroutineScope

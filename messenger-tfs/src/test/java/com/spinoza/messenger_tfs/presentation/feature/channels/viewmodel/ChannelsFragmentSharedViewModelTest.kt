@@ -3,7 +3,7 @@ package com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
-import com.spinoza.messenger_tfs.presentation.util.MainDispatcherRule
+import com.spinoza.messenger_tfs.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest

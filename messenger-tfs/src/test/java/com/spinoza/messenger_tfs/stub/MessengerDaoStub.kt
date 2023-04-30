@@ -6,8 +6,10 @@ import com.spinoza.messenger_tfs.data.database.model.MessageDbModel
 import com.spinoza.messenger_tfs.data.database.model.ReactionDbModel
 import com.spinoza.messenger_tfs.data.database.model.StreamDbModel
 import com.spinoza.messenger_tfs.data.database.model.TopicDbModel
+import com.spinoza.messenger_tfs.data.utils.toDbModel
 
-class MessengerDaoStub : MessengerDao {
+class MessengerDaoStub(private val messagesGenerator: MessagesGenerator, private val type: Type) :
+    MessengerDao {
 
     override suspend fun getStreams(): List<StreamDbModel> {
         return emptyList()
@@ -17,28 +19,31 @@ class MessengerDaoStub : MessengerDao {
         return emptyList()
     }
 
-    override suspend fun insertTopics(topics: List<TopicDbModel>) {
-    }
+    override suspend fun insertTopics(topics: List<TopicDbModel>) {}
 
-    override suspend fun insertStreams(streams: List<StreamDbModel>) {
-    }
+    override suspend fun insertStreams(streams: List<StreamDbModel>) {}
 
-    override suspend fun removeTopics(streamId: Long, isSubscribed: Boolean) {
-    }
+    override suspend fun removeTopics(streamId: Long, isSubscribed: Boolean) {}
 
-    override suspend fun removeStreams(isSubscribed: Boolean) {
-    }
+    override suspend fun removeStreams(isSubscribed: Boolean) {}
 
     override suspend fun getMessages(): List<MessageDbModel> {
-        return emptyList()
+        return when (type) {
+            Type.EMPTY -> emptyList()
+            Type.WITH_MESSAGES -> messagesGenerator.getListOfMessagesDto().map { it.toDbModel() }
+            Type.WITH_GET_MESSAGES_ERROR -> throw RuntimeException("getMessages test error")
+        }
     }
 
-    override suspend fun removeMessages() {
-    }
+    override suspend fun removeMessages() {}
 
-    override suspend fun insertMessage(message: MessageDataDbModel) {
-    }
+    override suspend fun insertMessage(message: MessageDataDbModel) {}
 
-    override suspend fun insertReaction(reaction: ReactionDbModel) {
+    override suspend fun insertReaction(reaction: ReactionDbModel) {}
+
+    enum class Type {
+        EMPTY,
+        WITH_MESSAGES,
+        WITH_GET_MESSAGES_ERROR
     }
 }
