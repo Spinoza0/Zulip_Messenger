@@ -12,6 +12,8 @@ import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenSta
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 @Module
@@ -22,6 +24,9 @@ interface LoginModule {
     fun bindLoginStorage(impl: LoginStorageImpl): LoginStorage
 
     companion object {
+
+        @Provides
+        fun profileCoroutineDispatcher(): CoroutineDispatcher = Dispatchers.Default
 
         @Provides
         fun provideLoginScreenState(): LoginScreenState = LoginScreenState()

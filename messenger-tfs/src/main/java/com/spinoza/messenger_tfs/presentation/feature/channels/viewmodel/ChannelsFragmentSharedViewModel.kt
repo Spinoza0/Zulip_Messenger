@@ -5,14 +5,25 @@ import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class ChannelsFragmentSharedViewModel @Inject constructor() : ViewModel() {
+class ChannelsFragmentSharedViewModel @Inject constructor(private val defaultDispatcher: CoroutineDispatcher) :
+    ViewModel() {
 
     val state: StateFlow<ChannelsScreenState>
         get() = _state.asStateFlow()
@@ -43,11 +54,11 @@ class ChannelsFragmentSharedViewModel @Inject constructor() : ViewModel() {
             .debounce(DELAY_BEFORE_FILTER_CHANGE)
             .flatMapLatest { flow { emit(it) } }
             .onEach { _state.emit(state.value.copy(filter = it)) }
-            .flowOn(Dispatchers.Default)
+            .flowOn(defaultDispatcher)
             .launchIn(viewModelScope)
     }
 
-    companion object {
+    private companion object {
         const val DELAY_BEFORE_FILTER_CHANGE = 300L
     }
 }

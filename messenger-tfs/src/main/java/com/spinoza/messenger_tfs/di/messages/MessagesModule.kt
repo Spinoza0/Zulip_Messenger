@@ -8,6 +8,8 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScr
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 @Module
@@ -15,6 +17,9 @@ object MessagesModule {
 
     @Provides
     fun provideMessagesScreenState(): MessagesScreenState = MessagesScreenState()
+
+    @Provides
+    fun profileCoroutineDispatcher(): CoroutineDispatcher = Dispatchers.Default
 
     @Provides
     fun provideMessagesStore(

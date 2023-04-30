@@ -7,10 +7,11 @@ import android.provider.OpenableColumns
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.utils.getBodyOrThrow
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
-import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentNotificator
+import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,12 +31,13 @@ class AttachmentHandlerImpl @Inject constructor(
     private val authKeeper: AppAuthKeeper,
     private val apiService: ZulipApiService,
     private val notificator: AttachmentNotificator,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : AttachmentHandler {
 
     override fun saveAttachments(urls: List<String>) {
         val downloadsDirectory =
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(ioDispatcher).launch {
             for (url in urls) {
                 val fileName = url.substringAfterLast("/")
                 val file = File(downloadsDirectory, fileName)
@@ -59,7 +61,7 @@ class AttachmentHandlerImpl @Inject constructor(
     }
 
     override suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String> =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val contentType = context.contentResolver.getType(uri)
                     ?: throw RepositoryError(context.getString(R.string.error_unknown_file_type))
@@ -112,6 +114,7 @@ class AttachmentHandlerImpl @Inject constructor(
         return uniqueFile
     }
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun getTempFile(uri: Uri): File {
         val inputStream = context.contentResolver.openInputStream(uri)
             ?: throw RepositoryError(context.getString(R.string.error_uri))
@@ -119,7 +122,7 @@ class AttachmentHandlerImpl @Inject constructor(
         val filesDir = context.filesDir
         val tempFile = File(filesDir, TEMP_FILE_NAME).also { it.deleteOnExit() }
         var fileSize = 0L
-        val bufferedOutputStream = withContext(Dispatchers.IO) {
+        val bufferedOutputStream = withContext(ioDispatcher) {
             BufferedOutputStream(FileOutputStream(tempFile), TEMP_FILE_BUFFER_SIZE)
         }
         inputStream.use { input ->

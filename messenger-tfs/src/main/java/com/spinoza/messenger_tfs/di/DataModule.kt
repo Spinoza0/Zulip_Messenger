@@ -12,14 +12,16 @@ import com.spinoza.messenger_tfs.data.network.AttachmentNotificatorImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
-import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentNotificator
+import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import com.spinoza.messenger_tfs.domain.util.WebUtil
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -53,10 +55,8 @@ interface DataModule {
 
     companion object {
 
-        private const val DATABASE_NAME = "messenger-tfs-cache.db"
-        private const val MEDIA_TYPE_JSON = "application/json"
-        private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
-        private const val TIME_OUT_SECONDS = 15L
+        @Provides
+        fun profileCoroutineDispatcher(): CoroutineDispatcher = Dispatchers.IO
 
         @ApplicationScope
         @Provides
@@ -105,5 +105,10 @@ interface DataModule {
                 .build()
             return retrofit.create(ZulipApiService::class.java)
         }
+
+        private const val DATABASE_NAME = "messenger-tfs-cache.db"
+        private const val MEDIA_TYPE_JSON = "application/json"
+        private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
+        private const val TIME_OUT_SECONDS = 15L
     }
 }

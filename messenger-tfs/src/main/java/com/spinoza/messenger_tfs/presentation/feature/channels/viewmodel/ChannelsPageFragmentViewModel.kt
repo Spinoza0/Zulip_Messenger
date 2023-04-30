@@ -6,7 +6,6 @@ import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.domain.usecase.channels.*
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
@@ -36,6 +35,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    private val defaultDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     val state: StateFlow<ChannelsPageScreenState>
@@ -90,7 +90,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
 
     private fun loadItems() {
         if (isLoading) return
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(defaultDispatcher) {
             isLoading = true
             stopUpdateMessagesCountJob()
             var storedChannels = emptyList<Channel>()
@@ -126,7 +126,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
 
     private fun updateMessagesCount() {
         stopUpdateMessagesCountJob()
-        updateMessagesCountJob = viewModelScope.launch(Dispatchers.Default) {
+        updateMessagesCountJob = viewModelScope.launch(defaultDispatcher) {
             for (i in 0 until cache.size) {
                 if (!isActive) return@launch
                 runCatching {
@@ -148,7 +148,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun onChannelClickListener(channelItem: ChannelItem) {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(defaultDispatcher) {
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -192,12 +192,12 @@ class ChannelsPageFragmentViewModel @Inject constructor(
                 channelsFilter = it
                 loadItems()
             }
-            .flowOn(Dispatchers.Default)
+            .flowOn(defaultDispatcher)
             .launchIn(viewModelScope)
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(defaultDispatcher) {
             while (isActive) {
                 delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
                 getChannelEventsUseCase(eventsQueue.queue, channelsFilter).onSuccess { events ->

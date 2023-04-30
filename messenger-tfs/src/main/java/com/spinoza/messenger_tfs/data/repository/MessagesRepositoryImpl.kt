@@ -50,8 +50,8 @@ import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -67,6 +67,7 @@ class MessagesRepositoryImpl @Inject constructor(
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
     private val attachmentHandler: AttachmentHandler,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : MessengerRepository {
 
     private var storedOwnUser: UserDto = UserDto()
@@ -75,7 +76,7 @@ class MessagesRepositoryImpl @Inject constructor(
         storedApiKey: String,
         email: String,
         password: String,
-    ): Result<String> = withContext(Dispatchers.IO) {
+    ): Result<String> = withContext(ioDispatcher) {
         if (storedApiKey.isNotBlank()) {
             apiAuthKeeper.setData(Credentials.basic(email, storedApiKey))
             getOwnUser().onSuccess {
@@ -97,7 +98,7 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setOwnStatusActive() {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatchingNonCancellation { apiService.setOwnStatusActive() }
         }
     }
@@ -115,7 +116,7 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getOwnUser(): Result<User> = withContext(Dispatchers.IO) {
+    override suspend fun getOwnUser(): Result<User> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val response = apiService.getOwnUser()
             if (!response.isSuccessful) {
@@ -131,7 +132,7 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUser(userId: Long): Result<User> = withContext(Dispatchers.IO) {
+    override suspend fun getUser(userId: Long): Result<User> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val response = apiService.getUser(userId)
             if (!response.isSuccessful) {
@@ -147,7 +148,7 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllUsers(): Result<List<User>> =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val response = apiService.getAllUsers()
                 if (!response.isSuccessful) {
@@ -168,7 +169,7 @@ class MessagesRepositoryImpl @Inject constructor(
 
     override suspend fun getStoredMessages(
         filter: MessagesFilter,
-    ): Result<MessagesResult> = withContext(Dispatchers.IO) {
+    ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             messagesCache.reload()
             MessagesResult(
@@ -181,7 +182,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun getMessages(
         messagesPageType: MessagesPageType,
         filter: MessagesFilter,
-    ): Result<MessagesResult> = withContext(Dispatchers.IO) {
+    ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             if (storedOwnUser.userId == User.UNDEFINED_ID) {
                 getOwnUser()
@@ -251,7 +252,7 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val storedStreams = messengerDao.getStreams()
                 storedStreams.dbToDomain(channelsFilter)
@@ -260,7 +261,7 @@ class MessagesRepositoryImpl @Inject constructor(
 
     override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
-    ): Result<List<Channel>> = withContext(Dispatchers.IO) {
+    ): Result<List<Channel>> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             var streamsList: List<StreamDto> = emptyList()
             var errorMsg: String
@@ -295,7 +296,7 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getStoredTopics(channel: Channel): Result<List<Topic>> =
-        withContext(Dispatchers.IO)
+        withContext(ioDispatcher)
         {
             runCatchingNonCancellation {
                 val storedTopics = messengerDao.getTopics(channel.channelId, channel.isSubscribed)
@@ -304,7 +305,7 @@ class MessagesRepositoryImpl @Inject constructor(
         }
 
     override suspend fun getTopics(channel: Channel): Result<List<Topic>> =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val response = apiService.getTopics(channel.channelId)
                 if (!response.isSuccessful) {
@@ -321,7 +322,7 @@ class MessagesRepositoryImpl @Inject constructor(
         }
 
     override suspend fun getTopic(filter: MessagesFilter): Result<Topic> =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             var unreadMessagesCount = 0
             var lastMessageId = Message.UNDEFINED_ID
             runCatchingNonCancellation {
@@ -346,7 +347,7 @@ class MessagesRepositoryImpl @Inject constructor(
         }
 
     override suspend fun getUpdatedMessageFilter(filter: MessagesFilter): MessagesFilter =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             var topic = filter.topic
             runCatchingNonCancellation {
                 val response = apiService.getTopics(filter.channel.channelId)
@@ -370,7 +371,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun sendMessage(
         content: String,
         filter: MessagesFilter,
-    ): Result<Long> = withContext(Dispatchers.IO) {
+    ): Result<Long> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val response =
                 apiService.sendMessageToStream(filter.channel.channelId, filter.topic.name, content)
@@ -389,7 +390,7 @@ class MessagesRepositoryImpl @Inject constructor(
         messageId: Long,
         emoji: Emoji,
         filter: MessagesFilter,
-    ): Result<MessagesResult> = withContext(Dispatchers.IO) {
+    ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             messagesCache
                 .updateReaction(messageId, storedOwnUser.userId, emoji.toDto(storedOwnUser.userId))
@@ -403,7 +404,7 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setMessagesFlagToRead(messageIds: List<Long>): Unit =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 apiService.setMessageFlagsToRead(Json.encodeToString(messageIds))
             }
@@ -412,7 +413,7 @@ class MessagesRepositoryImpl @Inject constructor(
     override suspend fun registerEventQueue(
         eventTypes: List<EventType>,
         messagesFilter: MessagesFilter,
-    ): Result<EventsQueue> = withContext(Dispatchers.IO) {
+    ): Result<EventsQueue> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val response = apiService.registerEventQueue(
                 narrow = messagesFilter.createNarrowJsonForEvents(),
@@ -429,7 +430,7 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteEventQueue(queueId: String): Unit = withContext(Dispatchers.IO) {
+    override suspend fun deleteEventQueue(queueId: String): Unit = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             apiService.deleteEventQueue(queueId)
         }
@@ -437,7 +438,7 @@ class MessagesRepositoryImpl @Inject constructor(
 
     override suspend fun getPresenceEvents(
         queue: EventsQueue,
-    ): Result<List<PresenceEvent>> = withContext(Dispatchers.IO) {
+    ): Result<List<PresenceEvent>> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val eventResponseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
@@ -454,7 +455,7 @@ class MessagesRepositoryImpl @Inject constructor(
         queue: EventsQueue,
         channelsFilter: ChannelsFilter,
     ): Result<List<ChannelEvent>> =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val eventResponseBody = getNonHeartBeatEventResponse(queue)
                 val eventResponse = jsonConverter.decodeFromString(
@@ -471,7 +472,7 @@ class MessagesRepositoryImpl @Inject constructor(
         queue: EventsQueue,
         filter: MessagesFilter,
         isLastMessageVisible: Boolean,
-    ): Result<MessageEvent> = withContext(Dispatchers.IO) {
+    ): Result<MessageEvent> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
@@ -502,7 +503,7 @@ class MessagesRepositoryImpl @Inject constructor(
         queue: EventsQueue,
         filter: MessagesFilter,
         isLastMessageVisible: Boolean,
-    ): Result<DeleteMessageEvent> = withContext(Dispatchers.IO) {
+    ): Result<DeleteMessageEvent> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
@@ -528,7 +529,7 @@ class MessagesRepositoryImpl @Inject constructor(
         queue: EventsQueue,
         filter: MessagesFilter,
         isLastMessageVisible: Boolean,
-    ): Result<ReactionEvent> = withContext(Dispatchers.IO) {
+    ): Result<ReactionEvent> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
@@ -573,7 +574,7 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     private fun updateReactionOnServer(messageId: Long, emoji: Emoji) {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(ioDispatcher).launch {
             runCatchingNonCancellation {
                 val response = apiService.getSingleMessage(messageId)
                 if (!response.isSuccessful) {

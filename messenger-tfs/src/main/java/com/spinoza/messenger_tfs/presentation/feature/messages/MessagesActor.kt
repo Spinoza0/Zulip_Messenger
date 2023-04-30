@@ -11,11 +11,11 @@ import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
+import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
-import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.EventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
@@ -41,7 +41,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScr
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.util.getErrorText
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -78,6 +78,7 @@ class MessagesActor @Inject constructor(
     private val saveAttachmentsUseCase: SaveAttachmentsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
 
     private var messagesFilter: MessagesFilter = MessagesFilter()
@@ -210,7 +211,7 @@ class MessagesActor @Inject constructor(
     }
 
     private suspend fun loadStoredMessages(): MessagesScreenEvent.Internal =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
             getStoredMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
                 return@withContext handleMessages(messagesResult, MessagesPageType.STORED)
             }.onFailure { error ->
@@ -297,7 +298,7 @@ class MessagesActor @Inject constructor(
         messageId: Long,
         emoji: Emoji,
     ): MessagesScreenEvent.Internal =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
             updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
                 getOwnUserIdUseCase().onSuccess { userId ->
                     return@withContext MessagesScreenEvent.Internal.Messages(
@@ -311,7 +312,7 @@ class MessagesActor @Inject constructor(
         }
 
     private suspend fun loadMessages(messagesPageType: MessagesPageType): MessagesScreenEvent.Internal =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
             getMessagesUseCase(messagesPageType, messagesFilter).onSuccess { messagesResult ->
                 return@withContext handleMessages(messagesResult, messagesPageType)
             }.onFailure { error ->
@@ -353,7 +354,7 @@ class MessagesActor @Inject constructor(
                 isIconActionResIdChanged = true
                 iconActionResId = resId
             }
-            .flowOn(Dispatchers.Default)
+            .flowOn(defaultDispatcher)
             .launchIn(lifecycleScope)
     }
 
@@ -430,7 +431,7 @@ class MessagesActor @Inject constructor(
         onSuccessCallback: (EventsQueueHolder, T, Long) -> MessagesScreenEvent.Internal,
         emptyEvent: MessagesScreenEvent.Internal,
         isLastMessageVisible: Boolean,
-    ): MessagesScreenEvent.Internal = withContext(Dispatchers.Default) {
+    ): MessagesScreenEvent.Internal = withContext(defaultDispatcher) {
         if (eventsQueue.queue.queueId.isNotEmpty()) useCase(
             eventsQueue.queue,
             messagesFilter,
