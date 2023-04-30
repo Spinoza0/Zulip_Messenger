@@ -15,7 +15,7 @@
     <string name="messages_topic_template">Topic: #%s</string>
     <string name="add_reaction">Add reaction</string>
     <string name="save_attachments">Save attachments</string>
-    <string name="download_complete">Download complete</string>
+    <string name="downloading_result">Downloading result</string>
     <string name="downloaded">saved to Download folder</string>
 
     <!-- Fragment Channels -->

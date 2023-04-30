@@ -24,7 +24,7 @@ class AttachmentNotificatorImpl @Inject constructor(private val context: Context
         val notificationBuilder =
             NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_download_complete)
-                .setContentTitle(context.getString(R.string.download_complete))
+                .setContentTitle(context.getString(R.string.downloading_result))
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         notificationManager.notify(notificationId++, notificationBuilder.build())
