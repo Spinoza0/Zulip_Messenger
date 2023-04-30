@@ -11,7 +11,7 @@ import com.spinoza.messenger_tfs.data.network.AttachmentHandlerImpl
 import com.spinoza.messenger_tfs.data.network.AttachmentNotificatorImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
-import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
+import com.spinoza.messenger_tfs.data.repository.MessengerRepositoryImpl
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentNotificator
 import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
@@ -35,7 +35,7 @@ interface DataModule {
 
     @ApplicationScope
     @Binds
-    fun bindMessengerRepository(impl: MessagesRepositoryImpl): MessengerRepository
+    fun bindMessengerRepository(impl: MessengerRepositoryImpl): MessengerRepository
 
     @ApplicationScope
     @Binds

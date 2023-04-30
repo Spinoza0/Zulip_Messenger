@@ -60,7 +60,7 @@ import okhttp3.Credentials
 import retrofit2.Response
 import javax.inject.Inject
 
-class MessagesRepositoryImpl @Inject constructor(
+class MessengerRepositoryImpl @Inject constructor(
     private val messagesCache: MessagesCache,
     private val messengerDao: MessengerDao,
     private val apiService: ZulipApiService,
