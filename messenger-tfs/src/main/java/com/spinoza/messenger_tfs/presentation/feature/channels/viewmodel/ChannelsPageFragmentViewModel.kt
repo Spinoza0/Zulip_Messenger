@@ -284,8 +284,8 @@ class ChannelsPageFragmentViewModel(
         newChannels: List<Channel>,
     ) {
         newChannels.forEach { newChannel ->
-            val oldChannelDelegateItem = cache.find { storedDelegateItem ->
-                storedDelegateItem !is ChannelDelegateItem ||
+            val oldChannelDelegateItem = newCache.find { storedDelegateItem ->
+                storedDelegateItem is ChannelDelegateItem &&
                         (storedDelegateItem.content() as ChannelItem)
                             .channel.channelId == newChannel.channelId
             }
