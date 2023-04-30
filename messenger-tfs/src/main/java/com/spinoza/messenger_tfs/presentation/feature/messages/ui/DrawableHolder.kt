@@ -9,7 +9,7 @@ import android.graphics.drawable.Drawable
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
-import com.spinoza.messenger_tfs.domain.webutil.WebUtil
+import com.spinoza.messenger_tfs.domain.util.WebUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

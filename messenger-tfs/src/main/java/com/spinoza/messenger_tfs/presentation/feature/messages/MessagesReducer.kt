@@ -2,7 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.webutil.WebUtil
+import com.spinoza.messenger_tfs.domain.util.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent

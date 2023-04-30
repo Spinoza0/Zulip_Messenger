@@ -14,7 +14,7 @@ interface MessengerRepository {
 
     suspend fun getUser(userId: Long): Result<User>
 
-    suspend fun getUsersByFilter(usersFilter: String): Result<List<User>>
+    suspend fun getAllUsers(): Result<List<User>>
 
     suspend fun getStoredMessages(filter: MessagesFilter): Result<MessagesResult>
 

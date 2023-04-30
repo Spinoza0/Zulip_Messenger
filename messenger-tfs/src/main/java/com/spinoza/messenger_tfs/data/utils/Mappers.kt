@@ -28,6 +28,8 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
+import com.spinoza.messenger_tfs.domain.util.isContainingWords
+import com.spinoza.messenger_tfs.domain.util.splitToWords
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -42,15 +44,15 @@ fun List<MessageDbModel>.dbModelToDto(): List<MessageDto> {
 }
 
 fun List<StreamDto>.dtoToDomain(channelsFilter: ChannelsFilter): List<Channel> {
-    val words = channelsFilter.splitToWords()
-    return filter { it.name.isContainsWords(words) }
+    val words = channelsFilter.name.splitToWords()
+    return filter { it.name.isContainingWords(words) }
         .map { it.dtoToDomain(channelsFilter) }
 }
 
 fun List<StreamDbModel>.dbToDomain(channelsFilter: ChannelsFilter): List<Channel> {
-    val words = channelsFilter.splitToWords()
+    val words = channelsFilter.name.splitToWords()
     return filter { it.isSubscribed == channelsFilter.isSubscribed }
-        .filter { it.name.isContainsWords(words) }
+        .filter { it.name.isContainingWords(words) }
         .map { it.dbToDomain(channelsFilter) }
 }
 
@@ -326,16 +328,6 @@ private fun StreamDto.toDbModel(channelsFilter: ChannelsFilter): StreamDbModel {
         name = name,
         isSubscribed = channelsFilter.isSubscribed
     )
-}
-
-private fun ChannelsFilter.splitToWords(): List<String> {
-    return name.split(" ")
-}
-
-private fun String.isContainsWords(words: List<String>): Boolean {
-    return words.all { word ->
-        this.contains(word, true)
-    }
 }
 
 private fun Long.unixTimeToString(): String {

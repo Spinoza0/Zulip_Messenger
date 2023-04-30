@@ -5,19 +5,51 @@ import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.ZulipApiService.Companion.RESULT_SUCCESS
-import com.spinoza.messenger_tfs.data.network.model.event.*
+import com.spinoza.messenger_tfs.data.network.model.event.DeleteMessageEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.HeartBeatEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.MessageEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.StreamEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
-import com.spinoza.messenger_tfs.data.utils.*
-import com.spinoza.messenger_tfs.domain.model.*
-import com.spinoza.messenger_tfs.domain.model.event.*
-import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.data.utils.createNarrowJsonForEvents
+import com.spinoza.messenger_tfs.data.utils.createNarrowJsonForMessages
+import com.spinoza.messenger_tfs.data.utils.dbToDomain
+import com.spinoza.messenger_tfs.data.utils.dtoToDomain
+import com.spinoza.messenger_tfs.data.utils.getBodyOrThrow
+import com.spinoza.messenger_tfs.data.utils.isEqualTopicName
+import com.spinoza.messenger_tfs.data.utils.listToDomain
+import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
+import com.spinoza.messenger_tfs.data.utils.toDbModel
+import com.spinoza.messenger_tfs.data.utils.toDomain
+import com.spinoza.messenger_tfs.data.utils.toDto
+import com.spinoza.messenger_tfs.data.utils.toStringsList
+import com.spinoza.messenger_tfs.data.utils.toUserDto
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
+import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.model.MessagePosition
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesPageType
+import com.spinoza.messenger_tfs.domain.model.MessagesResult
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
+import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
+import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
+import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
+import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
+import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -114,7 +146,7 @@ class MessagesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getUsersByFilter(usersFilter: String): Result<List<User>> =
+    override suspend fun getAllUsers(): Result<List<User>> =
         withContext(Dispatchers.IO) {
             runCatchingNonCancellation {
                 val response = apiService.getAllUsers()
@@ -127,9 +159,9 @@ class MessagesRepositoryImpl @Inject constructor(
                 }
                 val presencesResponse = apiService.getAllPresences()
                 if (presencesResponse.isSuccessful) {
-                    makeAllUsersAnswer(usersFilter, allUsersResponse, presencesResponse.body())
+                    makeAllUsersAnswer(allUsersResponse, presencesResponse.body())
                 } else {
-                    makeAllUsersAnswer(usersFilter, allUsersResponse)
+                    makeAllUsersAnswer(allUsersResponse)
                 }
             }
         }
@@ -161,6 +193,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     narrow = filter.createNarrowJsonForMessages(),
                     anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
                 )
+
                 MessagesPageType.NEWEST -> apiGetMessages(
                     numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
                     numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
@@ -168,6 +201,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     anchorId = messagesCache.getLastMessageId(filter),
                     ZulipApiService.ANCHOR_NEWEST
                 )
+
                 MessagesPageType.OLDEST -> apiGetMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
@@ -175,6 +209,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     anchorId = messagesCache.getFirstMessageId(filter),
                     ZulipApiService.ANCHOR_OLDEST
                 )
+
                 MessagesPageType.AFTER_STORED -> apiGetMessages(
                     numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                     numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
@@ -182,6 +217,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     anchorId = messagesCache.getLastMessageId(filter),
                     ZulipApiService.ANCHOR_NEWEST
                 )
+
                 MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
                     numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                     numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
@@ -202,6 +238,7 @@ class MessagesRepositoryImpl @Inject constructor(
                 } else {
                     MessagePosition(MessagePosition.Type.LAST_POSITION)
                 }
+
                 MessagesPageType.LAST -> MessagePosition(MessagePosition.Type.LAST_POSITION)
                 else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
@@ -599,7 +636,6 @@ class MessagesRepositoryImpl @Inject constructor(
     }
 
     private fun makeAllUsersAnswer(
-        usersFilter: String,
         usersResponse: AllUsersResponse,
         presencesResponse: AllPresencesResponse? = null,
     ): List<User> {
@@ -626,13 +662,7 @@ class MessagesRepositoryImpl @Inject constructor(
                     }
                 users.add(userDto.toDomain(presence))
             }
-        return if (usersFilter.isBlank()) {
-            users
-        } else {
-            users.filter {
-                it.fullName.contains(usersFilter, true) || it.email.contains(usersFilter, true)
-            }
-        }
+        return users
     }
 
     companion object {

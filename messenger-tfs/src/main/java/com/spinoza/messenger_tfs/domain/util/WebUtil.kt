@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.webutil
+package com.spinoza.messenger_tfs.domain.util
 
 import com.bumptech.glide.load.model.LazyHeaders
 

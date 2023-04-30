@@ -16,7 +16,7 @@ import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentNotificator
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
-import com.spinoza.messenger_tfs.domain.webutil.WebUtil
+import com.spinoza.messenger_tfs.domain.util.WebUtil
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

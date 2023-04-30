@@ -4,11 +4,13 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
+import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.people.GetUsersByFilterUseCase
+import com.spinoza.messenger_tfs.domain.usecase.people.GetAllUsersUseCase
+import com.spinoza.messenger_tfs.domain.util.isContainingWords
+import com.spinoza.messenger_tfs.domain.util.splitToWords
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
@@ -34,7 +36,7 @@ import javax.inject.Inject
 
 class PeopleActor @Inject constructor(
     lifecycle: Lifecycle,
-    private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
+    private val getAllUsersUseCase: GetAllUsersUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
     private val eventsQueue: EventsQueueHolder,
 ) : Actor<PeopleScreenCommand, PeopleScreenEvent.Internal> {
@@ -107,7 +109,7 @@ class PeopleActor @Inject constructor(
         if (isLoading) return getIdleEvent()
         isLoading = true
         var event: PeopleScreenEvent.Internal = PeopleScreenEvent.Internal.Idle
-        getUsersByFilterUseCase(NO_FILTER).onSuccess {
+        getAllUsersUseCase().onSuccess {
             usersCache.clear()
             usersCache.addAll(it)
             event = PeopleScreenEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
@@ -165,13 +167,15 @@ class PeopleActor @Inject constructor(
         withContext(Dispatchers.Default) {
             val sortedList = ArrayList(this@toSortedList)
             sortedList.sortWith(compareBy<User> { it.presence }.thenBy { it.fullName })
-            if (filter.isBlank()) {
-                sortedList
-            } else {
-                sortedList.filter {
-                    it.fullName.contains(filter, true) || it.email.contains(filter, true)
-                }
-            }
+            sortedList.filterByNameAndEmail(filter)
+        }
+
+    private fun List<User>.filterByNameAndEmail(filter: String): List<User> =
+        if (filter.isBlank()) {
+            this
+        } else {
+            val words = filter.splitToWords()
+            filter { it.fullName.isContainingWords(words) || it.email.isContainingWords(words) }
         }
 
     private companion object {
