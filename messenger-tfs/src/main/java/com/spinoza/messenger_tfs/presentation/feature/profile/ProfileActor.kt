@@ -4,9 +4,9 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
+import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.profile.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.profile.GetUserUseCase
@@ -14,7 +14,7 @@ import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScree
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.util.getErrorText
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -28,6 +28,7 @@ class ProfileActor @Inject constructor(
     private val getUserUseCase: GetUserUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
     private val eventsQueue: EventsQueueHolder,
+    private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<ProfileScreenCommand, ProfileScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
@@ -90,7 +91,7 @@ class ProfileActor @Inject constructor(
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        lifecycleScope.launch(Dispatchers.Default) {
+        lifecycleScope.launch(defaultDispatcher) {
             while (user != null) {
                 getPresenceEventsUseCase(eventsQueue.queue).onSuccess { events ->
                     user?.let { userNotNull ->

@@ -15,7 +15,7 @@ import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenC
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import com.spinoza.messenger_tfs.presentation.util.getErrorText
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -39,6 +39,7 @@ class PeopleActor @Inject constructor(
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
     private val eventsQueue: EventsQueueHolder,
+    private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<PeopleScreenCommand, PeopleScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
@@ -101,7 +102,7 @@ class PeopleActor @Inject constructor(
             .debounce(DELAY_BEFORE_SET_FILTER)
             .flatMapLatest { flow { emit(it) } }
             .onEach { usersFilter = it }
-            .flowOn(Dispatchers.Default)
+            .flowOn(defaultDispatcher)
             .launchIn(lifecycleScope)
     }
 
@@ -127,7 +128,7 @@ class PeopleActor @Inject constructor(
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        lifecycleScope.launch(Dispatchers.Default) {
+        lifecycleScope.launch(defaultDispatcher) {
             var lastUpdatingTimeStamp = 0L
             while (isActive) {
                 getPresenceEventsUseCase(eventsQueue.queue).onSuccess { events ->
@@ -164,7 +165,7 @@ class PeopleActor @Inject constructor(
     }
 
     private suspend fun List<User>.toSortedList(filter: String = NO_FILTER): List<User> =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
             val sortedList = ArrayList(this@toSortedList)
             sortedList.sortWith(compareBy<User> { it.presence }.thenBy { it.fullName })
             sortedList.filterByNameAndEmail(filter)

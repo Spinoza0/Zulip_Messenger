@@ -55,7 +55,7 @@ class MessageView @JvmOverloads constructor(
     private val imageGetter = ImageGetter { imageUrl ->
         val holder = DrawableHolder(resources)
         imageJob?.cancel()
-        imageJob = CoroutineScope(Dispatchers.IO).launch {
+        imageJob = CoroutineScope(Dispatchers.Main).launch {
             holder.loadImage(context, webUtil, imageUrl, binding.contentTextView)
         }
         holder
