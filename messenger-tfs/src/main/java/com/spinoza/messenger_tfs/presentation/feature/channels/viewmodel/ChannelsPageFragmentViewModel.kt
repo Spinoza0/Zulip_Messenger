@@ -22,9 +22,8 @@ import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
-import javax.inject.Inject
 
-class ChannelsPageFragmentViewModel @Inject constructor(
+class ChannelsPageFragmentViewModel(
     @ChannelIsSubscribed isSubscribed: Boolean,
     private val router: AppRouter,
     private val getStoredTopicsUseCase: GetStoredTopicsUseCase,
@@ -36,6 +35,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
     private val defaultDispatcher: CoroutineDispatcher,
+    coroutineScope: CoroutineScope? = null,
 ) : ViewModel() {
 
     val state: StateFlow<ChannelsPageScreenState>
@@ -49,8 +49,9 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
     private val cache = mutableListOf<DelegateAdapterItem>()
+    private var vmScope = coroutineScope ?: viewModelScope
     private var eventsQueue =
-        EventsQueueHolder(viewModelScope, registerEventQueueUseCase, deleteEventQueueUseCase)
+        EventsQueueHolder(vmScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var updateMessagesCountJob: Job? = null
 
     @Volatile
@@ -83,14 +84,14 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun setChannelsFilter(newFilter: ChannelsFilter) {
-        viewModelScope.launch {
+        vmScope.launch {
             channelsQueryState.emit(newFilter)
         }
     }
 
     private fun loadItems() {
         if (isLoading) return
-        viewModelScope.launch(defaultDispatcher) {
+        vmScope.launch(defaultDispatcher) {
             isLoading = true
             stopUpdateMessagesCountJob()
             var storedChannels = emptyList<Channel>()
@@ -126,7 +127,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
 
     private fun updateMessagesCount() {
         stopUpdateMessagesCountJob()
-        updateMessagesCountJob = viewModelScope.launch(defaultDispatcher) {
+        updateMessagesCountJob = vmScope.launch(defaultDispatcher) {
             for (i in 0 until cache.size) {
                 if (!isActive) return@launch
                 runCatching {
@@ -148,7 +149,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun onChannelClickListener(channelItem: ChannelItem) {
-        viewModelScope.launch(defaultDispatcher) {
+        vmScope.launch(defaultDispatcher) {
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -193,11 +194,11 @@ class ChannelsPageFragmentViewModel @Inject constructor(
                 loadItems()
             }
             .flowOn(defaultDispatcher)
-            .launchIn(viewModelScope)
+            .launchIn(vmScope)
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        viewModelScope.launch(defaultDispatcher) {
+        vmScope.launch(defaultDispatcher) {
             while (isActive) {
                 delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
                 getChannelEventsUseCase(eventsQueue.queue, channelsFilter).onSuccess { events ->
@@ -333,7 +334,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun updateTopicsMessageCount() {
-        viewModelScope.launch {
+        vmScope.launch {
             while (isActive) {
                 delay(DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO)
                 updateMessagesCount()
@@ -363,13 +364,13 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun registerEventQueue() {
-        viewModelScope.launch {
+        vmScope.launch {
             eventsQueue.registerQueue(listOf(EventType.CHANNEL), ::handleOnSuccessQueueRegistration)
         }
     }
 
     private fun deleteEventQueue() {
-        viewModelScope.launch {
+        vmScope.launch {
             eventsQueue.deleteQueue()
         }
     }
