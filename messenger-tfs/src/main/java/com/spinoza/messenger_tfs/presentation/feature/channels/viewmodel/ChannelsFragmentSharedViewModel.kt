@@ -58,7 +58,7 @@ class ChannelsFragmentSharedViewModel @Inject constructor(private val defaultDis
             .launchIn(viewModelScope)
     }
 
-    private companion object {
+    companion object {
         const val DELAY_BEFORE_FILTER_CHANGE = 300L
     }
 }

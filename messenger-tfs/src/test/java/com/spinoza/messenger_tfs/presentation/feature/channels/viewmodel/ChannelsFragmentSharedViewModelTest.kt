@@ -4,13 +4,15 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.util.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ChannelsFragmentSharedViewModelTest {
 
     @get:Rule
@@ -20,7 +22,7 @@ class ChannelsFragmentSharedViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `ChannelsScreenEventUiFilter emits new SearchQuery`() = runBlocking {
+    fun `ChannelsScreenEventUiFilter emits new SearchQuery`() = runTest {
         val viewModel = createViewModel()
         val searchQueryBefore = viewModel.state.value.filter
         val newSearchQuery = SearchQuery(0, "string")
@@ -35,6 +37,6 @@ class ChannelsFragmentSharedViewModelTest {
     }
 
     private fun createViewModel(): ChannelsFragmentSharedViewModel {
-        return ChannelsFragmentSharedViewModel()
+        return ChannelsFragmentSharedViewModel(mainDispatcherRule.testDispatcher)
     }
 }
