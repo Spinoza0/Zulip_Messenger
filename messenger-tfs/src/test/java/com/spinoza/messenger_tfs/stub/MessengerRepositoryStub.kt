@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.stub
 
-import android.net.Uri
 import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
 import com.spinoza.messenger_tfs.data.utils.dtoToDomain
@@ -148,14 +147,6 @@ class MessengerRepositoryStub : MessengerRepository {
     override suspend fun setOwnStatusActive() {}
 
     override suspend fun setMessagesFlagToRead(messageIds: List<Long>) {}
-
-    override suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String> {
-        return Result.failure(RepositoryError(ERROR_MSG))
-    }
-
-    override suspend fun saveAttachments(urls: List<String>): Map<String, Boolean> {
-        return emptyMap()
-    }
 
     private fun createUserDto(id: Long): UserDto {
         return UserDto(userId = id)

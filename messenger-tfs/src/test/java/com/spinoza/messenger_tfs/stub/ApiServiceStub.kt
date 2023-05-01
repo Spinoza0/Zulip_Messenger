@@ -22,23 +22,23 @@ import retrofit2.Response
 
 class ApiServiceStub: ZulipApiService {
 
-    override suspend fun fetchApiKey(username: String, password: String): Response<ApiKeyResponse> {
+    override suspend fun fetchApiKey(username: String, password: String): ApiKeyResponse {
         throw RuntimeException("Not yet implemented")
     }
 
-    override suspend fun getOwnUser(): Response<OwnUserResponse> {
+    override suspend fun getOwnUser(): OwnUserResponse {
         throw RuntimeException("Not yet implemented")
     }
 
-    override suspend fun getUser(userId: Long): Response<UserResponse> {
+    override suspend fun getUser(userId: Long): UserResponse {
         throw RuntimeException("Not yet implemented")
     }
 
-    override suspend fun getAllUsers(): Response<AllUsersResponse> {
+    override suspend fun getAllUsers(): AllUsersResponse {
         throw RuntimeException("Not yet implemented")
     }
 
-    override suspend fun getUserPresence(userId: Long): Response<PresenceResponse> {
+    override suspend fun getUserPresence(userId: Long): PresenceResponse {
         throw RuntimeException("Not yet implemented")
     }
 
@@ -58,7 +58,7 @@ class ApiServiceStub: ZulipApiService {
         throw RuntimeException("Not yet implemented")
     }
 
-    override suspend fun getTopics(streamId: Long): Response<TopicsResponse> {
+    override suspend fun getTopics(streamId: Long): TopicsResponse {
         throw RuntimeException("Not yet implemented")
     }
 
@@ -68,7 +68,7 @@ class ApiServiceStub: ZulipApiService {
         narrow: String,
         anchor: Long,
         applyMarkdown: Boolean,
-    ): Response<MessagesResponse> {
+    ): MessagesResponse {
         throw RuntimeException("Not yet implemented")
     }
 
@@ -78,22 +78,22 @@ class ApiServiceStub: ZulipApiService {
         narrow: String,
         anchor: String,
         applyMarkdown: Boolean,
-    ): Response<MessagesResponse> {
+    ): MessagesResponse {
         throw RuntimeException("Not yet implemented")
     }
 
-    override suspend fun getSingleMessage(messageId: Long): Response<SingleMessageResponse> {
+    override suspend fun getSingleMessage(messageId: Long): SingleMessageResponse {
         throw RuntimeException("Not yet implemented")
     }
 
-    override suspend fun addReaction(messageId: Long, emojiName: String): Response<BasicResponse> {
+    override suspend fun addReaction(messageId: Long, emojiName: String): BasicResponse {
         throw RuntimeException("Not yet implemented")
     }
 
     override suspend fun removeReaction(
         messageId: Long,
         emojiName: String,
-    ): Response<BasicResponse> {
+    ): BasicResponse {
         throw RuntimeException("Not yet implemented")
     }
 
@@ -102,7 +102,7 @@ class ApiServiceStub: ZulipApiService {
         topic: String,
         content: String,
         type: String,
-    ): Response<SendMessageResponse> {
+    ): SendMessageResponse {
         throw RuntimeException("Not yet implemented")
     }
 
@@ -110,11 +110,11 @@ class ApiServiceStub: ZulipApiService {
         narrow: String,
         eventTypes: String,
         applyMarkdown: Boolean,
-    ): Response<RegisterEventQueueResponse> {
+    ): RegisterEventQueueResponse {
         throw RuntimeException("Not yet implemented")
     }
 
-    override suspend fun deleteEventQueue(queueId: String): Response<BasicResponse> {
+    override suspend fun deleteEventQueue(queueId: String): BasicResponse {
         throw RuntimeException("Not yet implemented")
     }
 
@@ -129,11 +129,11 @@ class ApiServiceStub: ZulipApiService {
         messageIds: String,
         operation: String,
         flag: String,
-    ): Response<BasicResponse> {
+    ): BasicResponse {
         throw RuntimeException("Not yet implemented")
     }
 
-    override suspend fun uploadFile(filePart: MultipartBody.Part): Response<UploadFileResponse> {
+    override suspend fun uploadFile(filePart: MultipartBody.Part): UploadFileResponse {
         throw RuntimeException("Not yet implemented")
     }
 }
