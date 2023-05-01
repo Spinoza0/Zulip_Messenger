@@ -1,8 +1,21 @@
 package com.spinoza.messenger_tfs.domain.repository
 
 import android.net.Uri
-import com.spinoza.messenger_tfs.domain.model.*
-import com.spinoza.messenger_tfs.domain.model.event.*
+import com.spinoza.messenger_tfs.domain.model.Channel
+import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
+import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.model.MessagesPageType
+import com.spinoza.messenger_tfs.domain.model.MessagesResult
+import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.model.User
+import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
+import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
+import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
+import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
+import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 
 interface MessagesRepository {
 
@@ -81,5 +94,5 @@ interface MessagesRepository {
 
     suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String>
 
-    fun saveAttachments(urls: List<String>)
+    suspend fun saveAttachments(urls: List<String>): Map<String, Boolean>
 }

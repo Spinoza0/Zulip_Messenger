@@ -5,7 +5,7 @@ import javax.inject.Inject
 
 class SaveAttachmentsUseCase @Inject constructor(private val repository: MessagesRepository) {
 
-    operator fun invoke(urls: List<String>) {
+    suspend operator fun invoke(urls: List<String>): Map<String, Boolean> {
         return repository.saveAttachments(urls)
     }
 }

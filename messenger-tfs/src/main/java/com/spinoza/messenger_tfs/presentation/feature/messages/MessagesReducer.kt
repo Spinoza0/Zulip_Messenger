@@ -101,6 +101,8 @@ class MessagesReducer @Inject constructor(
             state { copy(isLongOperation = false) }
             effects { +MessagesScreenEffect.FileUploaded(event.newMessageText) }
         }
+        is MessagesScreenEvent.Internal.FilesDownloaded ->
+            effects { +MessagesScreenEffect.FilesDownloaded(event.value) }
         is MessagesScreenEvent.Internal.ErrorMessages -> {
             state { copy(isLoading = false, isLongOperation = false, isSendingMessage = false) }
             effects { +MessagesScreenEffect.Failure.ErrorMessages(event.value) }

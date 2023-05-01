@@ -17,6 +17,8 @@ sealed class MessagesScreenEffect {
 
     class FileUploaded(val newMessageText: String) : MessagesScreenEffect()
 
+    class FilesDownloaded(val value: Map<String, Boolean>): MessagesScreenEffect()
+
     sealed class Failure : MessagesScreenEffect() {
 
         class ErrorNetwork(val value: String) : Failure()

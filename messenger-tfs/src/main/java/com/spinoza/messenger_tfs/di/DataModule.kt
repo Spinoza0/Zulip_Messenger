@@ -6,16 +6,19 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
-import com.spinoza.messenger_tfs.data.network.*
+import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
+import com.spinoza.messenger_tfs.data.network.AttachmentHandlerImpl
+import com.spinoza.messenger_tfs.data.network.WebUtilImpl
+import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessagesRepositoryImpl
 import com.spinoza.messenger_tfs.domain.repository.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.repository.AttachmentNotificator
 import com.spinoza.messenger_tfs.domain.repository.MessagesRepository
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
+import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -39,20 +42,17 @@ interface DataModule {
     @Binds
     fun bindAppAuthKeeper(impl: AppAuthKeeperImpl): AppAuthKeeper
 
-    @ApplicationScope
-    @Binds
-    fun bindAttachmentNotificator(impl: AttachmentNotificatorImpl): AttachmentNotificator
-
-    @ApplicationScope
-    @Binds
-    fun bindAttachmentHandler(impl: AttachmentHandlerImpl): AttachmentHandler
-
     companion object {
 
-        private const val DATABASE_NAME = "messenger-tfs-cache.db"
-        private const val MEDIA_TYPE_JSON = "application/json"
-        private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
-        private const val TIME_OUT_SECONDS = 15L
+        @ApplicationScope
+        @Provides
+        fun provideAttachmentHandler(
+            context: Context,
+            authKeeper: AppAuthKeeper,
+            apiService: ZulipApiService,
+        ): AttachmentHandler {
+            return AttachmentHandlerImpl(context, authKeeper, apiService, Dispatchers.IO)
+        }
 
         @ApplicationScope
         @Provides
@@ -101,5 +101,10 @@ interface DataModule {
                 .build()
             return retrofit.create(ZulipApiService::class.java)
         }
+
+        private const val DATABASE_NAME = "messenger-tfs-cache.db"
+        private const val MEDIA_TYPE_JSON = "application/json"
+        private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
+        private const val TIME_OUT_SECONDS = 15L
     }
 }

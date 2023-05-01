@@ -521,7 +521,7 @@ class MessagesRepositoryImpl @Inject constructor(
         return attachmentHandler.uploadFile(oldMessageText, uri)
     }
 
-    override fun saveAttachments(urls: List<String>) {
+    override suspend fun saveAttachments(urls: List<String>): Map<String, Boolean> {
         return attachmentHandler.saveAttachments(urls)
     }
 

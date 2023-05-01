@@ -83,6 +83,8 @@ sealed class MessagesScreenEvent {
 
         class FileUploaded(val newMessageText: String) : Internal()
 
+        class FilesDownloaded(val value: Map<String, Boolean>) : Internal()
+
         class ErrorNetwork(val value: String) : Internal()
 
         class ErrorMessages(val value: String) : Internal()
