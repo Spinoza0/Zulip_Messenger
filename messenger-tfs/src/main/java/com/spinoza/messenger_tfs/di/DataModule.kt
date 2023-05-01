@@ -7,9 +7,11 @@ import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
 import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
+import com.spinoza.messenger_tfs.data.network.AttachmentHandlerImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessengerRepositoryImpl
+import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import com.spinoza.messenger_tfs.domain.util.WebUtil
@@ -40,6 +42,10 @@ interface DataModule {
     @ApplicationScope
     @Binds
     fun bindAppAuthKeeper(impl: AppAuthKeeperImpl): AppAuthKeeper
+
+    @ApplicationScope
+    @Binds
+    fun bindAttachmentHandler(impl: AttachmentHandlerImpl): AttachmentHandler
 
     companion object {
 
