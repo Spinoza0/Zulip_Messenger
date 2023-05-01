@@ -259,8 +259,12 @@ class MessagesFragment :
             }
 
             is MessagesScreenEffect.AddAttachment -> addAttachment()
-            is MessagesScreenEffect.FileUploaded ->
-                binding.editTextMessage.setText(effect.newMessageText)
+            is MessagesScreenEffect.FileUploaded -> {
+                val filename = effect.value.first
+                val url = effect.value.second
+                val newMessageText = "${binding.editTextMessage.text}\n[$filename]($url)\n"
+                binding.editTextMessage.setText(newMessageText)
+            }
 
             is MessagesScreenEffect.FilesDownloaded -> showNotification(effect.value)
         }
@@ -341,9 +345,7 @@ class MessagesFragment :
     private fun handlePickMediaResult(uri: Uri?) {
         if (uri != null) {
             store.accept(
-                MessagesScreenEvent.Ui.UploadFile(
-                    requireContext().applicationContext, binding.editTextMessage.text, uri
-                )
+                MessagesScreenEvent.Ui.UploadFile(requireContext().applicationContext, uri)
             )
         }
     }

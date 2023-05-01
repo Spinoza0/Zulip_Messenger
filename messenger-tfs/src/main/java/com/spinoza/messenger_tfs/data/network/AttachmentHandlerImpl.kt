@@ -49,11 +49,7 @@ class AttachmentHandlerImpl @Inject constructor(
             result
         }
 
-    override suspend fun uploadFile(
-        context: Context,
-        oldMessageText: String,
-        uri: Uri,
-    ): Result<String> =
+    override suspend fun uploadFile(context: Context, uri: Uri): Result<Pair<String, String>> =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val contentType = context.contentResolver.getType(uri)
@@ -63,7 +59,7 @@ class AttachmentHandlerImpl @Inject constructor(
                 val fileName = uri.getFileName(context)
                 val filePart = MultipartBody.Part.createFormData(fileName, fileName, requestFile)
                 val response = apiRequest<UploadFileResponse> { apiService.uploadFile(filePart) }
-                "$oldMessageText\n[$fileName](${response.uri})\n"
+                Pair(fileName, response.uri)
             }
         }
 

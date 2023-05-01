@@ -15,9 +15,9 @@ sealed class MessagesScreenEffect {
 
     class ShowChooseReactionDialog(val messageId: Long) : MessagesScreenEffect()
 
-    class FileUploaded(val newMessageText: String) : MessagesScreenEffect()
+    class FileUploaded(val value: Pair<String, String>) : MessagesScreenEffect()
 
-    class FilesDownloaded(val value: Map<String, Boolean>): MessagesScreenEffect()
+    class FilesDownloaded(val value: Map<String, Boolean>) : MessagesScreenEffect()
 
     sealed class Failure : MessagesScreenEffect() {
 

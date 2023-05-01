@@ -7,11 +7,7 @@ import javax.inject.Inject
 
 class UploadFileUseCase @Inject constructor(private val attachmentHandler: AttachmentHandler) {
 
-    suspend operator fun invoke(
-        context: Context,
-        oldMessageText: String,
-        uri: Uri,
-    ): Result<String> {
-        return attachmentHandler.uploadFile(context, oldMessageText, uri)
+    suspend operator fun invoke(context: Context, uri: Uri): Result<Pair<String, String>> {
+        return attachmentHandler.uploadFile(context, uri)
     }
 }

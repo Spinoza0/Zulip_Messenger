@@ -117,7 +117,7 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Internal.FileUploaded -> {
             state { copy(isLongOperation = false) }
-            effects { +MessagesScreenEffect.FileUploaded(event.newMessageText) }
+            effects { +MessagesScreenEffect.FileUploaded(event.value) }
         }
 
         is MessagesScreenEvent.Internal.FilesDownloaded ->
@@ -235,13 +235,7 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Ui.UploadFile -> {
             state { copy(isLongOperation = true) }
-            commands {
-                +MessagesScreenCommand.UploadFile(
-                    event.context,
-                    event.message.toString(),
-                    event.uri
-                )
-            }
+            commands { +MessagesScreenCommand.UploadFile(event.context, event.uri) }
         }
 
         is MessagesScreenEvent.Ui.SaveAttachments ->

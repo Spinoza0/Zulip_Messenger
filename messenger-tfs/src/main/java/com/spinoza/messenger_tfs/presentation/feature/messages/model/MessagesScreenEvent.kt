@@ -51,7 +51,7 @@ sealed class MessagesScreenEvent {
 
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
-        class UploadFile(val context: Context, val message: CharSequence?, val uri: Uri) : Ui()
+        class UploadFile(val context: Context, val uri: Uri) : Ui()
 
         class SaveAttachments(val urls: List<String>) : Ui()
     }
@@ -82,7 +82,7 @@ sealed class MessagesScreenEvent {
 
         class ReactionsEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
-        class FileUploaded(val newMessageText: String) : Internal()
+        class FileUploaded(val value: Pair<String, String>) : Internal()
 
         class FilesDownloaded(val value: Map<String, Boolean>) : Internal()
 

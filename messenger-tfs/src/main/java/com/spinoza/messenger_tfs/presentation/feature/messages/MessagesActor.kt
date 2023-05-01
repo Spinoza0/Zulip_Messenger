@@ -475,7 +475,7 @@ class MessagesActor @Inject constructor(
     private suspend fun uploadFile(
         command: MessagesScreenCommand.UploadFile,
     ): MessagesScreenEvent.Internal {
-        uploadFileUseCase(command.context, command.oldMessageText, command.uri).onSuccess {
+        uploadFileUseCase(command.context, command.uri).onSuccess {
             return MessagesScreenEvent.Internal.FileUploaded(it)
         }.onFailure {
             return handleErrors(it)

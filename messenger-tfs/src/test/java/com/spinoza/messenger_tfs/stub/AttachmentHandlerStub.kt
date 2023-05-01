@@ -12,9 +12,8 @@ class AttachmentHandlerStub : AttachmentHandler {
 
     override suspend fun uploadFile(
         context: Context,
-        oldMessageText: String,
         uri: Uri,
-    ): Result<String> {
+    ): Result<Pair<String, String>> {
         return Result.failure(RuntimeException("test failure"))
     }
 }

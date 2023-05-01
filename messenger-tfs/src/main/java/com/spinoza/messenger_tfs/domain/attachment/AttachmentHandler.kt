@@ -7,5 +7,5 @@ interface AttachmentHandler {
 
     suspend fun saveAttachments(urls: List<String>): Map<String, Boolean>
 
-    suspend fun uploadFile(context: Context, oldMessageText: String, uri: Uri): Result<String>
+    suspend fun uploadFile(context: Context, uri: Uri): Result<Pair<String, String>>
 }

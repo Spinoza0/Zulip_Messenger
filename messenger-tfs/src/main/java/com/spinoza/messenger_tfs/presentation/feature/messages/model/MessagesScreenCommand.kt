@@ -40,8 +40,7 @@ sealed class MessagesScreenCommand {
 
     class UpdateReaction(val messageId: Long, val emoji: Emoji) : MessagesScreenCommand()
 
-    class UploadFile(val context: Context, val oldMessageText: String, val uri: Uri) :
-        MessagesScreenCommand()
+    class UploadFile(val context: Context, val uri: Uri) : MessagesScreenCommand()
 
     class SaveAttachments(val urls: List<String>) : MessagesScreenCommand()
 }
