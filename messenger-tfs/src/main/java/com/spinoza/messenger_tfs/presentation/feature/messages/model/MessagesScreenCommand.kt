@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
+import android.content.Context
 import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
@@ -39,7 +40,8 @@ sealed class MessagesScreenCommand {
 
     class UpdateReaction(val messageId: Long, val emoji: Emoji) : MessagesScreenCommand()
 
-    class UploadFile(val oldMessageText: String, val uri: Uri) : MessagesScreenCommand()
+    class UploadFile(val context: Context, val oldMessageText: String, val uri: Uri) :
+        MessagesScreenCommand()
 
     class SaveAttachments(val urls: List<String>) : MessagesScreenCommand()
 }

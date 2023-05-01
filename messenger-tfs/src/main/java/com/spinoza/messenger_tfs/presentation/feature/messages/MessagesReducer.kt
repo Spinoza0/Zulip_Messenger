@@ -235,7 +235,13 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Ui.UploadFile -> {
             state { copy(isLongOperation = true) }
-            commands { +MessagesScreenCommand.UploadFile(event.message.toString(), event.uri) }
+            commands {
+                +MessagesScreenCommand.UploadFile(
+                    event.context,
+                    event.message.toString(),
+                    event.uri
+                )
+            }
         }
 
         is MessagesScreenEvent.Ui.SaveAttachments ->

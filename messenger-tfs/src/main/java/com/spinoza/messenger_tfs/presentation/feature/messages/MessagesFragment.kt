@@ -340,7 +340,11 @@ class MessagesFragment :
 
     private fun handlePickMediaResult(uri: Uri?) {
         if (uri != null) {
-            store.accept(MessagesScreenEvent.Ui.UploadFile(binding.editTextMessage.text, uri))
+            store.accept(
+                MessagesScreenEvent.Ui.UploadFile(
+                    requireContext().applicationContext, binding.editTextMessage.text, uri
+                )
+            )
         }
     }
 

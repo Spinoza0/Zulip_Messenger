@@ -25,7 +25,6 @@ import java.net.URL
 import javax.inject.Inject
 
 class AttachmentHandlerImpl @Inject constructor(
-    private val context: Context,
     private val authKeeper: AppAuthKeeper,
     private val apiService: ZulipApiService,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
@@ -50,14 +49,18 @@ class AttachmentHandlerImpl @Inject constructor(
             result
         }
 
-    override suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String> =
+    override suspend fun uploadFile(
+        context: Context,
+        oldMessageText: String,
+        uri: Uri,
+    ): Result<String> =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val contentType = context.contentResolver.getType(uri)
                     ?: throw RepositoryError(context.getString(R.string.error_unknown_file_type))
-                val tempFile = getTempFile(uri)
+                val tempFile = uri.getTempFile(context)
                 val requestFile = RequestBody.create(MediaType.parse(contentType), tempFile)
-                val fileName = uri.getFileName()
+                val fileName = uri.getFileName(context)
                 val filePart = MultipartBody.Part.createFormData(fileName, fileName, requestFile)
                 val response = apiRequest<UploadFileResponse> { apiService.uploadFile(filePart) }
                 "$oldMessageText\n[$fileName](${response.uri})\n"
@@ -96,8 +99,8 @@ class AttachmentHandlerImpl @Inject constructor(
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    private suspend fun getTempFile(uri: Uri): File {
-        val inputStream = context.contentResolver.openInputStream(uri)
+    private suspend fun Uri.getTempFile(context: Context): File {
+        val inputStream = context.contentResolver.openInputStream(this)
             ?: throw RepositoryError(context.getString(R.string.error_uri))
         val buffer = ByteArray(TEMP_FILE_BUFFER_SIZE)
         val filesDir = context.filesDir
@@ -126,7 +129,7 @@ class AttachmentHandlerImpl @Inject constructor(
         return tempFile
     }
 
-    private fun Uri.getFileName(): String {
+    private fun Uri.getFileName(context: Context): String {
         var fileName: String = DEFAULT_FILE_NAME
         context.contentResolver.query(this, null, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {

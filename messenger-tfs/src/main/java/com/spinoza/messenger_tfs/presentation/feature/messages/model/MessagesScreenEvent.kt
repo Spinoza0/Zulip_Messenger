@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
+import android.content.Context
 import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -50,7 +51,7 @@ sealed class MessagesScreenEvent {
 
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
-        class UploadFile(val message: CharSequence?, val uri: Uri) : Ui()
+        class UploadFile(val context: Context, val message: CharSequence?, val uri: Uri) : Ui()
 
         class SaveAttachments(val urls: List<String>) : Ui()
     }
