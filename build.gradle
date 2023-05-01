@@ -41,6 +41,7 @@ buildscript {
 
             junit4                  : "4.13.2",
             androidxCoreTesting     : "2.2.0",
+            androidxFragmentTesting : "1.5.7",
             androidxJUnit           : "1.1.5",
             androidxRunner          : "1.5.2",
             kaspresso               : "1.5.2",
@@ -107,7 +108,8 @@ buildscript {
     ext.test = [
             junit4      : "junit:junit:${versions.junit4}",
             coroutines  : "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.kotlinxCoroutines}",
-            androidxCore: "androidx.arch.core:core-testing:${versions.androidxCoreTesting}"
+            androidxCore: "androidx.arch.core:core-testing:${versions.androidxCoreTesting}",
+            fragment    : "androidx.fragment:fragment-testing:${versions.androidxFragmentTesting}"
     ]
 
     ext.androidTest = [

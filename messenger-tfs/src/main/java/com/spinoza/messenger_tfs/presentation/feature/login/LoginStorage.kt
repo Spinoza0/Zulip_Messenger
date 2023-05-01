@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.spinoza.messenger_tfs.BuildConfig
 import javax.inject.Inject
 
 interface LoginStorage {
@@ -61,7 +62,7 @@ class LoginStorageImpl @Inject constructor(context: Context) : LoginStorage {
 
     private companion object {
 
-        const val FILE_NAME = "messenger_tfs_shared_prefs"
+        const val FILE_NAME = BuildConfig.SHAREDPREF
         const val PARAM_API_KEY = "apiKey"
         const val PARAM_EMAIL = "email"
         const val PARAM_PASSWORD = "password"

@@ -17,6 +17,7 @@ android {
         versionCode 1
         versionName "1.0"
         buildConfigField "String", "ZULIP_SERVER_URL", "\"https://tinkoff-android-spring-2023.zulipchat.com\""
+        buildConfigField "String", "SHAREDPREF", "\"messenger-tfs_shared_prefs\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: 'true'
@@ -79,6 +80,7 @@ dependencies {
     testImplementation test.junit4
     testImplementation test.androidxCore
     testImplementation test.coroutines
+    debugImplementation test.fragment
     androidTestImplementation androidTest.junit
     androidTestImplementation androidTest.kaspresso
     androidTestImplementation androidTest.mockWebServer
