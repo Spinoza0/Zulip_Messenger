@@ -272,12 +272,17 @@ class MessagesFragment :
         val success = getString(R.string.downloaded)
         val error = getString(R.string.error_downloading)
         value.forEach { entry ->
-            val result = if (entry.value) success else error
+            val resultText: String
+            val resultIcon: Int
+            if (entry.value) {
+                resultText = success
+                resultIcon = R.drawable.ic_download_success
+            } else {
+                resultText = error
+                resultIcon = R.drawable.ic_download_error
+            }
             notificator.showNotification(
-                title,
-                CHANNEL_ID,
-                R.drawable.ic_download_complete,
-                "${entry.key} - $result"
+                title, CHANNEL_ID, resultIcon, "${entry.key} - $resultText"
             )
         }
     }
