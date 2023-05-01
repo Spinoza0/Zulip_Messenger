@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.di
 
 import android.content.Context
+import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.notification.Notificator
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import com.spinoza.messenger_tfs.domain.util.WebUtil
@@ -20,6 +21,8 @@ interface ApplicationComponent {
 
     fun messengerRepository(): MessengerRepository
 
+    fun attachmentHandler(): AttachmentHandler
+
     fun appRouter(): AppRouter
 
     fun webUtil(): WebUtil
@@ -31,7 +34,6 @@ interface ApplicationComponent {
 
     @DispatcherIO
     fun dispatcherIO(): CoroutineDispatcher
-
 
     @Component.Factory
     interface Factory {

@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.domain.repository
 
-import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.Emoji
@@ -91,8 +90,4 @@ interface MessengerRepository {
     suspend fun setOwnStatusActive()
 
     suspend fun setMessagesFlagToRead(messageIds: List<Long>)
-
-    suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String>
-
-    suspend fun saveAttachments(urls: List<String>): Map<String, Boolean>
 }

@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import android.net.Uri
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
@@ -30,7 +29,6 @@ import com.spinoza.messenger_tfs.data.utils.toDto
 import com.spinoza.messenger_tfs.data.utils.toStringsList
 import com.spinoza.messenger_tfs.data.utils.toUserDto
 import com.spinoza.messenger_tfs.di.DispatcherIO
-import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
@@ -67,7 +65,6 @@ class MessengerRepositoryImpl @Inject constructor(
     private val apiService: ZulipApiService,
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
-    private val attachmentHandler: AttachmentHandler,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : MessengerRepository {
 
@@ -550,14 +547,6 @@ class MessengerRepositoryImpl @Inject constructor(
                 )
             )
         }
-    }
-
-    override suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String> {
-        return attachmentHandler.uploadFile(oldMessageText, uri)
-    }
-
-    override suspend fun saveAttachments(urls: List<String>): Map<String, Boolean> {
-        return attachmentHandler.saveAttachments(urls)
     }
 
     private suspend fun apiGetMessages(

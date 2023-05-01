@@ -1,11 +1,11 @@
 package com.spinoza.messenger_tfs.domain.usecase.messages
 
-import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import javax.inject.Inject
 
-class SaveAttachmentsUseCase @Inject constructor(private val repository: MessengerRepository) {
+class SaveAttachmentsUseCase @Inject constructor(private val attachmentHandler: AttachmentHandler) {
 
     suspend operator fun invoke(urls: List<String>): Map<String, Boolean> {
-        return repository.saveAttachments(urls)
+        return attachmentHandler.saveAttachments(urls)
     }
 }

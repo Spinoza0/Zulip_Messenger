@@ -1,12 +1,12 @@
 package com.spinoza.messenger_tfs.domain.usecase.messages
 
 import android.net.Uri
-import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import javax.inject.Inject
 
-class UploadFileUseCase @Inject constructor(private val repository: MessengerRepository) {
+class UploadFileUseCase @Inject constructor(private val attachmentHandler: AttachmentHandler) {
 
     suspend operator fun invoke(oldMessageText: String, uri: Uri): Result<String> {
-        return repository.uploadFile(oldMessageText, uri)
+        return attachmentHandler.uploadFile(oldMessageText, uri)
     }
 }
