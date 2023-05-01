@@ -1,5 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
+import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
+
 sealed class MessagesScreenEffect {
 
     object MessageSent : MessagesScreenEffect()
@@ -8,9 +10,14 @@ sealed class MessagesScreenEffect {
 
     object AddAttachment : MessagesScreenEffect()
 
+    class ShowMessageMenu(val urls: List<String>, val messageView: MessageView) :
+        MessagesScreenEffect()
+
     class ShowChooseReactionDialog(val messageId: Long) : MessagesScreenEffect()
 
     class FileUploaded(val newMessageText: String) : MessagesScreenEffect()
+
+    class FilesDownloaded(val value: Map<String, Boolean>): MessagesScreenEffect()
 
     sealed class Failure : MessagesScreenEffect() {
 

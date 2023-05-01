@@ -11,6 +11,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.*
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,6 +20,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
 import com.spinoza.messenger_tfs.domain.model.*
+import com.spinoza.messenger_tfs.domain.notification.Notificator
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.domain.webutil.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
@@ -51,6 +53,9 @@ class MessagesFragment :
     @Inject
     lateinit var webUtil: WebUtil
 
+    @Inject
+    lateinit var notificator: Notificator
+
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
@@ -64,12 +69,19 @@ class MessagesFragment :
         MainDelegateAdapter().apply {
             addDelegate(
                 UserMessageDelegate(
+                    ::onMessageLongClickListener,
                     ::onReactionAddClickListener,
                     ::onReactionClickListener,
                     ::onAvatarClickListener,
                 )
             )
-            addDelegate(OwnMessageDelegate(::onReactionAddClickListener, ::onReactionClickListener))
+            addDelegate(
+                OwnMessageDelegate(
+                    ::onMessageLongClickListener,
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener
+                )
+            )
             addDelegate(DateDelegate())
         }
     }
@@ -211,6 +223,8 @@ class MessagesFragment :
             is MessagesScreenEffect.MessageSent -> binding.editTextMessage.text?.clear()
             is MessagesScreenEffect.ScrollToLastMessage ->
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
+
+            is MessagesScreenEffect.ShowMessageMenu -> showMessageMenu(effect)
             is MessagesScreenEffect.ShowChooseReactionDialog -> {
                 val dialog = ChooseReactionDialogFragment.newInstance(
                     effect.messageId,
@@ -220,19 +234,60 @@ class MessagesFragment :
                     requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG
                 )
             }
-            is MessagesScreenEffect.Failure.ErrorMessages -> showError(
-                String.format(getString(R.string.error_messages), effect.value)
-            )
+
+            is MessagesScreenEffect.Failure.ErrorMessages ->
+                showError("${getString(R.string.error_messages)} ${effect.value}")
+
             is MessagesScreenEffect.Failure.ErrorNetwork -> {
-                showError(String.format(getString(R.string.error_network), effect.value))
+                showError("${getString(R.string.error_network)} ${effect.value}")
                 showCheckInternetConnectionDialog({ store.accept(MessagesScreenEvent.Ui.Reload) }) {
                     goBack()
                 }
             }
+
             is MessagesScreenEffect.AddAttachment -> addAttachment()
             is MessagesScreenEffect.FileUploaded ->
                 binding.editTextMessage.setText(effect.newMessageText)
+
+            is MessagesScreenEffect.FilesDownloaded -> showNotification(effect.value)
         }
+    }
+
+    private fun showNotification(value: Map<String, Boolean>) {
+        notificator.createNotificationChannel(CHANNEL_NAME, CHANNEL_ID)
+        val title = getString(R.string.download_complete)
+        val success = getString(R.string.downloaded)
+        val error = getString(R.string.error_downloading)
+        value.forEach { entry ->
+            val result = if (entry.value) success else error
+            notificator.showNotification(
+                title,
+                CHANNEL_ID,
+                R.drawable.ic_download_complete,
+                "${entry.key} - $result"
+            )
+        }
+    }
+
+    private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
+        val popupMenu = PopupMenu(requireContext(), binding.textViewTopic)
+        popupMenu.inflate(R.menu.menu_long_click_on_message)
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.itemAddReaction -> {
+                    onReactionAddClickListener(effect.messageView)
+                    true
+                }
+
+                R.id.itemSaveAttachments -> {
+                    store.accept(MessagesScreenEvent.Ui.SaveAttachments(effect.urls))
+                    true
+                }
+
+                else -> false
+            }
+        }
+        popupMenu.show()
     }
 
     private fun getVisibleMessagesIds(
@@ -278,9 +333,11 @@ class MessagesFragment :
         } else when (result.position.type) {
             MessagePosition.Type.LAST_POSITION ->
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
+
             MessagePosition.Type.EXACTLY -> {
                 binding.recyclerViewMessages.smoothScrollToMessage(result.position.messageId)
             }
+
             MessagePosition.Type.UNDEFINED -> {}
         }
         val lastVisibleItemPosition = layoutManager.findLastVisibleItemPosition()
@@ -294,6 +351,10 @@ class MessagesFragment :
 
     private fun onAvatarClickListener(messageView: MessageView) {
         store.accept(MessagesScreenEvent.Ui.ShowUserInfo(messageView))
+    }
+
+    private fun onMessageLongClickListener(messageView: MessageView) {
+        store.accept(MessagesScreenEvent.Ui.OnMessageLongClick(messageView))
     }
 
     private fun onReactionAddClickListener(messageView: MessageView) {
@@ -374,6 +435,8 @@ class MessagesFragment :
         private const val PARAM_RECYCLERVIEW_STATE = "recyclerViewState"
         private const val NO_ITEMS = 0
         private const val LAST_ITEM_OFFSET = 1
+        private const val CHANNEL_NAME = "Downloads"
+        private const val CHANNEL_ID = "downloads_channel"
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {

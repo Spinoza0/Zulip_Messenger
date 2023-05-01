@@ -9,4 +9,6 @@ interface WebUtil {
     fun isUserUploadsUrl(url: String): Boolean
 
     fun getLazyHeaders(): LazyHeaders
+
+    fun getAttachmentsUrls(content: String): List<String>
 }

@@ -44,6 +44,8 @@ class MessageView @JvmOverloads constructor(
             binding.nameTextView.text = value
         }
 
+    var rawContent = EMPTY_STRING
+
     val avatarImage: ImageView
         get() = binding.avatarImageView
 
@@ -62,6 +64,7 @@ class MessageView @JvmOverloads constructor(
     private var content: String
         get() = binding.contentTextView.text.toString()
         set(value) {
+            rawContent = value
             binding.contentTextView.text = Html.fromHtml(
                 MessageTagHandler.prepareTag(value),
                 Html.TO_HTML_PARAGRAPH_LINES_INDIVIDUAL,
@@ -231,6 +234,9 @@ class MessageView @JvmOverloads constructor(
             listener?.invoke(this@MessageView)
             true
         }
+    }
+
+    fun setOnReactionAddClickListener(listener: ((MessageView) -> Unit)?) {
         binding.reactionsFlexBoxLayout.setOnAddClickListener {
             listener?.invoke(this@MessageView)
         }
@@ -284,5 +290,6 @@ class MessageView @JvmOverloads constructor(
 
         const val REACTION_PADDING_HORIZONTAL = 10f
         const val REACTION_PADDING_VERTICAL = 7f
+        const val EMPTY_STRING = ""
     }
 }

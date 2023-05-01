@@ -81,11 +81,10 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
     override fun handleEffect(effect: LoginScreenEffect) {
         when (effect) {
             is LoginScreenEffect.ButtonStatus -> binding.buttonLogin.isEnabled = effect.isEnabled
-            is LoginScreenEffect.Failure.ErrorLogin -> showError(
-                String.format(getString(R.string.error_login), effect.value)
-            )
+            is LoginScreenEffect.Failure.ErrorLogin ->
+                showError("${getString(R.string.error_login)} ${effect.value}")
             is LoginScreenEffect.Failure.ErrorNetwork -> {
-                showError(String.format(getString(R.string.error_network), effect.value))
+                showError("${getString(R.string.error_network)} ${effect.value}")
                 showCheckInternetConnectionDialog({ }) {
                     store.accept(LoginScreenEvent.Ui.Exit)
                 }

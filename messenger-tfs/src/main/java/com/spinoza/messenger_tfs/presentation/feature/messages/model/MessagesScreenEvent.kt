@@ -46,9 +46,13 @@ sealed class MessagesScreenEvent {
 
         class ShowUserInfo(val message: MessageView) : Ui()
 
+        class OnMessageLongClick(val messageView: MessageView) : Ui()
+
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
         class UploadFile(val message: CharSequence?, val uri: Uri) : Ui()
+
+        class SaveAttachments(val urls: List<String>) : Ui()
     }
 
     sealed class Internal : MessagesScreenEvent() {
@@ -78,6 +82,8 @@ sealed class MessagesScreenEvent {
         class ReactionsEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
         class FileUploaded(val newMessageText: String) : Internal()
+
+        class FilesDownloaded(val value: Map<String, Boolean>) : Internal()
 
         class ErrorNetwork(val value: String) : Internal()
 
