@@ -5,7 +5,8 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.OpenableColumns
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.data.utils.getBodyOrThrow
+import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
+import com.spinoza.messenger_tfs.data.utils.apiRequest
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
@@ -58,15 +59,8 @@ class AttachmentHandlerImpl @Inject constructor(
                 val requestFile = RequestBody.create(MediaType.parse(contentType), tempFile)
                 val fileName = uri.getFileName()
                 val filePart = MultipartBody.Part.createFormData(fileName, fileName, requestFile)
-                val response = apiService.uploadFile(filePart)
-                if (!response.isSuccessful) {
-                    throw RepositoryError(response.message())
-                }
-                val responseBody = response.getBodyOrThrow()
-                if (responseBody.result != ZulipApiService.RESULT_SUCCESS) {
-                    throw RepositoryError(responseBody.msg)
-                }
-                "$oldMessageText\n[$fileName](${responseBody.uri})\n"
+                val response = apiRequest<UploadFileResponse> { apiService.uploadFile(filePart) }
+                "$oldMessageText\n[$fileName](${response.uri})\n"
             }
         }
 

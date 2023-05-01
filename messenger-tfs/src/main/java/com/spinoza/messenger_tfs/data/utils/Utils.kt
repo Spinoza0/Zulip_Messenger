@@ -1,8 +1,11 @@
 package com.spinoza.messenger_tfs.data.utils
 
+import com.spinoza.messenger_tfs.data.network.ZulipApiService.Companion.RESULT_SUCCESS
+import com.spinoza.messenger_tfs.data.network.ZulipResponse
 import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperator
 import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperatorItemDto
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -48,4 +51,12 @@ fun MessagesFilter.isEqualTopicName(otherName: String): Boolean {
 
 inline fun <reified T> Response<T>?.getBodyOrThrow(): T {
     return this?.body() ?: throw RuntimeException("Empty response body")
+}
+
+inline fun <reified T> apiRequest(apiCall: () -> ZulipResponse): T {
+    val result = apiCall.invoke()
+    if (result.result != RESULT_SUCCESS) {
+        throw RepositoryError(result.msg)
+    }
+    return result as T
 }

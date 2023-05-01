@@ -26,19 +26,19 @@ interface ZulipApiService {
     suspend fun fetchApiKey(
         @Query(QUERY_USERNAME) username: String,
         @Query(QUERY_PASSWORD) password: String,
-    ): Response<ApiKeyResponse>
+    ): ApiKeyResponse
 
     @GET("users/me")
-    suspend fun getOwnUser(): Response<OwnUserResponse>
+    suspend fun getOwnUser(): OwnUserResponse
 
     @GET("users/{$QUERY_USER_ID}")
-    suspend fun getUser(@Path(QUERY_USER_ID) userId: Long): Response<UserResponse>
+    suspend fun getUser(@Path(QUERY_USER_ID) userId: Long): UserResponse
 
     @GET("users")
-    suspend fun getAllUsers(): Response<AllUsersResponse>
+    suspend fun getAllUsers(): AllUsersResponse
 
     @GET("users/{$QUERY_USER_ID}/presence")
-    suspend fun getUserPresence(@Path(QUERY_USER_ID) userId: Long): Response<PresenceResponse>
+    suspend fun getUserPresence(@Path(QUERY_USER_ID) userId: Long): PresenceResponse
 
     @GET("realm/presence")
     suspend fun getAllPresences(): Response<AllPresencesResponse>
@@ -53,7 +53,7 @@ interface ZulipApiService {
     suspend fun getAllStreams(): Response<AllStreamsResponse>
 
     @GET("users/me/{$QUERY_STREAM_ID}/topics")
-    suspend fun getTopics(@Path(QUERY_STREAM_ID) streamId: Long): Response<TopicsResponse>
+    suspend fun getTopics(@Path(QUERY_STREAM_ID) streamId: Long): TopicsResponse
 
     @GET("messages")
     suspend fun getMessages(
@@ -62,7 +62,7 @@ interface ZulipApiService {
         @Query(QUERY_NARROW) narrow: String,
         @Query(QUERY_ANCHOR) anchor: Long,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
-    ): Response<MessagesResponse>
+    ): MessagesResponse
 
     @GET("messages")
     suspend fun getMessages(
@@ -71,24 +71,24 @@ interface ZulipApiService {
         @Query(QUERY_NARROW) narrow: String,
         @Query(QUERY_ANCHOR) anchor: String,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
-    ): Response<MessagesResponse>
+    ): MessagesResponse
 
     @GET("messages/{$QUERY_MESSAGE_ID}")
     suspend fun getSingleMessage(
         @Path(QUERY_MESSAGE_ID) messageId: Long,
-    ): Response<SingleMessageResponse>
+    ): SingleMessageResponse
 
     @POST("messages/{$QUERY_MESSAGE_ID}/reactions")
     suspend fun addReaction(
         @Path(QUERY_MESSAGE_ID) messageId: Long,
         @Query(QUERY_EMOJI_NAME) emojiName: String,
-    ): Response<BasicResponse>
+    ): BasicResponse
 
     @DELETE("messages/{$QUERY_MESSAGE_ID}/reactions")
     suspend fun removeReaction(
         @Path(QUERY_MESSAGE_ID) messageId: Long,
         @Query(QUERY_EMOJI_NAME) emojiName: String,
-    ): Response<BasicResponse>
+    ): BasicResponse
 
     @POST("messages")
     suspend fun sendMessageToStream(
@@ -96,17 +96,17 @@ interface ZulipApiService {
         @Query(QUERY_TOPIC) topic: String,
         @Query(QUERY_CONTENT) content: String,
         @Query(QUERY_TYPE) type: String = SEND_MESSAGE_TYPE_STREAM,
-    ): Response<SendMessageResponse>
+    ): SendMessageResponse
 
     @POST("register")
     suspend fun registerEventQueue(
         @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
-    ): Response<RegisterEventQueueResponse>
+    ): RegisterEventQueueResponse
 
     @DELETE("events")
-    suspend fun deleteEventQueue(@Query(QUERY_QUEUE_ID) queueId: String): Response<BasicResponse>
+    suspend fun deleteEventQueue(@Query(QUERY_QUEUE_ID) queueId: String): BasicResponse
 
     @GET("events")
     suspend fun getEventsFromQueue(
@@ -119,11 +119,11 @@ interface ZulipApiService {
         @Query(QUERY_MESSAGE_IDS) messageIds: String,
         @Query(QUERY_OPERATION) operation: String = QUERY_OPERATION_ADD,
         @Query(QUERY_FLAG) flag: String = QUERY_FLAG_READ,
-    ): Response<BasicResponse>
+    ): BasicResponse
 
     @Multipart
     @POST("user_uploads")
-    suspend fun uploadFile(@Part filePart: MultipartBody.Part): Response<UploadFileResponse>
+    suspend fun uploadFile(@Part filePart: MultipartBody.Part): UploadFileResponse
 
     companion object {
 
