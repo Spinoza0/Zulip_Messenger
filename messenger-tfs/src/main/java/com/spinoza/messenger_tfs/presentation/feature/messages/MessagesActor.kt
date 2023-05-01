@@ -483,8 +483,7 @@ class MessagesActor @Inject constructor(
     }
 
     private suspend fun saveAttachments(attachments: List<String>): MessagesScreenEvent.Internal {
-        saveAttachmentsUseCase(attachments)
-        return getIdleEvent()
+        return MessagesScreenEvent.Internal.FilesDownloaded(saveAttachmentsUseCase(attachments))
     }
 
     private fun handleErrors(error: Throwable): MessagesScreenEvent.Internal {

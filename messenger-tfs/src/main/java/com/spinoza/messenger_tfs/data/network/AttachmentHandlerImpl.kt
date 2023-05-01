@@ -8,13 +8,9 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.utils.getBodyOrThrow
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.attachment.AttachmentNotificator
 import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType
 import okhttp3.MultipartBody
@@ -30,35 +26,27 @@ class AttachmentHandlerImpl @Inject constructor(
     private val context: Context,
     private val authKeeper: AppAuthKeeper,
     private val apiService: ZulipApiService,
-    private val notificator: AttachmentNotificator,
     private val ioDispatcher: CoroutineDispatcher,
 ) : AttachmentHandler {
 
-    override fun saveAttachments(urls: List<String>) {
-        val downloadsDirectory =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        CoroutineScope(ioDispatcher).launch {
+    override suspend fun saveAttachments(urls: List<String>): Map<String, Boolean> =
+        withContext(ioDispatcher) {
+            val result = mutableMapOf<String, Boolean>()
+            val downloadsDirectory =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             for (url in urls) {
                 val fileName = url.substringAfterLast("/")
                 val file = File(downloadsDirectory, fileName)
                 val uniqueFile = generateUniqueFileName(file)
                 runCatching {
                     downloadFile(url, uniqueFile)
-                    withContext(Dispatchers.Main) {
-                        notificator.showNotification(
-                            "${uniqueFile.name} - ${context.getString(R.string.downloaded)}"
-                        )
-                    }
+                    result[uniqueFile.name] = true
                 }.onFailure {
-                    withContext(Dispatchers.Main) {
-                        notificator.showNotification(
-                            "${uniqueFile.name} - ${context.getString(R.string.error_downloading)}"
-                        )
-                    }
+                    result[uniqueFile.name] = false
                 }
             }
+            result
         }
-    }
 
     override suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String> =
         withContext(ioDispatcher) {
@@ -85,10 +73,8 @@ class AttachmentHandlerImpl @Inject constructor(
         val connection = URL(url).openConnection()
         connection.setRequestProperty(authKeeper.getKey(), authKeeper.getValue())
         connection.connect()
-
         val inputStream = BufferedInputStream(connection.getInputStream())
         val outputStream = FileOutputStream(destination)
-
         inputStream.use { input ->
             outputStream.use { output ->
                 val buffer = ByteArray(DOWNLOAD_BUFFER_SIZE)

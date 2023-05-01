@@ -24,6 +24,7 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.notification.Notificator
 import com.spinoza.messenger_tfs.domain.util.WebUtil
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
@@ -71,6 +72,9 @@ class MessagesFragment :
 
     @Inject
     lateinit var messagesAdapter: MainDelegateAdapter
+
+    @Inject
+    lateinit var notificator: Notificator
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
@@ -257,6 +261,24 @@ class MessagesFragment :
             is MessagesScreenEffect.AddAttachment -> addAttachment()
             is MessagesScreenEffect.FileUploaded ->
                 binding.editTextMessage.setText(effect.newMessageText)
+
+            is MessagesScreenEffect.FilesDownloaded -> showNotification(effect.value)
+        }
+    }
+
+    private fun showNotification(value: Map<String, Boolean>) {
+        notificator.createNotificationChannel(CHANNEL_NAME, CHANNEL_ID)
+        val title = getString(R.string.downloading_result)
+        val success = getString(R.string.downloaded)
+        val error = getString(R.string.error_downloading)
+        value.forEach { entry ->
+            val result = if (entry.value) success else error
+            notificator.showNotification(
+                title,
+                CHANNEL_ID,
+                R.drawable.ic_download_complete,
+                "${entry.key} - $result"
+            )
         }
     }
 
@@ -432,6 +454,8 @@ class MessagesFragment :
         private const val PARAM_RECYCLERVIEW_STATE = "recyclerViewState"
         private const val NO_ITEMS = 0
         private const val LAST_ITEM_OFFSET = 1
+        private const val CHANNEL_NAME = "Downloads"
+        private const val CHANNEL_ID = "downloads_channel"
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {

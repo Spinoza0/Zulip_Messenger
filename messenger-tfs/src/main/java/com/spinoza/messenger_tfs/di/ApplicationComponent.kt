@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.di
 
 import android.content.Context
+import com.spinoza.messenger_tfs.domain.notification.Notificator
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import com.spinoza.messenger_tfs.domain.util.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
@@ -21,6 +22,8 @@ interface ApplicationComponent {
     fun appRouter(): AppRouter
 
     fun webUtil(): WebUtil
+
+    fun notificator(): Notificator
 
     @Component.Factory
     interface Factory {
