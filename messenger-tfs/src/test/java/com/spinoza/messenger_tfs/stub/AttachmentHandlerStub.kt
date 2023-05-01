@@ -5,7 +5,9 @@ import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 
 class AttachmentHandlerStub : AttachmentHandler {
 
-    override fun saveAttachments(urls: List<String>) {}
+    override suspend fun saveAttachments(urls: List<String>): Map<String, Boolean> {
+        return emptyMap()
+    }
 
     override suspend fun uploadFile(oldMessageText: String, uri: Uri): Result<String> {
         return Result.failure(RuntimeException("test failure"))

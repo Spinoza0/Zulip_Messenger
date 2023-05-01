@@ -153,7 +153,9 @@ class MessengerRepositoryStub : MessengerRepository {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
-    override fun saveAttachments(urls: List<String>) {}
+    override suspend fun saveAttachments(urls: List<String>): Map<String, Boolean> {
+        return emptyMap()
+    }
 
     private fun createUserDto(id: Long): UserDto {
         return UserDto(userId = id)
