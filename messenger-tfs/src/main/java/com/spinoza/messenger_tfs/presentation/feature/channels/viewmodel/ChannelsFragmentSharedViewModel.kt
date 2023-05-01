@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
@@ -22,8 +23,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class ChannelsFragmentSharedViewModel @Inject constructor(private val defaultDispatcher: CoroutineDispatcher) :
-    ViewModel() {
+class ChannelsFragmentSharedViewModel @Inject constructor(
+    @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
+) : ViewModel() {
 
     val state: StateFlow<ChannelsScreenState>
         get() = _state.asStateFlow()

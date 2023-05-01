@@ -21,7 +21,6 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.FlexBoxGravity
 import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -49,14 +48,14 @@ class MessageView @JvmOverloads constructor(
     val avatarImage: ImageView
         get() = binding.avatarImageView
 
-    private val webUtil = context.getAppComponent().webUtil()
+    private val ioDispatcher = context.getAppComponent().dispatcherIO()
     private var imageJob: Job? = null
 
     private val imageGetter = ImageGetter { imageUrl ->
         val holder = DrawableHolder(resources)
         imageJob?.cancel()
-        imageJob = CoroutineScope(Dispatchers.Main).launch {
-            holder.loadImage(context, webUtil, imageUrl, binding.contentTextView)
+        imageJob = CoroutineScope(ioDispatcher).launch {
+            holder.loadImage(context, imageUrl, binding.contentTextView)
         }
         holder
     }

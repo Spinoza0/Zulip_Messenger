@@ -8,6 +8,9 @@ import com.spinoza.messenger_tfs.presentation.navigation.AppRouterImpl
 import com.spinoza.messenger_tfs.presentation.util.NotificatorImpl
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 
 @Module
 interface ApplicationModule {
@@ -23,4 +26,17 @@ interface ApplicationModule {
     @ApplicationScope
     @Binds
     fun bindNotificator(impl: NotificatorImpl): Notificator
+
+    companion object {
+
+        @ApplicationScope
+        @Provides
+        @DispatcherDefault
+        fun provideDispatcherDefault(): CoroutineDispatcher = Dispatchers.Default
+
+        @ApplicationScope
+        @Provides
+        @DispatcherIO
+        fun provideDispatcherIO(): CoroutineDispatcher = Dispatchers.IO
+    }
 }

@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
+import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
@@ -34,8 +35,8 @@ class ChannelsPageFragmentViewModel(
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
-    private val defaultDispatcher: CoroutineDispatcher,
-    coroutineScope: CoroutineScope? = null,
+    @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
+    customCoroutineScope: CoroutineScope? = null,
 ) : ViewModel() {
 
     val state: StateFlow<ChannelsPageScreenState>
@@ -49,7 +50,7 @@ class ChannelsPageFragmentViewModel(
     private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
     private val cache = mutableListOf<DelegateAdapterItem>()
-    private var vmScope = coroutineScope ?: viewModelScope
+    private var vmScope = customCoroutineScope ?: viewModelScope
     private var eventsQueue =
         EventsQueueHolder(vmScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var updateMessagesCountJob: Job? = null

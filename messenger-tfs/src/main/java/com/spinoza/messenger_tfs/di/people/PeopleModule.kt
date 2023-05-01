@@ -13,15 +13,10 @@ import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenS
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import dagger.Module
 import dagger.Provides
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import vivid.money.elmslie.coroutines.ElmStoreCompat
 
 @Module
 object PeopleModule {
-
-    @Provides
-    fun profileCoroutineDispatcher(): CoroutineDispatcher = Dispatchers.Default
 
     @Provides
     fun providePeopleScreenState(): PeopleScreenState = PeopleScreenState()

@@ -29,6 +29,7 @@ import com.spinoza.messenger_tfs.data.utils.toDomain
 import com.spinoza.messenger_tfs.data.utils.toDto
 import com.spinoza.messenger_tfs.data.utils.toStringsList
 import com.spinoza.messenger_tfs.data.utils.toUserDto
+import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.Channel
@@ -67,7 +68,7 @@ class MessengerRepositoryImpl @Inject constructor(
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
     private val attachmentHandler: AttachmentHandler,
-    private val ioDispatcher: CoroutineDispatcher,
+    @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : MessengerRepository {
 
     private var storedOwnUser: UserDto = UserDto()

@@ -5,6 +5,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
@@ -78,7 +79,7 @@ class MessagesActor @Inject constructor(
     private val saveAttachmentsUseCase: SaveAttachmentsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
-    private val defaultDispatcher: CoroutineDispatcher,
+    @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
 
     private var messagesFilter: MessagesFilter = MessagesFilter()

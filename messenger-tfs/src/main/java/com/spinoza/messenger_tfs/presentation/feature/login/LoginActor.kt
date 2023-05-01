@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.feature.login
 
 import androidx.lifecycle.LifecycleCoroutineScope
+import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.login.GetApiKeyUseCase
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
@@ -25,7 +26,7 @@ import javax.inject.Inject
 class LoginActor @Inject constructor(
     private val lifecycleScope: LifecycleCoroutineScope,
     private val getApiKeyUseCase: GetApiKeyUseCase,
-    private val defaultDispatcher: CoroutineDispatcher,
+    @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<LoginScreenCommand, LoginScreenEvent.Internal> {
 
     private val newEmailFieldState = MutableSharedFlow<String>()

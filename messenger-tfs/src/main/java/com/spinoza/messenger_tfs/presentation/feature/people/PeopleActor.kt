@@ -4,6 +4,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
+import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
@@ -39,7 +40,7 @@ class PeopleActor @Inject constructor(
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
     private val eventsQueue: EventsQueueHolder,
-    private val defaultDispatcher: CoroutineDispatcher,
+    @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<PeopleScreenCommand, PeopleScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope

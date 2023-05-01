@@ -8,6 +8,7 @@ import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import dagger.BindsInstance
 import dagger.Component
+import kotlinx.coroutines.CoroutineDispatcher
 
 @ApplicationScope
 @Component(modules = [ApplicationModule::class, DataModule::class])
@@ -24,6 +25,13 @@ interface ApplicationComponent {
     fun webUtil(): WebUtil
 
     fun notificator(): Notificator
+
+    @DispatcherDefault
+    fun dispatcherDefault(): CoroutineDispatcher
+
+    @DispatcherIO
+    fun dispatcherIO(): CoroutineDispatcher
+
 
     @Component.Factory
     interface Factory {

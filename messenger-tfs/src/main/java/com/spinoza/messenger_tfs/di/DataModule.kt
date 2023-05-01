@@ -18,8 +18,6 @@ import com.spinoza.messenger_tfs.domain.util.WebUtil
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -48,9 +46,6 @@ interface DataModule {
     fun bindAttachmentHandler(impl: AttachmentHandlerImpl): AttachmentHandler
 
     companion object {
-
-        @Provides
-        fun profileCoroutineDispatcher(): CoroutineDispatcher = Dispatchers.IO
 
         @ApplicationScope
         @Provides

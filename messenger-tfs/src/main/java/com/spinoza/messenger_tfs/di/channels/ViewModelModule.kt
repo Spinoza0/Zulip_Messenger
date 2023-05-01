@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.di.channels
 
 import androidx.lifecycle.ViewModel
 import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
+import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredTopicsUseCase
@@ -18,7 +19,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 
 @Module
 interface ViewModelModule {
@@ -29,9 +29,6 @@ interface ViewModelModule {
     fun bindChannelsFragmentSharedViewModel(impl: ChannelsFragmentSharedViewModel): ViewModel
 
     companion object {
-
-        @Provides
-        fun profileCoroutineDispatcher(): CoroutineDispatcher = Dispatchers.Default
 
         @IntoMap
         @ViewModelKey(ChannelsPageFragmentViewModel::class)
@@ -47,7 +44,7 @@ interface ViewModelModule {
             getChannelEventsUseCase: GetChannelEventsUseCase,
             registerEventQueueUseCase: RegisterEventQueueUseCase,
             deleteEventQueueUseCase: DeleteEventQueueUseCase,
-            defaultDispatcher: CoroutineDispatcher,
+            @DispatcherDefault defaultDispatcher: CoroutineDispatcher,
         ): ViewModel {
             return ChannelsPageFragmentViewModel(
                 isSubscribed,

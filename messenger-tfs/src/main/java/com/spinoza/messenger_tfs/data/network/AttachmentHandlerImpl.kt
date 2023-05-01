@@ -7,6 +7,7 @@ import android.provider.OpenableColumns
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.utils.getBodyOrThrow
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
+import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
@@ -26,7 +27,7 @@ class AttachmentHandlerImpl @Inject constructor(
     private val context: Context,
     private val authKeeper: AppAuthKeeper,
     private val apiService: ZulipApiService,
-    private val ioDispatcher: CoroutineDispatcher,
+    @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : AttachmentHandler {
 
     override suspend fun saveAttachments(urls: List<String>): Map<String, Boolean> =

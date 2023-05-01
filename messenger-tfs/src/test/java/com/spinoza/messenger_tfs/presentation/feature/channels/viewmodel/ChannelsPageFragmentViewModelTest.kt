@@ -57,7 +57,7 @@ class ChannelsPageFragmentViewModelTest {
             registerEventQueueUseCase = RegisterEventQueueUseCase(repository),
             deleteEventQueueUseCase = DeleteEventQueueUseCase(repository),
             defaultDispatcher = mainDispatcherRule.testDispatcher,
-            coroutineScope = scope
+            customCoroutineScope = scope
         )
     }
 }
