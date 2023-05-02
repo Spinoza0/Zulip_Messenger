@@ -70,7 +70,10 @@ inline fun <reified T> apiRequest(apiCall: () -> ZulipResponse): T {
     return result as T
 }
 
-fun BaseUrlProvider.createApiService(authKeeper: AppAuthKeeper, json: Json): ZulipApiService {
+fun BaseUrlProvider.createApiService(
+    authKeeper: AppAuthKeeper,
+    jsonConverter: Json,
+): ZulipApiService {
     val contentType = MEDIA_TYPE_JSON.toMediaType()
     val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(TIME_OUT_SECONDS, TimeUnit.SECONDS)
@@ -88,7 +91,7 @@ fun BaseUrlProvider.createApiService(authKeeper: AppAuthKeeper, json: Json): Zul
     val slash = if (this.value.endsWith(SLASH)) EMPTY_STRING else SLASH
     val retrofit = Retrofit.Builder()
         .baseUrl("${this.value}${slash}api/v1/")
-        .addConverterFactory(json.asConverterFactory(contentType))
+        .addConverterFactory(jsonConverter.asConverterFactory(contentType))
         .client(okHttpClient)
         .build()
     return retrofit.create(ZulipApiService::class.java)

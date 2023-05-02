@@ -13,6 +13,7 @@ import com.spinoza.messenger_tfs.util.MockRequestDispatcher
 import com.spinoza.messenger_tfs.util.loadFromAssets
 import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockWebServer
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -20,25 +21,21 @@ import org.junit.Test
 class MessagesTest : TestCase() {
 
     @get:Rule
-    val mockServer = MockWebServer()
+    val activityRule = activityScenarioRule<MainActivity>()
 
     @get:Rule
-    val activityRule = activityScenarioRule<MainActivity>()
+    val mockServer = MockWebServer().apply { start(1234) }
 
     @Before
     fun setUp() {
-        val json = Json {
-            ignoreUnknownKeys = true
-            coerceInputValues = true
-        }
         BaseUrlProviderImpl.value = mockServer.url("/").toString()
         ApiServiceProviderImpl.value =
-            BaseUrlProviderImpl.createApiService(AppAuthKeeperImpl(), json)
-        setupMockServerDispatcher()
+            BaseUrlProviderImpl.createApiService(AppAuthKeeperImpl(), provideJsonConverter())
     }
 
     @Test
-    fun openMessagesScreen() = run {
+    fun openNotEmptyMessagesScreen() = run {
+        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
 
@@ -52,25 +49,92 @@ class MessagesTest : TestCase() {
                 topic.click()
             }
         }
-        step("Messages screen is visible") {
+        step("Messages screen is not empty") {
             messagesScreen.messagesList.isVisible()
+            assertEquals(true, messagesScreen.messagesList.getSize() > 0)
         }
     }
 
-    private fun setupMockServerDispatcher() {
-        val universalPaths = listOf("/api/v1/messages", "/api/v1/register")
-        mockServer.dispatcher = MockRequestDispatcher(universalPaths).apply {
-            returnsForPath("/api/v1/fetch_api_key") { setBody("[]") }
+    @Test
+    fun openEmptyMessagesScreen() = run {
+        setupMockServerDispatcher(ServerType.WITHOUT_MESSAGES)
+        val channelsPageScreen = ChannelsPageScreen()
+        val messagesScreen = MessagesScreen()
+
+        step("Click on first channel") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
+                channel.click()
+            }
+        }
+        step("Click on second topic") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(2) {
+                topic.click()
+            }
+        }
+        step("Messages screen is empty") {
+            messagesScreen.messagesList.isVisible()
+            messagesScreen.messagesList.hasSize(0)
+        }
+    }
+
+    @Test
+    fun openMessagesScreenWithError() = run {
+        setupMockServerDispatcher(ServerType.WITH_GETTING_MESSAGES_ERROR)
+        val channelsPageScreen = ChannelsPageScreen()
+        val messagesScreen = MessagesScreen()
+
+        step("Click on first channel") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
+                channel.click()
+            }
+        }
+        step("Click on third topic") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(3) {
+                topic.click()
+            }
+        }
+        step("Error is showing") {
+            messagesScreen.errorMessage.isVisible()
+        }
+    }
+
+    private fun provideJsonConverter() = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+
+    private fun setupMockServerDispatcher(type: ServerType) {
+        val universalPaths = listOf(
+            "/api/v1/messages",
+            "/api/v1/register",
+            "/api/v1/fetch_api_key"
+        )
+        val dispatcher = MockRequestDispatcher(universalPaths).apply {
+            returnsForPath("/api/v1/fetch_api_key")
+            { setBody(loadFromAssets("fetch_api_key.json")) }
             returnsForPath("/api/v1/users/me")
             { setBody(loadFromAssets("own_user.json")) }
             returnsForPath("/api/v1/users/me/subscriptions")
             { setBody(loadFromAssets("streams_list.json")) }
             returnsForPath("/api/v1/users/me/380669/topics")
             { setBody(loadFromAssets("topics_list.json")) }
-            returnsForPath("/api/v1/messages") { setBody(loadFromAssets("messages_list.json")) }
-            returnsForPath("/api/v1/users/604180/presence") { setBody("[]") }
+            returnsForPath("/api/v1/users/604180/presence")
+            { setBody(loadFromAssets("default.json")) }
             returnsForPath("/api/v1/register")
-            { setBody("[]") }
+            { setBody(loadFromAssets("default.json")) }
         }
+        when (type) {
+            ServerType.WITH_MESSAGES -> dispatcher.returnsForPath("/api/v1/messages")
+            { setBody(loadFromAssets("messages_list.json")) }
+
+            ServerType.WITHOUT_MESSAGES -> dispatcher.returnsForPath("/api/v1/messages")
+            { setBody(loadFromAssets("empty_messages_list.json")) }
+
+            ServerType.WITH_GETTING_MESSAGES_ERROR ->
+                dispatcher.returnsForPath("/api/v1/messages") { setBody("[]") }
+        }
+        mockServer.dispatcher = dispatcher
     }
+
+    enum class ServerType { WITH_MESSAGES, WITHOUT_MESSAGES, WITH_GETTING_MESSAGES_ERROR }
 }
