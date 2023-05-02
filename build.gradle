@@ -2,11 +2,12 @@ buildscript {
     ext.versions = [
             androidGradlePlugin     : '8.0.0',
 
-            androidxCore            : "1.9.0",
+            androidxCore            : "1.10.0",
             androidxAppCompat       : "1.6.1",
             androidxCrypto          : "1.1.0-alpha06",
             androidxConstraintlayout: "2.1.4",
             androidxActivity        : "1.7.1",
+            androidxFragment        : "1.5.7",
 
             navigation              : "2.5.3",
             cicerone                : "7.1",
@@ -41,11 +42,11 @@ buildscript {
 
             junit4                  : "4.13.2",
             androidxCoreTesting     : "2.2.0",
-            androidxFragmentTesting : "1.5.7",
             androidxJUnit           : "1.1.5",
             androidxRunner          : "1.5.2",
             kaspresso               : "1.5.2",
             mockWebServer           : "4.10.0",
+            monitor                 : "1.6.1",
             orchestrator            : "1.4.2",
 
             androidxTestExt         : "1.1.5",
@@ -57,9 +58,10 @@ buildscript {
     ext.androidx = [
             core            : "androidx.core:core-ktx:${versions.androidxCore}",
             activity        : "androidx.activity:activity-ktx:${versions.androidxActivity}",
+            fragment        : "androidx.fragment:fragment-ktx:${versions.androidxFragment}",
             appcompat       : "androidx.appcompat:appcompat:${versions.androidxAppCompat}",
-            crypto          : "androidx.security:security-crypto:${versions.androidxCrypto}",
-            constraintlayout: "androidx.constraintlayout:constraintlayout:${versions.androidxConstraintlayout}"
+            constraintlayout: "androidx.constraintlayout:constraintlayout:${versions.androidxConstraintlayout}",
+            crypto          : "androidx.security:security-crypto:${versions.androidxCrypto}"
     ]
 
     ext.dagger = [
@@ -109,14 +111,15 @@ buildscript {
             junit4      : "junit:junit:${versions.junit4}",
             coroutines  : "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.kotlinxCoroutines}",
             androidxCore: "androidx.arch.core:core-testing:${versions.androidxCoreTesting}",
-            fragment    : "androidx.fragment:fragment-testing:${versions.androidxFragmentTesting}"
+            fragment    : "androidx.fragment:fragment-testing:${versions.androidxFragment}"
     ]
 
     ext.androidTest = [
-            junit         : "androidx.test.ext:junit:${versions.androidxJUnit}",
+            junit         : "androidx.test.ext:junit-ktx:${versions.androidxJUnit}",
             kaspresso     : "com.kaspersky.android-components:kaspresso:${versions.kaspresso}",
             mockWebServer : "com.squareup.okhttp3:mockwebserver:${versions.mockWebServer}",
             androidxRunner: "androidx.test:runner:${versions.androidxRunner}",
+            monitor       : "androidx.test:monitor:${versions.monitor}",
             orchestrator  : "androidx.test:orchestrator:${versions.orchestrator}"
     ]
 

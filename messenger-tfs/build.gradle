@@ -44,9 +44,10 @@ android {
 dependencies {
     implementation androidx.core
     implementation androidx.activity
+    implementation androidx.fragment
     implementation androidx.appcompat
-    implementation androidx.crypto
     implementation androidx.constraintlayout
+    implementation androidx.crypto
 
     implementation dagger.dagger
     kapt dagger.compiler
@@ -80,7 +81,6 @@ dependencies {
     testImplementation test.junit4
     testImplementation test.androidxCore
     testImplementation test.coroutines
-    debugImplementation test.fragment
     androidTestImplementation androidTest.junit
     androidTestImplementation androidTest.kaspresso
     androidTestImplementation androidTest.mockWebServer
