@@ -138,7 +138,7 @@ class MessagesTest : TestCase() {
                 topic.click()
             }
         }
-        step("Message with reactions is visible") {
+        step("Message with reactions is displayed") {
             messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1) {
                 this.iconAddReaction.isDisplayed()
             }
@@ -164,6 +164,29 @@ class MessagesTest : TestCase() {
         step("Message without reactions is visible") {
             messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(2) {
                 this.iconAddReaction.isNotDisplayed()
+            }
+        }
+    }
+
+    @Test
+    fun messageWithOwnUserReactionIsVisible() = run {
+        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        val channelsPageScreen = ChannelsPageScreen()
+        val messagesScreen = MessagesScreen()
+
+        step("Open messages screen") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
+                channel.click()
+            }
+        }
+        step("Click on first topic") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1) {
+                topic.click()
+            }
+        }
+        step("Message with own user reaction is displayed") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(4) {
+                this.ownReaction.isDisplayed()
             }
         }
     }

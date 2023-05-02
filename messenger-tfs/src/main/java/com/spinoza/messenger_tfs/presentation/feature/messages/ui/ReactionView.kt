@@ -54,6 +54,7 @@ class ReactionView @JvmOverloads constructor(
     private val textBounds = Rect()
 
     init {
+        changeId(isSelected)
         context.withStyledAttributes(attrs, R.styleable.reaction_view) {
             size = this.getDimension(R.styleable.reaction_view_size, EMOJI_SIZE)
         }
@@ -70,6 +71,11 @@ class ReactionView @JvmOverloads constructor(
             right.dpToPx(this).toInt(),
             bottom.dpToPx(this).toInt(),
         )
+    }
+
+    override fun setSelected(selected: Boolean) {
+        changeId(selected)
+        super.setSelected(selected)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -106,6 +112,10 @@ class ReactionView @JvmOverloads constructor(
         reaction =
             if (isCountVisible) "${emoji.toCharacterImage()} $count" else emoji.toCharacterImage()
         reactionPaint.textSize = size.spToPx(this)
+    }
+
+    private fun changeId(selected: Boolean) {
+        id = if (selected) R.id.reaction_is_selected else R.id.reaction_is_not_selected
     }
 
     private companion object {

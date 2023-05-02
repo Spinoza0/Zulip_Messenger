@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <item name="flexbox_icon_add" type="id" />
+    <item name="reaction_is_selected" type="id" />
+    <item name="reaction_is_not_selected" type="id" />
 </resources>
