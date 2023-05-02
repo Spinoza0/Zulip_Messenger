@@ -18,6 +18,7 @@ class MainMenuTest : TestCase() {
     fun channelsScreenIsVisible_ByDefault() = run {
         val mainMenuScreen = MainMenuScreen()
         val channelsScreen = ChannelsScreen()
+
         step("Bottom navigation menu is visible") {
             mainMenuScreen.bottomMenu.isVisible()
         }
@@ -31,6 +32,7 @@ class MainMenuTest : TestCase() {
     fun peopleScreen_IsVisible() = run {
         val mainMenuScreen = MainMenuScreen()
         val peopleScreen = PeopleScreen()
+
         step("Open the people screen") {
             mainMenuScreen.bottomMenu.click()
         }

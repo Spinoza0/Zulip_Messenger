@@ -16,8 +16,7 @@ class PeopleScreen : KScreen<PeopleScreen>() {
     override val viewClass: Class<*> = PeopleFragment::class.java
 
     val searchField = KEditText { withId(R.id.editTextSearch) }
-    val usersList =
-        KRecyclerView({ withId(R.id.recyclerViewUsers) }, { itemType { UserItem(it) } })
+    val usersList = KRecyclerView({ withId(R.id.recyclerViewUsers) }, { itemType(::UserItem) })
 
     class UserItem(parent: Matcher<View>) : KRecyclerItem<UserItem>(parent) {
         val name = KTextView(parent) { withId(R.id.textViewName) }
