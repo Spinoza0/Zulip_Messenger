@@ -191,6 +191,32 @@ class MessagesTest : TestCase() {
         }
     }
 
+    @Test
+    fun messagesIsGroupedByDate() = run {
+        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        val channelsPageScreen = ChannelsPageScreen()
+        val messagesScreen = MessagesScreen()
+
+        step("Open messages screen") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
+                channel.click()
+            }
+        }
+        step("Click on first topic") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1) {
+                topic.click()
+            }
+        }
+        step("Messages is grouped by date") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(0) {
+                this.messageDate.isDisplayed()
+            }
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(3) {
+                this.messageDate.isDisplayed()
+            }
+        }
+    }
+
     private fun provideJsonConverter() = Json {
         ignoreUnknownKeys = true
         coerceInputValues = true

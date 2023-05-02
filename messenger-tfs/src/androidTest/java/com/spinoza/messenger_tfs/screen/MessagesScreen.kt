@@ -22,6 +22,7 @@ class MessagesScreen : KScreen<MessagesScreen>() {
     val chooseReactionDialogTopLine = KView { withId(R.id.textViewTopLine) }
 
     class MessageItem(parent: Matcher<View>) : KRecyclerItem<MessageItem>(parent) {
+        val messageDate = KTextView(parent) { withId(R.id.textViewDate) }
         val iconAddReaction = KImageView(parent) { withId(R.id.flexbox_icon_add) }
         val ownReaction = KView(parent) { withId(R.id.reaction_is_selected) }
     }
