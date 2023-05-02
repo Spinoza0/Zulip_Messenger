@@ -47,10 +47,10 @@ interface ZulipApiService {
     suspend fun setOwnStatusActive()
 
     @GET("users/me/subscriptions")
-    suspend fun getSubscribedStreams(): Response<SubscribedStreamsResponse>
+    suspend fun getSubscribedStreams(): SubscribedStreamsResponse
 
     @GET("streams")
-    suspend fun getAllStreams(): Response<AllStreamsResponse>
+    suspend fun getAllStreams(): AllStreamsResponse
 
     @GET("users/me/{$QUERY_STREAM_ID}/topics")
     suspend fun getTopics(@Path(QUERY_STREAM_ID) streamId: Long): TopicsResponse

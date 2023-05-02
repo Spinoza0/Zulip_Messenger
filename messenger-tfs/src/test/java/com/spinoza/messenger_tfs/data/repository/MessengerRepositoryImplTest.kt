@@ -7,7 +7,7 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
-import com.spinoza.messenger_tfs.stub.ApiServiceStub
+import com.spinoza.messenger_tfs.stub.ApiServiceProviderStub
 import com.spinoza.messenger_tfs.stub.MessagesGenerator
 import com.spinoza.messenger_tfs.stub.MessengerDaoStub
 import com.spinoza.messenger_tfs.util.MainDispatcherRule
@@ -84,8 +84,12 @@ class MessengerRepositoryImplTest {
 
     private fun createRepository(messengerDao: MessengerDao): MessengerRepository {
         return MessengerRepositoryImpl(
-            MessagesCache(messengerDao), messengerDao, ApiServiceStub(), AppAuthKeeperImpl(),
-            createJsonConverter(), mainDispatcherRule.testDispatcher
+            MessagesCache(messengerDao),
+            messengerDao,
+            ApiServiceProviderStub(),
+            AppAuthKeeperImpl(),
+            createJsonConverter(),
+            mainDispatcherRule.testDispatcher
         )
     }
 }

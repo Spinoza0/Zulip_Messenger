@@ -161,9 +161,7 @@ class ChannelsPageFragmentViewModel(
             if (oldChannelDelegateItem != null) {
                 val index = cache.indexOf(oldChannelDelegateItem)
                 val oldChannelItem = oldChannelDelegateItem.content() as ChannelItem
-                if (!oldChannelItem.isFolded) {
-                    stopUpdateMessagesCountJob()
-                }
+                stopUpdateMessagesCountJob()
                 val newChannelDelegateItem = ChannelDelegateItem(
                     oldChannelItem.copy(isFolded = !oldChannelItem.isFolded)
                 )

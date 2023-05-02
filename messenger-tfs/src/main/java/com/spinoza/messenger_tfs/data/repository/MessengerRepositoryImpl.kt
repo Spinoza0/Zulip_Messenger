@@ -16,7 +16,6 @@ import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
-import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
@@ -37,7 +36,6 @@ import com.spinoza.messenger_tfs.data.utils.toDto
 import com.spinoza.messenger_tfs.data.utils.toStringsList
 import com.spinoza.messenger_tfs.data.utils.toUserDto
 import com.spinoza.messenger_tfs.di.DispatcherIO
-import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.Emoji
@@ -56,6 +54,8 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.network.ApiServiceProvider
+import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -69,7 +69,7 @@ import javax.inject.Inject
 class MessengerRepositoryImpl @Inject constructor(
     private val messagesCache: MessagesCache,
     private val messengerDao: MessengerDao,
-    private val apiService: ZulipApiService,
+    private val apiService: ApiServiceProvider,
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
@@ -90,7 +90,7 @@ class MessengerRepositoryImpl @Inject constructor(
         }
         runCatchingNonCancellation {
             val apiKeyResponse =
-                apiRequest<ApiKeyResponse> { apiService.fetchApiKey(email, password) }
+                apiRequest<ApiKeyResponse> { apiService.value.fetchApiKey(email, password) }
             apiAuthKeeper.setData(Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey))
             apiKeyResponse.apiKey
         }
@@ -98,7 +98,7 @@ class MessengerRepositoryImpl @Inject constructor(
 
     override suspend fun setOwnStatusActive() {
         withContext(ioDispatcher) {
-            runCatchingNonCancellation { apiService.setOwnStatusActive() }
+            runCatchingNonCancellation { apiService.value.setOwnStatusActive() }
         }
     }
 
@@ -117,7 +117,8 @@ class MessengerRepositoryImpl @Inject constructor(
 
     override suspend fun getOwnUser(): Result<User> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val ownUserResponse = apiRequest<OwnUserResponse> { apiService.getOwnUser() }
+            val ownUserResponse =
+                apiRequest<OwnUserResponse> { apiService.value.getOwnUser() }
             storedOwnUser = ownUserResponse.toUserDto()
             val presence = getUserPresence(storedOwnUser.userId)
             storedOwnUser.toDomain(presence)
@@ -126,7 +127,8 @@ class MessengerRepositoryImpl @Inject constructor(
 
     override suspend fun getUser(userId: Long): Result<User> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val userResponse = apiRequest<UserResponse> { apiService.getUser(userId) }
+            val userResponse =
+                apiRequest<UserResponse> { apiService.value.getUser(userId) }
             val presence = getUserPresence(userResponse.user.userId)
             userResponse.user.toDomain(presence)
         }
@@ -135,8 +137,9 @@ class MessengerRepositoryImpl @Inject constructor(
     override suspend fun getAllUsers(): Result<List<User>> =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
-                val allUsersResponse = apiRequest<AllUsersResponse> { apiService.getAllUsers() }
-                val presencesResponse = apiService.getAllPresences()
+                val allUsersResponse =
+                    apiRequest<AllUsersResponse> { apiService.value.getAllUsers() }
+                val presencesResponse = apiService.value.getAllPresences()
                 if (presencesResponse.isSuccessful) {
                     makeAllUsersAnswer(allUsersResponse, presencesResponse.body())
                 } else {
@@ -167,7 +170,7 @@ class MessengerRepositoryImpl @Inject constructor(
             }
             val messagesResponse = apiRequest<MessagesResponse> {
                 when (messagesPageType) {
-                    MessagesPageType.FIRST_UNREAD -> apiService.getMessages(
+                    MessagesPageType.FIRST_UNREAD -> apiService.value.getMessages(
                         numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                         numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
                         narrow = filter.createNarrowJsonForMessages(),
@@ -198,7 +201,7 @@ class MessengerRepositoryImpl @Inject constructor(
                         ZulipApiService.ANCHOR_NEWEST
                     )
 
-                    MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
+                    MessagesPageType.LAST, MessagesPageType.STORED -> apiService.value.getMessages(
                         numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                         numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
                         narrow = filter.createNarrowJsonForMessages(),
@@ -236,31 +239,12 @@ class MessengerRepositoryImpl @Inject constructor(
         channelsFilter: ChannelsFilter,
     ): Result<List<Channel>> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            var streamsList: List<StreamDto> = emptyList()
-            var errorMsg: String
-            if (channelsFilter.isSubscribed) {
-                val response = apiService.getSubscribedStreams()
-                errorMsg = response.message()
-                if (response.isSuccessful) {
-                    val subscribedStreamsDto = response.getBodyOrThrow()
-                    errorMsg = subscribedStreamsDto.msg
-                    if (subscribedStreamsDto.result == RESULT_SUCCESS) {
-                        streamsList = subscribedStreamsDto.subscriptions
-                    }
-                }
+            val streamsList = if (channelsFilter.isSubscribed) {
+                val subscribedStreamsResponse = apiService.value.getSubscribedStreams()
+                subscribedStreamsResponse.subscriptions
             } else {
-                val response = apiService.getAllStreams()
-                errorMsg = response.message()
-                if (response.isSuccessful) {
-                    val allStreamsDto = response.getBodyOrThrow()
-                    errorMsg = allStreamsDto.msg
-                    if (allStreamsDto.result == RESULT_SUCCESS) {
-                        streamsList = allStreamsDto.streams
-                    }
-                }
-            }
-            if (streamsList.isEmpty()) {
-                throw RepositoryError(errorMsg)
+                val allStreamsResponse = apiService.value.getAllStreams()
+                allStreamsResponse.streams
             }
             messengerDao.removeStreams(channelsFilter.isSubscribed)
             messengerDao.insertStreams(streamsList.toDbModel(channelsFilter))
@@ -281,7 +265,7 @@ class MessengerRepositoryImpl @Inject constructor(
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val topicsResponse =
-                    apiRequest<TopicsResponse> { apiService.getTopics(channel.channelId) }
+                    apiRequest<TopicsResponse> { apiService.value.getTopics(channel.channelId) }
                 messengerDao.removeTopics(channel.channelId, channel.isSubscribed)
                 messengerDao.insertTopics(topicsResponse.topics.toDbModel(channel))
                 topicsResponse.topics.dtoToDomain(channel)
@@ -294,14 +278,14 @@ class MessengerRepositoryImpl @Inject constructor(
             var lastMessageId = Message.UNDEFINED_ID
             runCatchingNonCancellation {
                 val messagesResponse = apiRequest<MessagesResponse> {
-                    apiService.getMessages(
+                    apiService.value.getMessages(
                         numBefore = GET_TOPIC_IGNORE_PREVIOUS_MESSAGES,
                         numAfter = GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT,
                         narrow = filter.createNarrowJsonForMessages(),
                         anchor = ZulipApiService.ANCHOR_FIRST_UNREAD,
                     )
                 }
-                if(messagesResponse.messages.isNotEmpty()) {
+                if (messagesResponse.messages.isNotEmpty()) {
                     lastMessageId = messagesResponse.messages.last().id
                     unreadMessagesCount = messagesResponse.messages.size
                     if (!messagesResponse.foundAnchor) {
@@ -320,8 +304,9 @@ class MessengerRepositoryImpl @Inject constructor(
         withContext(ioDispatcher) {
             var topic = filter.topic
             runCatchingNonCancellation {
-                val topicsResponse =
-                    apiRequest<TopicsResponse> { apiService.getTopics(filter.channel.channelId) }
+                val topicsResponse = apiRequest<TopicsResponse> {
+                    apiService.value.getTopics(filter.channel.channelId)
+                }
                 val newTopic = topicsResponse.topics.find {
                     filter.isEqualTopicName(it.name)
                 }
@@ -338,7 +323,11 @@ class MessengerRepositoryImpl @Inject constructor(
     ): Result<Long> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val sendMessageResponse = apiRequest<SendMessageResponse> {
-                apiService.sendMessageToStream(filter.channel.channelId, filter.topic.name, content)
+                apiService.value.sendMessageToStream(
+                    filter.channel.channelId,
+                    filter.topic.name,
+                    content
+                )
             }
             sendMessageResponse.messageId
         }
@@ -364,7 +353,7 @@ class MessengerRepositoryImpl @Inject constructor(
     override suspend fun setMessagesFlagToRead(messageIds: List<Long>): Unit =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
-                apiService.setMessageFlagsToRead(Json.encodeToString(messageIds))
+                apiService.value.setMessageFlagsToRead(Json.encodeToString(messageIds))
             }
         }
 
@@ -374,7 +363,7 @@ class MessengerRepositoryImpl @Inject constructor(
     ): Result<EventsQueue> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val registerResponse = apiRequest<RegisterEventQueueResponse> {
-                apiService.registerEventQueue(
+                apiService.value.registerEventQueue(
                     narrow = messagesFilter.createNarrowJsonForEvents(),
                     eventTypes = Json.encodeToString(eventTypes.toStringsList())
                 )
@@ -385,7 +374,7 @@ class MessengerRepositoryImpl @Inject constructor(
 
     override suspend fun deleteEventQueue(queueId: String): Unit = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            apiService.deleteEventQueue(queueId)
+            apiService.value.deleteEventQueue(queueId)
         }
     }
 
@@ -512,31 +501,32 @@ class MessengerRepositoryImpl @Inject constructor(
         anchor: String,
     ): MessagesResponse {
         return if (anchorId != Message.UNDEFINED_ID) {
-            apiService.getMessages(numBefore, numAfter, narrow, anchorId)
+            apiService.value.getMessages(numBefore, numAfter, narrow, anchorId)
         } else {
-            apiService.getMessages(numBefore, numAfter, narrow, anchor)
+            apiService.value.getMessages(numBefore, numAfter, narrow, anchor)
         }
     }
 
     private fun updateReactionOnServer(messageId: Long, emoji: Emoji) {
         CoroutineScope(ioDispatcher).launch {
             runCatchingNonCancellation {
-                val singleMessageResponse =
-                    apiRequest<SingleMessageResponse> { apiService.getSingleMessage(messageId) }
+                val singleMessageResponse = apiRequest<SingleMessageResponse> {
+                    apiService.value.getSingleMessage(messageId)
+                }
                 val isAddReaction = null == singleMessageResponse.message.reactions.find {
                     it.emojiName == emoji.name && it.userId == storedOwnUser.userId
                 }
                 if (isAddReaction) {
-                    apiService.addReaction(messageId, emoji.name)
+                    apiService.value.addReaction(messageId, emoji.name)
                 } else {
-                    apiService.removeReaction(messageId, emoji.name)
+                    apiService.value.removeReaction(messageId, emoji.name)
                 }
             }
         }
     }
 
     private suspend fun getUserPresence(userId: Long): User.Presence = runCatchingNonCancellation {
-        val presenceResponse = apiService.getUserPresence(userId)
+        val presenceResponse = apiService.value.getUserPresence(userId)
         if (presenceResponse.result == RESULT_SUCCESS) {
             presenceResponse.presence.toDomain()
         } else {
@@ -551,7 +541,7 @@ class MessengerRepositoryImpl @Inject constructor(
         var isHeartBeat = true
         var responseBody: String
         do {
-            val response = apiService.getEventsFromQueue(queue.queueId, lastEventId)
+            val response = apiService.value.getEventsFromQueue(queue.queueId, lastEventId)
             if (!response.isSuccessful) {
                 throw RepositoryError(response.message())
             }

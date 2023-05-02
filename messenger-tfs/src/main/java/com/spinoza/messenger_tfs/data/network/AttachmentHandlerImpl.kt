@@ -12,6 +12,7 @@ import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
+import com.spinoza.messenger_tfs.domain.network.ApiServiceProvider
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -26,7 +27,7 @@ import javax.inject.Inject
 
 class AttachmentHandlerImpl @Inject constructor(
     private val authKeeper: AppAuthKeeper,
-    private val apiService: ZulipApiService,
+    private val apiService: ApiServiceProvider,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : AttachmentHandler {
 
@@ -58,7 +59,8 @@ class AttachmentHandlerImpl @Inject constructor(
                 val requestFile = tempFile.asRequestBody(contentType.toMediaTypeOrNull())
                 val fileName = uri.getFileName(context)
                 val filePart = MultipartBody.Part.createFormData(fileName, fileName, requestFile)
-                val response = apiRequest<UploadFileResponse> { apiService.uploadFile(filePart) }
+                val response =
+                    apiRequest<UploadFileResponse> { apiService.value.uploadFile(filePart) }
                 Pair(fileName, response.uri)
             }
         }

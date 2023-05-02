@@ -22,7 +22,7 @@ buildscript {
 
             kotlin                  : "1.8.21",
 
-            okhttp3                 : "4.10.0",
+            okhttp3                 : "4.11.0",
 
             kotlinxCoroutines       : "1.6.4",
             kotlinxSerializationJson: "1.5.0",
@@ -47,7 +47,6 @@ buildscript {
             androidxJUnit           : "1.1.5",
             androidxRunner          : "1.5.2",
             kaspresso               : "1.5.2",
-            monitor                 : "1.6.1",
             orchestrator            : "1.4.2",
 
             androidxTestExt         : "1.1.5",
