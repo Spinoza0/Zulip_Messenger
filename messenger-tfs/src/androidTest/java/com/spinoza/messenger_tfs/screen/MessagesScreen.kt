@@ -18,6 +18,7 @@ class MessagesScreen : KScreen<MessagesScreen>() {
     val messagesList =
         KRecyclerView({ withId(R.id.recyclerViewMessages) }, { itemType(::MessageItem) })
     val errorMessage = KTextView { withText(R.string.check_internet_connection) }
+    val chooseReactionDialogTopLine = KView { withId(R.id.textViewTopLine) }
 
     class MessageItem(parent: Matcher<View>) : KRecyclerItem<MessageItem>(parent) {
         val name = KTextView(parent) { withId(R.id.nameTextView) }

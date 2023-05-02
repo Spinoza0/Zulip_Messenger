@@ -98,6 +98,30 @@ class MessagesTest : TestCase() {
         }
     }
 
+    @Test
+    fun longClickOnMessageOpensChooseReactionDialog() = run {
+        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        val channelsPageScreen = ChannelsPageScreen()
+        val messagesScreen = MessagesScreen()
+
+        step("Open messages screen") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
+                channel.click()
+            }
+        }
+        step("Click on first topic") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1) {
+                topic.click()
+            }
+        }
+        step("Long click on message opens choose reaction dialog") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1) {
+                longClick()
+            }
+            messagesScreen.chooseReactionDialogTopLine.isVisible()
+        }
+    }
+
     private fun provideJsonConverter() = Json {
         ignoreUnknownKeys = true
         coerceInputValues = true
