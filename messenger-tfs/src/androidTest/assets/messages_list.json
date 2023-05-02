@@ -9,7 +9,7 @@
       "recipient_id": 1047523,
       "timestamp": 1680523078,
       "client": "Internal",
-      "subject": "test",
+      "subject": "(no topic)",
       "topic_links": [],
       "is_me_message": false,
       "reactions": [
@@ -57,7 +57,7 @@
       "recipient_id": 1047523,
       "timestamp": 1680523268,
       "client": "website",
-      "subject": "test",
+      "subject": "(no topic)",
       "topic_links": [],
       "is_me_message": false,
       "reactions": [],
@@ -82,7 +82,7 @@
       "recipient_id": 1047523,
       "timestamp": 1682091854,
       "client": "okhttp",
-      "subject": "test",
+      "subject": "(no topic)",
       "topic_links": [],
       "is_me_message": false,
       "reactions": [
