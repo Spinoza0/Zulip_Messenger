@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.attachment
+package com.spinoza.messenger_tfs.domain.network
 
 import android.content.Context
 import android.net.Uri

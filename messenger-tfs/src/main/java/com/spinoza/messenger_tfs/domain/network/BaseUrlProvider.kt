@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.util
+package com.spinoza.messenger_tfs.domain.network
 
 interface BaseUrlProvider {
 

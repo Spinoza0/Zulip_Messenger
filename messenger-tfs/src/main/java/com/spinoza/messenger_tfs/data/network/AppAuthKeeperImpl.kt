@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.network
 
-import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
 import javax.inject.Inject
 
 class AppAuthKeeperImpl @Inject constructor() : AppAuthKeeper {

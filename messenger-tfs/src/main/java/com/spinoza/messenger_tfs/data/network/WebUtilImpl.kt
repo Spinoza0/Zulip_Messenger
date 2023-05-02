@@ -1,9 +1,9 @@
 package com.spinoza.messenger_tfs.data.network
 
 import com.bumptech.glide.load.model.LazyHeaders
-import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
-import com.spinoza.messenger_tfs.domain.util.BaseUrlProvider
-import com.spinoza.messenger_tfs.domain.util.WebUtil
+import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.network.BaseUrlProvider
+import com.spinoza.messenger_tfs.domain.network.WebUtil
 import javax.inject.Inject
 
 class WebUtilImpl @Inject constructor(

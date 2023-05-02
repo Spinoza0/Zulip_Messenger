@@ -1,10 +1,10 @@
 package com.spinoza.messenger_tfs.di
 
 import android.content.Context
-import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
+import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.notification.Notificator
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
-import com.spinoza.messenger_tfs.domain.util.WebUtil
+import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import dagger.BindsInstance

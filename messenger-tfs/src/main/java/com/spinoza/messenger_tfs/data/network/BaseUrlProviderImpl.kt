@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.data.network
 
 import com.spinoza.messenger_tfs.BuildConfig
-import com.spinoza.messenger_tfs.domain.util.BaseUrlProvider
+import com.spinoza.messenger_tfs.domain.network.BaseUrlProvider
 
 object BaseUrlProviderImpl : BaseUrlProvider {
 

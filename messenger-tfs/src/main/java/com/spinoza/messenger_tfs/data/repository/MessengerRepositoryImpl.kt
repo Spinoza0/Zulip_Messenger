@@ -37,7 +37,7 @@ import com.spinoza.messenger_tfs.data.utils.toDto
 import com.spinoza.messenger_tfs.data.utils.toStringsList
 import com.spinoza.messenger_tfs.data.utils.toUserDto
 import com.spinoza.messenger_tfs.di.DispatcherIO
-import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.Emoji

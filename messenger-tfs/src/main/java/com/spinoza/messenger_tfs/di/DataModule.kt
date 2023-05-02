@@ -12,11 +12,11 @@ import com.spinoza.messenger_tfs.data.network.BaseUrlProviderImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessengerRepositoryImpl
-import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
+import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
-import com.spinoza.messenger_tfs.domain.util.BaseUrlProvider
-import com.spinoza.messenger_tfs.domain.util.WebUtil
+import com.spinoza.messenger_tfs.domain.network.BaseUrlProvider
+import com.spinoza.messenger_tfs.domain.network.WebUtil
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

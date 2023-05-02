@@ -25,7 +25,7 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.notification.Notificator
-import com.spinoza.messenger_tfs.domain.util.WebUtil
+import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegate

@@ -9,8 +9,8 @@ import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
 import com.spinoza.messenger_tfs.data.utils.apiRequest
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.di.DispatcherIO
-import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
+import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
