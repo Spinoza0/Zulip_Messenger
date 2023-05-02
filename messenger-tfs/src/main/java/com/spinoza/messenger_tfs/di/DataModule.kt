@@ -3,17 +3,18 @@ package com.spinoza.messenger_tfs.di
 import android.content.Context
 import androidx.room.Room
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
 import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
 import com.spinoza.messenger_tfs.data.network.AttachmentHandlerImpl
+import com.spinoza.messenger_tfs.data.network.BaseUrlProviderImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.repository.MessengerRepositoryImpl
 import com.spinoza.messenger_tfs.domain.attachment.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.util.BaseUrlProvider
 import com.spinoza.messenger_tfs.domain.util.WebUtil
 import dagger.Binds
 import dagger.Module
@@ -49,6 +50,10 @@ interface DataModule {
 
         @ApplicationScope
         @Provides
+        fun provideBaseUrlProvider(): BaseUrlProvider = BaseUrlProviderImpl
+
+        @ApplicationScope
+        @Provides
         fun provideMessengerDatabase(context: Context): MessengerDatabase =
             Room.databaseBuilder(context, MessengerDatabase::class.java, DATABASE_NAME)
                 .fallbackToDestructiveMigration()
@@ -67,7 +72,10 @@ interface DataModule {
 
         @ApplicationScope
         @Provides
-        fun provideZulipApiService(authKeeper: AppAuthKeeper): ZulipApiService {
+        fun provideZulipApiService(
+            authKeeper: AppAuthKeeper,
+            baseUrlProvider: BaseUrlProvider,
+        ): ZulipApiService {
             val json = Json {
                 ignoreUnknownKeys = true
                 coerceInputValues = true
@@ -88,7 +96,7 @@ interface DataModule {
                 }
                 .build()
             val retrofit = Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl("${baseUrlProvider.value}/api/v1/")
                 .addConverterFactory(json.asConverterFactory(contentType))
                 .client(okHttpClient)
                 .build()
@@ -97,7 +105,6 @@ interface DataModule {
 
         private const val DATABASE_NAME = "messenger-tfs-cache.db"
         private const val MEDIA_TYPE_JSON = "application/json"
-        private const val BASE_URL = "${BuildConfig.ZULIP_SERVER_URL}/api/v1/"
         private const val TIME_OUT_SECONDS = 15L
     }
 }
