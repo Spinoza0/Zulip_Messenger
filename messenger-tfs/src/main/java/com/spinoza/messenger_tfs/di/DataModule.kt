@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.di
 import android.content.Context
 import androidx.room.Room
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
 import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
@@ -20,7 +21,7 @@ import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.Route
@@ -55,7 +56,7 @@ interface DataModule {
         @ApplicationScope
         @Provides
         fun provideMessengerDatabase(context: Context): MessengerDatabase =
-            Room.databaseBuilder(context, MessengerDatabase::class.java, DATABASE_NAME)
+            Room.databaseBuilder(context, MessengerDatabase::class.java, BuildConfig.DATABASE_NAME)
                 .fallbackToDestructiveMigration()
                 .build()
 
@@ -80,16 +81,15 @@ interface DataModule {
                 ignoreUnknownKeys = true
                 coerceInputValues = true
             }
-            val contentType = MediaType.get(MEDIA_TYPE_JSON)
+            val contentType = MEDIA_TYPE_JSON.toMediaType()
             val okHttpClient = OkHttpClient.Builder()
                 .connectTimeout(TIME_OUT_SECONDS, TimeUnit.SECONDS)
                 .readTimeout(TIME_OUT_SECONDS, TimeUnit.SECONDS)
                 .writeTimeout(TIME_OUT_SECONDS, TimeUnit.SECONDS)
                 .authenticator { _: Route?, response: Response ->
-                    val request = response.request()
-                    if (request.header(authKeeper.getKey()) != null)
+                    if (response.request.header(authKeeper.getKey()) != null)
                         return@authenticator null
-                    request.newBuilder().header(
+                    response.request.newBuilder().header(
                         authKeeper.getKey(),
                         authKeeper.getValue()
                     ).build()
@@ -103,7 +103,6 @@ interface DataModule {
             return retrofit.create(ZulipApiService::class.java)
         }
 
-        private const val DATABASE_NAME = "messenger-tfs-cache.db"
         private const val MEDIA_TYPE_JSON = "application/json"
         private const val TIME_OUT_SECONDS = 15L
     }

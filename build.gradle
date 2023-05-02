@@ -22,6 +22,8 @@ buildscript {
 
             kotlin                  : "1.8.21",
 
+            okhttp3                 : "4.10.0",
+
             kotlinxCoroutines       : "1.6.4",
             kotlinxSerializationJson: "1.5.0",
 
@@ -45,7 +47,6 @@ buildscript {
             androidxJUnit           : "1.1.5",
             androidxRunner          : "1.5.2",
             kaspresso               : "1.5.2",
-            mockWebServer           : "4.10.0",
             monitor                 : "1.6.1",
             orchestrator            : "1.4.2",
 
@@ -75,6 +76,8 @@ buildscript {
             cicerone: "com.github.terrakok:cicerone:${versions.cicerone}"
     ]
 
+    ext.okhttp3 = "com.squareup.okhttp3:okhttp:${versions.okhttp3}"
+
     ext.room = [
             runtime : "androidx.room:room-runtime:${versions.room}",
             compiler: "androidx.room:room-compiler:${versions.room}",
@@ -86,9 +89,8 @@ buildscript {
             compiler: "com.github.bumptech.glide:compiler:${versions.glide}"
     ]
 
-    ext.kotlinx = [
-            serializationJson: "org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.kotlinxSerializationJson}"
-    ]
+    ext.kotlinxSerializationJson =
+            "org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.kotlinxSerializationJson}"
 
     ext.retrofit = [
             retrofit : "com.squareup.retrofit2:retrofit:${versions.retrofit}",
@@ -117,9 +119,8 @@ buildscript {
     ext.androidTest = [
             junit         : "androidx.test.ext:junit-ktx:${versions.androidxJUnit}",
             kaspresso     : "com.kaspersky.android-components:kaspresso:${versions.kaspresso}",
-            mockWebServer : "com.squareup.okhttp3:mockwebserver:${versions.mockWebServer}",
+            mockWebServer : "com.squareup.okhttp3:mockwebserver:${versions.okhttp3}",
             androidxRunner: "androidx.test:runner:${versions.androidxRunner}",
-            monitor       : "androidx.test:monitor:${versions.monitor}",
             orchestrator  : "androidx.test:orchestrator:${versions.orchestrator}"
     ]
 

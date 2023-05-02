@@ -14,9 +14,9 @@ import com.spinoza.messenger_tfs.domain.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
@@ -55,7 +55,7 @@ class AttachmentHandlerImpl @Inject constructor(
                 val contentType = context.contentResolver.getType(uri)
                     ?: throw RepositoryError(context.getString(R.string.error_unknown_file_type))
                 val tempFile = uri.getTempFile(context)
-                val requestFile = RequestBody.create(MediaType.parse(contentType), tempFile)
+                val requestFile = tempFile.asRequestBody(contentType.toMediaTypeOrNull())
                 val fileName = uri.getFileName(context)
                 val filePart = MultipartBody.Part.createFormData(fileName, fileName, requestFile)
                 val response = apiRequest<UploadFileResponse> { apiService.uploadFile(filePart) }
