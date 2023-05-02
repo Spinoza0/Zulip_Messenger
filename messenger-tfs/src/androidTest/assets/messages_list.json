@@ -20,7 +20,7 @@
           "user": {
             "email": "user605850@tinkoff-android-spring-2023.zulipchat.com",
             "id": 605850,
-            "full_name": "Nol Ara"
+            "full_name": "Full name 1"
           },
           "user_id": 605850
         },
@@ -31,7 +31,7 @@
           "user": {
             "email": "user604450@tinkoff-android-spring-2023.zulipchat.com",
             "id": 604450,
-            "full_name": "Svyatoslav Lukyanov"
+            "full_name": "Full name 3"
           },
           "user_id": 604450
         }
@@ -66,7 +66,7 @@
         "read",
         "historical"
       ],
-      "sender_full_name": "Nol Ara",
+      "sender_full_name": "Full name 1",
       "sender_email": "user605850@tinkoff-android-spring-2023.zulipchat.com",
       "sender_realm_str": "tinkoff-android-spring-2023",
       "display_recipient": "dev_to_dev",
@@ -93,7 +93,7 @@
           "user": {
             "email": "user604290@tinkoff-android-spring-2023.zulipchat.com",
             "id": 604290,
-            "full_name": "Yury Prudnikov"
+            "full_name": "Full name 2"
           },
           "user_id": 604290
         },
@@ -104,7 +104,7 @@
           "user": {
             "email": "user604180@tinkoff-android-spring-2023.zulipchat.com",
             "id": 604180,
-            "full_name": "Ivan Sintyurin"
+            "full_name": "Full name"
           },
           "user_id": 604180
         }
@@ -113,7 +113,7 @@
       "flags": [
         "read"
       ],
-      "sender_full_name": "Ivan Sintyurin",
+      "sender_full_name": "Full name",
       "sender_email": "user604180@tinkoff-android-spring-2023.zulipchat.com",
       "sender_realm_str": "tinkoff-android-spring-2023",
       "display_recipient": "dev_to_dev",
