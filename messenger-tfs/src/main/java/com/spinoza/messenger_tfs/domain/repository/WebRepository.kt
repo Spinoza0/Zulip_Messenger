@@ -28,18 +28,12 @@ interface WebRepository {
 
     suspend fun getAllUsers(): Result<List<User>>
 
-    suspend fun getStoredMessages(filter: MessagesFilter): Result<MessagesResult>
-
     suspend fun getMessages(
         messagesPageType: MessagesPageType,
         filter: MessagesFilter,
     ): Result<MessagesResult>
 
-    suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>
-
     suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>
-
-    suspend fun getStoredTopics(channel: Channel): Result<List<Topic>>
 
     suspend fun getTopics(channel: Channel): Result<List<Topic>>
 

@@ -11,6 +11,9 @@ import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
 import com.spinoza.messenger_tfs.data.network.AttachmentHandlerImpl
 import com.spinoza.messenger_tfs.data.network.BaseUrlProviderImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
+import com.spinoza.messenger_tfs.data.repository.DaoRepositoryImpl
+import com.spinoza.messenger_tfs.data.network.OwnUserKeeper
+import com.spinoza.messenger_tfs.data.network.OwnUserKeeperImpl
 import com.spinoza.messenger_tfs.data.repository.WebRepositoryImpl
 import com.spinoza.messenger_tfs.data.utils.createApiService
 import com.spinoza.messenger_tfs.domain.network.ApiServiceProvider
@@ -18,6 +21,7 @@ import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.network.BaseUrlProvider
 import com.spinoza.messenger_tfs.domain.network.WebUtil
+import com.spinoza.messenger_tfs.domain.repository.DaoRepository
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import dagger.Binds
 import dagger.Module
@@ -30,6 +34,10 @@ interface DataModule {
     @ApplicationScope
     @Binds
     fun bindWebRepository(impl: WebRepositoryImpl): WebRepository
+
+    @ApplicationScope
+    @Binds
+    fun bindDaoRepository(impl: DaoRepositoryImpl): DaoRepository
 
     @ApplicationScope
     @Binds
@@ -78,5 +86,8 @@ interface DataModule {
             ignoreUnknownKeys = true
             coerceInputValues = true
         }
+
+        @Provides
+        fun provideOwnUserKeeper(): OwnUserKeeper = OwnUserKeeperImpl
     }
 }

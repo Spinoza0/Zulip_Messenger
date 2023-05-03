@@ -2,18 +2,16 @@ package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDaoProviderImpl
-import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
+import com.spinoza.messenger_tfs.data.network.OwnUserKeeperImpl
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
-import com.spinoza.messenger_tfs.domain.repository.WebRepository
-import com.spinoza.messenger_tfs.stub.ApiServiceProviderStub
+import com.spinoza.messenger_tfs.domain.repository.DaoRepository
 import com.spinoza.messenger_tfs.stub.MessagesGenerator
 import com.spinoza.messenger_tfs.stub.MessengerDaoStub
 import com.spinoza.messenger_tfs.util.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -71,22 +69,13 @@ class WebRepositoryImplTest {
         )
     }
 
-    private fun createJsonConverter(): Json {
-        return Json {
-            ignoreUnknownKeys = true
-            coerceInputValues = true
-        }
-    }
-
-    private fun createRepository(type: MessengerDaoStub.Type): WebRepository {
+    private fun createRepository(type: MessengerDaoStub.Type): DaoRepository {
         val messengerDao = MessengerDaoStub(messagesGenerator, type)
         MessengerDaoProviderImpl.value = messengerDao
-        return WebRepositoryImpl(
+        return DaoRepositoryImpl(
+            OwnUserKeeperImpl,
             MessagesCache(MessengerDaoProviderImpl),
             MessengerDaoProviderImpl,
-            ApiServiceProviderStub(),
-            AppAuthKeeperImpl(),
-            createJsonConverter(),
             mainDispatcherRule.testDispatcher
         )
     }

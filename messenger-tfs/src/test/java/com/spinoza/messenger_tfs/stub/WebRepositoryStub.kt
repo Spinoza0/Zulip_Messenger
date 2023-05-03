@@ -1,8 +1,6 @@
 package com.spinoza.messenger_tfs.stub
 
-import com.spinoza.messenger_tfs.data.network.model.stream.StreamDto
 import com.spinoza.messenger_tfs.data.network.model.user.UserDto
-import com.spinoza.messenger_tfs.data.utils.dtoToDomain
 import com.spinoza.messenger_tfs.data.utils.toDomain
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
@@ -21,6 +19,7 @@ import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
+import com.spinoza.messenger_tfs.util.createChannels
 
 class WebRepositoryStub : WebRepository {
 
@@ -53,10 +52,6 @@ class WebRepositoryStub : WebRepository {
         return Result.success(users)
     }
 
-    override suspend fun getStoredMessages(filter: MessagesFilter): Result<MessagesResult> {
-        return Result.failure(RepositoryError(ERROR_MSG))
-    }
-
     override suspend fun getMessages(
         messagesPageType: MessagesPageType,
         filter: MessagesFilter,
@@ -64,16 +59,8 @@ class WebRepositoryStub : WebRepository {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
-    override suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> {
-        return createChannels(channelsFilter)
-    }
-
     override suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> {
         return createChannels(channelsFilter)
-    }
-
-    override suspend fun getStoredTopics(channel: Channel): Result<List<Topic>> {
-        return Result.failure(RepositoryError(ERROR_MSG))
     }
 
     override suspend fun getTopics(channel: Channel): Result<List<Topic>> {
@@ -154,26 +141,6 @@ class WebRepositoryStub : WebRepository {
 
     private fun provideUserPresence(): User.Presence {
         return User.Presence.ACTIVE
-    }
-
-    private fun createChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> {
-        var id = 0L
-        val streams = mutableListOf<StreamDto>()
-        repeat(5) {
-            streams.add(createStream(id++))
-        }
-        return Result.success(streams.dtoToDomain(channelsFilter))
-    }
-
-    private fun createStream(streamId: Long): StreamDto {
-        return StreamDto(
-            streamId = streamId,
-            name = "Name $streamId",
-            dateCreated = 0L,
-            firstMessageId = null,
-            inviteOnly = false,
-            isAnnouncementOnly = false
-        )
     }
 
     private companion object {

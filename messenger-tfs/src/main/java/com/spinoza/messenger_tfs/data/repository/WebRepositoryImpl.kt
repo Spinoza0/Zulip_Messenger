@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDaoProvider
+import com.spinoza.messenger_tfs.data.network.OwnUserKeeper
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
@@ -19,12 +20,10 @@ import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesRespons
 import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
-import com.spinoza.messenger_tfs.data.network.model.user.UserDto
 import com.spinoza.messenger_tfs.data.network.model.user.UserResponse
 import com.spinoza.messenger_tfs.data.utils.apiRequest
 import com.spinoza.messenger_tfs.data.utils.createNarrowJsonForEvents
 import com.spinoza.messenger_tfs.data.utils.createNarrowJsonForMessages
-import com.spinoza.messenger_tfs.data.utils.dbToDomain
 import com.spinoza.messenger_tfs.data.utils.dtoToDomain
 import com.spinoza.messenger_tfs.data.utils.getBodyOrThrow
 import com.spinoza.messenger_tfs.data.utils.isEqualTopicName
@@ -67,6 +66,7 @@ import okhttp3.Credentials
 import javax.inject.Inject
 
 class WebRepositoryImpl @Inject constructor(
+    private val ownUserKeeper: OwnUserKeeper,
     private val messagesCache: MessagesCache,
     private val messengerDao: MessengerDaoProvider,
     private val apiService: ApiServiceProvider,
@@ -74,8 +74,6 @@ class WebRepositoryImpl @Inject constructor(
     private val jsonConverter: Json,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : WebRepository {
-
-    private var storedOwnUser: UserDto = UserDto()
 
     override suspend fun getApiKey(
         storedApiKey: String,
@@ -103,12 +101,12 @@ class WebRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getOwnUserId(): Result<Long> {
-        return if (storedOwnUser.userId != User.UNDEFINED_ID) {
-            Result.success(storedOwnUser.userId)
+        return if (ownUserKeeper.value.userId != User.UNDEFINED_ID) {
+            Result.success(ownUserKeeper.value.userId)
         } else {
             val result = getOwnUser()
             if (result.isSuccess) {
-                Result.success(storedOwnUser.userId)
+                Result.success(ownUserKeeper.value.userId)
             } else {
                 Result.failure(result.exceptionOrNull() ?: RepositoryError(UNKNOWN_ERROR))
             }
@@ -119,9 +117,9 @@ class WebRepositoryImpl @Inject constructor(
         runCatchingNonCancellation {
             val ownUserResponse =
                 apiRequest<OwnUserResponse> { apiService.value.getOwnUser() }
-            storedOwnUser = ownUserResponse.toUserDto()
-            val presence = getUserPresence(storedOwnUser.userId)
-            storedOwnUser.toDomain(presence)
+            ownUserKeeper.value = ownUserResponse.toUserDto()
+            val presence = getUserPresence(ownUserKeeper.value.userId)
+            ownUserKeeper.value.toDomain(presence)
         }
     }
 
@@ -148,24 +146,12 @@ class WebRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun getStoredMessages(
-        filter: MessagesFilter,
-    ): Result<MessagesResult> = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            messagesCache.reload()
-            MessagesResult(
-                messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
-                MessagePosition(MessagePosition.Type.LAST_POSITION)
-            )
-        }
-    }
-
     override suspend fun getMessages(
         messagesPageType: MessagesPageType,
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            if (storedOwnUser.userId == User.UNDEFINED_ID) {
+            if (ownUserKeeper.value.userId == User.UNDEFINED_ID) {
                 getOwnUser()
             }
             val messagesResponse = apiRequest<MessagesResponse> {
@@ -221,19 +207,11 @@ class WebRepositoryImpl @Inject constructor(
             }
             messagesCache.addAll(messagesResponse.messages, messagesPageType)
             MessagesResult(
-                messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
                 position
             )
         }
     }
-
-    override suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> =
-        withContext(ioDispatcher) {
-            runCatchingNonCancellation {
-                val storedStreams = messengerDao.value.getStreams()
-                storedStreams.dbToDomain(channelsFilter)
-            }
-        }
 
     override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
@@ -251,16 +229,6 @@ class WebRepositoryImpl @Inject constructor(
             streamsList.dtoToDomain(channelsFilter)
         }
     }
-
-    override suspend fun getStoredTopics(channel: Channel): Result<List<Topic>> =
-        withContext(ioDispatcher)
-        {
-            runCatchingNonCancellation {
-                val storedTopics =
-                    messengerDao.value.getTopics(channel.channelId, channel.isSubscribed)
-                storedTopics.dbToDomain()
-            }
-        }
 
     override suspend fun getTopics(channel: Channel): Result<List<Topic>> =
         withContext(ioDispatcher) {
@@ -340,10 +308,11 @@ class WebRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            messagesCache
-                .updateReaction(messageId, storedOwnUser.userId, emoji.toDto(storedOwnUser.userId))
+            messagesCache.updateReaction(
+                messageId, ownUserKeeper.value.userId, emoji.toDto(ownUserKeeper.value.userId)
+            )
             val result = MessagesResult(
-                messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
                 MessagePosition(MessagePosition.Type.EXACTLY, messageId)
             )
             updateReactionOnServer(messageId, emoji)
@@ -434,7 +403,7 @@ class WebRepositoryImpl @Inject constructor(
             MessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                    messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
                     MessagePosition(),
                     eventResponse.events.isNotEmpty()
                 )
@@ -461,7 +430,7 @@ class WebRepositoryImpl @Inject constructor(
             DeleteMessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                    messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
                     MessagePosition()
                 )
             )
@@ -487,7 +456,7 @@ class WebRepositoryImpl @Inject constructor(
             ReactionEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(storedOwnUser.userId),
+                    messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
                     MessagePosition()
                 )
             )
@@ -515,7 +484,7 @@ class WebRepositoryImpl @Inject constructor(
                     apiService.value.getSingleMessage(messageId)
                 }
                 val isAddReaction = null == singleMessageResponse.message.reactions.find {
-                    it.emojiName == emoji.name && it.userId == storedOwnUser.userId
+                    it.emojiName == emoji.name && it.userId == ownUserKeeper.value.userId
                 }
                 if (isAddReaction) {
                     apiService.value.addReaction(messageId, emoji.name)

@@ -10,9 +10,10 @@ import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
-import com.spinoza.messenger_tfs.util.MainDispatcherRule
 import com.spinoza.messenger_tfs.stub.AppRouterStub
+import com.spinoza.messenger_tfs.stub.DaoRepositoryStub
 import com.spinoza.messenger_tfs.stub.WebRepositoryStub
+import com.spinoza.messenger_tfs.util.MainDispatcherRule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -44,18 +45,19 @@ class ChannelsPageFragmentViewModelTest {
     }
 
     private fun createViewModel(scope: CoroutineScope?): ChannelsPageFragmentViewModel {
-        val repository = WebRepositoryStub()
+        val webRepository = WebRepositoryStub()
+        val daoRepository = DaoRepositoryStub()
         return ChannelsPageFragmentViewModel(
             isSubscribed = true,
             router = AppRouterStub(),
-            getStoredChannelsUseCase = GetStoredChannelsUseCase(repository),
-            getStoredTopicsUseCase = GetStoredTopicsUseCase(repository),
-            getTopicsUseCase = GetTopicsUseCase(repository),
-            getChannelsUseCase = GetChannelsUseCase(repository),
-            getTopicUseCase = GetTopicUseCase(repository),
-            getChannelEventsUseCase = GetChannelEventsUseCase(repository),
-            registerEventQueueUseCase = RegisterEventQueueUseCase(repository),
-            deleteEventQueueUseCase = DeleteEventQueueUseCase(repository),
+            getStoredChannelsUseCase = GetStoredChannelsUseCase(daoRepository),
+            getStoredTopicsUseCase = GetStoredTopicsUseCase(daoRepository),
+            getTopicsUseCase = GetTopicsUseCase(webRepository),
+            getChannelsUseCase = GetChannelsUseCase(webRepository),
+            getTopicUseCase = GetTopicUseCase(webRepository),
+            getChannelEventsUseCase = GetChannelEventsUseCase(webRepository),
+            registerEventQueueUseCase = RegisterEventQueueUseCase(webRepository),
+            deleteEventQueueUseCase = DeleteEventQueueUseCase(webRepository),
             defaultDispatcher = mainDispatcherRule.testDispatcher,
             customCoroutineScope = scope
         )
