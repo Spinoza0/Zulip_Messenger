@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs
 
+import androidx.test.espresso.NoMatchingViewException
 import androidx.test.ext.junit.rules.activityScenarioRule
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.spinoza.messenger_tfs.data.network.ApiServiceProviderImpl
@@ -14,6 +15,7 @@ import com.spinoza.messenger_tfs.util.loadFromAssets
 import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -40,14 +42,12 @@ class MessagesTest : TestCase() {
         val messagesScreen = MessagesScreen()
 
         step("Click on first channel") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
-                channel.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
         }
         step("Click on first topic") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1) {
-                topic.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
+            { topic.click() }
         }
         step("Messages screen is not empty") {
             messagesScreen.messagesList.isVisible()
@@ -62,14 +62,12 @@ class MessagesTest : TestCase() {
         val messagesScreen = MessagesScreen()
 
         step("Click on first channel") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
-                channel.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
         }
         step("Click on second topic") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(2) {
-                topic.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(2)
+            { topic.click() }
         }
         step("Messages screen is empty") {
             messagesScreen.messagesList.isVisible()
@@ -84,14 +82,12 @@ class MessagesTest : TestCase() {
         val messagesScreen = MessagesScreen()
 
         step("Click on first channel") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
-                channel.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
         }
         step("Click on third topic") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(3) {
-                topic.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(3)
+            { topic.click() }
         }
         step("Error is showing") {
             messagesScreen.errorMessage.isVisible()
@@ -105,19 +101,14 @@ class MessagesTest : TestCase() {
         val messagesScreen = MessagesScreen()
 
         step("Open messages screen") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
-                channel.click()
-            }
-        }
-        step("Click on first topic") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1) {
-                topic.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
+            { topic.click() }
         }
         step("Long click on message opens choose reaction dialog") {
-            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1) {
-                longClick()
-            }
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1)
+            { longClick() }
             messagesScreen.chooseReactionDialogTopLine.isVisible()
         }
     }
@@ -129,19 +120,14 @@ class MessagesTest : TestCase() {
         val messagesScreen = MessagesScreen()
 
         step("Open messages screen") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
-                channel.click()
-            }
-        }
-        step("Click on first topic") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1) {
-                topic.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
+            { topic.click() }
         }
         step("Message with reactions is displayed") {
-            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1) {
-                this.iconAddReaction.isDisplayed()
-            }
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1)
+            { this.iconAddReaction.isDisplayed() }
         }
     }
 
@@ -152,19 +138,14 @@ class MessagesTest : TestCase() {
         val messagesScreen = MessagesScreen()
 
         step("Open messages screen") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
-                channel.click()
-            }
-        }
-        step("Click on first topic") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1) {
-                topic.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
+            { topic.click() }
         }
         step("Message without reactions is visible") {
-            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(2) {
-                this.iconAddReaction.isNotDisplayed()
-            }
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(2)
+            { this.iconAddReaction.isNotDisplayed() }
         }
     }
 
@@ -175,14 +156,10 @@ class MessagesTest : TestCase() {
         val messagesScreen = MessagesScreen()
 
         step("Open messages screen") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
-                channel.click()
-            }
-        }
-        step("Click on first topic") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1) {
-                topic.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
+            { topic.click() }
         }
         step("Message with own user reaction is displayed") {
             messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(4) {
@@ -198,21 +175,77 @@ class MessagesTest : TestCase() {
         val messagesScreen = MessagesScreen()
 
         step("Open messages screen") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0) {
-                channel.click()
-            }
-        }
-        step("Click on first topic") {
-            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1) {
-                topic.click()
-            }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
+            { topic.click() }
         }
         step("Messages is grouped by date") {
-            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(0) {
-                this.messageDate.isDisplayed()
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(0)
+            { this.messageDate.isDisplayed() }
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(3)
+            { this.messageDate.isDisplayed() }
+        }
+    }
+
+    @Test
+    fun clickOnUserReactionAddsReaction() = run {
+        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        val channelsPageScreen = ChannelsPageScreen()
+        val messagesScreen = MessagesScreen()
+        val messageIndex = 1
+
+        step("Open messages screen") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
+            { topic.click() }
+        }
+        step("The message contains only other user's reactions") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex) {
+                this.userReaction.isDisplayed()
+                assertThrows(NoMatchingViewException::class.java) { this.ownReaction.isNotDisplayed() }
             }
-            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(3) {
-                this.messageDate.isDisplayed()
+        }
+        step("Add own reaction") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex)
+            { this.userReaction.click() }
+        }
+        step("The message contains own user reaction") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex) {
+                this.ownReaction.isDisplayed()
+                assertThrows(NoMatchingViewException::class.java) { this.userReaction.isNotDisplayed() }
+            }
+        }
+    }
+
+    @Test
+    fun clickOnOwnReactionDeletesReaction() = run {
+        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        val channelsPageScreen = ChannelsPageScreen()
+        val messagesScreen = MessagesScreen()
+        val messageIndex = 4
+
+        step("Open messages screen") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
+            { channel.click() }
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
+            { topic.click() }
+        }
+        step("The message contains own user reaction") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex) {
+                this.ownReaction.isDisplayed()
+                assertThrows(NoMatchingViewException::class.java) { this.userReaction.isNotDisplayed() }
+            }
+        }
+        step("Delete own reaction") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex)
+            { this.ownReaction.click() }
+        }
+        step("The message does not contain own user reaction") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex) {
+                this.userReaction.isDisplayed()
+                assertThrows(NoMatchingViewException::class.java) { this.ownReaction.isNotDisplayed() }
             }
         }
     }

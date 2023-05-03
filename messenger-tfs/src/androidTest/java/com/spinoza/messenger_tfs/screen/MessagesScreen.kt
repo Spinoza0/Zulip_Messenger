@@ -25,5 +25,6 @@ class MessagesScreen : KScreen<MessagesScreen>() {
         val messageDate = KTextView(parent) { withId(R.id.textViewDate) }
         val iconAddReaction = KImageView(parent) { withId(R.id.flexbox_icon_add) }
         val ownReaction = KView(parent) { withId(R.id.reaction_is_selected) }
+        val userReaction = KView(parent) { withId(R.id.reaction_is_not_selected) }
     }
 }
