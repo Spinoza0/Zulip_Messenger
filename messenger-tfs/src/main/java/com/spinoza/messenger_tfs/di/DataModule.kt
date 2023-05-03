@@ -3,7 +3,8 @@ package com.spinoza.messenger_tfs.di
 import android.content.Context
 import androidx.room.Room
 import com.spinoza.messenger_tfs.BuildConfig
-import com.spinoza.messenger_tfs.data.database.MessengerDao
+import com.spinoza.messenger_tfs.data.database.MessengerDaoProvider
+import com.spinoza.messenger_tfs.data.database.MessengerDaoProviderImpl
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
 import com.spinoza.messenger_tfs.data.network.ApiServiceProviderImpl
 import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
@@ -68,8 +69,9 @@ interface DataModule {
 
         @ApplicationScope
         @Provides
-        fun provideMessengerDao(messengerDatabase: MessengerDatabase): MessengerDao =
-            messengerDatabase.dao()
+        fun provideMessengerDaoProvider(
+            messengerDatabase: MessengerDatabase,
+        ): MessengerDaoProvider = MessengerDaoProviderImpl.apply { value = messengerDatabase.dao() }
 
         @Provides
         fun provideJsonConverter(): Json = Json {

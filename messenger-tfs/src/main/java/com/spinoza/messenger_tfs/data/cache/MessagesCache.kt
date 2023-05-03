@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.cache
 
-import com.spinoza.messenger_tfs.data.database.MessengerDao
+import com.spinoza.messenger_tfs.data.database.MessengerDaoProvider
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
@@ -14,10 +14,10 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.*
+import java.util.TreeSet
 import javax.inject.Inject
 
-class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) {
+class MessagesCache @Inject constructor(private val messengerDao: MessengerDaoProvider) {
 
     private val data = TreeSet<MessageDto>()
     private val dataMutex = Mutex()
@@ -29,7 +29,7 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
     suspend fun reload() {
         dataMutex.withLock {
             data.clear()
-            data.addAll(messengerDao.getMessages().dbModelToDto())
+            data.addAll(messengerDao.value.getMessages().dbModelToDto())
         }
     }
 
@@ -154,8 +154,8 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
                 data.headSet(data.elementAt(delta), true).clear()
             }
         }
-        messengerDao.removeMessages()
-        messengerDao.insertMessages(data.toDbModel())
+        messengerDao.value.removeMessages()
+        messengerDao.value.insertMessages(data.toDbModel())
     }
 
     private companion object {

@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs
 import androidx.test.espresso.NoMatchingViewException
 import androidx.test.ext.junit.rules.activityScenarioRule
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
+import com.spinoza.messenger_tfs.data.database.MessengerDaoProviderImpl
 import com.spinoza.messenger_tfs.data.network.ApiServiceProviderImpl
 import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
 import com.spinoza.messenger_tfs.data.network.BaseUrlProviderImpl
@@ -10,6 +11,7 @@ import com.spinoza.messenger_tfs.data.utils.createApiService
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.screen.ChannelsPageScreen
 import com.spinoza.messenger_tfs.screen.MessagesScreen
+import com.spinoza.messenger_tfs.stub.MessengerDaoStub
 import com.spinoza.messenger_tfs.util.MockRequestDispatcher
 import com.spinoza.messenger_tfs.util.loadFromAssets
 import kotlinx.serialization.json.Json
@@ -30,6 +32,7 @@ class MessagesTest : TestCase() {
 
     @Before
     fun setUp() {
+        MessengerDaoProviderImpl.value = MessengerDaoStub()
         BaseUrlProviderImpl.value = mockServer.url("/").toString()
         ApiServiceProviderImpl.value =
             BaseUrlProviderImpl.createApiService(AppAuthKeeperImpl(), provideJsonConverter())

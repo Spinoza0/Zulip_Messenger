@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
-import com.spinoza.messenger_tfs.data.database.MessengerDao
+import com.spinoza.messenger_tfs.data.database.MessengerDaoProvider
 import com.spinoza.messenger_tfs.data.network.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
@@ -68,7 +68,7 @@ import javax.inject.Inject
 
 class MessengerRepositoryImpl @Inject constructor(
     private val messagesCache: MessagesCache,
-    private val messengerDao: MessengerDao,
+    private val messengerDao: MessengerDaoProvider,
     private val apiService: ApiServiceProvider,
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
@@ -230,7 +230,7 @@ class MessengerRepositoryImpl @Inject constructor(
     override suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
-                val storedStreams = messengerDao.getStreams()
+                val storedStreams = messengerDao.value.getStreams()
                 storedStreams.dbToDomain(channelsFilter)
             }
         }
@@ -246,8 +246,8 @@ class MessengerRepositoryImpl @Inject constructor(
                 val allStreamsResponse = apiService.value.getAllStreams()
                 allStreamsResponse.streams
             }
-            messengerDao.removeStreams(channelsFilter.isSubscribed)
-            messengerDao.insertStreams(streamsList.toDbModel(channelsFilter))
+            messengerDao.value.removeStreams(channelsFilter.isSubscribed)
+            messengerDao.value.insertStreams(streamsList.toDbModel(channelsFilter))
             streamsList.dtoToDomain(channelsFilter)
         }
     }
@@ -256,7 +256,8 @@ class MessengerRepositoryImpl @Inject constructor(
         withContext(ioDispatcher)
         {
             runCatchingNonCancellation {
-                val storedTopics = messengerDao.getTopics(channel.channelId, channel.isSubscribed)
+                val storedTopics =
+                    messengerDao.value.getTopics(channel.channelId, channel.isSubscribed)
                 storedTopics.dbToDomain()
             }
         }
@@ -266,8 +267,8 @@ class MessengerRepositoryImpl @Inject constructor(
             runCatchingNonCancellation {
                 val topicsResponse =
                     apiRequest<TopicsResponse> { apiService.value.getTopics(channel.channelId) }
-                messengerDao.removeTopics(channel.channelId, channel.isSubscribed)
-                messengerDao.insertTopics(topicsResponse.topics.toDbModel(channel))
+                messengerDao.value.removeTopics(channel.channelId, channel.isSubscribed)
+                messengerDao.value.insertTopics(topicsResponse.topics.toDbModel(channel))
                 topicsResponse.topics.dtoToDomain(channel)
             }
         }
