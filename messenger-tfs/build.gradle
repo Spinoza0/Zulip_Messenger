@@ -18,8 +18,10 @@ android {
         versionName "1.0"
 
         buildConfigField "String", "ZULIP_SERVER_URL", "\"https://tinkoff-android-spring-2023.zulipchat.com\""
-        buildConfigField "String", "SHAREDPREF", "\"messenger-tfs_shared_prefs\""
         buildConfigField "String", "DATABASE_NAME", "\"messenger-tfs-cache.db\""
+
+        // check data_extraction_rules.xml, must be the same without file extension
+        buildConfigField "String", "SHAREDPREF", "\"messenger-tfs_shared_prefs\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments clearPackageData: 'true'
