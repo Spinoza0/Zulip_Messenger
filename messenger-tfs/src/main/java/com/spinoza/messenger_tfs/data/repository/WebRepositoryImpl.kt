@@ -56,7 +56,7 @@ import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.network.ApiServiceProvider
 import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
-import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -66,14 +66,14 @@ import kotlinx.serialization.json.Json
 import okhttp3.Credentials
 import javax.inject.Inject
 
-class MessengerRepositoryImpl @Inject constructor(
+class WebRepositoryImpl @Inject constructor(
     private val messagesCache: MessagesCache,
     private val messengerDao: MessengerDaoProvider,
     private val apiService: ApiServiceProvider,
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
-) : MessengerRepository {
+) : WebRepository {
 
     private var storedOwnUser: UserDto = UserDto()
 

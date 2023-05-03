@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data.cache
 
+import com.spinoza.messenger_tfs.data.database.MessengerDaoProviderImpl
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -154,12 +155,15 @@ class MessagesCacheTest {
         }
 
     private fun createEmptyMessagesCache(): MessagesCache {
-        return MessagesCache(MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY))
+        MessengerDaoProviderImpl.value =
+            MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY)
+        return MessagesCache(MessengerDaoProviderImpl)
     }
 
     private fun createNotEmptyMessagesCache(): MessagesCache = runBlocking {
-        val messagesCache =
-            MessagesCache(MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY))
+        MessengerDaoProviderImpl.value =
+            MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY)
+        val messagesCache = MessagesCache(MessengerDaoProviderImpl)
         messagesCache.addAll(messagesGenerator.getListOfMessagesDto(), provideMessagePageType())
         messagesCache
     }

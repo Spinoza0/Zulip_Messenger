@@ -12,7 +12,7 @@ import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
 import com.spinoza.messenger_tfs.util.MainDispatcherRule
 import com.spinoza.messenger_tfs.stub.AppRouterStub
-import com.spinoza.messenger_tfs.stub.MessengerRepositoryStub
+import com.spinoza.messenger_tfs.stub.WebRepositoryStub
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
@@ -44,7 +44,7 @@ class ChannelsPageFragmentViewModelTest {
     }
 
     private fun createViewModel(scope: CoroutineScope?): ChannelsPageFragmentViewModel {
-        val repository = MessengerRepositoryStub()
+        val repository = WebRepositoryStub()
         return ChannelsPageFragmentViewModel(
             isSubscribed = true,
             router = AppRouterStub(),

@@ -1,12 +1,12 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
-import com.spinoza.messenger_tfs.data.database.MessengerDao
+import com.spinoza.messenger_tfs.data.database.MessengerDaoProviderImpl
 import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
-import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import com.spinoza.messenger_tfs.stub.ApiServiceProviderStub
 import com.spinoza.messenger_tfs.stub.MessagesGenerator
 import com.spinoza.messenger_tfs.stub.MessengerDaoStub
@@ -20,7 +20,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MessengerRepositoryImplTest {
+class WebRepositoryImplTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -34,8 +34,7 @@ class MessengerRepositoryImplTest {
 
     @Test
     fun `getStoredMessages returns empty list of messages`() = runTest {
-        val messengerDao = MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY)
-        val repository = createRepository(messengerDao)
+        val repository = createRepository(MessengerDaoStub.Type.EMPTY)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
         val result = repository.getStoredMessages(messagesFilter)
@@ -45,8 +44,7 @@ class MessengerRepositoryImplTest {
 
     @Test
     fun `getStoredMessages returns not empty list of messages`() = runTest {
-        val messengerDao = MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.WITH_MESSAGES)
-        val repository = createRepository(messengerDao)
+        val repository = createRepository(MessengerDaoStub.Type.WITH_MESSAGES)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
         val result = repository.getStoredMessages(messagesFilter)
@@ -56,9 +54,7 @@ class MessengerRepositoryImplTest {
 
     @Test
     fun `getStoredMessages returns error`() = runTest {
-        val messengerDao =
-            MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.WITH_GET_MESSAGES_ERROR)
-        val repository = createRepository(messengerDao)
+        val repository = createRepository(MessengerDaoStub.Type.WITH_GET_MESSAGES_ERROR)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
         val result = repository.getStoredMessages(messagesFilter)
@@ -82,10 +78,12 @@ class MessengerRepositoryImplTest {
         }
     }
 
-    private fun createRepository(messengerDao: MessengerDao): MessengerRepository {
-        return MessengerRepositoryImpl(
-            MessagesCache(messengerDao),
-            messengerDao,
+    private fun createRepository(type: MessengerDaoStub.Type): WebRepository {
+        val messengerDao = MessengerDaoStub(messagesGenerator, type)
+        MessengerDaoProviderImpl.value = messengerDao
+        return WebRepositoryImpl(
+            MessagesCache(MessengerDaoProviderImpl),
+            MessengerDaoProviderImpl,
             ApiServiceProviderStub(),
             AppAuthKeeperImpl(),
             createJsonConverter(),

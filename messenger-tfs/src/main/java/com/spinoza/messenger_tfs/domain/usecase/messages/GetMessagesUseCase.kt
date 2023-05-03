@@ -3,10 +3,10 @@ package com.spinoza.messenger_tfs.domain.usecase.messages
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
-import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import javax.inject.Inject
 
-class GetMessagesUseCase @Inject constructor(private val repository: MessengerRepository) {
+class GetMessagesUseCase @Inject constructor(private val repository: WebRepository) {
 
     suspend operator fun invoke(
         messagesPageType: MessagesPageType,

@@ -20,9 +20,9 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
-import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.repository.WebRepository
 
-class MessengerRepositoryStub : MessengerRepository {
+class WebRepositoryStub : WebRepository {
 
     private val ownUser = createUserDto(0)
     private val user = createUserDto(1)

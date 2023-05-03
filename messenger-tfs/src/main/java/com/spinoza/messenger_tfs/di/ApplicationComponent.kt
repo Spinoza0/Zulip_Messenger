@@ -3,7 +3,7 @@ package com.spinoza.messenger_tfs.di
 import android.content.Context
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.notification.Notificator
-import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
@@ -19,7 +19,7 @@ interface ApplicationComponent {
 
     fun context(): Context
 
-    fun messengerRepository(): MessengerRepository
+    fun webRepository(): WebRepository
 
     fun attachmentHandler(): AttachmentHandler
 

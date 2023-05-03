@@ -16,7 +16,7 @@ import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 
-interface MessengerRepository {
+interface WebRepository {
 
     suspend fun getApiKey(storedApiKey: String, email: String, password: String): Result<String>
 

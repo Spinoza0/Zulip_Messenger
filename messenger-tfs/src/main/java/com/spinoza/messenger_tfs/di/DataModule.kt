@@ -11,14 +11,14 @@ import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
 import com.spinoza.messenger_tfs.data.network.AttachmentHandlerImpl
 import com.spinoza.messenger_tfs.data.network.BaseUrlProviderImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
-import com.spinoza.messenger_tfs.data.repository.MessengerRepositoryImpl
+import com.spinoza.messenger_tfs.data.repository.WebRepositoryImpl
 import com.spinoza.messenger_tfs.data.utils.createApiService
 import com.spinoza.messenger_tfs.domain.network.ApiServiceProvider
 import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.network.BaseUrlProvider
 import com.spinoza.messenger_tfs.domain.network.WebUtil
-import com.spinoza.messenger_tfs.domain.repository.MessengerRepository
+import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -29,7 +29,7 @@ interface DataModule {
 
     @ApplicationScope
     @Binds
-    fun bindMessengerRepository(impl: MessengerRepositoryImpl): MessengerRepository
+    fun bindWebRepository(impl: WebRepositoryImpl): WebRepository
 
     @ApplicationScope
     @Binds
