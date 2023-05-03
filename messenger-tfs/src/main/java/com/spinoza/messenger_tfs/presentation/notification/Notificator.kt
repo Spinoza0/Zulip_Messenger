@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.notification
+package com.spinoza.messenger_tfs.presentation.notification
 
 interface Notificator {
 

@@ -1,11 +1,10 @@
-package com.spinoza.messenger_tfs.presentation.util
+package com.spinoza.messenger_tfs.presentation.notification
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.spinoza.messenger_tfs.domain.notification.Notificator
 import javax.inject.Inject
 
 class NotificatorImpl @Inject constructor(private val context: Context) : Notificator {
