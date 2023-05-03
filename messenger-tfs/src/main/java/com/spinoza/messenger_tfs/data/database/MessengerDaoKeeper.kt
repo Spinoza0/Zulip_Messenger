@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.database
 
-interface MessengerDaoProvider {
+interface MessengerDaoKeeper {
 
     var value: MessengerDao
 }

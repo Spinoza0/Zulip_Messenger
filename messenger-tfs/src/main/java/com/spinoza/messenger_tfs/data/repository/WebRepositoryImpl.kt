@@ -1,10 +1,10 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
-import com.spinoza.messenger_tfs.data.database.MessengerDaoProvider
-import com.spinoza.messenger_tfs.data.network.OwnUserKeeper
-import com.spinoza.messenger_tfs.data.network.ZulipApiService
-import com.spinoza.messenger_tfs.data.network.ZulipApiService.Companion.RESULT_SUCCESS
+import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeper
+import com.spinoza.messenger_tfs.data.network.ownuser.OwnUserKeeper
+import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
+import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.event.DeleteMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.HeartBeatEventsResponse
@@ -53,8 +53,8 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
-import com.spinoza.messenger_tfs.domain.network.ApiServiceProvider
-import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
+import com.spinoza.messenger_tfs.data.network.apiservice.ApiServiceKeeper
+import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -68,8 +68,8 @@ import javax.inject.Inject
 class WebRepositoryImpl @Inject constructor(
     private val ownUserKeeper: OwnUserKeeper,
     private val messagesCache: MessagesCache,
-    private val messengerDao: MessengerDaoProvider,
-    private val apiService: ApiServiceProvider,
+    private val messengerDao: MessengerDaoKeeper,
+    private val apiService: ApiServiceKeeper,
     private val apiAuthKeeper: AppAuthKeeper,
     private val jsonConverter: Json,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,

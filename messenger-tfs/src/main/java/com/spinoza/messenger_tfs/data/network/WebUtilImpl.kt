@@ -1,17 +1,17 @@
 package com.spinoza.messenger_tfs.data.network
 
 import com.bumptech.glide.load.model.LazyHeaders
-import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
-import com.spinoza.messenger_tfs.domain.network.BaseUrlProvider
+import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.data.network.baseurl.BaseUrlKeeper
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import javax.inject.Inject
 
 class WebUtilImpl @Inject constructor(
     private val authKeeper: AppAuthKeeper,
-    private val baseUrlProvider: BaseUrlProvider,
+    private val baseUrlKeeper: BaseUrlKeeper,
 ) : WebUtil {
 
-    private val urlUserUploadsPrefix = "${baseUrlProvider.value}/user_uploads"
+    private val urlUserUploadsPrefix = "${baseUrlKeeper.value}/user_uploads"
 
     override fun getFullUrl(url: String): String =
         if (url.startsWith(URL_HTTP_SECURED_PREFIX, ignoreCase = true) ||
@@ -24,7 +24,7 @@ class WebUtilImpl @Inject constructor(
             } else {
                 url
             }
-            "${baseUrlProvider.value}$modifiedUrl"
+            "${baseUrlKeeper.value}$modifiedUrl"
         }
 
 
@@ -42,7 +42,7 @@ class WebUtilImpl @Inject constructor(
             val link = match.groupValues[FIRST_GROUP]
             if (link.isNotBlank()) {
                 val fullUrl = getFullUrl(link)
-                if (fullUrl.startsWith(baseUrlProvider.value, ignoreCase = true)) {
+                if (fullUrl.startsWith(baseUrlKeeper.value, ignoreCase = true)) {
                     links.add(fullUrl)
                 }
             }

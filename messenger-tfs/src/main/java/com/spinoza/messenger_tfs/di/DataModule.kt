@@ -3,23 +3,23 @@ package com.spinoza.messenger_tfs.di
 import android.content.Context
 import androidx.room.Room
 import com.spinoza.messenger_tfs.BuildConfig
-import com.spinoza.messenger_tfs.data.database.MessengerDaoProvider
-import com.spinoza.messenger_tfs.data.database.MessengerDaoProviderImpl
+import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeper
+import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeperImpl
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
-import com.spinoza.messenger_tfs.data.network.ApiServiceProviderImpl
-import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
-import com.spinoza.messenger_tfs.data.network.AttachmentHandlerImpl
-import com.spinoza.messenger_tfs.data.network.BaseUrlProviderImpl
+import com.spinoza.messenger_tfs.data.network.apiservice.ApiServiceKeeperImpl
+import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeperImpl
+import com.spinoza.messenger_tfs.data.network.attachment.AttachmentHandlerImpl
+import com.spinoza.messenger_tfs.data.network.baseurl.BaseUrlKeeperImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.repository.DaoRepositoryImpl
-import com.spinoza.messenger_tfs.data.network.OwnUserKeeper
-import com.spinoza.messenger_tfs.data.network.OwnUserKeeperImpl
+import com.spinoza.messenger_tfs.data.network.ownuser.OwnUserKeeper
+import com.spinoza.messenger_tfs.data.network.ownuser.OwnUserKeeperImpl
 import com.spinoza.messenger_tfs.data.repository.WebRepositoryImpl
 import com.spinoza.messenger_tfs.data.utils.createApiService
-import com.spinoza.messenger_tfs.domain.network.ApiServiceProvider
-import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
+import com.spinoza.messenger_tfs.data.network.apiservice.ApiServiceKeeper
+import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.network.BaseUrlProvider
+import com.spinoza.messenger_tfs.data.network.baseurl.BaseUrlKeeper
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
@@ -57,16 +57,16 @@ interface DataModule {
         @Provides
         fun provideApiServiceProvider(
             authKeeper: AppAuthKeeper,
-            baseUrlProvider: BaseUrlProvider,
+            baseUrlKeeper: BaseUrlKeeper,
             json: Json,
-        ): ApiServiceProvider {
-            ApiServiceProviderImpl.value = baseUrlProvider.createApiService(authKeeper, json)
-            return ApiServiceProviderImpl
+        ): ApiServiceKeeper {
+            ApiServiceKeeperImpl.value = baseUrlKeeper.createApiService(authKeeper, json)
+            return ApiServiceKeeperImpl
         }
 
         @ApplicationScope
         @Provides
-        fun provideBaseUrlProvider(): BaseUrlProvider = BaseUrlProviderImpl
+        fun provideBaseUrlProvider(): BaseUrlKeeper = BaseUrlKeeperImpl
 
         @ApplicationScope
         @Provides
@@ -79,7 +79,7 @@ interface DataModule {
         @Provides
         fun provideMessengerDaoProvider(
             messengerDatabase: MessengerDatabase,
-        ): MessengerDaoProvider = MessengerDaoProviderImpl.apply { value = messengerDatabase.dao() }
+        ): MessengerDaoKeeper = MessengerDaoKeeperImpl.apply { value = messengerDatabase.dao() }
 
         @Provides
         fun provideJsonConverter(): Json = Json {

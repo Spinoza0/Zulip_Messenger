@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.network.model.user
 
-import com.spinoza.messenger_tfs.data.network.ZulipResponse
+import com.spinoza.messenger_tfs.data.network.apiservice.ZulipResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

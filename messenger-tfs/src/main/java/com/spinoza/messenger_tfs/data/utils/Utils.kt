@@ -1,15 +1,15 @@
 package com.spinoza.messenger_tfs.data.utils
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.spinoza.messenger_tfs.data.network.ZulipApiService
-import com.spinoza.messenger_tfs.data.network.ZulipApiService.Companion.RESULT_SUCCESS
-import com.spinoza.messenger_tfs.data.network.ZulipResponse
+import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
+import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService.Companion.RESULT_SUCCESS
+import com.spinoza.messenger_tfs.data.network.apiservice.ZulipResponse
 import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperator
 import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperatorItemDto
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
-import com.spinoza.messenger_tfs.domain.network.AppAuthKeeper
-import com.spinoza.messenger_tfs.domain.network.BaseUrlProvider
+import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeper
+import com.spinoza.messenger_tfs.data.network.baseurl.BaseUrlKeeper
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -70,7 +70,7 @@ inline fun <reified T> apiRequest(apiCall: () -> ZulipResponse): T {
     return result as T
 }
 
-fun BaseUrlProvider.createApiService(
+fun BaseUrlKeeper.createApiService(
     authKeeper: AppAuthKeeper,
     jsonConverter: Json,
 ): ZulipApiService {

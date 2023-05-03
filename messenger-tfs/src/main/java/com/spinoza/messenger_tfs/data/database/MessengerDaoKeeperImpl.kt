@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.database
 
-object MessengerDaoProviderImpl : MessengerDaoProvider {
+object MessengerDaoKeeperImpl : MessengerDaoKeeper {
 
     override lateinit var value: MessengerDao
 }

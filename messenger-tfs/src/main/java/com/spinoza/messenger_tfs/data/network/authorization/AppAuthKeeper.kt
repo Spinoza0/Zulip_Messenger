@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.network
+package com.spinoza.messenger_tfs.data.network.authorization
 
 interface AppAuthKeeper {
 

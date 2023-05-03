@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.data.network
+package com.spinoza.messenger_tfs.data.network.apiservice
 
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse

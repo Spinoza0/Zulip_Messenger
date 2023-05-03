@@ -3,10 +3,10 @@ package com.spinoza.messenger_tfs
 import androidx.test.espresso.NoMatchingViewException
 import androidx.test.ext.junit.rules.activityScenarioRule
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
-import com.spinoza.messenger_tfs.data.database.MessengerDaoProviderImpl
-import com.spinoza.messenger_tfs.data.network.ApiServiceProviderImpl
-import com.spinoza.messenger_tfs.data.network.AppAuthKeeperImpl
-import com.spinoza.messenger_tfs.data.network.BaseUrlProviderImpl
+import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeperImpl
+import com.spinoza.messenger_tfs.data.network.apiservice.ApiServiceKeeperImpl
+import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeperImpl
+import com.spinoza.messenger_tfs.data.network.baseurl.BaseUrlKeeperImpl
 import com.spinoza.messenger_tfs.data.utils.createApiService
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.screen.ChannelsPageScreen
@@ -32,10 +32,10 @@ class MessagesTest : TestCase() {
 
     @Before
     fun setUp() {
-        MessengerDaoProviderImpl.value = MessengerDaoStub()
-        BaseUrlProviderImpl.value = mockServer.url("/").toString()
-        ApiServiceProviderImpl.value =
-            BaseUrlProviderImpl.createApiService(AppAuthKeeperImpl(), provideJsonConverter())
+        MessengerDaoKeeperImpl.value = MessengerDaoStub()
+        BaseUrlKeeperImpl.value = mockServer.url("/").toString()
+        ApiServiceKeeperImpl.value =
+            BaseUrlKeeperImpl.createApiService(AppAuthKeeperImpl(), provideJsonConverter())
     }
 
     @Test

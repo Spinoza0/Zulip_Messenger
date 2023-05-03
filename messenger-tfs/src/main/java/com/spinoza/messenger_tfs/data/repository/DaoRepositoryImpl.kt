@@ -1,8 +1,8 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
-import com.spinoza.messenger_tfs.data.database.MessengerDaoProvider
-import com.spinoza.messenger_tfs.data.network.OwnUserKeeper
+import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeper
+import com.spinoza.messenger_tfs.data.network.ownuser.OwnUserKeeper
 import com.spinoza.messenger_tfs.data.utils.dbToDomain
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.data.utils.toDomain
@@ -21,7 +21,7 @@ import javax.inject.Inject
 class DaoRepositoryImpl @Inject constructor(
     private val ownUserKeeper: OwnUserKeeper,
     private val messagesCache: MessagesCache,
-    private val messengerDao: MessengerDaoProvider,
+    private val messengerDao: MessengerDaoKeeper,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : DaoRepository {
 
