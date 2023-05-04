@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.di.messages
 
-import androidx.lifecycle.Lifecycle
 import com.spinoza.messenger_tfs.di.ApplicationComponent
 import com.spinoza.messenger_tfs.di.MessagesScope
 import com.spinoza.messenger_tfs.presentation.feature.messages.MessagesFragment
@@ -18,7 +17,7 @@ interface MessagesComponent {
 
         fun create(
             applicationComponent: ApplicationComponent,
-            @BindsInstance lifecycle: Lifecycle,
+            @BindsInstance fragment: MessagesFragment,
         ): MessagesComponent
     }
 }
