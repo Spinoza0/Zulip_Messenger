@@ -24,7 +24,6 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.presentation.notification.Notificator
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
@@ -42,6 +41,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToLastPosition
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToMessage
+import com.spinoza.messenger_tfs.presentation.notification.Notificator
 import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import com.spinoza.messenger_tfs.presentation.util.getInstanceState
 import com.spinoza.messenger_tfs.presentation.util.getParam
@@ -158,15 +158,8 @@ class MessagesFragment :
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                var firstVisiblePosition = layoutManager.findFirstCompletelyVisibleItemPosition()
-                if (firstVisiblePosition == RecyclerView.NO_POSITION) {
-                    firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
-                }
-                var lastVisiblePosition = layoutManager.findLastCompletelyVisibleItemPosition()
-                if (lastVisiblePosition == RecyclerView.NO_POSITION) {
-                    lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
-                }
+                val firstVisiblePosition = recyclerView.findFirstVisibleItemPosition()
+                val lastVisiblePosition = recyclerView.findLastVisibleItemPosition()
                 store.accept(
                     MessagesScreenEvent.Ui.MessagesOnScrolled(
                         recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_UP),
@@ -181,8 +174,14 @@ class MessagesFragment :
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-                if (newState == RecyclerView.SCROLL_STATE_IDLE)
-                    store.accept(MessagesScreenEvent.Ui.MessagesScrollStateIdle)
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    val lastVisiblePosition = recyclerView.findLastVisibleItemPosition()
+                    store.accept(
+                        MessagesScreenEvent.Ui.MessagesScrollStateIdle(
+                            isNextMessageExisting(lastVisiblePosition)
+                        )
+                    )
+                }
             }
         })
     }
@@ -202,7 +201,7 @@ class MessagesFragment :
             editTextMessage.doOnTextChanged { text, _, _, _ ->
                 store.accept(MessagesScreenEvent.Ui.NewMessageText(text))
             }
-            imageViewArrow.setOnClickListener {
+            fabViewArrow.setOnClickListener {
                 store.accept(MessagesScreenEvent.Ui.ScrollToLastMessage)
             }
         }
@@ -227,7 +226,7 @@ class MessagesFragment :
             }
             progressBarLoadingPage.isVisible = state.isLongOperation
             imageViewAction.setImageResource(state.iconActionResId)
-            imageViewArrow.isVisible = state.isNextMessageExisting || state.isNewMessageExisting
+            fabViewArrow.isVisible = state.isNextMessageExisting || state.isNewMessageExisting
         }
     }
 
@@ -364,13 +363,11 @@ class MessagesFragment :
 
             MessagePosition.Type.UNDEFINED -> {}
         }
-        val lastVisibleItemPosition =
-            (binding.recyclerViewMessages.layoutManager as LinearLayoutManager)
-                .findLastVisibleItemPosition()
+        val lastVisiblePosition = binding.recyclerViewMessages.findLastVisibleItemPosition()
         store.accept(
             MessagesScreenEvent.Ui.AfterSubmitMessages(
-                isNextMessageExisting(lastVisibleItemPosition),
-                isLastMessageVisible(lastVisibleItemPosition)
+                isNextMessageExisting(lastVisiblePosition),
+                isLastMessageVisible(lastVisiblePosition)
             )
         )
     }
@@ -416,6 +413,14 @@ class MessagesFragment :
 
     private fun isMessagesListEmpty(): Boolean {
         return messagesAdapter.itemCount == NO_ITEMS
+    }
+
+    private fun RecyclerView.findFirstVisibleItemPosition(): Int {
+        return (this.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+    }
+
+    private fun RecyclerView.findLastVisibleItemPosition(): Int {
+        return (this.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
     }
 
     override fun onStart() {

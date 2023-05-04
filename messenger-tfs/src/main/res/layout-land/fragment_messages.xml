@@ -7,16 +7,16 @@
     android:background="?attr/background_700_color"
     tools:context=".presentation.feature.messages.MessagesFragment">
 
-    <Toolbar
+    <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/channel_toolbar_background_color"
-        android:navigationIcon="@drawable/ic_arrow_back"
-        android:titleTextAppearance="@style/ToolbarTitleStyle"
-        android:titleTextColor="?attr/text_200_color"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:titleTextAppearance="@style/ToolbarTitleStyle"
+        app:titleTextColor="?attr/text_200_color"
         tools:title="#general" />
 
     <TextView
@@ -47,15 +47,16 @@
         app:layout_constraintTop_toBottomOf="@id/textViewTopic"
         tools:listitem="@layout/user_message_item" />
 
-    <ImageView
-        android:id="@+id/imageViewArrow"
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabViewArrow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:contentDescription="@string/arrow"
         android:src="@drawable/ic_wide_arrow_down"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@id/textInput"
+        app:layout_constraintBottom_toBottomOf="@id/recyclerViewMessages"
         app:layout_constraintEnd_toEndOf="@id/recyclerViewMessages"
+        tools:ignore="DuplicateSpeakableTextCheck"
         tools:visibility="visible" />
 
     <LinearLayout
@@ -88,7 +89,8 @@
             android:textColorHint="?attr/text_300_color"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/imageViewAction"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            tools:ignore="VisualLintTextFieldSize" />
 
         <ImageView
             android:id="@+id/imageViewAction"
@@ -99,7 +101,8 @@
             android:background="?attr/background_500_color"
             android:contentDescription="@string/arrow_back"
             android:src="@drawable/ic_add_circle_outline"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:ignore="ImageContrastCheck" />
 
     </LinearLayout>
 
