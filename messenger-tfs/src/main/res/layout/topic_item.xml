@@ -17,11 +17,13 @@
             style="@style/ChannelsTopicStyle"
             android:paddingStart="40dp"
             android:paddingEnd="25dp"
+            tools:ignore="TextContrastCheck"
             tools:text="topic" />
 
         <TextView
             android:id="@+id/textViewTopicMessagesCount"
             style="@style/ChannelsTopicStyle"
+            tools:ignore="TextContrastCheck"
             tools:text="15" />
 
         <TextView
@@ -29,7 +31,8 @@
             style="@style/ChannelsTopicStyle"
             android:paddingStart="8dp"
             android:paddingEnd="16dp"
-            android:text="@string/mes" />
+            android:text="@string/mes"
+            tools:ignore="TextContrastCheck" />
 
     </LinearLayout>
 
