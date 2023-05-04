@@ -16,7 +16,6 @@
     <string name="add_reaction">Add reaction</string>
     <string name="save_attachments">Save attachments</string>
     <string name="downloading_result">Downloading result</string>
-    <string name="downloaded">saved to Download folder</string>
 
     <!-- Fragment Channels -->
     <string name="search">Search...</string>

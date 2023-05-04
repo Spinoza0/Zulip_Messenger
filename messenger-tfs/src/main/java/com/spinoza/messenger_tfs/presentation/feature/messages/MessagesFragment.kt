@@ -272,21 +272,13 @@ class MessagesFragment :
     private fun showNotification(value: Map<String, Boolean>) {
         notificator.createNotificationChannel(CHANNEL_NAME, CHANNEL_ID)
         val title = getString(R.string.downloading_result)
-        val success = getString(R.string.downloaded)
         val error = getString(R.string.error_downloading)
         value.forEach { entry ->
-            val resultText: String
-            val resultIcon: Int
-            if (entry.value) {
-                resultText = success
-                resultIcon = R.drawable.ic_download_success
-            } else {
-                resultText = error
-                resultIcon = R.drawable.ic_download_error
+            if (!entry.value) {
+                notificator.showNotification(
+                    title, CHANNEL_ID, R.drawable.ic_download_error, "${entry.key} - $error"
+                )
             }
-            notificator.showNotification(
-                title, CHANNEL_ID, resultIcon, "${entry.key} - $resultText"
-            )
         }
     }
 
@@ -301,7 +293,9 @@ class MessagesFragment :
                 }
 
                 R.id.itemSaveAttachments -> {
-                    store.accept(MessagesScreenEvent.Ui.SaveAttachments(effect.urls))
+                    store.accept(
+                        MessagesScreenEvent.Ui.SaveAttachments(requireContext(), effect.urls)
+                    )
                     true
                 }
 

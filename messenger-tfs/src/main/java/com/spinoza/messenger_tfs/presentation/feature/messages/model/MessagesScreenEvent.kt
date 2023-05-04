@@ -53,7 +53,7 @@ sealed class MessagesScreenEvent {
 
         class UploadFile(val context: Context, val uri: Uri) : Ui()
 
-        class SaveAttachments(val urls: List<String>) : Ui()
+        class SaveAttachments(val context: Context, val urls: List<String>) : Ui()
     }
 
     sealed class Internal : MessagesScreenEvent() {

@@ -184,7 +184,7 @@ class MessagesActor @Inject constructor(
                 }
 
                 is MessagesScreenCommand.UploadFile -> uploadFile(command)
-                is MessagesScreenCommand.SaveAttachments -> saveAttachments(command.urls)
+                is MessagesScreenCommand.SaveAttachments -> saveAttachments(command)
             }
             emit(event)
         }
@@ -483,8 +483,12 @@ class MessagesActor @Inject constructor(
         return getIdleEvent()
     }
 
-    private suspend fun saveAttachments(attachments: List<String>): MessagesScreenEvent.Internal {
-        return MessagesScreenEvent.Internal.FilesDownloaded(saveAttachmentsUseCase(attachments))
+    private suspend fun saveAttachments(
+        command: MessagesScreenCommand.SaveAttachments,
+    ): MessagesScreenEvent.Internal {
+        return MessagesScreenEvent.Internal.FilesDownloaded(
+            saveAttachmentsUseCase(command.context, command.urls)
+        )
     }
 
     private fun handleErrors(error: Throwable): MessagesScreenEvent.Internal {

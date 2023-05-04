@@ -240,7 +240,7 @@ class MessagesReducer @Inject constructor(
         }
 
         is MessagesScreenEvent.Ui.SaveAttachments ->
-            commands { +MessagesScreenCommand.SaveAttachments(event.urls) }
+            commands { +MessagesScreenCommand.SaveAttachments(event.context, event.urls) }
 
         is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.Init -> {}
