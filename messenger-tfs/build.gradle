@@ -23,11 +23,14 @@ android {
         // check data_extraction_rules.xml, must be the same without file extension
         buildConfigField "String", "SHAREDPREF", "\"messenger-tfs_shared_prefs\""
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "com.spinoza.messenger_tfs.CustomTestRunner"
         testInstrumentationRunnerArguments clearPackageData: 'true'
     }
 
     buildTypes {
+        debug {
+            buildConfigField "Integer", "MOCKWEBSERVER_PORT", "1234"
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -92,4 +95,5 @@ dependencies {
     androidTestImplementation androidTest.mockWebServer
     androidTestImplementation androidTest.androidxRunner
     androidTestUtil androidTest.orchestrator
+    kaptAndroidTest androidTest.dagger
 }

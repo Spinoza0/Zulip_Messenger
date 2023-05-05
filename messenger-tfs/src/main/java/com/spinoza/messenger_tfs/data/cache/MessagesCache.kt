@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.cache
 
-import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeper
+import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
@@ -17,7 +17,7 @@ import kotlinx.coroutines.sync.withLock
 import java.util.TreeSet
 import javax.inject.Inject
 
-class MessagesCache @Inject constructor(private val messengerDao: MessengerDaoKeeper) {
+class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) {
 
     private val data = TreeSet<MessageDto>()
     private val dataMutex = Mutex()
@@ -29,7 +29,7 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDaoKe
     suspend fun reload() {
         dataMutex.withLock {
             data.clear()
-            data.addAll(messengerDao.value.getMessages().dbModelToDto())
+            data.addAll(messengerDao.getMessages().dbModelToDto())
         }
     }
 
@@ -154,8 +154,8 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDaoKe
                 data.headSet(data.elementAt(delta), true).clear()
             }
         }
-        messengerDao.value.removeMessages()
-        messengerDao.value.insertMessages(data.toDbModel())
+        messengerDao.removeMessages()
+        messengerDao.insertMessages(data.toDbModel())
     }
 
     private companion object {

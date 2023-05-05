@@ -1,6 +1,9 @@
-package com.spinoza.messenger_tfs.di
+package com.spinoza.messenger_tfs.di.app
 
 import android.content.Context
+import com.spinoza.messenger_tfs.di.ApplicationScope
+import com.spinoza.messenger_tfs.di.DispatcherDefault
+import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
@@ -12,7 +15,7 @@ import dagger.Component
 import kotlinx.coroutines.CoroutineDispatcher
 
 @ApplicationScope
-@Component(modules = [ApplicationModule::class, DataModule::class])
+@Component(modules = [ApplicationModule::class, DataModule::class, StorageModule::class])
 interface ApplicationComponent {
 
     fun inject(mainActivity: MainActivity)

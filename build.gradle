@@ -120,6 +120,7 @@ buildscript {
             kaspresso     : "com.kaspersky.android-components:kaspresso:${versions.kaspresso}",
             mockWebServer : "com.squareup.okhttp3:mockwebserver:${versions.okhttp3}",
             androidxRunner: "androidx.test:runner:${versions.androidxRunner}",
+            dagger        : "com.google.dagger:dagger-compiler:${versions.dagger}",
             orchestrator  : "androidx.test:orchestrator:${versions.orchestrator}"
     ]
 

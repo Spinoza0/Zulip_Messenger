@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.google.android.material.snackbar.Snackbar
 import com.spinoza.messenger_tfs.R
-import com.spinoza.messenger_tfs.di.ApplicationComponent
+import com.spinoza.messenger_tfs.di.app.ApplicationComponent
 import com.spinoza.messenger_tfs.presentation.feature.app.App
 
 fun Context.getAppComponent(): ApplicationComponent = (this.applicationContext as App).appComponent

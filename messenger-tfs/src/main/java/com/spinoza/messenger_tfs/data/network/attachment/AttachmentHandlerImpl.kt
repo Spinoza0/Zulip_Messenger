@@ -5,14 +5,15 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.OpenableColumns
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeper
-import com.spinoza.messenger_tfs.data.network.apiservice.ApiServiceKeeper
 import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
 import com.spinoza.messenger_tfs.data.utils.apiRequest
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.di.DispatcherIO
-import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
+import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
+import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -27,7 +28,7 @@ import javax.inject.Inject
 
 class AttachmentHandlerImpl @Inject constructor(
     private val authKeeper: AppAuthKeeper,
-    private val apiService: ApiServiceKeeper,
+    private val apiService: ZulipApiService,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : AttachmentHandler {
 
@@ -50,7 +51,7 @@ class AttachmentHandlerImpl @Inject constructor(
             result
         }
 
-    override suspend fun uploadFile(context: Context, uri: Uri): Result<Pair<String, String>> =
+    override suspend fun uploadFile(context: Context, uri: Uri): Result<UploadedFileInfo> =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val contentType = context.contentResolver.getType(uri)
@@ -60,8 +61,8 @@ class AttachmentHandlerImpl @Inject constructor(
                 val fileName = uri.getFileName(context)
                 val filePart = MultipartBody.Part.createFormData(fileName, fileName, requestFile)
                 val response =
-                    apiRequest<UploadFileResponse> { apiService.value.uploadFile(filePart) }
-                Pair(fileName, response.uri)
+                    apiRequest<UploadFileResponse> { apiService.uploadFile(filePart) }
+                UploadedFileInfo(fileName, response.uri)
             }
         }
 
