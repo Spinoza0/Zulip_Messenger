@@ -2,20 +2,23 @@ package com.spinoza.messenger_tfs.presentation.feature.app
 
 import android.app.Application
 import com.spinoza.messenger_tfs.BuildConfig
-import com.spinoza.messenger_tfs.di.ApplicationComponent
-import com.spinoza.messenger_tfs.di.DaggerApplicationComponent
+import com.spinoza.messenger_tfs.di.app.ApplicationComponent
+import com.spinoza.messenger_tfs.di.app.DaggerApplicationComponent
 import vivid.money.elmslie.android.logger.strategy.AndroidLog
 import vivid.money.elmslie.core.config.ElmslieConfig
 import vivid.money.elmslie.core.logger.strategy.IgnoreLog
 
-class App : Application() {
+open class App : Application() {
 
-    lateinit var appComponent: ApplicationComponent
+    val appComponent by lazy {
+        initAppComponent()
+    }
+
+    open fun initAppComponent(): ApplicationComponent =
+        DaggerApplicationComponent.factory().create(applicationContext)
 
     override fun onCreate() {
         super.onCreate()
-        appComponent = DaggerApplicationComponent.factory().create(applicationContext)
-
         ElmslieConfig.apply {
             if (BuildConfig.DEBUG) {
                 logger { always(AndroidLog.E) }

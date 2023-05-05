@@ -10,3 +10,6 @@ annotation class DispatcherDefault
 
 @Qualifier
 annotation class DispatcherIO
+
+@Qualifier
+annotation class BaseUrl

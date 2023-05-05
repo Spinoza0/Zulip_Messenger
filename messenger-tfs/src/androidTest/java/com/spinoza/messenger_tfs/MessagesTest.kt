@@ -3,22 +3,14 @@ package com.spinoza.messenger_tfs
 import androidx.test.espresso.NoMatchingViewException
 import androidx.test.ext.junit.rules.activityScenarioRule
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
-import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeperImpl
-import com.spinoza.messenger_tfs.data.network.apiservice.ApiServiceKeeperImpl
-import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeperImpl
-import com.spinoza.messenger_tfs.data.network.baseurl.BaseUrlKeeperImpl
-import com.spinoza.messenger_tfs.data.utils.createApiService
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.screen.ChannelsPageScreen
 import com.spinoza.messenger_tfs.screen.MessagesScreen
-import com.spinoza.messenger_tfs.stub.MessengerDaoStub
 import com.spinoza.messenger_tfs.util.MockRequestDispatcher
 import com.spinoza.messenger_tfs.util.loadFromAssets
-import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,15 +20,7 @@ class MessagesTest : TestCase() {
     val activityRule = activityScenarioRule<MainActivity>()
 
     @get:Rule
-    val mockServer = MockWebServer().apply { start(1234) }
-
-    @Before
-    fun setUp() {
-        MessengerDaoKeeperImpl.value = MessengerDaoStub()
-        BaseUrlKeeperImpl.value = mockServer.url("/").toString()
-        ApiServiceKeeperImpl.value =
-            BaseUrlKeeperImpl.createApiService(AppAuthKeeperImpl(), provideJsonConverter())
-    }
+    val mockServer = MockWebServer().apply { start(BuildConfig.MOCKWEBSERVER_PORT) }
 
     @Test
     fun openNotEmptyMessagesScreen() = run {
@@ -251,11 +235,6 @@ class MessagesTest : TestCase() {
                 assertThrows(NoMatchingViewException::class.java) { this.ownReaction.isNotDisplayed() }
             }
         }
-    }
-
-    private fun provideJsonConverter() = Json {
-        ignoreUnknownKeys = true
-        coerceInputValues = true
     }
 
     private fun setupMockServerDispatcher(type: ServerType) {

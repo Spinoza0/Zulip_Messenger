@@ -1,5 +1,8 @@
-package com.spinoza.messenger_tfs.di
+package com.spinoza.messenger_tfs.di.app
 
+import com.spinoza.messenger_tfs.di.ApplicationScope
+import com.spinoza.messenger_tfs.di.DispatcherDefault
+import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.presentation.navigation.AppNavigatorHolder
 import com.spinoza.messenger_tfs.presentation.navigation.AppNavigatorHolderImpl
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
