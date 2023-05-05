@@ -7,7 +7,10 @@ import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 
 class AttachmentHandlerStub : AttachmentHandler {
 
-    override suspend fun saveAttachments(urls: List<String>): Map<String, Boolean> {
+    override suspend fun saveAttachments(
+        context: Context,
+        urls: List<String>,
+    ): Map<String, Boolean> {
         return emptyMap()
     }
 
