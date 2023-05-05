@@ -111,8 +111,7 @@ buildscript {
     ext.test = [
             junit4      : "junit:junit:${versions.junit4}",
             coroutines  : "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.kotlinxCoroutines}",
-            androidxCore: "androidx.arch.core:core-testing:${versions.androidxCoreTesting}",
-            fragment    : "androidx.fragment:fragment-testing:${versions.androidxFragment}"
+            androidxCore: "androidx.arch.core:core-testing:${versions.androidxCoreTesting}"
     ]
 
     ext.androidTest = [
