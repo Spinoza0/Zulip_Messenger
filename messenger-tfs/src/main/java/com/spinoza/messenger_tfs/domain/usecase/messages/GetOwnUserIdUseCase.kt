@@ -1,11 +1,11 @@
 package com.spinoza.messenger_tfs.domain.usecase.messages
 
-import com.spinoza.messenger_tfs.domain.repository.WebRepository
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import javax.inject.Inject
 
-class GetOwnUserIdUseCase @Inject constructor(private val repository: WebRepository) {
+class GetOwnUserIdUseCase @Inject constructor(private val authorizationStorage: AuthorizationStorage) {
 
-    suspend operator fun invoke(): Result<Long> {
-        return repository.getOwnUserId()
+    operator fun invoke(): Long {
+        return authorizationStorage.getUserId()
     }
 }

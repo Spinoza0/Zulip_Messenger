@@ -4,7 +4,6 @@ import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService.Companion.RESULT_SUCCESS
-import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.event.DeleteMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.HeartBeatEventsResponse
@@ -21,7 +20,6 @@ import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserResponse
-import com.spinoza.messenger_tfs.data.network.ownuser.OwnUserKeeper
 import com.spinoza.messenger_tfs.data.utils.apiRequest
 import com.spinoza.messenger_tfs.data.utils.createNarrowJsonForEvents
 import com.spinoza.messenger_tfs.data.utils.createNarrowJsonForMessages
@@ -34,7 +32,6 @@ import com.spinoza.messenger_tfs.data.utils.toDbModel
 import com.spinoza.messenger_tfs.data.utils.toDomain
 import com.spinoza.messenger_tfs.data.utils.toDto
 import com.spinoza.messenger_tfs.data.utils.toStringsList
-import com.spinoza.messenger_tfs.data.utils.toUserDto
 import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
@@ -54,6 +51,7 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -61,37 +59,39 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import okhttp3.Credentials
 import javax.inject.Inject
 
 class WebRepositoryImpl @Inject constructor(
-    private val ownUserKeeper: OwnUserKeeper,
     private val messagesCache: MessagesCache,
     private val messengerDao: MessengerDao,
     private val apiService: ZulipApiService,
-    private val apiAuthKeeper: AppAuthKeeper,
+    private val authorizationStorage: AuthorizationStorage,
     private val jsonConverter: Json,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : WebRepository {
 
-    override suspend fun getApiKey(
-        storedApiKey: String,
-        email: String,
-        password: String,
-    ): Result<String> = withContext(ioDispatcher) {
-        if (storedApiKey.isNotBlank()) {
-            apiAuthKeeper.setData(Credentials.basic(email, storedApiKey))
-            getOwnUser().onSuccess {
-                return@withContext Result.success(storedApiKey)
+    override suspend fun getLoggedInUserId(email: String, password: String): Result<Long> =
+        withContext(ioDispatcher) {
+            if (authorizationStorage.makeAuthHeader(email).isNotBlank()) getOwnUser().onSuccess {
+                authorizationStorage.saveData(it.userId, email, password)
+                return@withContext Result.success(authorizationStorage.getUserId())
+            }
+            runCatchingNonCancellation {
+                val apiKeyResponse =
+                    apiRequest<ApiKeyResponse> { apiService.fetchApiKey(email, password) }
+                authorizationStorage.makeAuthHeader(apiKeyResponse.email, apiKeyResponse.apiKey)
+                getOwnUser().onSuccess {
+                    authorizationStorage.saveData(
+                        it.userId,
+                        apiKeyResponse.email,
+                        password,
+                        apiKeyResponse.apiKey
+                    )
+                    return@runCatchingNonCancellation authorizationStorage.getUserId()
+                }
+                User.UNDEFINED_ID
             }
         }
-        runCatchingNonCancellation {
-            val apiKeyResponse =
-                apiRequest<ApiKeyResponse> { apiService.fetchApiKey(email, password) }
-            apiAuthKeeper.setData(Credentials.basic(apiKeyResponse.email, apiKeyResponse.apiKey))
-            apiKeyResponse.apiKey
-        }
-    }
 
     override suspend fun setOwnStatusActive() {
         withContext(ioDispatcher) {
@@ -99,25 +99,11 @@ class WebRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getOwnUserId(): Result<Long> {
-        return if (ownUserKeeper.value.userId != User.UNDEFINED_ID) {
-            Result.success(ownUserKeeper.value.userId)
-        } else {
-            val result = getOwnUser()
-            if (result.isSuccess) {
-                Result.success(ownUserKeeper.value.userId)
-            } else {
-                Result.failure(result.exceptionOrNull() ?: RepositoryError(UNKNOWN_ERROR))
-            }
-        }
-    }
-
     override suspend fun getOwnUser(): Result<User> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val ownUserResponse = apiRequest<OwnUserResponse> { apiService.getOwnUser() }
-            ownUserKeeper.value = ownUserResponse.toUserDto()
-            val presence = getUserPresence(ownUserKeeper.value.userId)
-            ownUserKeeper.value.toDomain(presence)
+            val presence = getUserPresence(ownUserResponse.userId)
+            ownUserResponse.toDomain(presence)
         }
     }
 
@@ -147,9 +133,6 @@ class WebRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            if (ownUserKeeper.value.userId == User.UNDEFINED_ID) {
-                getOwnUser()
-            }
             val messagesResponse = apiRequest<MessagesResponse> {
                 when (messagesPageType) {
                     MessagesPageType.FIRST_UNREAD -> apiService.getMessages(
@@ -203,7 +186,7 @@ class WebRepositoryImpl @Inject constructor(
             }
             messagesCache.addAll(messagesResponse.messages, messagesPageType)
             MessagesResult(
-                messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
+                messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
                 position
             )
         }
@@ -304,11 +287,10 @@ class WebRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            messagesCache.updateReaction(
-                messageId, ownUserKeeper.value.userId, emoji.toDto(ownUserKeeper.value.userId)
-            )
+            val ownUserId = authorizationStorage.getUserId()
+            messagesCache.updateReaction(messageId, ownUserId, emoji.toDto(ownUserId))
             val result = MessagesResult(
-                messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
+                messagesCache.getMessages(filter).toDomain(ownUserId),
                 MessagePosition(MessagePosition.Type.EXACTLY, messageId)
             )
             updateReactionOnServer(messageId, emoji)
@@ -399,7 +381,7 @@ class WebRepositoryImpl @Inject constructor(
             MessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
+                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
                     MessagePosition(),
                     eventResponse.events.isNotEmpty()
                 )
@@ -426,7 +408,7 @@ class WebRepositoryImpl @Inject constructor(
             DeleteMessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
+                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
                     MessagePosition()
                 )
             )
@@ -452,7 +434,7 @@ class WebRepositoryImpl @Inject constructor(
             ReactionEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(ownUserKeeper.value.userId),
+                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
                     MessagePosition()
                 )
             )
@@ -479,8 +461,9 @@ class WebRepositoryImpl @Inject constructor(
                 val singleMessageResponse = apiRequest<SingleMessageResponse> {
                     apiService.getSingleMessage(messageId)
                 }
+                val ownUserId = authorizationStorage.getUserId()
                 val isAddReaction = null == singleMessageResponse.message.reactions.find {
-                    it.emojiName == emoji.name && it.userId == ownUserKeeper.value.userId
+                    it.emojiName == emoji.name && it.userId == ownUserId
                 }
                 if (isAddReaction) {
                     apiService.addReaction(messageId, emoji.name)
@@ -557,7 +540,6 @@ class WebRepositoryImpl @Inject constructor(
 
     companion object {
 
-        private const val UNKNOWN_ERROR = ""
         private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0

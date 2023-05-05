@@ -7,7 +7,6 @@ import android.os.Environment
 import android.provider.OpenableColumns
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
-import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
 import com.spinoza.messenger_tfs.data.utils.apiRequest
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
@@ -15,6 +14,7 @@ import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -26,7 +26,7 @@ import java.io.FileOutputStream
 import javax.inject.Inject
 
 class AttachmentHandlerImpl @Inject constructor(
-    private val authKeeper: AppAuthKeeper,
+    private val authorizationStorage: AuthorizationStorage,
     private val apiService: ZulipApiService,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : AttachmentHandler {
@@ -70,7 +70,10 @@ class AttachmentHandlerImpl @Inject constructor(
         )
         val request = DownloadManager.Request(Uri.parse(url))
             .setDestinationUri(Uri.fromFile(file))
-            .addRequestHeader(authKeeper.getKey(), authKeeper.getValue())
+            .addRequestHeader(
+                authorizationStorage.getAuthHeaderTitle(),
+                authorizationStorage.getAuthHeaderValue()
+            )
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setTitle(file.name)
         val downloadId = downloadManager.enqueue(request)

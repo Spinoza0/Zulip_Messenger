@@ -120,29 +120,18 @@ fun UserDto.toDomain(presence: User.Presence): User {
         userId = userId,
         email = email,
         fullName = fullName,
-        avatarUrl = avatarUrl ?: "",
+        avatarUrl = avatarUrl ?: EMPTY_STRING,
         presence = presence
     )
 }
 
-fun OwnUserResponse.toUserDto(): UserDto {
-    return UserDto(
+fun OwnUserResponse.toDomain(presence: User.Presence): User {
+    return User(
         email = email,
         userId = userId,
-        avatarVersion = avatarVersion,
-        isAdmin = isAdmin,
-        isOwner = isOwner,
-        isGuest = isGuest,
-        isBillingAdmin = isBillingAdmin,
-        role = role,
-        isBot = isBot,
         fullName = fullName,
-        timezone = timezone,
-        isActive = isActive,
-        dateJoined = dateJoined,
-        avatarUrl = avatarUrl,
-        deliveryEmail = deliveryEmail,
-        profileData = profileData
+        avatarUrl = avatarUrl ?: EMPTY_STRING,
+        presence = presence
     )
 }
 
@@ -304,7 +293,7 @@ private fun MessageDto.toDataDbModel(): MessageDataDbModel {
         isMeMessage = isMeMessage,
         senderFullName = senderFullName,
         senderEmail = senderEmail,
-        avatarUrl = avatarUrl ?: ""
+        avatarUrl = avatarUrl ?: EMPTY_STRING
     )
 }
 
@@ -345,3 +334,4 @@ private const val DATE_FORMAT = "dd.MM.yyyy"
 private const val MILLIS_IN_SECOND = 1000L
 private const val SECONDS_IN_DAY = 24 * 60 * 60
 private const val NO_MESSAGES = 0
+private const val EMPTY_STRING = ""

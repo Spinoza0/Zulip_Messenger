@@ -3,7 +3,7 @@ package com.spinoza.messenger_tfs.presentation.feature.login
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.login.GetApiKeyUseCase
+import com.spinoza.messenger_tfs.domain.usecase.login.GetLoggedInUserIdUseCase
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.getErrorText
@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 class LoginActor @Inject constructor(
     private val lifecycleScope: LifecycleCoroutineScope,
-    private val getApiKeyUseCase: GetApiKeyUseCase,
+    private val getLoggedInUserIdUseCase: GetLoggedInUserIdUseCase,
     @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<LoginScreenCommand, LoginScreenEvent.Internal> {
 
@@ -46,11 +46,7 @@ class LoginActor @Inject constructor(
             val event = when (command) {
                 is LoginScreenCommand.NewEmailText -> newEmailStatus(command.value)
                 is LoginScreenCommand.NewPasswordText -> newPasswordStatus(command.value)
-                is LoginScreenCommand.ButtonPressed -> checkUserLogin(
-                    command.apiKey,
-                    command.email,
-                    command.password
-                )
+                is LoginScreenCommand.ButtonPressed -> checkUserLogin(command)
             }
             emit(event)
         }
@@ -76,18 +72,20 @@ class LoginActor @Inject constructor(
     }
 
     private suspend fun checkUserLogin(
-        apiKey: String,
-        email: String,
-        password: String,
+        command: LoginScreenCommand.ButtonPressed,
     ): LoginScreenEvent.Internal {
         var event: LoginScreenEvent.Internal = LoginScreenEvent.Internal.Idle
-        getApiKeyUseCase(apiKey, email.trim(), password.trim()).onSuccess { apiKeyResult ->
-            event = LoginScreenEvent.Internal.LoginSuccess(apiKeyResult, email, password)
-        }.onFailure { error ->
-            event = if (error is RepositoryError) {
-                LoginScreenEvent.Internal.ErrorLogin(error.value)
-            } else {
-                LoginScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+        val email = command.email.trim()
+        val password = command.password.trim()
+        if (email.isNotBlank() && password.isNotBlank()) {
+            getLoggedInUserIdUseCase(command.email.trim(), command.password.trim()).onSuccess {
+                event = LoginScreenEvent.Internal.LoginSuccess
+            }.onFailure { error ->
+                event = if (error is RepositoryError) {
+                    LoginScreenEvent.Internal.ErrorLogin(error.value)
+                } else {
+                    LoginScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+                }
             }
         }
         return event

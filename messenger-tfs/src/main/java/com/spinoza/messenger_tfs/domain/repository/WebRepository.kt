@@ -18,9 +18,7 @@ import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 
 interface WebRepository {
 
-    suspend fun getApiKey(storedApiKey: String, email: String, password: String): Result<String>
-
-    suspend fun getOwnUserId(): Result<Long>
+    suspend fun getLoggedInUserId(email: String, password: String): Result<Long>
 
     suspend fun getOwnUser(): Result<User>
 

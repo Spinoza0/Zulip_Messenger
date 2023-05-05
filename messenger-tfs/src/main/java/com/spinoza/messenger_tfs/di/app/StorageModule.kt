@@ -5,10 +5,10 @@ import androidx.room.Room
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.database.MessengerDatabase
-import com.spinoza.messenger_tfs.data.usermanager.UserManagerImpl
+import com.spinoza.messenger_tfs.data.network.AuthorizationStorageImpl
 import com.spinoza.messenger_tfs.di.ApplicationScope
 import com.spinoza.messenger_tfs.di.BaseUrl
-import com.spinoza.messenger_tfs.domain.usermanager.UserManager
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -18,7 +18,7 @@ interface StorageModule {
 
     @ApplicationScope
     @Binds
-    fun bindUserManager(impl: UserManagerImpl): UserManager
+    fun bindAuthorizationStorage(impl: AuthorizationStorageImpl): AuthorizationStorage
 
     companion object {
 

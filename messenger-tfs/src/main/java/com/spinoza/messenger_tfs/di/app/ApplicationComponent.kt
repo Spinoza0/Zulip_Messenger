@@ -5,10 +5,10 @@ import com.spinoza.messenger_tfs.di.ApplicationScope
 import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
-import com.spinoza.messenger_tfs.domain.usermanager.UserManager
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import dagger.BindsInstance
@@ -21,25 +21,25 @@ interface ApplicationComponent {
 
     fun inject(mainActivity: MainActivity)
 
-    fun context(): Context
+    fun getContext(): Context
 
-    fun webRepository(): WebRepository
+    fun getWebRepository(): WebRepository
 
-    fun daoRepository(): DaoRepository
+    fun getDaoRepository(): DaoRepository
 
-    fun attachmentHandler(): AttachmentHandler
+    fun getAttachmentHandler(): AttachmentHandler
 
-    fun appRouter(): AppRouter
+    fun getAppRouter(): AppRouter
 
-    fun webUtil(): WebUtil
+    fun getWebUtil(): WebUtil
 
-    fun userManager(): UserManager
+    fun getAuthorizationStorage(): AuthorizationStorage
 
     @DispatcherDefault
-    fun dispatcherDefault(): CoroutineDispatcher
+    fun getDispatcherDefault(): CoroutineDispatcher
 
     @DispatcherIO
-    fun dispatcherIO(): CoroutineDispatcher
+    fun getDispatcherIO(): CoroutineDispatcher
 
     @Component.Factory
     interface Factory {

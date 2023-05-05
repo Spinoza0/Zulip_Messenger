@@ -26,16 +26,11 @@ class WebRepositoryStub : WebRepository {
     private val ownUser = createUserDto(0)
     private val user = createUserDto(1)
 
-    override suspend fun getApiKey(
-        storedApiKey: String,
+    override suspend fun getLoggedInUserId(
         email: String,
         password: String,
-    ): Result<String> {
-        return Result.success("API key")
-    }
-
-    override suspend fun getOwnUserId(): Result<Long> {
-        return Result.success(ownUser.userId)
+    ): Result<Long> {
+        return Result.success(0)
     }
 
     override suspend fun getOwnUser(): Result<User> {

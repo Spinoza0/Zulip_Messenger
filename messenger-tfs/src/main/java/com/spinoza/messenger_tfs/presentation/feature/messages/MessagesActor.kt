@@ -301,13 +301,9 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal =
         withContext(defaultDispatcher) {
             updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
-                getOwnUserIdUseCase().onSuccess { userId ->
-                    return@withContext MessagesScreenEvent.Internal.Messages(
-                        messagesResult.toDelegate(userId)
-                    )
-                }.onFailure { error ->
-                    return@withContext handleErrors(error)
-                }
+                return@withContext MessagesScreenEvent.Internal.Messages(
+                    messagesResult.toDelegate(getOwnUserIdUseCase())
+                )
             }
             getIdleEvent()
         }
@@ -438,9 +434,7 @@ class MessagesActor @Inject constructor(
             messagesFilter,
             isLastMessageVisible
         ).onSuccess { event ->
-            getOwnUserIdUseCase().onSuccess { userId ->
-                return@withContext onSuccessCallback(eventsQueue, event, userId)
-            }
+            return@withContext onSuccessCallback(eventsQueue, event, getOwnUserIdUseCase())
         }
         delay(DELAY_BEFORE_CHECK_EVENTS)
         emptyEvent
@@ -450,20 +444,15 @@ class MessagesActor @Inject constructor(
         return MessagesResultDelegate(messages.groupByDate(userId), position, isNewMessageExisting)
     }
 
-    private suspend fun handleMessages(
+    private fun handleMessages(
         messagesResult: MessagesResult,
         messagesPageType: MessagesPageType,
     ): MessagesScreenEvent.Internal {
-        getOwnUserIdUseCase().onSuccess { userId ->
-            val messagesResultDelegate = messagesResult.toDelegate(userId)
-            if (messagesPageType == MessagesPageType.STORED) {
-                return MessagesScreenEvent.Internal.StoredMessages(messagesResultDelegate)
-            }
-            return MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
-        }.onFailure {
-            return handleErrors(it)
+        val messagesResultDelegate = messagesResult.toDelegate(getOwnUserIdUseCase())
+        if (messagesPageType == MessagesPageType.STORED) {
+            return MessagesScreenEvent.Internal.StoredMessages(messagesResultDelegate)
         }
-        return getIdleEvent()
+        return MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
     }
 
     private fun registerEventQueues() {
