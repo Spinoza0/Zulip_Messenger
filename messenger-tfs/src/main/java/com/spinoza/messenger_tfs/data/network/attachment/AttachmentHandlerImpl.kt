@@ -12,6 +12,7 @@ import com.spinoza.messenger_tfs.data.utils.apiRequest
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
+import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -50,7 +51,7 @@ class AttachmentHandlerImpl @Inject constructor(
             result
         }
 
-    override suspend fun uploadFile(context: Context, uri: Uri): Result<Pair<String, String>> =
+    override suspend fun uploadFile(context: Context, uri: Uri): Result<UploadedFileInfo> =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 val contentType = context.contentResolver.getType(uri)
@@ -61,7 +62,7 @@ class AttachmentHandlerImpl @Inject constructor(
                 val filePart = MultipartBody.Part.createFormData(fileName, fileName, requestFile)
                 val response =
                     apiRequest<UploadFileResponse> { apiService.uploadFile(filePart) }
-                Pair(fileName, response.uri)
+                UploadedFileInfo(fileName, response.uri)
             }
         }
 

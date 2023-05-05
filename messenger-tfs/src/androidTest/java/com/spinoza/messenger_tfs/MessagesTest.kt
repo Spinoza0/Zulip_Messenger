@@ -23,7 +23,7 @@ class MessagesTest : TestCase() {
     val mockServer = MockWebServer().apply { start(BuildConfig.MOCKWEBSERVER_PORT) }
 
     @Test
-    fun openNotEmptyMessagesScreen() = run {
+    fun shouldOpenNotEmptyMessagesScreen() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -43,7 +43,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun openEmptyMessagesScreen() = run {
+    fun shouldOpenEmptyMessagesScreen() = run {
         setupMockServerDispatcher(ServerType.WITHOUT_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -63,7 +63,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun openMessagesScreenWithError() = run {
+    fun shouldOpenMessagesScreenWithError() = run {
         setupMockServerDispatcher(ServerType.WITH_GETTING_MESSAGES_ERROR)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -82,7 +82,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun longClickOnMessageOpensChooseReactionDialog() = run {
+    fun shouldLongClickOnMessageOpensChooseReactionDialog() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -101,7 +101,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun messageWithReactionsIsVisible() = run {
+    fun shouldMessageWithReactionsIsVisible() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -119,7 +119,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun messageWithoutReactionsIsVisible() = run {
+    fun shouldMessageWithoutReactionsIsVisible() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -137,7 +137,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun messageWithOwnUserReactionIsVisible() = run {
+    fun shouldMessageWithOwnUserReactionIsVisible() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -156,7 +156,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun messagesIsGroupedByDate() = run {
+    fun shouldMessagesIsGroupedByDate() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -176,7 +176,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun clickOnUserReactionAddsReaction() = run {
+    fun shouldClickOnUserReactionAddsReaction() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -207,7 +207,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun clickOnOwnReactionDeletesReaction() = run {
+    fun shouldClickOnOwnReactionDeletesReaction() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()

@@ -32,7 +32,7 @@ class ChannelsPageFragmentViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `ChannelsPageScreenEventUiLoad returns not empty list`() = runTest {
+    fun `should ChannelsPageScreenEventUiLoad returns not empty list`() = runTest {
         val viewModel = createViewModel(this.backgroundScope)
         val itemsBefore = viewModel.state.value.items
         val event = ChannelsPageScreenEvent.Ui.Load

@@ -260,8 +260,8 @@ class MessagesFragment :
 
             is MessagesScreenEffect.AddAttachment -> addAttachment()
             is MessagesScreenEffect.FileUploaded -> {
-                val filename = effect.value.first
-                val url = effect.value.second
+                val filename = effect.value.name
+                val url = effect.value.url
                 val newMessageText = "${binding.editTextMessage.text}\n[$filename]($url)\n"
                 binding.editTextMessage.setText(newMessageText)
             }

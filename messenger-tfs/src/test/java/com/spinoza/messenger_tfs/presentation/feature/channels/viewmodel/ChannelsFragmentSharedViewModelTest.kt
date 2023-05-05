@@ -22,7 +22,7 @@ class ChannelsFragmentSharedViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     @Test
-    fun `ChannelsScreenEventUiFilter emits new SearchQuery`() = runTest {
+    fun `should ChannelsScreenEventUiFilter emits new SearchQuery`() = runTest {
         val viewModel = createViewModel()
         val searchQueryBefore = viewModel.state.value.filter
         val newSearchQuery = SearchQuery(0, "string")

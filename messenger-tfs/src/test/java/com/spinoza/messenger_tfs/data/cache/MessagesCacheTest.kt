@@ -27,7 +27,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `messagesCache is empty after creating`() = runTest {
+    fun `should messagesCache is empty after creating`() = runTest {
         val messagesCache = createEmptyMessagesCache()
 
         assertNotEquals(true, messagesCache.isNotEmpty())
@@ -35,7 +35,7 @@ class MessagesCacheTest {
 
 
     @Test
-    fun `messagesCache not empty after adding one message`() = runTest {
+    fun `should messagesCache not empty after adding one message`() = runTest {
         val messagesCache = createEmptyMessagesCache()
         val message = messagesGenerator.getNextMessageDto()
 
@@ -45,7 +45,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `messagesCache not empty after adding list of messages`() = runTest {
+    fun `should messagesCache not empty after adding list of messages`() = runTest {
         val messagesCache = createEmptyMessagesCache()
         val messages = messagesGenerator.getListOfMessagesDto()
         val messagesPageType = provideMessagePageType()
@@ -56,7 +56,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `messagesCache is empty after reload`() = runTest {
+    fun `should messagesCache is empty after reload`() = runTest {
         val messagesCache = createEmptyMessagesCache()
         val message = messagesGenerator.getNextMessageDto()
 
@@ -67,7 +67,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `updateReaction changes reactions`() = runTest {
+    fun `should updateReaction changes reactions`() = runTest {
         val messagesCache = createNotEmptyMessagesCache()
         val id = messagesGenerator.getLastId()
         val messagesBefore = messagesCache.getMessages(provideMessagesFilter())
@@ -82,7 +82,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `getMessages returns empty list after creating messagesCache`() = runTest {
+    fun `should getMessages returns empty list after creating messagesCache`() = runTest {
         val messagesCache = createEmptyMessagesCache()
 
         val messages = messagesCache.getMessages(provideMessagesFilter())
@@ -91,7 +91,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `getMessages returns not empty list after adding messages`() = runTest {
+    fun `should getMessages returns not empty list after adding messages`() = runTest {
         val messagesCache = createEmptyMessagesCache()
 
         messagesCache.addAll(messagesGenerator.getListOfMessagesDto(), provideMessagePageType())
@@ -101,7 +101,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `remove method removes the message from messagesCache`() = runTest {
+    fun `should remove method removes the message from messagesCache`() = runTest {
         val messagesCache = createNotEmptyMessagesCache()
         val messagesBefore = messagesCache.getMessages(provideMessagesFilter())
         val messagesSizeBefore = messagesBefore.size
@@ -116,7 +116,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `getFirstMessageId returns id of the first message`() = runTest {
+    fun `should getFirstMessageId returns id of the first message`() = runTest {
         val messagesCache = createNotEmptyMessagesCache()
         val messagesFilter = provideMessagesFilter()
         val messages = messagesCache.getMessages(messagesFilter)
@@ -128,7 +128,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `getLastMessageId returns id of the last message`() = runTest {
+    fun `should getLastMessageId returns id of the last message`() = runTest {
         val messagesCache = createNotEmptyMessagesCache()
         val messagesFilter = provideMessagesFilter()
         val messages = messagesCache.getMessages(messagesFilter)
@@ -140,7 +140,7 @@ class MessagesCacheTest {
     }
 
     @Test
-    fun `result of the getLastMessageId not equals result of the getFirstMessageId`() =
+    fun `should result of the getLastMessageId not equals result of the getFirstMessageId`() =
         runTest {
             val messagesCache = createNotEmptyMessagesCache()
             val messagesFilter = provideMessagesFilter()

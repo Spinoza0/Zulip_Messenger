@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs
 import android.app.Application
 import android.content.Context
 import androidx.test.runner.AndroidJUnitRunner
+import com.spinoza.messenger_tfs.app.TestApp
 
 class CustomTestRunner: AndroidJUnitRunner() {
 

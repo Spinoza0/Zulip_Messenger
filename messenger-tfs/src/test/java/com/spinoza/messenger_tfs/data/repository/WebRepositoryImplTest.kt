@@ -30,7 +30,7 @@ class WebRepositoryImplTest {
     }
 
     @Test
-    fun `getStoredMessages returns empty list of messages`() = runTest {
+    fun `should getStoredMessages returns empty list of messages`() = runTest {
         val repository = createRepository(MessengerDaoStub.Type.EMPTY)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
@@ -40,7 +40,7 @@ class WebRepositoryImplTest {
     }
 
     @Test
-    fun `getStoredMessages returns not empty list of messages`() = runTest {
+    fun `should getStoredMessages returns not empty list of messages`() = runTest {
         val repository = createRepository(MessengerDaoStub.Type.WITH_MESSAGES)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
@@ -50,7 +50,7 @@ class WebRepositoryImplTest {
     }
 
     @Test
-    fun `getStoredMessages returns error`() = runTest {
+    fun `should getStoredMessages returns error`() = runTest {
         val repository = createRepository(MessengerDaoStub.Type.WITH_GET_MESSAGES_ERROR)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
