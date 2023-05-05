@@ -1,6 +1,11 @@
 package com.spinoza.messenger_tfs.di.messages
 
+<<<<<<< HEAD
 import com.spinoza.messenger_tfs.di.ApplicationComponent
+=======
+import androidx.lifecycle.Lifecycle
+import com.spinoza.messenger_tfs.di.app.ApplicationComponent
+>>>>>>> origin/HomeWork_10
 import com.spinoza.messenger_tfs.di.MessagesScope
 import com.spinoza.messenger_tfs.presentation.feature.messages.MessagesFragment
 import dagger.BindsInstance

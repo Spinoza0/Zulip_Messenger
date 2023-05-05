@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.di.people
 
 import androidx.lifecycle.Lifecycle
-import com.spinoza.messenger_tfs.di.ApplicationComponent
+import com.spinoza.messenger_tfs.di.app.ApplicationComponent
 import com.spinoza.messenger_tfs.di.PeopleScope
 import com.spinoza.messenger_tfs.presentation.feature.people.PeopleFragment
 import dagger.BindsInstance

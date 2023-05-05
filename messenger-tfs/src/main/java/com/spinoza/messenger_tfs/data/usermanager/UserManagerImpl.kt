@@ -1,26 +1,14 @@
-package com.spinoza.messenger_tfs.presentation.feature.login
+package com.spinoza.messenger_tfs.data.usermanager
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.spinoza.messenger_tfs.BuildConfig
+import com.spinoza.messenger_tfs.domain.usermanager.UserManager
 import javax.inject.Inject
 
-interface LoginStorage {
-
-    fun saveData(apiKey: String, email: String, password: String)
-
-    fun getApiKey(): String
-
-    fun getEmail(): String
-
-    fun getPassword(): String
-
-    fun deleteData()
-}
-
-class LoginStorageImpl @Inject constructor(context: Context) : LoginStorage {
+class UserManagerImpl @Inject constructor(context: Context) : UserManager {
 
     private val masterKey = MasterKey.Builder(context)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)

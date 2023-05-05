@@ -1,7 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
-import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeperImpl
 import com.spinoza.messenger_tfs.data.network.ownuser.OwnUserKeeperImpl
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -31,7 +30,7 @@ class WebRepositoryImplTest {
     }
 
     @Test
-    fun `getStoredMessages returns empty list of messages`() = runTest {
+    fun `should getStoredMessages returns empty list of messages`() = runTest {
         val repository = createRepository(MessengerDaoStub.Type.EMPTY)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
@@ -41,7 +40,7 @@ class WebRepositoryImplTest {
     }
 
     @Test
-    fun `getStoredMessages returns not empty list of messages`() = runTest {
+    fun `should getStoredMessages returns not empty list of messages`() = runTest {
         val repository = createRepository(MessengerDaoStub.Type.WITH_MESSAGES)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
@@ -51,7 +50,7 @@ class WebRepositoryImplTest {
     }
 
     @Test
-    fun `getStoredMessages returns error`() = runTest {
+    fun `should getStoredMessages returns error`() = runTest {
         val repository = createRepository(MessengerDaoStub.Type.WITH_GET_MESSAGES_ERROR)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
@@ -71,11 +70,10 @@ class WebRepositoryImplTest {
 
     private fun createRepository(type: MessengerDaoStub.Type): DaoRepository {
         val messengerDao = MessengerDaoStub(messagesGenerator, type)
-        MessengerDaoKeeperImpl.value = messengerDao
         return DaoRepositoryImpl(
             OwnUserKeeperImpl,
-            MessagesCache(MessengerDaoKeeperImpl),
-            MessengerDaoKeeperImpl,
+            MessagesCache(messengerDao),
+            messengerDao,
             mainDispatcherRule.testDispatcher
         )
     }

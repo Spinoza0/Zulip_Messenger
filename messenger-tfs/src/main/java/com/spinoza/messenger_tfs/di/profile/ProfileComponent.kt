@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.di.profile
 
 import androidx.lifecycle.Lifecycle
-import com.spinoza.messenger_tfs.di.ApplicationComponent
+import com.spinoza.messenger_tfs.di.app.ApplicationComponent
 import com.spinoza.messenger_tfs.di.ProfileScope
 import com.spinoza.messenger_tfs.presentation.feature.profile.ProfileFragment
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenState

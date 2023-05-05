@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 
 sealed class MessagesScreenEvent {
@@ -82,7 +83,7 @@ sealed class MessagesScreenEvent {
 
         class ReactionsEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
-        class FileUploaded(val value: Pair<String, String>) : Internal()
+        class FileUploaded(val value: UploadedFileInfo) : Internal()
 
         class FilesDownloaded(val value: Map<String, Boolean>) : Internal()
 

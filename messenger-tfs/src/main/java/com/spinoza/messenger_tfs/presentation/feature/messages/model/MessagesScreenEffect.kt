@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
+import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 
 sealed class MessagesScreenEffect {
@@ -15,7 +16,7 @@ sealed class MessagesScreenEffect {
 
     class ShowChooseReactionDialog(val messageId: Long) : MessagesScreenEffect()
 
-    class FileUploaded(val value: Pair<String, String>) : MessagesScreenEffect()
+    class FileUploaded(val value: UploadedFileInfo) : MessagesScreenEffect()
 
     class FilesDownloaded(val value: Map<String, Boolean>) : MessagesScreenEffect()
 

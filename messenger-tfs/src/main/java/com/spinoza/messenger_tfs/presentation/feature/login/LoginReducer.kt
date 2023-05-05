@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.login
 
+import com.spinoza.messenger_tfs.domain.usermanager.UserManager
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
@@ -10,7 +11,7 @@ import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 import javax.inject.Inject
 
 class LoginReducer @Inject constructor(
-    private val storage: LoginStorage,
+    private val userManager: UserManager,
     private val router: AppRouter,
 ) : ScreenDslReducer<
         LoginScreenEvent,
@@ -37,7 +38,7 @@ class LoginReducer @Inject constructor(
         }
 
         is LoginScreenEvent.Internal.LoginSuccess -> {
-            storage.saveData(event.apiKey, event.email, event.password)
+            userManager.saveData(event.apiKey, event.email, event.password)
             router.replaceScreen(Screens.MainMenu())
         }
 
@@ -68,12 +69,12 @@ class LoginReducer @Inject constructor(
 
         is LoginScreenEvent.Ui.CheckPreviousLogin -> {
             if (event.logout) {
-                storage.deleteData()
+                userManager.deleteData()
                 state { copy(isNeedLogin = true) }
             } else {
-                val apiKey = storage.getApiKey()
-                val email = storage.getEmail()
-                val password = storage.getPassword()
+                val apiKey = userManager.getApiKey()
+                val email = userManager.getEmail()
+                val password = userManager.getPassword()
                 if (apiKey.isNotEmpty() && password.isNotEmpty() && email.isNotEmpty()) {
                     state { copy(isNeedLogin = false) }
                     commands { +LoginScreenCommand.ButtonPressed(apiKey, email, password) }

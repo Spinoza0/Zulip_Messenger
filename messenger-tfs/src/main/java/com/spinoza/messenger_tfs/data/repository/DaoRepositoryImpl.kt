@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
-import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeper
+import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.ownuser.OwnUserKeeper
 import com.spinoza.messenger_tfs.data.utils.dbToDomain
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
@@ -21,7 +21,7 @@ import javax.inject.Inject
 class DaoRepositoryImpl @Inject constructor(
     private val ownUserKeeper: OwnUserKeeper,
     private val messagesCache: MessagesCache,
-    private val messengerDao: MessengerDaoKeeper,
+    private val messengerDao: MessengerDao,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : DaoRepository {
 
@@ -40,7 +40,7 @@ class DaoRepositoryImpl @Inject constructor(
     override suspend fun getStoredChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
-                val storedStreams = messengerDao.value.getStreams()
+                val storedStreams = messengerDao.getStreams()
                 storedStreams.dbToDomain(channelsFilter)
             }
         }
@@ -50,7 +50,7 @@ class DaoRepositoryImpl @Inject constructor(
         {
             runCatchingNonCancellation {
                 val storedTopics =
-                    messengerDao.value.getTopics(channel.channelId, channel.isSubscribed)
+                    messengerDao.getTopics(channel.channelId, channel.isSubscribed)
                 storedTopics.dbToDomain()
             }
         }

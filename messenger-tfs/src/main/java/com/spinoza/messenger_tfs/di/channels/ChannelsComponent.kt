@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.di.channels
 
-import com.spinoza.messenger_tfs.di.ApplicationComponent
+import com.spinoza.messenger_tfs.di.app.ApplicationComponent
 import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.di.ChannelsScope
 import com.spinoza.messenger_tfs.presentation.feature.channels.ChannelsFragment

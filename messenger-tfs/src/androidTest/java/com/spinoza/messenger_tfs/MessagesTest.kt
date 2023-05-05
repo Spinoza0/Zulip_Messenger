@@ -3,22 +3,14 @@ package com.spinoza.messenger_tfs
 import androidx.test.espresso.NoMatchingViewException
 import androidx.test.ext.junit.rules.activityScenarioRule
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
-import com.spinoza.messenger_tfs.data.database.MessengerDaoKeeperImpl
-import com.spinoza.messenger_tfs.data.network.apiservice.ApiServiceKeeperImpl
-import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeperImpl
-import com.spinoza.messenger_tfs.data.network.baseurl.BaseUrlKeeperImpl
-import com.spinoza.messenger_tfs.data.utils.createApiService
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.screen.ChannelsPageScreen
 import com.spinoza.messenger_tfs.screen.MessagesScreen
-import com.spinoza.messenger_tfs.stub.MessengerDaoStub
 import com.spinoza.messenger_tfs.util.MockRequestDispatcher
 import com.spinoza.messenger_tfs.util.loadFromAssets
-import kotlinx.serialization.json.Json
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,18 +20,10 @@ class MessagesTest : TestCase() {
     val activityRule = activityScenarioRule<MainActivity>()
 
     @get:Rule
-    val mockServer = MockWebServer().apply { start(1234) }
-
-    @Before
-    fun setUp() {
-        MessengerDaoKeeperImpl.value = MessengerDaoStub()
-        BaseUrlKeeperImpl.value = mockServer.url("/").toString()
-        ApiServiceKeeperImpl.value =
-            BaseUrlKeeperImpl.createApiService(AppAuthKeeperImpl(), provideJsonConverter())
-    }
+    val mockServer = MockWebServer().apply { start(BuildConfig.MOCKWEBSERVER_PORT) }
 
     @Test
-    fun openNotEmptyMessagesScreen() = run {
+    fun shouldOpenNotEmptyMessagesScreen() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -59,7 +43,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun openEmptyMessagesScreen() = run {
+    fun shouldOpenEmptyMessagesScreen() = run {
         setupMockServerDispatcher(ServerType.WITHOUT_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -79,7 +63,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun openMessagesScreenWithError() = run {
+    fun shouldOpenMessagesScreenWithError() = run {
         setupMockServerDispatcher(ServerType.WITH_GETTING_MESSAGES_ERROR)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -98,7 +82,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun longClickOnMessageOpensChooseReactionDialog() = run {
+    fun shouldLongClickOnMessageOpensChooseReactionDialog() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -117,7 +101,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun messageWithReactionsIsVisible() = run {
+    fun shouldMessageWithReactionsIsVisible() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -135,7 +119,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun messageWithoutReactionsIsVisible() = run {
+    fun shouldMessageWithoutReactionsIsVisible() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -153,7 +137,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun messageWithOwnUserReactionIsVisible() = run {
+    fun shouldMessageWithOwnUserReactionIsVisible() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -172,7 +156,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun messagesIsGroupedByDate() = run {
+    fun shouldMessagesIsGroupedByDate() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -192,7 +176,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun clickOnUserReactionAddsReaction() = run {
+    fun shouldClickOnUserReactionAddsReaction() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -223,7 +207,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun clickOnOwnReactionDeletesReaction() = run {
+    fun shouldClickOnOwnReactionDeletesReaction() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -251,11 +235,6 @@ class MessagesTest : TestCase() {
                 assertThrows(NoMatchingViewException::class.java) { this.ownReaction.isNotDisplayed() }
             }
         }
-    }
-
-    private fun provideJsonConverter() = Json {
-        ignoreUnknownKeys = true
-        coerceInputValues = true
     }
 
     private fun setupMockServerDispatcher(type: ServerType) {
