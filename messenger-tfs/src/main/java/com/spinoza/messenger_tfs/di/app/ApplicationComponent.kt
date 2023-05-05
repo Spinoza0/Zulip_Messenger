@@ -8,6 +8,7 @@ import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
+import com.spinoza.messenger_tfs.domain.usermanager.UserManager
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import dagger.BindsInstance
@@ -31,6 +32,8 @@ interface ApplicationComponent {
     fun appRouter(): AppRouter
 
     fun webUtil(): WebUtil
+
+    fun userManager(): UserManager
 
     @DispatcherDefault
     fun dispatcherDefault(): CoroutineDispatcher
