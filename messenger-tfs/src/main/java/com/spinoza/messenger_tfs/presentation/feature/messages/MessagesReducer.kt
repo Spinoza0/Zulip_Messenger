@@ -181,7 +181,13 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Ui.OnMessageLongClick -> {
             val attachments = webUtil.getAttachmentsUrls(event.messageView.rawContent)
-            effects { +MessagesScreenEffect.ShowMessageMenu(attachments, event.messageView) }
+            effects {
+                +MessagesScreenEffect.ShowMessageMenu(
+                    authorizationStorage.isAdmin(),
+                    attachments,
+                    event.messageView
+                )
+            }
         }
 
         is MessagesScreenEvent.Ui.Load ->
@@ -247,6 +253,12 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Ui.SaveAttachments ->
             commands { +MessagesScreenCommand.SaveAttachments(event.context, event.urls) }
+
+        is MessagesScreenEvent.Ui.ConfirmDeleteMessage ->
+            effects { +MessagesScreenEffect.ConfirmDeleteMessage(event.messageView.messageId) }
+
+        is MessagesScreenEvent.Ui.DeleteMessage ->
+            commands { +MessagesScreenCommand.DeleteMessage(event.messageId) }
 
         is MessagesScreenEvent.Ui.CheckLoginStatus -> {
             if (!authorizationStorage.isUserLoggedIn()) {

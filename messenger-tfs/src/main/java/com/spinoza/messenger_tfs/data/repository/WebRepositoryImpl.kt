@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
+import com.spinoza.messenger_tfs.data.network.model.BasicResponse
 import com.spinoza.messenger_tfs.data.network.model.event.DeleteMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.HeartBeatEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.MessageEventsResponse
@@ -72,27 +73,32 @@ class WebRepositoryImpl @Inject constructor(
 
     override suspend fun logIn(email: String, password: String): Result<Boolean> =
         withContext(ioDispatcher) {
-            if (authorizationStorage.makeAuthHeader(email).isNotBlank()) {
-                runCatchingNonCancellation {
-                    apiRequest<OwnUserResponse> { apiService.getOwnUser() }
-                }.onSuccess {
-                    authorizationStorage.saveData(it.userId, email, password)
-                    return@withContext Result.success(true)
-                }
+            authorizationStorage.makeAuthHeader(email)
+            if (saveOwnUserData(email, password)) {
+                return@withContext Result.success(true)
             }
             runCatchingNonCancellation {
                 val apiKeyResponse =
                     apiRequest<ApiKeyResponse> { apiService.fetchApiKey(email, password) }
                 authorizationStorage.makeAuthHeader(apiKeyResponse.email, apiKeyResponse.apiKey)
-                authorizationStorage.saveData(
-                    apiKeyResponse.userId,
-                    apiKeyResponse.email,
-                    password,
-                    apiKeyResponse.apiKey
-                )
-                true
+                saveOwnUserData(email, password, apiKeyResponse.apiKey)
             }
         }
+
+    private suspend fun saveOwnUserData(
+        email: String,
+        password: String,
+        apiKey: String = EMPTY_STRING,
+    ): Boolean {
+        if (authorizationStorage.getAuthHeaderValue().isBlank()) return false
+        runCatchingNonCancellation {
+            apiRequest<OwnUserResponse> { apiService.getOwnUser() }
+        }.onSuccess {
+            authorizationStorage.saveData(it.userId, it.isAdmin, email, password, apiKey)
+            return true
+        }
+        return false
+    }
 
     override suspend fun setOwnStatusActive() {
         withContext(ioDispatcher) {
@@ -192,6 +198,14 @@ class WebRepositoryImpl @Inject constructor(
             )
         }
     }
+
+    override suspend fun deleteMessage(messageId: Long): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                apiRequest<BasicResponse> { apiService.deleteMessage(messageId) }
+                true
+            }
+        }
 
     override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
@@ -545,5 +559,6 @@ class WebRepositoryImpl @Inject constructor(
         private const val OFFLINE_TIME = 180
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
         private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500
+        private const val EMPTY_STRING = ""
     }
 }

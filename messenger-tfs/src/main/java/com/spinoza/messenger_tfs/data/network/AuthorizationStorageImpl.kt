@@ -26,6 +26,7 @@ class AuthorizationStorageImpl @Inject constructor(context: Context) : Authoriza
 
     private var headerValue: String = EMPTY_STRING
     private var userId: Long = User.UNDEFINED_ID
+    private var isAdmin: Boolean = false
 
     private var editor = sharedPreferences.edit()
 
@@ -53,6 +54,10 @@ class AuthorizationStorageImpl @Inject constructor(context: Context) : Authoriza
         return userId
     }
 
+    override fun isAdmin(): Boolean {
+        return isAdmin
+    }
+
     override fun getEmail(): String {
         return sharedPreferences.getString(PARAM_EMAIL, EMPTY_STRING) ?: EMPTY_STRING
     }
@@ -61,8 +66,15 @@ class AuthorizationStorageImpl @Inject constructor(context: Context) : Authoriza
         return sharedPreferences.getString(PARAM_PASSWORD, EMPTY_STRING) ?: EMPTY_STRING
     }
 
-    override fun saveData(userId: Long, email: String, password: String, apiKey: String) {
+    override fun saveData(
+        userId: Long,
+        isAdmin: Boolean,
+        email: String,
+        password: String,
+        apiKey: String,
+    ) {
         this.userId = userId
+        this.isAdmin = isAdmin
         editor.putString(PARAM_EMAIL, email)
         editor.putString(PARAM_PASSWORD, password)
         if (apiKey.isNotBlank()) {
@@ -73,6 +85,7 @@ class AuthorizationStorageImpl @Inject constructor(context: Context) : Authoriza
 
     override fun deleteData() {
         userId = User.UNDEFINED_ID
+        isAdmin = false
         headerValue = EMPTY_STRING
         editor.clear().apply()
     }

@@ -90,6 +90,9 @@ interface ZulipApiService {
         @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): BasicResponse
 
+    @DELETE("messages/{$QUERY_MESSAGE_ID}")
+    suspend fun deleteMessage(@Path(QUERY_MESSAGE_ID) messageId: Long): BasicResponse
+
     @POST("messages")
     suspend fun sendMessageToStream(
         @Query(QUERY_TO) streamId: Long,
@@ -155,7 +158,6 @@ interface ZulipApiService {
         private const val QUERY_MESSAGE_IDS = "messages"
         private const val QUERY_OPERATION = "op"
         private const val QUERY_OPERATION_ADD = "add"
-        private const val QUERY_OPERATION_REMOVE = "remove"
 
         private const val QUERY_FLAG = "flag"
         private const val QUERY_FLAG_READ = "read"
@@ -167,7 +169,6 @@ interface ZulipApiService {
         private const val DEFAULT_EMPTY_JSON = "[]"
         private const val DEFAULT_APPLY_MARKDOWN = true
 
-        private const val SEND_MESSAGE_TYPE_PRIVATE = "private"
         private const val SEND_MESSAGE_TYPE_STREAM = "stream"
     }
 }

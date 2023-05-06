@@ -28,6 +28,7 @@ import com.spinoza.messenger_tfs.domain.usecase.event.GetMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetReactionEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.DeleteMessageUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetOwnUserIdUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetStoredMessagesUseCase
@@ -75,6 +76,7 @@ class MessagesActor @Inject constructor(
     private val getStoredMessagesUseCase: GetStoredMessagesUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
+    private val deleteMessageUseCase: DeleteMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
     private val getMessageEventUseCase: GetMessageEventUseCase,
     private val getDeleteMessageEventUseCase: GetDeleteMessageEventUseCase,
@@ -193,6 +195,7 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.UploadFile -> uploadFile(command)
                 is MessagesScreenCommand.CopyToClipboard -> copyToClipboard(command)
                 is MessagesScreenCommand.SaveAttachments -> saveAttachments(command)
+                is MessagesScreenCommand.DeleteMessage -> deleteMessage(command.messageId)
                 is MessagesScreenCommand.LogIn -> logIn()
             }
             emit(event)
@@ -317,6 +320,13 @@ class MessagesActor @Inject constructor(
             }.onFailure { error ->
                 return handleErrors(error)
             }
+        }
+        return getIdleEvent()
+    }
+
+    private suspend fun deleteMessage(messageId: Long): MessagesScreenEvent.Internal {
+        deleteMessageUseCase(messageId).onFailure { error ->
+            return handleErrors(error)
         }
         return getIdleEvent()
     }

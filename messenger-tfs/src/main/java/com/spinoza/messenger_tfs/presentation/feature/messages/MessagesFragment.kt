@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
+import android.app.AlertDialog
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -241,16 +242,10 @@ class MessagesFragment :
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
 
             is MessagesScreenEffect.ShowMessageMenu -> showMessageMenu(effect)
-            is MessagesScreenEffect.ShowChooseReactionDialog -> {
-                val dialog = ChooseReactionDialogFragment.newInstance(
-                    effect.messageId,
-                )
-                dialog.listener = ::updateReaction
-                dialog.show(
-                    requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG
-                )
-            }
+            is MessagesScreenEffect.ShowChooseReactionDialog ->
+                showChooseReactionDialog(effect.messageId)
 
+            is MessagesScreenEffect.ConfirmDeleteMessage -> confirmDeleteMessage(effect.messageId)
             is MessagesScreenEffect.Failure.ErrorMessages ->
                 showError("${getString(R.string.error_messages)} ${effect.value}")
 
@@ -273,6 +268,25 @@ class MessagesFragment :
         }
     }
 
+    private fun showChooseReactionDialog(messageId: Long) {
+        val dialog = ChooseReactionDialogFragment.newInstance(messageId)
+        dialog.listener = ::updateReaction
+        dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
+    }
+
+    private fun confirmDeleteMessage(messageId: Long) {
+        AlertDialog.Builder(requireContext())
+            .setMessage(getString(R.string.confirm_delete_message))
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.button_yes)) { _, _ ->
+                store.accept(MessagesScreenEvent.Ui.DeleteMessage(messageId))
+            }
+            .setNegativeButton(getString(R.string.button_no)) { _, _ ->
+            }
+            .create()
+            .show()
+    }
+
     private fun showNotification(value: Map<String, Boolean>) {
         notificator.createNotificationChannel(CHANNEL_NAME, CHANNEL_ID)
         val title = getString(R.string.downloading_result)
@@ -290,7 +304,9 @@ class MessagesFragment :
         val popupMenu = PopupMenu(requireContext(), binding.textViewTopic)
         popupMenu.inflate(R.menu.menu_actions_with_message)
         val itemSaveAttachmentsIndex = popupMenu.menu.size().minus(LAST_ITEM_OFFSET)
+        val itemDeleteMessageIndex = itemSaveAttachmentsIndex.minus(LAST_ITEM_OFFSET)
         popupMenu.menu.getItem(itemSaveAttachmentsIndex).isVisible = effect.urls.isNotEmpty()
+        popupMenu.menu.getItem(itemDeleteMessageIndex).isVisible = effect.isAdmin
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.itemAddReaction -> {
@@ -302,6 +318,11 @@ class MessagesFragment :
                     store.accept(
                         MessagesScreenEvent.Ui.CopyToClipboard(requireContext(), effect.messageView)
                     )
+                    true
+                }
+
+                R.id.itemDeleteMessage -> {
+                    store.accept(MessagesScreenEvent.Ui.ConfirmDeleteMessage(effect.messageView))
                     true
                 }
 

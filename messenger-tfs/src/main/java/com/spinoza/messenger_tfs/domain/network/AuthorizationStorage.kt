@@ -14,11 +14,19 @@ interface AuthorizationStorage {
 
     fun getUserId(): Long
 
+    fun isAdmin(): Boolean
+
     fun getEmail(): String
 
     fun getPassword(): String
 
-    fun saveData(userId: Long, email: String, password: String, apiKey: String = EMPTY_STRING)
+    fun saveData(
+        userId: Long,
+        isAdmin: Boolean,
+        email: String,
+        password: String,
+        apiKey: String = EMPTY_STRING,
+    )
 
     fun deleteData()
 

@@ -47,4 +47,6 @@ sealed class MessagesScreenCommand {
     class CopyToClipboard(val context: Context, val content: String) : MessagesScreenCommand()
 
     class SaveAttachments(val context: Context, val urls: List<String>) : MessagesScreenCommand()
+
+    class DeleteMessage(val messageId: Long) : MessagesScreenCommand()
 }
