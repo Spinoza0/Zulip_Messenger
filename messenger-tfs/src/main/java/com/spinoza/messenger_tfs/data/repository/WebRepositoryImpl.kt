@@ -80,16 +80,13 @@ class WebRepositoryImpl @Inject constructor(
                 val apiKeyResponse =
                     apiRequest<ApiKeyResponse> { apiService.fetchApiKey(email, password) }
                 authorizationStorage.makeAuthHeader(apiKeyResponse.email, apiKeyResponse.apiKey)
-                getOwnUser().onSuccess {
-                    authorizationStorage.saveData(
-                        it.userId,
-                        apiKeyResponse.email,
-                        password,
-                        apiKeyResponse.apiKey
-                    )
-                    return@runCatchingNonCancellation authorizationStorage.getUserId()
-                }
-                User.UNDEFINED_ID
+                authorizationStorage.saveData(
+                    apiKeyResponse.userId,
+                    apiKeyResponse.email,
+                    password,
+                    apiKeyResponse.apiKey
+                )
+                authorizationStorage.getUserId()
             }
         }
 
