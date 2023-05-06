@@ -8,7 +8,9 @@ import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.people.GetAllUsersUseCase
 import com.spinoza.messenger_tfs.domain.util.isContainingWords
 import com.spinoza.messenger_tfs.domain.util.splitToWords
@@ -37,6 +39,8 @@ import javax.inject.Inject
 
 class PeopleActor @Inject constructor(
     lifecycle: Lifecycle,
+    private val authorizationStorage: AuthorizationStorage,
+    private val logInUseCase: LogInUseCase,
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
     private val eventsQueue: EventsQueueHolder,
@@ -83,8 +87,27 @@ class PeopleActor @Inject constructor(
                 delay(DELAY_BEFORE_UPDATE_INFO)
                 PeopleScreenEvent.Internal.EmptyQueueEvent
             }
+
+            is PeopleScreenCommand.LogIn -> logIn()
         }
         emit(event)
+    }
+
+    private suspend fun logIn(): PeopleScreenEvent.Internal {
+        var event: PeopleScreenEvent.Internal = PeopleScreenEvent.Internal.Idle
+        logInUseCase(
+            authorizationStorage.getEmail(),
+            authorizationStorage.getPassword()
+        ).onSuccess {
+            event = PeopleScreenEvent.Internal.LoginSuccess
+        }.onFailure { error ->
+            event = if (error is RepositoryError) {
+                PeopleScreenEvent.Internal.LogOut
+            } else {
+                PeopleScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+            }
+        }
+        return event
     }
 
     private suspend fun setNewFilter(filter: String): PeopleScreenEvent.Internal {

@@ -70,6 +70,7 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         savedInstanceState?.let {
+            store.accept(PeopleScreenEvent.Ui.CheckLoginStatus)
             recyclerViewState = it.getParam<Parcelable>(PARAM_RECYCLERVIEW_STATE)
         }
         setupRecyclerView()

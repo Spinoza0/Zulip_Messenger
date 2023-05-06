@@ -8,6 +8,8 @@ sealed class PeopleScreenEvent {
 
         object Init : Ui()
 
+        object CheckLoginStatus : Ui()
+
         object Load : Ui()
 
         class Filter(val value: String) : Ui()
@@ -22,6 +24,10 @@ sealed class PeopleScreenEvent {
     sealed class Internal : PeopleScreenEvent() {
 
         object Idle : Internal()
+
+        object LoginSuccess : Internal()
+
+        object LogOut : Internal()
 
         object EmptyQueueEvent : Internal()
 
