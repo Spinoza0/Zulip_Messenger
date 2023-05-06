@@ -13,6 +13,8 @@ sealed class MessagesScreenEvent {
 
         object Init : Ui()
 
+        object CheckLoginStatus : Ui()
+
         object Reload : Ui()
 
         class Load(val filter: MessagesFilter) : Ui()
@@ -60,6 +62,10 @@ sealed class MessagesScreenEvent {
     sealed class Internal : MessagesScreenEvent() {
 
         object Idle : Internal()
+
+        object LoginSuccess : Internal()
+
+        object LogOut : Internal()
 
         object EmptyMessagesQueueEvent : Internal()
 
