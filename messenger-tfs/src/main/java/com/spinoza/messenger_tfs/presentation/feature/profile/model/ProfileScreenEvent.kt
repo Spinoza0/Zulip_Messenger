@@ -6,7 +6,9 @@ sealed class ProfileScreenEvent {
 
     sealed class Ui : ProfileScreenEvent() {
 
-        object Init : Ui()
+        object Idle : Ui()
+
+        object CheckLoginStatus : Ui()
 
         object GoBack : Ui()
 
@@ -24,6 +26,10 @@ sealed class ProfileScreenEvent {
         object Idle : Internal()
 
         object EmptyQueueEvent : Internal()
+
+        object LoginSuccess : Internal()
+
+        object LogOut : Internal()
 
         class UserLoaded(val value: User) : Internal()
 

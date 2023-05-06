@@ -29,6 +29,14 @@ class AuthorizationStorageImpl @Inject constructor(context: Context) : Authoriza
 
     private var editor = sharedPreferences.edit()
 
+    override fun isUserLoggedIn(): Boolean {
+        return userId != User.UNDEFINED_ID && headerValue.isNotBlank()
+    }
+
+    override fun isAuthorizationDataExisted(): Boolean {
+        return getApiKey().isNotBlank() && getEmail().isNotBlank() && getPassword().isNotBlank()
+    }
+
     override fun makeAuthHeader(email: String, apiKey: String): String {
         val newApiKey = apiKey.ifBlank { getApiKey() }
         headerValue = if (newApiKey.isBlank()) EMPTY_STRING else Credentials.basic(email, newApiKey)
@@ -53,10 +61,6 @@ class AuthorizationStorageImpl @Inject constructor(context: Context) : Authoriza
         return sharedPreferences.getString(PARAM_PASSWORD, EMPTY_STRING) ?: EMPTY_STRING
     }
 
-    override fun getApiKey(): String {
-        return sharedPreferences.getString(PARAM_API_KEY, EMPTY_STRING) ?: EMPTY_STRING
-    }
-
     override fun saveData(userId: Long, email: String, password: String, apiKey: String) {
         this.userId = userId
         editor.putString(PARAM_EMAIL, email)
@@ -71,6 +75,10 @@ class AuthorizationStorageImpl @Inject constructor(context: Context) : Authoriza
         userId = User.UNDEFINED_ID
         headerValue = EMPTY_STRING
         editor.clear().apply()
+    }
+
+    private fun getApiKey(): String {
+        return sharedPreferences.getString(PARAM_API_KEY, EMPTY_STRING) ?: EMPTY_STRING
     }
 
     private companion object {

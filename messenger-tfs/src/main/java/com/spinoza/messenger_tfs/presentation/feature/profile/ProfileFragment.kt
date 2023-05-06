@@ -42,7 +42,7 @@ open class ProfileFragment :
     private var _binding: FragmentProfileBinding? = null
 
     override val initEvent: ProfileScreenEvent
-        get() = ProfileScreenEvent.Ui.Init
+        get() = ProfileScreenEvent.Ui.Idle
 
     override val storeHolder:
             StoreHolder<ProfileScreenEvent, ProfileScreenEffect, ProfileScreenState> by lazy {

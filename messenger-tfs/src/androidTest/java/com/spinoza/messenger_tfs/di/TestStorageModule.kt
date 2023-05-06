@@ -18,6 +18,10 @@ object TestStorageModule {
     @Provides
     fun provideUserManager(): AuthorizationStorage = object : AuthorizationStorage {
 
+        override fun isUserLoggedIn(): Boolean = true
+
+        override fun isAuthorizationDataExisted(): Boolean = true
+
         override fun makeAuthHeader(email: String, apiKey: String): String = "AuthHeader"
 
         override fun getAuthHeaderTitle(): String = "Title"
@@ -27,8 +31,6 @@ object TestStorageModule {
         override fun getUserId(): Long = 604180
 
         override fun saveData(userId: Long, email: String, password: String, apiKey: String) {}
-
-        override fun getApiKey(): String = "key"
 
         override fun getEmail(): String = "email"
 

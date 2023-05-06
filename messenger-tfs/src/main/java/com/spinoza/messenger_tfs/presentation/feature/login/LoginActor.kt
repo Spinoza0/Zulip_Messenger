@@ -46,7 +46,7 @@ class LoginActor @Inject constructor(
             val event = when (command) {
                 is LoginScreenCommand.NewEmailText -> newEmailStatus(command.value)
                 is LoginScreenCommand.NewPasswordText -> newPasswordStatus(command.value)
-                is LoginScreenCommand.ButtonPressed -> checkUserLogin(command)
+                is LoginScreenCommand.LogIn -> logIn(command)
             }
             emit(event)
         }
@@ -71,9 +71,7 @@ class LoginActor @Inject constructor(
         return LoginScreenEvent.Internal.Idle
     }
 
-    private suspend fun checkUserLogin(
-        command: LoginScreenCommand.ButtonPressed,
-    ): LoginScreenEvent.Internal {
+    private suspend fun logIn(command: LoginScreenCommand.LogIn): LoginScreenEvent.Internal {
         var event: LoginScreenEvent.Internal = LoginScreenEvent.Internal.Idle
         val email = command.email.trim()
         val password = command.password.trim()

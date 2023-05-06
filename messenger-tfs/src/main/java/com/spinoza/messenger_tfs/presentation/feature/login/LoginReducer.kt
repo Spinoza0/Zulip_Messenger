@@ -60,20 +60,22 @@ class LoginReducer @Inject constructor(
 
         is LoginScreenEvent.Ui.ButtonPressed -> {
             state { copy(isCheckingLogin = true) }
-            commands { +LoginScreenCommand.ButtonPressed(event.email, event.password) }
+            commands { +LoginScreenCommand.LogIn(event.email, event.password) }
         }
 
-        is LoginScreenEvent.Ui.CheckPreviousLogin -> {
+        is LoginScreenEvent.Ui.CheckLoginStatus -> {
             if (event.logout) {
                 authorizationStorage.deleteData()
                 state { copy(isNeedLogin = true) }
             } else {
-                val apiKey = authorizationStorage.getApiKey()
-                val email = authorizationStorage.getEmail()
-                val password = authorizationStorage.getPassword()
-                if (apiKey.isNotBlank() && password.isNotBlank() && email.isNotBlank()) {
+                if (authorizationStorage.isAuthorizationDataExisted()) {
                     state { copy(isNeedLogin = false) }
-                    commands { +LoginScreenCommand.ButtonPressed(email, password) }
+                    commands {
+                        +LoginScreenCommand.LogIn(
+                            authorizationStorage.getEmail(),
+                            authorizationStorage.getPassword()
+                        )
+                    }
                 } else {
                     state { copy(isNeedLogin = true) }
                 }

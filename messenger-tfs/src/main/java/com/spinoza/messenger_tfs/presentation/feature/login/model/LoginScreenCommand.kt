@@ -6,5 +6,5 @@ sealed class LoginScreenCommand {
 
     class NewPasswordText(val value: CharSequence?) : LoginScreenCommand()
 
-    class ButtonPressed(val email: String, val password: String) : LoginScreenCommand()
+    class LogIn(val email: String, val password: String) : LoginScreenCommand()
 }

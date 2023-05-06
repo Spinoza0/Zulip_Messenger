@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.profile
 
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
@@ -9,7 +10,10 @@ import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 import javax.inject.Inject
 
-class ProfileReducer @Inject constructor(private val router: AppRouter) : ScreenDslReducer<
+class ProfileReducer @Inject constructor(
+    private val router: AppRouter,
+    private val authorizationStorage: AuthorizationStorage,
+) : ScreenDslReducer<
         ProfileScreenEvent,
         ProfileScreenEvent.Ui,
         ProfileScreenEvent.Internal,
@@ -36,10 +40,23 @@ class ProfileReducer @Inject constructor(private val router: AppRouter) : Screen
             effects { +ProfileScreenEffect.Failure.ErrorNetwork(event.value) }
         }
 
+        is ProfileScreenEvent.Internal.LogOut -> router.exit()
+        is ProfileScreenEvent.Internal.LoginSuccess -> {}
         is ProfileScreenEvent.Internal.Idle -> {}
     }
 
     override fun Result.ui(event: ProfileScreenEvent.Ui) = when (event) {
+        is ProfileScreenEvent.Ui.CheckLoginStatus -> {
+            if (!authorizationStorage.isUserLoggedIn()) {
+                if (authorizationStorage.isAuthorizationDataExisted()) {
+                    commands { +ProfileScreenCommand.LogIn }
+                } else {
+                    router.exit()
+                }
+            }
+            effects { }
+        }
+
         is ProfileScreenEvent.Ui.LoadCurrentUser -> {
             state { copy(isLoading = true) }
             commands { +ProfileScreenCommand.LoadCurrentUser }
@@ -56,6 +73,6 @@ class ProfileReducer @Inject constructor(private val router: AppRouter) : Screen
         }
 
         is ProfileScreenEvent.Ui.Logout -> router.replaceScreen(Screens.Login(true))
-        is ProfileScreenEvent.Ui.Init -> {}
+        is ProfileScreenEvent.Ui.Idle -> {}
     }
 }

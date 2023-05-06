@@ -65,7 +65,7 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
         super.onViewCreated(view, savedInstanceState)
         setupListeners()
         binding.textViewForgotPassword.movementMethod = LinkMovementMethod.getInstance()
-        store.accept(LoginScreenEvent.Ui.CheckPreviousLogin(requireContext(), getParamLogout()))
+        store.accept(LoginScreenEvent.Ui.CheckLoginStatus(getParamLogout()))
     }
 
     override fun render(state: LoginScreenState) {
