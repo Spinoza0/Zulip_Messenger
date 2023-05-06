@@ -29,6 +29,7 @@ import com.spinoza.messenger_tfs.domain.usecase.event.GetReactionEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.DeleteMessageUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetMessageRawContentUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetOwnUserIdUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetStoredMessagesUseCase
@@ -75,6 +76,7 @@ class MessagesActor @Inject constructor(
     private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
     private val getStoredMessagesUseCase: GetStoredMessagesUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
+    private val getMessageRawContentUseCase: GetMessageRawContentUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
     private val deleteMessageUseCase: DeleteMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
@@ -513,10 +515,13 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         val context = command.context
         val content = command.content
+        val text = getMessageRawContentUseCase(
+            command.messageId,
+            Html.fromHtml(content, Html.FROM_HTML_MODE_COMPACT).toString()
+        )
         val clipboard =
             context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-        val text = Html.fromHtml(content, Html.FROM_HTML_MODE_COMPACT).toString()
-        val clip = ClipData.newHtmlText(context.getString(R.string.message), text, content)
+        val clip = ClipData.newPlainText(context.getString(R.string.message), text)
         clipboard.setPrimaryClip(clip)
         return getIdleEvent()
     }

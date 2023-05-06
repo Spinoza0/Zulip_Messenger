@@ -76,6 +76,7 @@ interface ZulipApiService {
     @GET("messages/{$QUERY_MESSAGE_ID}")
     suspend fun getSingleMessage(
         @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): SingleMessageResponse
 
     @POST("messages/{$QUERY_MESSAGE_ID}/reactions")

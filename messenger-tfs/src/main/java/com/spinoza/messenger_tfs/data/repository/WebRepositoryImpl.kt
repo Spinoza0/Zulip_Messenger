@@ -489,6 +489,20 @@ class WebRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getMessageRawContent(
+        messageId: Long,
+        default: String,
+    ): String = withContext(ioDispatcher) {
+        var result = default
+        runCatchingNonCancellation {
+            val singleMessageResponse = apiRequest<SingleMessageResponse> {
+                apiService.getSingleMessage(messageId, false)
+            }
+            result = singleMessageResponse.message.content
+        }
+        result
+    }
+
     private suspend fun getUserPresence(userId: Long): User.Presence = runCatchingNonCancellation {
         val presenceResponse = apiService.getUserPresence(userId)
         if (presenceResponse.result == RESULT_SUCCESS) {

@@ -247,6 +247,7 @@ class MessagesReducer @Inject constructor(
             commands {
                 +MessagesScreenCommand.CopyToClipboard(
                     event.context,
+                    event.messageView.messageId,
                     event.messageView.rawContent
                 )
             }

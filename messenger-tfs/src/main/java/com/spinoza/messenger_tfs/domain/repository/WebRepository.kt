@@ -31,6 +31,8 @@ interface WebRepository {
         filter: MessagesFilter,
     ): Result<MessagesResult>
 
+    suspend fun getMessageRawContent(messageId: Long, default: String): String
+
     suspend fun deleteMessage(messageId: Long): Result<Boolean>
 
     suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>
