@@ -4,9 +4,9 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
+import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
-import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -82,7 +82,7 @@ class LoginActor @Inject constructor(
                 event = if (error is RepositoryError) {
                     LoginScreenEvent.Internal.ErrorLogin(error.value)
                 } else {
-                    LoginScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+                    LoginScreenEvent.Internal.ErrorNetwork(error.getText())
                 }
             }
         }

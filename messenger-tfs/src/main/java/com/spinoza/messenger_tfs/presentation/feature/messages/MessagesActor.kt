@@ -38,6 +38,7 @@ import com.spinoza.messenger_tfs.domain.usecase.messages.SetMessagesFlagToReadUs
 import com.spinoza.messenger_tfs.domain.usecase.messages.SetOwnStatusActiveUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.UploadFileUseCase
+import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
@@ -46,7 +47,6 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesRes
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -209,7 +209,7 @@ class MessagesActor @Inject constructor(
             event = if (error is RepositoryError) {
                 MessagesScreenEvent.Internal.LogOut
             } else {
-                MessagesScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+                MessagesScreenEvent.Internal.ErrorNetwork(error.getText())
             }
         }
         return event
@@ -523,7 +523,7 @@ class MessagesActor @Inject constructor(
         return if (error is RepositoryError) {
             MessagesScreenEvent.Internal.ErrorMessages(error.value)
         } else {
-            MessagesScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+            MessagesScreenEvent.Internal.ErrorNetwork(error.getText())
         }
     }
 

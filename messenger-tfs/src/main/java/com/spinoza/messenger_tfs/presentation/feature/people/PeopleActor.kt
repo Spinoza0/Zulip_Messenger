@@ -12,12 +12,12 @@ import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.people.GetAllUsersUseCase
+import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.domain.util.isContainingWords
 import com.spinoza.messenger_tfs.domain.util.splitToWords
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -104,7 +104,7 @@ class PeopleActor @Inject constructor(
             event = if (error is RepositoryError) {
                 PeopleScreenEvent.Internal.LogOut
             } else {
-                PeopleScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+                PeopleScreenEvent.Internal.ErrorNetwork(error.getText())
             }
         }
         return event
@@ -144,7 +144,7 @@ class PeopleActor @Inject constructor(
             event = if (error is RepositoryError) {
                 PeopleScreenEvent.Internal.ErrorUserLoading(error.value)
             } else {
-                PeopleScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+                PeopleScreenEvent.Internal.ErrorNetwork(error.getText())
             }
         }
         isLoading = false

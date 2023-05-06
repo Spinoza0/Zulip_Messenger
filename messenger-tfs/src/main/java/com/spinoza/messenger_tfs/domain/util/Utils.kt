@@ -9,3 +9,5 @@ fun String.isContainingWords(words: List<String>): Boolean {
         this.contains(word, true)
     }
 }
+
+fun Throwable.getText(): String = localizedMessage ?: message ?: toString()

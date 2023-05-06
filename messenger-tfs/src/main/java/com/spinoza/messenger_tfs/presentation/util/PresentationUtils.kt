@@ -26,8 +26,6 @@ fun Context.getThemeColor(attr: Int): Int {
     return typedValue.data
 }
 
-fun Throwable.getErrorText(): String = localizedMessage ?: message ?: toString()
-
 fun ShimmerFrameLayout.on() {
     isVisible = true
     startShimmer()
