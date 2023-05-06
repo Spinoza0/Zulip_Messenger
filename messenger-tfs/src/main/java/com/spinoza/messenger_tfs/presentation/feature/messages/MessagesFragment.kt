@@ -288,11 +288,20 @@ class MessagesFragment :
 
     private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
         val popupMenu = PopupMenu(requireContext(), binding.textViewTopic)
-        popupMenu.inflate(R.menu.menu_long_click_on_message)
+        popupMenu.inflate(R.menu.menu_actions_with_message)
+        val itemSaveAttachmentsIndex = popupMenu.menu.size().minus(LAST_ITEM_OFFSET)
+        popupMenu.menu.getItem(itemSaveAttachmentsIndex).isVisible = effect.urls.isNotEmpty()
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.itemAddReaction -> {
                     onReactionAddClickListener(effect.messageView)
+                    true
+                }
+
+                R.id.itemCopyToClipboard -> {
+                    store.accept(
+                        MessagesScreenEvent.Ui.CopyToClipboard(requireContext(), effect.messageView)
+                    )
                     true
                 }
 

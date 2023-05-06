@@ -181,13 +181,7 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Ui.OnMessageLongClick -> {
             val attachments = webUtil.getAttachmentsUrls(event.messageView.rawContent)
-            if (attachments.isNotEmpty()) {
-                effects { +MessagesScreenEffect.ShowMessageMenu(attachments, event.messageView) }
-            } else {
-                effects {
-                    +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId)
-                }
-            }
+            effects { +MessagesScreenEffect.ShowMessageMenu(attachments, event.messageView) }
         }
 
         is MessagesScreenEvent.Ui.Load ->
@@ -242,6 +236,14 @@ class MessagesReducer @Inject constructor(
             state { copy(isLongOperation = true) }
             commands { +MessagesScreenCommand.UploadFile(event.context, event.uri) }
         }
+
+        is MessagesScreenEvent.Ui.CopyToClipboard ->
+            commands {
+                +MessagesScreenCommand.CopyToClipboard(
+                    event.context,
+                    event.messageView.rawContent
+                )
+            }
 
         is MessagesScreenEvent.Ui.SaveAttachments ->
             commands { +MessagesScreenCommand.SaveAttachments(event.context, event.urls) }

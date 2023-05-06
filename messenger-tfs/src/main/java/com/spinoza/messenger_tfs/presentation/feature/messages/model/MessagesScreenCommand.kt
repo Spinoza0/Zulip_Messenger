@@ -44,5 +44,7 @@ sealed class MessagesScreenCommand {
 
     class UploadFile(val context: Context, val uri: Uri) : MessagesScreenCommand()
 
+    class CopyToClipboard(val context: Context, val content: String) : MessagesScreenCommand()
+
     class SaveAttachments(val context: Context, val urls: List<String>) : MessagesScreenCommand()
 }

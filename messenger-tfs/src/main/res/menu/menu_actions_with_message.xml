@@ -5,6 +5,10 @@
         android:title="@string/add_reaction" />
 
     <item
+        android:id="@+id/itemCopyToClipboard"
+        android:title="@string/copy_to_clipboard" />
+
+    <item
         android:id="@+id/itemSaveAttachments"
         android:title="@string/save_attachments" />
 </menu>

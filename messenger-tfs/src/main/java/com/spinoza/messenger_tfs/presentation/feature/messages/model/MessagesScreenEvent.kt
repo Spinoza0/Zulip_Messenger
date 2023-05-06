@@ -52,6 +52,8 @@ sealed class MessagesScreenEvent {
 
         class OnMessageLongClick(val messageView: MessageView) : Ui()
 
+        class CopyToClipboard(val context: Context, val messageView: MessageView) : Ui()
+
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
         class UploadFile(val context: Context, val uri: Uri) : Ui()

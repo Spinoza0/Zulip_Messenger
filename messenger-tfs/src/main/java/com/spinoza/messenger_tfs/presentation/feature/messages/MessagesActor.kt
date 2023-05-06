@@ -1,5 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
+import android.content.ClipData
+import android.content.Context
+import android.text.Html
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -188,6 +191,7 @@ class MessagesActor @Inject constructor(
                 }
 
                 is MessagesScreenCommand.UploadFile -> uploadFile(command)
+                is MessagesScreenCommand.CopyToClipboard -> copyToClipboard(command)
                 is MessagesScreenCommand.SaveAttachments -> saveAttachments(command)
                 is MessagesScreenCommand.LogIn -> logIn()
             }
@@ -491,6 +495,19 @@ class MessagesActor @Inject constructor(
         }.onFailure {
             return handleErrors(it)
         }
+        return getIdleEvent()
+    }
+
+    private suspend fun copyToClipboard(
+        command: MessagesScreenCommand.CopyToClipboard,
+    ): MessagesScreenEvent.Internal {
+        val context = command.context
+        val content = command.content
+        val clipboard =
+            context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val text = Html.fromHtml(content, Html.FROM_HTML_MODE_COMPACT).toString()
+        val clip = ClipData.newHtmlText(context.getString(R.string.message), text, content)
+        clipboard.setPrimaryClip(clip)
         return getIdleEvent()
     }
 
