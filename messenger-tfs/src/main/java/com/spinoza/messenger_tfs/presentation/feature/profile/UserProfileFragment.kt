@@ -21,6 +21,7 @@ class UserProfileFragment : ProfileFragment() {
         if (savedInstanceState == null) {
             store.accept(ProfileScreenEvent.Ui.LoadUser(userId))
         } else {
+            store.accept(ProfileScreenEvent.Ui.CheckLoginStatus)
             store.accept(ProfileScreenEvent.Ui.SubscribePresence(store.currentState.user))
         }
     }
