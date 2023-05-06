@@ -72,9 +72,13 @@ class WebRepositoryImpl @Inject constructor(
 
     override suspend fun getLoggedInUserId(email: String, password: String): Result<Long> =
         withContext(ioDispatcher) {
-            if (authorizationStorage.makeAuthHeader(email).isNotBlank()) getOwnUser().onSuccess {
-                authorizationStorage.saveData(it.userId, email, password)
-                return@withContext Result.success(authorizationStorage.getUserId())
+            if (authorizationStorage.makeAuthHeader(email).isNotBlank()) {
+                runCatchingNonCancellation {
+                    apiRequest<OwnUserResponse> { apiService.getOwnUser() }
+                }.onSuccess {
+                    authorizationStorage.saveData(it.userId, email, password)
+                    return@withContext Result.success(authorizationStorage.getUserId())
+                }
             }
             runCatchingNonCancellation {
                 val apiKeyResponse =
