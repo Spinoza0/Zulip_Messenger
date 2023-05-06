@@ -17,7 +17,7 @@ suspend fun <R> runCatchingNonCancellation(block: suspend () -> R): Result<R> {
         Result.success(block())
     } catch (e: CancellationException) {
         throw e
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         Result.failure(e)
     }
 }
