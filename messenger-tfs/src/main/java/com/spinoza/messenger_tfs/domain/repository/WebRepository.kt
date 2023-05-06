@@ -18,7 +18,7 @@ import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 
 interface WebRepository {
 
-    suspend fun getLoggedInUserId(email: String, password: String): Result<Long>
+    suspend fun logIn(email: String, password: String): Result<Boolean>
 
     suspend fun getOwnUser(): Result<User>
 

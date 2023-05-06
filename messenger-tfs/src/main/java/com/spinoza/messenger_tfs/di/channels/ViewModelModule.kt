@@ -3,6 +3,7 @@ package com.spinoza.messenger_tfs.di.channels
 import androidx.lifecycle.ViewModel
 import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.di.DispatcherDefault
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredTopicsUseCase
@@ -11,6 +12,7 @@ import com.spinoza.messenger_tfs.domain.usecase.channels.GetTopicsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsPageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
@@ -35,7 +37,9 @@ interface ViewModelModule {
         @Provides
         fun provideChannelsPageFragmentViewModel(
             @ChannelIsSubscribed isSubscribed: Boolean,
+            authorizationStorage: AuthorizationStorage,
             router: AppRouter,
+            logInUseCase: LogInUseCase,
             getStoredTopicsUseCase: GetStoredTopicsUseCase,
             getTopicsUseCase: GetTopicsUseCase,
             getStoredChannelsUseCase: GetStoredChannelsUseCase,
@@ -48,7 +52,9 @@ interface ViewModelModule {
         ): ViewModel {
             return ChannelsPageFragmentViewModel(
                 isSubscribed,
+                authorizationStorage,
                 router,
+                logInUseCase,
                 getStoredTopicsUseCase,
                 getTopicsUseCase,
                 getStoredChannelsUseCase,

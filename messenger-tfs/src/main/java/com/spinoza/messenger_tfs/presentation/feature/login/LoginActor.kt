@@ -3,7 +3,7 @@ package com.spinoza.messenger_tfs.presentation.feature.login
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.login.GetLoggedInUserIdUseCase
+import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.getErrorText
@@ -25,7 +25,7 @@ import javax.inject.Inject
 
 class LoginActor @Inject constructor(
     private val lifecycleScope: LifecycleCoroutineScope,
-    private val getLoggedInUserIdUseCase: GetLoggedInUserIdUseCase,
+    private val logInUseCase: LogInUseCase,
     @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<LoginScreenCommand, LoginScreenEvent.Internal> {
 
@@ -76,7 +76,7 @@ class LoginActor @Inject constructor(
         val email = command.email.trim()
         val password = command.password.trim()
         if (email.isNotBlank() && password.isNotBlank()) {
-            getLoggedInUserIdUseCase(command.email.trim(), command.password.trim()).onSuccess {
+            logInUseCase(command.email.trim(), command.password.trim()).onSuccess {
                 event = LoginScreenEvent.Internal.LoginSuccess
             }.onFailure { error ->
                 event = if (error is RepositoryError) {

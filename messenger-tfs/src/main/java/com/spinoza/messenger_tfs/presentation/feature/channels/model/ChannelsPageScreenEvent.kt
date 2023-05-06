@@ -7,6 +7,8 @@ sealed class ChannelsPageScreenEvent {
 
     sealed class Ui : ChannelsPageScreenEvent() {
 
+        object CheckLoginStatus : Ui()
+
         object UpdateMessageCount : Ui()
 
         object Load : Ui()

@@ -70,14 +70,14 @@ class WebRepositoryImpl @Inject constructor(
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : WebRepository {
 
-    override suspend fun getLoggedInUserId(email: String, password: String): Result<Long> =
+    override suspend fun logIn(email: String, password: String): Result<Boolean> =
         withContext(ioDispatcher) {
             if (authorizationStorage.makeAuthHeader(email).isNotBlank()) {
                 runCatchingNonCancellation {
                     apiRequest<OwnUserResponse> { apiService.getOwnUser() }
                 }.onSuccess {
                     authorizationStorage.saveData(it.userId, email, password)
-                    return@withContext Result.success(authorizationStorage.getUserId())
+                    return@withContext Result.success(true)
                 }
             }
             runCatchingNonCancellation {
@@ -90,7 +90,7 @@ class WebRepositoryImpl @Inject constructor(
                     password,
                     apiKeyResponse.apiKey
                 )
-                authorizationStorage.getUserId()
+                true
             }
         }
 

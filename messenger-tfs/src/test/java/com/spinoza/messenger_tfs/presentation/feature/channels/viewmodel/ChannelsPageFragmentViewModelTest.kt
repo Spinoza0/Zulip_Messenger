@@ -9,8 +9,10 @@ import com.spinoza.messenger_tfs.domain.usecase.channels.GetTopicsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
 import com.spinoza.messenger_tfs.stub.AppRouterStub
+import com.spinoza.messenger_tfs.stub.AuthorizationStorageStub
 import com.spinoza.messenger_tfs.stub.DaoRepositoryStub
 import com.spinoza.messenger_tfs.stub.WebRepositoryStub
 import com.spinoza.messenger_tfs.util.MainDispatcherRule
@@ -49,7 +51,9 @@ class ChannelsPageFragmentViewModelTest {
         val daoRepository = DaoRepositoryStub()
         return ChannelsPageFragmentViewModel(
             isSubscribed = true,
+            authorizationStorage = AuthorizationStorageStub(),
             router = AppRouterStub(),
+            logInUseCase = LogInUseCase(webRepository),
             getStoredChannelsUseCase = GetStoredChannelsUseCase(daoRepository),
             getStoredTopicsUseCase = GetStoredTopicsUseCase(daoRepository),
             getTopicsUseCase = GetTopicsUseCase(webRepository),

@@ -26,11 +26,11 @@ class WebRepositoryStub : WebRepository {
     private val ownUser = createUserDto(0)
     private val user = createUserDto(1)
 
-    override suspend fun getLoggedInUserId(
+    override suspend fun logIn(
         email: String,
         password: String,
-    ): Result<Long> {
-        return Result.success(0)
+    ): Result<Boolean> {
+        return Result.success(true)
     }
 
     override suspend fun getOwnUser(): Result<User> {
