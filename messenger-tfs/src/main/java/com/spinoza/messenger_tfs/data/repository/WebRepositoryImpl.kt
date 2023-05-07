@@ -436,6 +436,7 @@ class WebRepositoryImpl @Inject constructor(
             eventResponse.events.forEach { updateMessageEventDto ->
                 messagesCache.update(
                     updateMessageEventDto.messageId,
+                    updateMessageEventDto.subject,
                     updateMessageEventDto.renderedContent
                 )
             }

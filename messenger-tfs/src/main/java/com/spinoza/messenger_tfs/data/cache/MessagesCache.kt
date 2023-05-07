@@ -62,10 +62,17 @@ class MessagesCache @Inject constructor(
         }
     }
 
-    suspend fun update(messageId: Long, content: String) {
+    suspend fun update(messageId: Long, subject: String?, content: String?) {
         dataMutex.withLock {
-            val message = data.find { it.id == messageId } ?: return
-            replace(message.copy(content = content))
+            val oldMessage = data.find { it.id == messageId } ?: return
+            var newMessage = oldMessage
+            if (subject != null) {
+                newMessage = oldMessage.copy(subject = subject)
+            }
+            if (content != null) {
+                newMessage = newMessage.copy(content = content)
+            }
+            replace(newMessage)
         }
     }
 

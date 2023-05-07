@@ -137,8 +137,10 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Internal.FilesDownloaded ->
             effects { +MessagesScreenEffect.FilesDownloaded(event.value) }
 
-        is MessagesScreenEvent.Internal.RawMessageContent ->
+        is MessagesScreenEvent.Internal.RawMessageContent -> {
+            state { copy(isLongOperation = false) }
             effects { +MessagesScreenEffect.RawMessageContent(event.messageId, event.content) }
+        }
 
         is MessagesScreenEvent.Internal.ErrorMessages -> {
             state { copy(isLoading = false, isLongOperation = false, isSendingMessage = false) }
@@ -273,13 +275,15 @@ class MessagesReducer @Inject constructor(
                 )
             }
 
-        is MessagesScreenEvent.Ui.GetRawMessageContent ->
+        is MessagesScreenEvent.Ui.GetRawMessageContent -> {
+            state { copy(isLongOperation = true) }
             commands {
                 +MessagesScreenCommand.GetRawMessageContent(
                     event.messageView.messageId,
                     event.messageView.rawContent
                 )
             }
+        }
 
         is MessagesScreenEvent.Ui.EditMessageContent ->
             commands { +MessagesScreenCommand.EditMessageContent(event.messageId, event.content) }

@@ -8,5 +8,6 @@ data class UpdateMessageEventDto(
     @SerialName("id") val id: Long,
     @SerialName("stream_id") val streamId: Long,
     @SerialName("message_id") val messageId: Long,
-    @SerialName("rendered_content") val renderedContent: String,
+    @SerialName("rendered_content") val renderedContent: String? = null,
+    @SerialName("subject") val subject: String? = null,
 )
