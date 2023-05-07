@@ -15,6 +15,7 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 
 interface WebRepository {
 
@@ -72,6 +73,13 @@ interface WebRepository {
         filter: MessagesFilter,
         isLastMessageVisible: Boolean,
     ): Result<MessageEvent>
+
+
+    suspend fun getUpdateMessageEvent(
+        queue: EventsQueue,
+        filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
+    ): Result<UpdateMessageEvent>
 
     suspend fun getDeleteMessageEvent(
         queue: EventsQueue,

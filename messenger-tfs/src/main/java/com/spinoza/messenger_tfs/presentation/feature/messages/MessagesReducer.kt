@@ -45,6 +45,7 @@ class MessagesReducer @Inject constructor(
             }
             commands {
                 +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
                 +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
                 +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
             }
@@ -77,6 +78,11 @@ class MessagesReducer @Inject constructor(
             commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
         }
 
+        is MessagesScreenEvent.Internal.UpdateMessagesEventFromQueue -> {
+            state { copy(messages = event.value) }
+            commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
+        }
+
         is MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue -> {
             state { copy(messages = event.value) }
             commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
@@ -89,6 +95,9 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Internal.EmptyMessagesQueueEvent ->
             commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
+
+        is MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent ->
+            commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
 
         is MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent ->
             commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }

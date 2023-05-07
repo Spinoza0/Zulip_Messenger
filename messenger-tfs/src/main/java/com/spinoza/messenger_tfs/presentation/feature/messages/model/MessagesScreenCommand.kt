@@ -14,6 +14,8 @@ sealed class MessagesScreenCommand {
 
     class GetMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
 
+    class GetUpdateMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
+
     class GetDeleteMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
 
     class GetReactionsEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()

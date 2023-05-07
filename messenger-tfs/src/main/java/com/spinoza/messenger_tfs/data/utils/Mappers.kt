@@ -204,6 +204,7 @@ private fun EventType.toDto(): EventTypeDto = when (this) {
     EventType.PRESENCE -> EventTypeDto.PRESENCE
     EventType.CHANNEL -> EventTypeDto.STREAM
     EventType.MESSAGE -> EventTypeDto.MESSAGE
+    EventType.UPDATE_MESSAGE -> EventTypeDto.UPDATE_MESSAGE
     EventType.DELETE_MESSAGE -> EventTypeDto.DELETE_MESSAGE
     EventType.REACTION -> EventTypeDto.REACTION
 }

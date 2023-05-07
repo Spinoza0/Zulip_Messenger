@@ -20,12 +20,14 @@ import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.EventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetReactionEventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetUpdateMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.DeleteMessageUseCase
@@ -81,6 +83,7 @@ class MessagesActor @Inject constructor(
     private val deleteMessageUseCase: DeleteMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
     private val getMessageEventUseCase: GetMessageEventUseCase,
+    private val getUpdateMessageEventUseCase: GetUpdateMessageEventUseCase,
     private val getDeleteMessageEventUseCase: GetDeleteMessageEventUseCase,
     private val getReactionEventUseCase: GetReactionEventUseCase,
     private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
@@ -97,6 +100,8 @@ class MessagesActor @Inject constructor(
     private val lifecycleScope = lifecycle.coroutineScope
     private val newMessageFieldState = MutableSharedFlow<String>()
     private var messagesQueue: EventsQueueHolder =
+        EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
+    private var updateMessagesQueue: EventsQueueHolder =
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var deleteMessagesQueue: EventsQueueHolder =
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
@@ -122,6 +127,7 @@ class MessagesActor @Inject constructor(
         override fun onDestroy(owner: LifecycleOwner) {
             lifecycleScope.launch {
                 messagesQueue.deleteQueue()
+                updateMessagesQueue.deleteQueue()
                 deleteMessagesQueue.deleteQueue()
                 reactionsQueue.deleteQueue()
             }
@@ -149,6 +155,9 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.SendMessage -> sendMessage(command.value)
                 is MessagesScreenCommand.GetMessagesEvent ->
                     getMessagesEvent(command.isLastMessageVisible)
+
+                is MessagesScreenCommand.GetUpdateMessagesEvent ->
+                    getUpdateMessagesEvent(command.isLastMessageVisible)
 
                 is MessagesScreenCommand.GetDeleteMessagesEvent ->
                     getDeleteMessagesEvent(command.isLastMessageVisible)
@@ -403,6 +412,16 @@ class MessagesActor @Inject constructor(
         )
     }
 
+    private suspend fun getUpdateMessagesEvent(
+        isLastMessageVisible: Boolean,
+    ): MessagesScreenEvent.Internal {
+        return getEvent(
+            updateMessagesQueue, getUpdateMessageEventUseCase, ::onSuccessUpdateMessageEvent,
+            MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent,
+            isLastMessageVisible
+        )
+    }
+
     private suspend fun getDeleteMessagesEvent(
         isLastMessageVisible: Boolean,
     ): MessagesScreenEvent.Internal {
@@ -429,6 +448,16 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
         return MessagesScreenEvent.Internal.MessagesEventFromQueue(
+            event.messagesResult.toDelegate()
+        )
+    }
+
+    private fun onSuccessUpdateMessageEvent(
+        eventsQueue: EventsQueueHolder,
+        event: UpdateMessageEvent,
+    ): MessagesScreenEvent.Internal {
+        updateLastEventId(eventsQueue, event.lastEventId)
+        return MessagesScreenEvent.Internal.UpdateMessagesEventFromQueue(
             event.messagesResult.toDelegate()
         )
     }
@@ -496,6 +525,7 @@ class MessagesActor @Inject constructor(
 
     private fun registerEventQueues() {
         messagesQueue.registerQueue(listOf(EventType.MESSAGE))
+        updateMessagesQueue.registerQueue(listOf(EventType.UPDATE_MESSAGE))
         deleteMessagesQueue.registerQueue(listOf(EventType.DELETE_MESSAGE))
         reactionsQueue.registerQueue(listOf(EventType.REACTION))
     }

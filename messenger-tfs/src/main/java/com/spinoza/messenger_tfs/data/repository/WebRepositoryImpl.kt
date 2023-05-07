@@ -13,6 +13,7 @@ import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.event.StreamEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.UpdateMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
@@ -52,6 +53,7 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
@@ -416,6 +418,35 @@ class WebRepositoryImpl @Inject constructor(
                     messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
                     MessagePosition(),
                     eventResponse.events.isNotEmpty()
+                )
+            )
+        }
+    }
+
+    override suspend fun getUpdateMessageEvent(
+        queue: EventsQueue,
+        filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
+    ): Result<UpdateMessageEvent> = withContext(ioDispatcher) {
+        runCatchingNonCancellation {
+            val responseBody = getNonHeartBeatEventResponse(queue)
+            val eventResponse = jsonConverter.decodeFromString(
+                UpdateMessageEventsResponse.serializer(), responseBody
+            )
+            if (eventResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(eventResponse.msg)
+            }
+            eventResponse.events.forEach { updateMessageEventDto ->
+                messagesCache.update(
+                    updateMessageEventDto.messageId,
+                    updateMessageEventDto.renderedContent
+                )
+            }
+            UpdateMessageEvent(
+                eventResponse.events.last().id,
+                MessagesResult(
+                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
+                    MessagePosition()
                 )
             )
         }

@@ -79,6 +79,8 @@ sealed class MessagesScreenEvent {
 
         object EmptyMessagesQueueEvent : Internal()
 
+        object EmptyUpdateMessagesQueueEvent : Internal()
+
         object EmptyDeleteMessagesQueueEvent : Internal()
 
         object EmptyReactionsQueueEvent : Internal()
@@ -94,6 +96,8 @@ sealed class MessagesScreenEvent {
         class MessageSent(val messageId: Long) : Internal()
 
         class MessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
+
+        class UpdateMessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
         class DeleteMessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
 

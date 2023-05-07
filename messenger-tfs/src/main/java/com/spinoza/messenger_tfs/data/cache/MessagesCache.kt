@@ -12,6 +12,7 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.TreeSet
@@ -49,10 +50,17 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
                 val subject = if (messagesDto.isNotEmpty()) {
                     messagesDto.first().subject
                 } else {
-                    EMPTY_SUBJECT
+                    EMPTY_STRING
                 }
                 saveToDatabase(messagesPageType == MessagesPageType.OLDEST, subject)
             }
+        }
+    }
+
+    suspend fun update(messageId: Long, content: String) {
+        dataMutex.withLock {
+            val message = data.find { it.id == messageId } ?: return
+            replace(message.copy(content = content))
         }
     }
 
@@ -73,9 +81,8 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
     }
 
     suspend fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
-        val messages = data.filter { messageId == it.id }
-        if (messages.isEmpty()) return
-        val isAddReaction = null == messages.first().reactions.find {
+        val message = data.find { messageId == it.id } ?: return
+        val isAddReaction = null == message.reactions.find {
             it.emojiName == reactionDto.emojiName && it.userId == userId
         }
         updateReaction(
@@ -94,27 +101,25 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
 
     suspend fun updateReaction(reactionEventDto: ReactionEventDto) {
         dataMutex.withLock {
-            data.find { it.id == reactionEventDto.messageId }?.let { messageDto ->
-                val isUserReactionExisting = messageDto.reactions.find {
-                    it.emojiName == reactionEventDto.emoji_name &&
-                            it.userId == reactionEventDto.userId
-                } != null
-                if (reactionEventDto.operation == ReactionEventDto.Operation.ADD.value &&
-                    !isUserReactionExisting
-                ) {
-                    val reactions = mutableListOf<ReactionDto>()
-                    reactions.addAll(messageDto.reactions)
-                    reactions.add(reactionEventDto.toReactionDto())
-                    replace(messageDto.copy(reactions = reactions))
-                }
-                if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value &&
-                    isUserReactionExisting
-                ) {
-                    val reactions = mutableListOf<ReactionDto>()
-                    val reactionToRemove = reactionEventDto.toReactionDto()
-                    reactions.addAll(messageDto.reactions.filter { it != reactionToRemove })
-                    replace(messageDto.copy(reactions = reactions))
-                }
+            val message = data.find { it.id == reactionEventDto.messageId } ?: return
+            val isUserReactionExisting = message.reactions.find {
+                it.emojiName == reactionEventDto.emoji_name && it.userId == reactionEventDto.userId
+            } != null
+            if (reactionEventDto.operation == ReactionEventDto.Operation.ADD.value &&
+                !isUserReactionExisting
+            ) {
+                val reactions = mutableListOf<ReactionDto>()
+                reactions.addAll(message.reactions)
+                reactions.add(reactionEventDto.toReactionDto())
+                replace(message.copy(reactions = reactions))
+            }
+            if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value &&
+                isUserReactionExisting
+            ) {
+                val reactions = mutableListOf<ReactionDto>()
+                val reactionToRemove = reactionEventDto.toReactionDto()
+                reactions.addAll(message.reactions.filter { it != reactionToRemove })
+                replace(message.copy(reactions = reactions))
             }
         }
     }
@@ -162,6 +167,5 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
 
         private const val UNDEFINED_EVENT_ID = -1L
         private const val MAX_CACHE_SIZE = 50
-        private const val EMPTY_SUBJECT = ""
     }
 }
