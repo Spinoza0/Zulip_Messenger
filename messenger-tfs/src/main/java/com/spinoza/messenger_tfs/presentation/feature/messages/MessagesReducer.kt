@@ -271,16 +271,18 @@ class MessagesReducer @Inject constructor(
                 +MessagesScreenCommand.CopyToClipboard(
                     event.context,
                     event.messageView.messageId,
-                    event.messageView.rawContent
+                    event.messageView.rawContent,
+                    event.isMessageWithAttachments
                 )
             }
 
         is MessagesScreenEvent.Ui.GetRawMessageContent -> {
-            state { copy(isLongOperation = true) }
+            state { copy(isLongOperation = event.isMessageWithAttachments) }
             commands {
                 +MessagesScreenCommand.GetRawMessageContent(
                     event.messageView.messageId,
-                    event.messageView.rawContent
+                    event.messageView.rawContent,
+                    event.isMessageWithAttachments
                 )
             }
         }

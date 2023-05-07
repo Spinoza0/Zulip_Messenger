@@ -546,7 +546,8 @@ class MessagesActor @Inject constructor(
         command: MessagesScreenCommand.CopyToClipboard,
     ): MessagesScreenEvent.Internal {
         val context = command.context
-        val text = getRawMessageText(command.messageId, command.content)
+        val text =
+            getRawMessageText(command.messageId, command.content, command.isMessageWithAttachments)
         val clipboard =
             context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
         val clip = ClipData.newPlainText(context.getString(R.string.message), text)
@@ -575,14 +576,23 @@ class MessagesActor @Inject constructor(
     private suspend fun getRawMessageContent(
         command: MessagesScreenCommand.GetRawMessageContent,
     ): MessagesScreenEvent.Internal {
-        val text = getRawMessageText(command.messageId, command.content)
+        val text =
+            getRawMessageText(command.messageId, command.content, command.isMessageWithAttachments)
         return MessagesScreenEvent.Internal.RawMessageContent(command.messageId, text)
     }
 
-    private suspend fun getRawMessageText(messageId: Long, default: String): String {
-        return getMessageRawContentUseCase(
-            messageId, Html.fromHtml(default, Html.FROM_HTML_MODE_COMPACT).toString()
-        )
+    private suspend fun getRawMessageText(
+        messageId: Long, default: String, isMessageWithAttachments: Boolean,
+    ): String {
+        var text = Html.fromHtml(default, Html.FROM_HTML_MODE_COMPACT).toString()
+        if (text.endsWith(LINE_FEED)) {
+            text = text.dropLast(LINE_FEED.length)
+        }
+        return if (isMessageWithAttachments) {
+            getMessageRawContentUseCase(messageId, text)
+        } else {
+            text
+        }
     }
 
     private suspend fun saveAttachments(
@@ -632,5 +642,6 @@ class MessagesActor @Inject constructor(
         const val DELAY_BEFORE_RELOAD = 500L
         const val DELAY_BEFORE_UPDATE_MESSAGE_FILTER = 55_000L
         const val DELAY_AFTER_UPDATE_MESSAGE_FILTER = 5_000L
+        const val LINE_FEED = "\n"
     }
 }

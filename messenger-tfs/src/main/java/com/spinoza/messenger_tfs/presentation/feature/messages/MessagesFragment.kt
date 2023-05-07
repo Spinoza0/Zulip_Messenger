@@ -351,8 +351,9 @@ class MessagesFragment :
 
     private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
         val popupMenu = PopupMenu(requireContext(), binding.textViewTopic)
+        val isMessageWithAttachments = effect.urls.isNotEmpty()
         popupMenu.inflate(R.menu.menu_actions_with_message)
-        popupMenu.menu.findItem(R.id.itemSaveAttachments).isVisible = effect.urls.isNotEmpty()
+        popupMenu.menu.findItem(R.id.itemSaveAttachments).isVisible = isMessageWithAttachments
         popupMenu.menu.findItem(R.id.itemEditMessage).isVisible = effect.isEditMessageVisible
         popupMenu.menu.findItem(R.id.itemEditTopic).isVisible = effect.isEditTopicVisible
         popupMenu.menu.findItem(R.id.itemDeleteMessage).isVisible = effect.isDeleteMessageVisible
@@ -365,13 +366,19 @@ class MessagesFragment :
 
                 R.id.itemCopyToClipboard -> {
                     store.accept(
-                        MessagesScreenEvent.Ui.CopyToClipboard(requireContext(), effect.messageView)
+                        MessagesScreenEvent.Ui.CopyToClipboard(
+                            requireContext(), effect.messageView, isMessageWithAttachments
+                        )
                     )
                     true
                 }
 
                 R.id.itemEditMessage -> {
-                    store.accept(MessagesScreenEvent.Ui.GetRawMessageContent(effect.messageView))
+                    store.accept(
+                        MessagesScreenEvent.Ui.GetRawMessageContent(
+                            effect.messageView, isMessageWithAttachments
+                        )
+                    )
                     true
                 }
 

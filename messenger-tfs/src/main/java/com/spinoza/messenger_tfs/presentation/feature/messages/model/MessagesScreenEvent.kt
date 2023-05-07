@@ -52,9 +52,15 @@ sealed class MessagesScreenEvent {
 
         class OnMessageLongClick(val messageView: MessageView) : Ui()
 
-        class GetRawMessageContent(val messageView: MessageView) : Ui()
+        class GetRawMessageContent(
+            val messageView: MessageView,
+            val isMessageWithAttachments: Boolean,
+        ) : Ui()
 
-        class CopyToClipboard(val context: Context, val messageView: MessageView) : Ui()
+        class CopyToClipboard(
+            val context: Context, val messageView: MessageView,
+            val isMessageWithAttachments: Boolean,
+        ) : Ui()
 
         class EditMessageContent(val messageId: Long, val content: CharSequence) : Ui()
 

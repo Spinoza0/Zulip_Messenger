@@ -46,7 +46,12 @@ sealed class MessagesScreenCommand {
 
     class UploadFile(val context: Context, val uri: Uri) : MessagesScreenCommand()
 
-    class CopyToClipboard(val context: Context, val messageId: Long, val content: String) :
+    class CopyToClipboard(
+        val context: Context,
+        val messageId: Long,
+        val content: String,
+        val isMessageWithAttachments: Boolean,
+    ) :
         MessagesScreenCommand()
 
     class EditMessageContent(val messageId: Long, val content: CharSequence) :
@@ -55,7 +60,11 @@ sealed class MessagesScreenCommand {
     class EditMessageTopic(val messageId: Long, val topic: CharSequence) :
         MessagesScreenCommand()
 
-    class GetRawMessageContent(val messageId: Long, val content: String) :
+    class GetRawMessageContent(
+        val messageId: Long,
+        val content: String,
+        val isMessageWithAttachments: Boolean,
+    ) :
         MessagesScreenCommand()
 
     class SaveAttachments(val context: Context, val urls: List<String>) : MessagesScreenCommand()
