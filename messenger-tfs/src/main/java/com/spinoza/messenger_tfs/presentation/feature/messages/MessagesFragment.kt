@@ -6,9 +6,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
@@ -245,6 +247,9 @@ class MessagesFragment :
             is MessagesScreenEffect.ShowChooseReactionDialog ->
                 showChooseReactionDialog(effect.messageId)
 
+            is MessagesScreenEffect.RawMessageContent ->
+                showEditMessageDialog(effect.messageId, effect.content)
+
             is MessagesScreenEffect.ConfirmDeleteMessage -> confirmDeleteMessage(effect.messageId)
             is MessagesScreenEffect.Failure.ErrorMessages ->
                 showError("${getString(R.string.error_messages)} ${effect.value}")
@@ -278,10 +283,29 @@ class MessagesFragment :
         AlertDialog.Builder(requireContext())
             .setMessage(getString(R.string.confirm_delete_message))
             .setCancelable(false)
-            .setPositiveButton(getString(R.string.button_yes)) { _, _ ->
+            .setPositiveButton(getString(R.string.yes)) { _, _ ->
                 store.accept(MessagesScreenEvent.Ui.DeleteMessage(messageId))
             }
-            .setNegativeButton(getString(R.string.button_no)) { _, _ ->
+            .setNegativeButton(getString(R.string.no)) { _, _ ->
+            }
+            .create()
+            .show()
+    }
+
+    private fun showEditMessageDialog(messageId: Long, content: String) {
+        val input = EditText(requireContext()).apply {
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            maxLines = MAX_LINES
+            setText(content)
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.edit_the_message))
+            .setView(input)
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
+                store.accept(MessagesScreenEvent.Ui.EditMessageContent(messageId, input.text))
+            }
+            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
             }
             .create()
             .show()
@@ -303,10 +327,9 @@ class MessagesFragment :
     private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
         val popupMenu = PopupMenu(requireContext(), binding.textViewTopic)
         popupMenu.inflate(R.menu.menu_actions_with_message)
-        val itemSaveAttachmentsIndex = popupMenu.menu.size().minus(LAST_ITEM_OFFSET)
-        val itemDeleteMessageIndex = itemSaveAttachmentsIndex.minus(LAST_ITEM_OFFSET)
-        popupMenu.menu.getItem(itemSaveAttachmentsIndex).isVisible = effect.urls.isNotEmpty()
-        popupMenu.menu.getItem(itemDeleteMessageIndex).isVisible = effect.isAdmin
+        popupMenu.menu.findItem(R.id.itemSaveAttachments).isVisible = effect.urls.isNotEmpty()
+        popupMenu.menu.findItem(R.id.itemEditMessage).isVisible = effect.isEditMessageVisible
+        popupMenu.menu.findItem(R.id.itemDeleteMessage).isVisible = effect.isDeleteMessageVisible
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.itemAddReaction -> {
@@ -318,6 +341,11 @@ class MessagesFragment :
                     store.accept(
                         MessagesScreenEvent.Ui.CopyToClipboard(requireContext(), effect.messageView)
                     )
+                    true
+                }
+
+                R.id.itemEditMessage -> {
+                    store.accept(MessagesScreenEvent.Ui.GetRawMessageContent(effect.messageView))
                     true
                 }
 
@@ -507,6 +535,7 @@ class MessagesFragment :
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
         private const val PARAM_RECYCLERVIEW_STATE = "recyclerViewState"
         private const val NO_ITEMS = 0
+        private const val MAX_LINES = 5
         private const val LAST_ITEM_OFFSET = 1
         private const val CHANNEL_NAME = "Downloads"
         private const val CHANNEL_ID = "downloads_channel"

@@ -52,7 +52,11 @@ sealed class MessagesScreenEvent {
 
         class OnMessageLongClick(val messageView: MessageView) : Ui()
 
+        class GetRawMessageContent(val messageView: MessageView) : Ui()
+
         class CopyToClipboard(val context: Context, val messageView: MessageView) : Ui()
+
+        class EditMessageContent(val messageId: Long, val content: CharSequence) : Ui()
 
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
@@ -98,6 +102,8 @@ sealed class MessagesScreenEvent {
         class FileUploaded(val value: UploadedFileInfo) : Internal()
 
         class FilesDownloaded(val value: Map<String, Boolean>) : Internal()
+
+        class RawMessageContent(val messageId: Long, val content: String) : Internal()
 
         class ErrorNetwork(val value: String) : Internal()
 

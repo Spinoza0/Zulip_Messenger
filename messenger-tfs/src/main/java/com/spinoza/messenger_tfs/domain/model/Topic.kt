@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.domain.model
 
 import android.os.Parcelable
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import kotlinx.parcelize.Parcelize
 
 /**
@@ -9,7 +10,7 @@ import kotlinx.parcelize.Parcelize
  * */
 @Parcelize
 data class Topic(
-    val name: String = UNDEFINED_NAME,
+    val name: String = EMPTY_STRING,
     val messageCount: Int = NO_MESSAGES,
     val channelId: Long = Channel.UNDEFINED_ID,
     val lastMessageId: Long = Message.UNDEFINED_ID,
@@ -17,7 +18,6 @@ data class Topic(
 
     companion object {
 
-        const val UNDEFINED_NAME = ""
         const val NO_MESSAGES = 0
     }
 }

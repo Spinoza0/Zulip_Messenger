@@ -54,6 +54,8 @@ import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
+import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -196,6 +198,21 @@ class WebRepositoryImpl @Inject constructor(
                 messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
                 position
             )
+        }
+    }
+
+    override suspend fun editMessage(
+        messageId: Long,
+        topic: String,
+        content: String,
+    ): Result<Boolean> = withContext(ioDispatcher) {
+        runCatchingNonCancellation {
+            if (topic.isBlank()) {
+                apiRequest<BasicResponse> { apiService.editMessageContent(messageId, content) }
+            } else {
+                apiRequest<BasicResponse> { apiService.editMessageTopic(messageId, topic) }
+            }
+            true
         }
     }
 
@@ -546,7 +563,7 @@ class WebRepositoryImpl @Inject constructor(
             throw RepositoryError(usersResponse.msg)
         }
         val users = mutableListOf<User>()
-        val timestamp = System.currentTimeMillis() / MILLIS_IN_SECOND
+        val timestamp = getCurrentTimestamp()
         usersResponse.members
             .filter { it.isBot.not() && it.isActive }
             .forEach { userDto ->
@@ -569,10 +586,8 @@ class WebRepositoryImpl @Inject constructor(
 
     companion object {
 
-        private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
         private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500
-        private const val EMPTY_STRING = ""
     }
 }

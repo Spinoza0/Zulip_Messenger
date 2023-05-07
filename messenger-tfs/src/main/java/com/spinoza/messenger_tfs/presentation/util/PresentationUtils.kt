@@ -60,14 +60,14 @@ fun Fragment.showCheckInternetConnectionDialog(onOkClick: () -> Unit, onCloseCli
     AlertDialog.Builder(requireContext())
         .setMessage(getString(R.string.check_internet_connection))
         .setCancelable(false)
-        .setPositiveButton(getString(R.string.button_ok)) { _, _ ->
+        .setPositiveButton(getString(R.string.ok)) { _, _ ->
             if (isNetworkConnected()) {
                 onOkClick()
             } else {
                 showCheckInternetConnectionDialog(onOkClick, onCloseClick)
             }
         }
-        .setNegativeButton(getString(R.string.button_close)) { _, _ ->
+        .setNegativeButton(getString(R.string.close)) { _, _ ->
             onCloseClick()
         }
         .create()

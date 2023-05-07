@@ -12,7 +12,8 @@ sealed class MessagesScreenEffect {
     object AddAttachment : MessagesScreenEffect()
 
     class ShowMessageMenu(
-        val isAdmin: Boolean,
+        val isDeleteMessageVisible: Boolean,
+        val isEditMessageVisible: Boolean,
         val urls: List<String>,
         val messageView: MessageView,
     ) : MessagesScreenEffect()
@@ -24,6 +25,8 @@ sealed class MessagesScreenEffect {
     class FilesDownloaded(val value: Map<String, Boolean>) : MessagesScreenEffect()
 
     class ConfirmDeleteMessage(val messageId: Long) : MessagesScreenEffect()
+
+    class RawMessageContent(val messageId: Long, val content: String) : MessagesScreenEffect()
 
     sealed class Failure : MessagesScreenEffect() {
 

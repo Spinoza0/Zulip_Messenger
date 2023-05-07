@@ -54,6 +54,14 @@ class WebRepositoryStub : WebRepository {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
+    override suspend fun editMessage(
+        messageId: Long,
+        topic: String,
+        content: String,
+    ): Result<Boolean> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
     override suspend fun getMessageRawContent(messageId: Long, default: String): String = ""
 
     override suspend fun deleteMessage(messageId: Long): Result<Boolean> {

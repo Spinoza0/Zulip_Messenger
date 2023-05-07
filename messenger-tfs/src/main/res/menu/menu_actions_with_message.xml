@@ -9,6 +9,10 @@
         android:title="@string/copy_to_clipboard" />
 
     <item
+        android:id="@+id/itemEditMessage"
+        android:title="@string/edit" />
+
+    <item
         android:id="@+id/itemDeleteMessage"
         android:title="@string/delete_message" />
 

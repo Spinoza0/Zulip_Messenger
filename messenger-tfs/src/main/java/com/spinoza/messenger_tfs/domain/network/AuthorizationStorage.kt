@@ -1,5 +1,7 @@
 package com.spinoza.messenger_tfs.domain.network
 
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
+
 interface AuthorizationStorage {
 
     fun isUserLoggedIn(): Boolean
@@ -29,9 +31,4 @@ interface AuthorizationStorage {
     )
 
     fun deleteData()
-
-    private companion object {
-
-        const val EMPTY_STRING = ""
-    }
 }

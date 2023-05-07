@@ -19,9 +19,13 @@
     <string name="delete_message">Delete message</string>
     <string name="save_attachments">Save attachments</string>
     <string name="downloading_result">Downloading result</string>
-    <string name="button_yes">Yes</string>
-    <string name="button_no">No</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
     <string name="confirm_delete_message">Are you want to delete the message?</string>
+    <string name="edit_the_message">Edit the message</string>
+    <string name="edit">Edit</string>
 
     <!-- Fragment Channels -->
     <string name="search">Search…</string>
@@ -65,7 +69,7 @@
     <string name="error_unknown_file_type">Unknown file type.</string>
     <string name="error_downloading">downloading error</string>
     <string name="check_internet_connection">Check your internet connection</string>
-    <string name="button_ok">OK</string>
-    <string name="button_close">Close</string>
+    <string name="ok">OK</string>
+    <string name="close">Close</string>
 
 </resources>

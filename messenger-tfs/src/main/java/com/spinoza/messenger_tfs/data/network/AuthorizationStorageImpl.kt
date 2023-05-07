@@ -7,6 +7,7 @@ import androidx.security.crypto.MasterKey
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import okhttp3.Credentials
 import javax.inject.Inject
 
@@ -101,6 +102,5 @@ class AuthorizationStorageImpl @Inject constructor(context: Context) : Authoriza
         const val PARAM_API_KEY = "apiKey"
         const val PARAM_EMAIL = "email"
         const val PARAM_PASSWORD = "password"
-        const val EMPTY_STRING = ""
     }
 }

@@ -12,6 +12,7 @@ import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.people.GetAllUsersUseCase
+import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.domain.util.isContainingWords
 import com.spinoza.messenger_tfs.domain.util.splitToWords
@@ -165,10 +166,10 @@ class PeopleActor @Inject constructor(
                         }
                     }
                     if (isUsersCacheChanged) {
-                        lastUpdatingTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
+                        lastUpdatingTimeStamp = getCurrentTimestamp()
                     }
                 }.onFailure {
-                    val currentTimeStamp = System.currentTimeMillis() / MILLIS_IN_SECOND
+                    val currentTimeStamp = getCurrentTimestamp()
                     if (currentTimeStamp - lastUpdatingTimeStamp > OFFLINE_TIME) {
                         for (index in 0 until usersCache.size) {
                             usersCache[index] =
@@ -210,7 +211,6 @@ class PeopleActor @Inject constructor(
         const val DELAY_BEFORE_CHECK_FILTER = 400L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
         const val INDEX_NOT_FOUND = -1
-        const val MILLIS_IN_SECOND = 1000
         const val OFFLINE_TIME = 180
         const val DELAY_BEFORE_RETURN_IDLE_EVENT = 1000L
     }
