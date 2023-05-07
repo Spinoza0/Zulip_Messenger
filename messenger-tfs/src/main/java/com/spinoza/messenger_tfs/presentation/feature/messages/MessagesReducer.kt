@@ -4,6 +4,7 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebUtil
+import com.spinoza.messenger_tfs.domain.util.SECONDS_IN_DAY
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
@@ -195,13 +196,15 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Ui.OnMessageLongClick -> {
             val messageView = event.messageView
+            val isAdmin = authorizationStorage.isAdmin()
             val attachments = webUtil.getAttachmentsUrls(messageView.rawContent)
-            val isEditable = messageView.userId == authorizationStorage.getUserId() &&
-                    messageView.isEditable()
+            val isMessageEditable = messageView.isOwn() && messageView.isMessageEditable()
+            val isTopicEditable = isAdmin || (messageView.isOwn() && messageView.isTopicEditable())
             effects {
                 +MessagesScreenEffect.ShowMessageMenu(
-                    isDeleteMessageVisible = authorizationStorage.isAdmin(),
-                    isEditMessageVisible = isEditable,
+                    isDeleteMessageVisible = isAdmin,
+                    isEditMessageVisible = isMessageEditable,
+                    isEditTopicVisible = isTopicEditable,
                     attachments,
                     event.messageView
                 )
@@ -281,6 +284,9 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Ui.EditMessageContent ->
             commands { +MessagesScreenCommand.EditMessageContent(event.messageId, event.content) }
 
+        is MessagesScreenEvent.Ui.EditMessageTopic ->
+            commands { +MessagesScreenCommand.EditMessageTopic(event.messageId, event.topic) }
+
         is MessagesScreenEvent.Ui.SaveAttachments ->
             commands { +MessagesScreenCommand.SaveAttachments(event.context, event.urls) }
 
@@ -309,14 +315,23 @@ class MessagesReducer @Inject constructor(
 
     private fun Int.isScrollDown() = this > 0
 
-    private fun MessageView.isEditable(): Boolean {
-        return (getCurrentTimestamp() - this.date.fullTimeStamp) < EDITABLE_TIME_IN_SECONDS
+    private fun MessageView.isMessageEditable(): Boolean {
+        return (getCurrentTimestamp() - this.date.fullTimeStamp) < MESSAGE_EDITABLE_TIME_IN_SECONDS
+    }
+
+    private fun MessageView.isTopicEditable(): Boolean {
+        return (getCurrentTimestamp() - this.date.fullTimeStamp) < TOPIC_EDITABLE_TIME_IN_SECONDS
+    }
+
+    private fun MessageView.isOwn(): Boolean {
+        return this.userId == authorizationStorage.getUserId()
     }
 
     private companion object {
 
         const val BORDER_POSITION = 5
         const val MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS = 50
-        const val EDITABLE_TIME_IN_SECONDS = 300
+        const val MESSAGE_EDITABLE_TIME_IN_SECONDS = 300
+        const val TOPIC_EDITABLE_TIME_IN_SECONDS = SECONDS_IN_DAY * 3
     }
 }

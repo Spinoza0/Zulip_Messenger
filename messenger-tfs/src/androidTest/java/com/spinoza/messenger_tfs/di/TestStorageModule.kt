@@ -16,7 +16,7 @@ object TestStorageModule {
 
     @ApplicationScope
     @Provides
-    fun provideUserManager(): AuthorizationStorage = object : AuthorizationStorage {
+    fun provideAuthorizationStorage(): AuthorizationStorage = object : AuthorizationStorage {
 
         override fun isUserLoggedIn(): Boolean = true
 

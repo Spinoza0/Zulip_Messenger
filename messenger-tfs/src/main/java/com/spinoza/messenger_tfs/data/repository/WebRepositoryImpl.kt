@@ -196,10 +196,7 @@ class WebRepositoryImpl @Inject constructor(
                 else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
             messagesCache.addAll(messagesResponse.messages, messagesPageType)
-            MessagesResult(
-                messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
-                position
-            )
+            MessagesResult(messagesCache.getMessages(filter), position)
         }
     }
 
@@ -324,7 +321,7 @@ class WebRepositoryImpl @Inject constructor(
             val ownUserId = authorizationStorage.getUserId()
             messagesCache.updateReaction(messageId, ownUserId, emoji.toDto(ownUserId))
             val result = MessagesResult(
-                messagesCache.getMessages(filter).toDomain(ownUserId),
+                messagesCache.getMessages(filter),
                 MessagePosition(MessagePosition.Type.EXACTLY, messageId)
             )
             updateReactionOnServer(messageId, emoji)
@@ -415,7 +412,7 @@ class WebRepositoryImpl @Inject constructor(
             MessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
+                    messagesCache.getMessages(filter),
                     MessagePosition(),
                     eventResponse.events.isNotEmpty()
                 )
@@ -444,10 +441,7 @@ class WebRepositoryImpl @Inject constructor(
             }
             UpdateMessageEvent(
                 eventResponse.events.last().id,
-                MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
-                    MessagePosition()
-                )
+                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
             )
         }
     }
@@ -470,10 +464,7 @@ class WebRepositoryImpl @Inject constructor(
             }
             DeleteMessageEvent(
                 eventResponse.events.last().id,
-                MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
-                    MessagePosition()
-                )
+                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
             )
         }
     }
@@ -496,10 +487,7 @@ class WebRepositoryImpl @Inject constructor(
             }
             ReactionEvent(
                 eventResponse.events.last().id,
-                MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
-                    MessagePosition()
-                )
+                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
             )
         }
     }

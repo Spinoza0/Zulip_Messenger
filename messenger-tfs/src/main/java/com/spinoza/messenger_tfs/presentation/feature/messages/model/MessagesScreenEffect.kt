@@ -14,6 +14,7 @@ sealed class MessagesScreenEffect {
     class ShowMessageMenu(
         val isDeleteMessageVisible: Boolean,
         val isEditMessageVisible: Boolean,
+        val isEditTopicVisible: Boolean,
         val urls: List<String>,
         val messageView: MessageView,
     ) : MessagesScreenEffect()

@@ -58,6 +58,8 @@ sealed class MessagesScreenEvent {
 
         class EditMessageContent(val messageId: Long, val content: CharSequence) : Ui()
 
+        class EditMessageTopic(val messageId: Long, val topic: CharSequence) : Ui()
+
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
         class UploadFile(val context: Context, val uri: Uri) : Ui()

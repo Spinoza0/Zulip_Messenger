@@ -206,6 +206,7 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.UploadFile -> uploadFile(command)
                 is MessagesScreenCommand.CopyToClipboard -> copyToClipboard(command)
                 is MessagesScreenCommand.EditMessageContent -> editMessageContent(command)
+                is MessagesScreenCommand.EditMessageTopic -> editMessageTopic(command)
                 is MessagesScreenCommand.GetRawMessageContent -> getRawMessageContent(command)
                 is MessagesScreenCommand.SaveAttachments -> saveAttachments(command)
                 is MessagesScreenCommand.DeleteMessage -> deleteMessage(command.messageId)
@@ -557,6 +558,15 @@ class MessagesActor @Inject constructor(
         command: MessagesScreenCommand.EditMessageContent,
     ): MessagesScreenEvent.Internal {
         editMessageUseCase(command.messageId, content = command.content.toString()).onFailure {
+            return handleErrors(it)
+        }
+        return getIdleEvent()
+    }
+
+    private suspend fun editMessageTopic(
+        command: MessagesScreenCommand.EditMessageTopic,
+    ): MessagesScreenEvent.Internal {
+        editMessageUseCase(command.messageId, topic = command.topic.toString()).onFailure {
             return handleErrors(it)
         }
         return getIdleEvent()

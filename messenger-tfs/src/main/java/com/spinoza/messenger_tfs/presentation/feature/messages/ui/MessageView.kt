@@ -52,6 +52,8 @@ class MessageView @JvmOverloads constructor(
 
     var date = MessageDate()
 
+    var subject = EMPTY_STRING
+
     private val ioDispatcher = context.getAppComponent().getDispatcherIO()
     private var imageJob: Job? = null
 
@@ -257,6 +259,7 @@ class MessageView @JvmOverloads constructor(
         name = message.user.fullName
         content = message.content
         date = message.date
+        subject = message.subject
         this.reactionsGravity = reactionsGravity
         setReactions(message.reactions)
     }

@@ -24,8 +24,8 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="confirm_delete_message">Are you want to delete the message?</string>
-    <string name="edit_the_message">Edit the message</string>
-    <string name="edit">Edit</string>
+    <string name="edit_message">Edit the message</string>
+    <string name="edit_topic">Edit the topic</string>
 
     <!-- Fragment Channels -->
     <string name="search">Search…</string>

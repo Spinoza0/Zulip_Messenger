@@ -16,7 +16,7 @@ class AuthorizationStorageStub : AuthorizationStorage {
 
     override fun getAuthHeaderValue(): String = "Value"
 
-    override fun getUserId(): Long = 0
+    override fun getUserId(): Long = 604180
 
     override fun saveData(
         userId: Long,

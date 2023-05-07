@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.text.InputFilter
 import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
@@ -292,18 +293,42 @@ class MessagesFragment :
             .show()
     }
 
+    private fun showEditTopicDialog(messageView: MessageView) {
+        showInputTextDialog(
+            getString(R.string.edit_topic), messageView.messageId, messageView.subject, true
+        ) { id, text ->
+            store.accept(MessagesScreenEvent.Ui.EditMessageTopic(id, text))
+        }
+    }
+
     private fun showEditMessageDialog(messageId: Long, content: String) {
+        showInputTextDialog(
+            getString(R.string.edit_message), messageId, content, false
+        ) { id, text ->
+            store.accept(MessagesScreenEvent.Ui.EditMessageContent(id, text))
+        }
+    }
+
+    private fun showInputTextDialog(
+        title: String, messageId: Long, content: String, isTopic: Boolean,
+        positiveCallback: (Long, CharSequence) -> Unit,
+    ) {
         val input = EditText(requireContext()).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             maxLines = MAX_LINES
+            inputType = InputType.TYPE_CLASS_TEXT
+            if (isTopic) {
+                filters = arrayOf(InputFilter.LengthFilter(TOPIC_MAX_LENGTH))
+            } else {
+                inputType = inputType or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            }
             setText(content)
         }
         AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.edit_the_message))
+            .setTitle(title)
             .setView(input)
             .setCancelable(false)
             .setPositiveButton(getString(R.string.save)) { _, _ ->
-                store.accept(MessagesScreenEvent.Ui.EditMessageContent(messageId, input.text))
+                positiveCallback(messageId, input.text)
             }
             .setNegativeButton(getString(R.string.cancel)) { _, _ ->
             }
@@ -329,6 +354,7 @@ class MessagesFragment :
         popupMenu.inflate(R.menu.menu_actions_with_message)
         popupMenu.menu.findItem(R.id.itemSaveAttachments).isVisible = effect.urls.isNotEmpty()
         popupMenu.menu.findItem(R.id.itemEditMessage).isVisible = effect.isEditMessageVisible
+        popupMenu.menu.findItem(R.id.itemEditTopic).isVisible = effect.isEditTopicVisible
         popupMenu.menu.findItem(R.id.itemDeleteMessage).isVisible = effect.isDeleteMessageVisible
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -346,6 +372,11 @@ class MessagesFragment :
 
                 R.id.itemEditMessage -> {
                     store.accept(MessagesScreenEvent.Ui.GetRawMessageContent(effect.messageView))
+                    true
+                }
+
+                R.id.itemEditTopic -> {
+                    showEditTopicDialog(effect.messageView)
                     true
                 }
 
@@ -537,6 +568,7 @@ class MessagesFragment :
         private const val NO_ITEMS = 0
         private const val MAX_LINES = 5
         private const val LAST_ITEM_OFFSET = 1
+        private const val TOPIC_MAX_LENGTH = 60
         private const val CHANNEL_NAME = "Downloads"
         private const val CHANNEL_ID = "downloads_channel"
 

@@ -7,18 +7,23 @@ import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.utils.dbModelToDto
 import com.spinoza.messenger_tfs.data.utils.isEqualTopicName
 import com.spinoza.messenger_tfs.data.utils.toDbModel
+import com.spinoza.messenger_tfs.data.utils.toDomain
 import com.spinoza.messenger_tfs.data.utils.toReactionDto
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.TreeSet
 import javax.inject.Inject
 
-class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) {
+class MessagesCache @Inject constructor(
+    private val messengerDao: MessengerDao,
+    private val authorizationStorage: AuthorizationStorage,
+) {
 
     private val data = TreeSet<MessageDto>()
     private val dataMutex = Mutex()
@@ -124,7 +129,7 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
         }
     }
 
-    suspend fun getMessages(filter: MessagesFilter): List<MessageDto> {
+    suspend fun getMessages(filter: MessagesFilter): List<Message> {
         dataMutex.withLock {
             val streamMessages =
                 if (filter.channel.channelId != Channel.UNDEFINED_ID) {
@@ -138,7 +143,7 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
                 } else {
                     streamMessages
                 }
-            return topicMessages.toList()
+            return topicMessages.toDomain(authorizationStorage.getUserId())
         }
     }
 
