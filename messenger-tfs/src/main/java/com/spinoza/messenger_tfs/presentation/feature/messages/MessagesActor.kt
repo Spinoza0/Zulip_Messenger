@@ -502,6 +502,8 @@ class MessagesActor @Inject constructor(
             isLastMessageVisible
         ).onSuccess { event ->
             return@withContext onSuccessCallback(eventsQueue, event)
+        }.onFailure {
+            registerEventQueues()
         }
         delay(DELAY_BEFORE_CHECK_EVENTS)
         emptyEvent
