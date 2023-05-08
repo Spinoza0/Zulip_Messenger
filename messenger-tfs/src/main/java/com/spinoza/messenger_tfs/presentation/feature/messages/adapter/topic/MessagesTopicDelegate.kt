@@ -7,7 +7,10 @@ import com.spinoza.messenger_tfs.databinding.MessagesTopicItemBinding
 import com.spinoza.messenger_tfs.presentation.adapter.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 
-class MessagesTopicDelegate(private val onClickListener: (String) -> Unit) :
+class MessagesTopicDelegate(
+    private val topicNameTemplate: String,
+    private val onClickListener: (String) -> Unit,
+) :
     AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -25,7 +28,11 @@ class MessagesTopicDelegate(private val onClickListener: (String) -> Unit) :
         item: DelegateAdapterItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item as MessagesTopicDelegateItem, onClickListener)
+        (holder as ViewHolder).bind(
+            item as MessagesTopicDelegateItem,
+            topicNameTemplate,
+            onClickListener
+        )
     }
 
     override fun onBindViewHolder(
@@ -44,9 +51,13 @@ class MessagesTopicDelegate(private val onClickListener: (String) -> Unit) :
     class ViewHolder(private val binding: MessagesTopicItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: MessagesTopicDelegateItem, onClickListener: (String) -> Unit) {
+        fun bind(
+            item: MessagesTopicDelegateItem,
+            topicNameTemplate: String,
+            onClickListener: (String) -> Unit,
+        ) {
             val topicName = (item.content() as String)
-            binding.textViewTopicName.text = topicName
+            binding.textViewTopicName.text = String.format(topicNameTemplate, topicName)
             binding.root.setOnClickListener {
                 onClickListener(topicName)
             }

@@ -13,6 +13,7 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
 class ChannelDelegate(
     private val channel_name_template: String,
     private val onChannelClickListener: (ChannelItem) -> Unit,
+    private val onArrowClickListener: (ChannelItem) -> Unit,
 ) : AdapterDelegate {
 
     override fun onCreateViewHolder(parent: ViewGroup): RecyclerView.ViewHolder {
@@ -33,7 +34,8 @@ class ChannelDelegate(
         (holder as ViewHolder).bind(
             channel_name_template,
             item as ChannelDelegateItem,
-            onChannelClickListener
+            onChannelClickListener,
+            onArrowClickListener
         )
     }
 
@@ -57,13 +59,20 @@ class ChannelDelegate(
             channel_name_template: String,
             item: ChannelDelegateItem,
             onChannelClickListener: (ChannelItem) -> Unit,
+            onArrowClickListener: (ChannelItem) -> Unit,
         ) {
             val channelItem = (item.content() as ChannelItem)
             with(binding) {
                 textViewChannel.text =
                     String.format(channel_name_template, channelItem.channel.name)
-                root.setOnClickListener {
+                frameLayoutChannel.setOnClickListener {
                     onChannelClickListener.invoke(channelItem)
+                }
+                textViewChannel.setOnClickListener {
+                    onChannelClickListener.invoke(channelItem)
+                }
+                textViewArrowArea.setOnClickListener {
+                    onArrowClickListener.invoke(channelItem)
                 }
 
                 if (channelItem.isFolded) {

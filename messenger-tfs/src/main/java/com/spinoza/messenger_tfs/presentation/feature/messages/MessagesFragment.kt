@@ -93,6 +93,7 @@ class MessagesFragment :
     private var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     private var recyclerViewState: Parcelable? = null
     private var recyclerViewStateOnDestroy: Parcelable? = null
+    private var topicNameTemplate = EMPTY_STRING
 
     override val storeHolder:
             StoreHolder<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState> by lazy {
@@ -121,6 +122,7 @@ class MessagesFragment :
         if (savedInstanceState != null) {
             store.accept(MessagesScreenEvent.Ui.CheckLoginStatus)
         }
+        topicNameTemplate = getString(R.string.messages_topic_template)
         setupRecyclerView()
         setupStatusBar()
         setupListeners()
@@ -130,9 +132,7 @@ class MessagesFragment :
         with(binding) {
             textViewTopic.isVisible = messagesFilter.topic.name.isNotEmpty()
             imageViewTopicArrow.isVisible = messagesFilter.topic.name.isNotEmpty()
-            textViewTopic.text = String.format(
-                getString(R.string.messages_topic_template), messagesFilter.topic.name
-            )
+            textViewTopic.text = String.format(topicNameTemplate, messagesFilter.topic.name)
         }
     }
 
@@ -169,7 +169,7 @@ class MessagesFragment :
                 )
             )
             addDelegate(DateDelegate())
-            addDelegate(MessagesTopicDelegate(::onTopicClickListener))
+            addDelegate(MessagesTopicDelegate(topicNameTemplate, ::onTopicClickListener))
         }
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
@@ -518,14 +518,11 @@ class MessagesFragment :
     }
 
     private fun parseParams(savedInstanceState: Bundle?) {
-        val newMessagesFilter = arguments?.getParam<MessagesFilter>(PARAM_CHANNEL_FILTER)
-        if (newMessagesFilter == null ||
-            newMessagesFilter.channel.channelId == Channel.UNDEFINED_ID ||
-            newMessagesFilter.topic.name.isEmpty()
-        ) {
+        val paramFilter = arguments?.getParam<MessagesFilter>(PARAM_CHANNEL_FILTER)
+        if (paramFilter == null || paramFilter.channel.channelId == Channel.UNDEFINED_ID) {
             goBack()
         } else {
-            messagesFilter = newMessagesFilter
+            messagesFilter = paramFilter
         }
         savedInstanceState?.let {
             recyclerViewState = it.getParam<Parcelable>(PARAM_RECYCLERVIEW_STATE)

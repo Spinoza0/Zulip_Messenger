@@ -21,7 +21,7 @@ sealed class ChannelsPageScreenEvent {
 
         class OnChannelClick(val value: ChannelItem) : Ui()
 
-        class OnTopicClick(val messagesFilter: MessagesFilter) : Ui()
+        class OpenMessagesScreen(val messagesFilter: MessagesFilter) : Ui()
 
         class OnScrolled(val canScrollUp: Boolean, val canScrollDown: Boolean, val dy: Int) : Ui()
     }

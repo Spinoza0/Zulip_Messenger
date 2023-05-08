@@ -74,7 +74,7 @@ class ChannelsPageFragmentViewModel(
             is ChannelsPageScreenEvent.Ui.Load -> loadItems()
             is ChannelsPageScreenEvent.Ui.UpdateMessageCount -> updateMessagesCount()
             is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
-            is ChannelsPageScreenEvent.Ui.OnTopicClick ->
+            is ChannelsPageScreenEvent.Ui.OpenMessagesScreen ->
                 router.navigateTo(Screens.Messages(event.messagesFilter))
 
             is ChannelsPageScreenEvent.Ui.RegisterEventQueue -> registerEventQueue()
