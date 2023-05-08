@@ -16,7 +16,7 @@ class DateDelegateItem(
     }
 
     override fun compareToOther(other: DelegateAdapterItem): Boolean {
-        return (other as DateDelegateItem).value == content()
+        return (other as DateDelegateItem).value == value
     }
 
     override fun getChangePayload(newItem: DelegateAdapterItem): Any? {

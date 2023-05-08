@@ -42,11 +42,13 @@ import com.spinoza.messenger_tfs.domain.usecase.messages.SetMessagesFlagToReadUs
 import com.spinoza.messenger_tfs.domain.usecase.messages.SetOwnStatusActiveUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.UploadFileUseCase
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.topic.MessagesTopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
@@ -617,17 +619,26 @@ class MessagesActor @Inject constructor(
         forEach {
             dates.add(it.date)
         }
+        var lastTopicName = EMPTY_STRING
         dates.forEach { messageDate ->
             messageAdapterItemList.add(DateDelegateItem(messageDate))
+            var isDateChanged = true
             val allDayMessages = this.filter { message ->
                 message.date.dateString == messageDate.dateString
             }
             allDayMessages.forEach { message ->
+                if (messagesFilter.topic.name.isEmpty() &&
+                    (isDateChanged || !lastTopicName.equals(message.subject, ignoreCase = true))
+                ) {
+                    lastTopicName = message.subject
+                    messageAdapterItemList.add(MessagesTopicDelegateItem(lastTopicName))
+                }
                 if (message.user.userId == userId) {
                     messageAdapterItemList.add(OwnMessageDelegateItem(message))
                 } else {
                     messageAdapterItemList.add(UserMessageDelegateItem(message))
                 }
+                isDateChanged = false
             }
         }
         return messageAdapterItemList

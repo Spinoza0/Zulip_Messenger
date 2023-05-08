@@ -29,6 +29,8 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegate
@@ -36,6 +38,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.topic.MessagesTopicDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
@@ -121,12 +124,16 @@ class MessagesFragment :
         setupRecyclerView()
         setupStatusBar()
         setupListeners()
-        setupScreen()
     }
 
-    private fun setupScreen() {
-        binding.textViewTopic.text =
-            String.format(getString(R.string.messages_topic_template), messagesFilter.topic.name)
+    private fun setupTopicTitle() {
+        with(binding) {
+            textViewTopic.isVisible = messagesFilter.topic.name.isNotEmpty()
+            imageViewTopicArrow.isVisible = messagesFilter.topic.name.isNotEmpty()
+            textViewTopic.text = String.format(
+                getString(R.string.messages_topic_template), messagesFilter.topic.name
+            )
+        }
     }
 
     private fun setupOnBackPressedCallback() {
@@ -145,22 +152,25 @@ class MessagesFragment :
     }
 
     private fun setupRecyclerView() {
-        messagesAdapter.addDelegate(
-            UserMessageDelegate(
-                ::onMessageLongClickListener,
-                ::onReactionAddClickListener,
-                ::onReactionClickListener,
-                ::onAvatarClickListener,
+        with(messagesAdapter) {
+            addDelegate(
+                UserMessageDelegate(
+                    ::onMessageLongClickListener,
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener,
+                    ::onAvatarClickListener,
+                )
             )
-        )
-        messagesAdapter.addDelegate(
-            OwnMessageDelegate(
-                ::onMessageLongClickListener,
-                ::onReactionAddClickListener,
-                ::onReactionClickListener
+            addDelegate(
+                OwnMessageDelegate(
+                    ::onMessageLongClickListener,
+                    ::onReactionAddClickListener,
+                    ::onReactionClickListener
+                )
             )
-        )
-        messagesAdapter.addDelegate(DateDelegate())
+            addDelegate(DateDelegate())
+            addDelegate(MessagesTopicDelegate(::onTopicClickListener))
+        }
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -198,6 +208,9 @@ class MessagesFragment :
         with(binding) {
             toolbar.setNavigationOnClickListener {
                 goBack()
+            }
+            imageViewTopicArrow.setOnClickListener {
+                loadMessages(EMPTY_STRING)
             }
             imageViewAction.setOnClickListener {
                 store.accept(MessagesScreenEvent.Ui.SendMessage(editTextMessage.text))
@@ -492,6 +505,10 @@ class MessagesFragment :
         updateReaction(messageView.messageId, reactionView.emoji)
     }
 
+    private fun onTopicClickListener(topicName: String) {
+        loadMessages(topicName)
+    }
+
     private fun updateReaction(messageId: Long, emoji: Emoji) {
         store.accept(MessagesScreenEvent.Ui.UpdateReaction(messageId, emoji))
     }
@@ -527,6 +544,12 @@ class MessagesFragment :
         return (this.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
     }
 
+    private fun loadMessages(topicName: String) {
+        messagesFilter = messagesFilter.copy(topic = Topic(name = topicName))
+        setupTopicTitle()
+        store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
+    }
+
     override fun onStart() {
         super.onStart()
         setupOnBackPressedCallback()
@@ -535,7 +558,7 @@ class MessagesFragment :
     override fun onResume() {
         super.onResume()
         if (isMessagesListEmpty()) {
-            store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
+            loadMessages(messagesFilter.topic.name)
         }
     }
 

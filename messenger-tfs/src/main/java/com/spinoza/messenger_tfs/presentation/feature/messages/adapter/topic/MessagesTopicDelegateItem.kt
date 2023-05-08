@@ -1,20 +1,19 @@
-package com.spinoza.messenger_tfs.presentation.feature.channels.adapter
+package com.spinoza.messenger_tfs.presentation.feature.messages.adapter.topic
 
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
 
-class ChannelDelegateItem(private val value: ChannelItem) : DelegateAdapterItem {
+class MessagesTopicDelegateItem(private val value: String) : DelegateAdapterItem {
 
     override fun content(): Any {
         return value
     }
 
     override fun id(): Long {
-        return value.channel.channelId
+        return value.hashCode().toLong()
     }
 
     override fun compareToOther(other: DelegateAdapterItem): Boolean {
-        return (other as ChannelDelegateItem).value == value
+        return (other as MessagesTopicDelegateItem).value.equals(value, ignoreCase = true)
     }
 
     override fun getChangePayload(newItem: DelegateAdapterItem): Any? {
