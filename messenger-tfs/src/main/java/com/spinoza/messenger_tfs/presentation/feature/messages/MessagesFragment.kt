@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
@@ -24,7 +25,6 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegate
@@ -42,6 +42,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToLastPosition
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToMessage
 import com.spinoza.messenger_tfs.presentation.notification.Notificator
+import com.spinoza.messenger_tfs.presentation.util.ExternalStoragePermission
 import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import com.spinoza.messenger_tfs.presentation.util.getInstanceState
 import com.spinoza.messenger_tfs.presentation.util.getParam
@@ -68,13 +69,13 @@ class MessagesFragment :
             MessagesScreenCommand>
 
     @Inject
-    lateinit var webUtil: WebUtil
-
-    @Inject
     lateinit var messagesAdapter: MainDelegateAdapter
 
     @Inject
     lateinit var notificator: Notificator
+
+    @Inject
+    lateinit var externalStoragePermission: ExternalStoragePermission
 
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
@@ -96,7 +97,7 @@ class MessagesFragment :
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        DaggerMessagesComponent.factory().create(context.getAppComponent(), lifecycle).inject(this)
+        DaggerMessagesComponent.factory().create(context.getAppComponent(), this).inject(this)
         pickMedia = registerForActivityResult(PickVisualMedia()) { handlePickMediaResult(it) }
     }
 
@@ -272,21 +273,13 @@ class MessagesFragment :
     private fun showNotification(value: Map<String, Boolean>) {
         notificator.createNotificationChannel(CHANNEL_NAME, CHANNEL_ID)
         val title = getString(R.string.downloading_result)
-        val success = getString(R.string.downloaded)
         val error = getString(R.string.error_downloading)
         value.forEach { entry ->
-            val resultText: String
-            val resultIcon: Int
-            if (entry.value) {
-                resultText = success
-                resultIcon = R.drawable.ic_download_success
-            } else {
-                resultText = error
-                resultIcon = R.drawable.ic_download_error
+            if (!entry.value) {
+                notificator.showNotification(
+                    title, CHANNEL_ID, R.drawable.ic_download_error, "${entry.key} - $error"
+                )
             }
-            notificator.showNotification(
-                title, CHANNEL_ID, resultIcon, "${entry.key} - $resultText"
-            )
         }
     }
 
@@ -301,7 +294,15 @@ class MessagesFragment :
                 }
 
                 R.id.itemSaveAttachments -> {
-                    store.accept(MessagesScreenEvent.Ui.SaveAttachments(effect.urls))
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                        if (externalStoragePermission.isGranted()) {
+                            saveAttachments(effect.urls)
+                        } else {
+                            externalStoragePermission.request { saveAttachments(effect.urls) }
+                        }
+                    } else {
+                        saveAttachments(effect.urls)
+                    }
                     true
                 }
 
@@ -339,6 +340,10 @@ class MessagesFragment :
 
     private fun addAttachment() {
         pickMedia?.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+    }
+
+    private fun saveAttachments(urls: List<String>) {
+        store.accept(MessagesScreenEvent.Ui.SaveAttachments(requireContext(), urls))
     }
 
     private fun handlePickMediaResult(uri: Uri?) {

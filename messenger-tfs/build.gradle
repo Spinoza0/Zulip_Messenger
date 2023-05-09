@@ -27,6 +27,10 @@ android {
         testInstrumentationRunnerArguments clearPackageData: 'true'
     }
 
+    testOptions {
+        execution 'ANDROIDX_TEST_ORCHESTRATOR'
+    }
+
     buildTypes {
         debug {
             buildConfigField "Integer", "MOCKWEBSERVER_PORT", "1234"

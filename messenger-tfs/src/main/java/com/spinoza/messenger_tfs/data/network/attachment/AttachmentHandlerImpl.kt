@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data.network.attachment
 
+import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.Environment
@@ -19,11 +20,9 @@ import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
-import java.net.URL
 import javax.inject.Inject
 
 class AttachmentHandlerImpl @Inject constructor(
@@ -32,24 +31,20 @@ class AttachmentHandlerImpl @Inject constructor(
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : AttachmentHandler {
 
-    override suspend fun saveAttachments(urls: List<String>): Map<String, Boolean> =
-        withContext(ioDispatcher) {
-            val result = mutableMapOf<String, Boolean>()
-            val downloadsDirectory =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            for (url in urls) {
-                val fileName = url.substringAfterLast("/")
-                val file = File(downloadsDirectory, fileName)
-                val uniqueFile = generateUniqueFileName(file)
-                runCatching {
-                    downloadFile(url, uniqueFile)
-                    result[uniqueFile.name] = true
-                }.onFailure {
-                    result[uniqueFile.name] = false
-                }
+    override suspend fun saveAttachments(
+        context: Context,
+        urls: List<String>,
+    ): Map<String, Boolean> = withContext(ioDispatcher) {
+        val result = mutableMapOf<String, Boolean>()
+        for (url in urls) {
+            runCatching {
+                result[downloadFile(context, url)] = true
+            }.onFailure {
+                result[url.getFileNameFromUrl()] = false
             }
-            result
         }
+        result
+    }
 
     override suspend fun uploadFile(context: Context, uri: Uri): Result<UploadedFileInfo> =
         withContext(ioDispatcher) {
@@ -66,35 +61,37 @@ class AttachmentHandlerImpl @Inject constructor(
             }
         }
 
-    private fun downloadFile(url: String, destination: File) {
-        val connection = URL(url).openConnection()
-        connection.setRequestProperty(authKeeper.getKey(), authKeeper.getValue())
-        connection.connect()
-        val inputStream = BufferedInputStream(connection.getInputStream())
-        val outputStream = FileOutputStream(destination)
-        inputStream.use { input ->
-            outputStream.use { output ->
-                val buffer = ByteArray(DOWNLOAD_BUFFER_SIZE)
-                var bytesRead: Int
-                while (input.read(buffer).also { bytesRead = it } != END_OF_FILE) {
-                    output.write(buffer, NO_OFFSET, bytesRead)
+    private fun downloadFile(context: Context, url: String): String {
+        val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+        val fileName = url.getFileNameFromUrl()
+        val file = File(
+            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            fileName
+        )
+        val request = DownloadManager.Request(Uri.parse(url))
+            .setDestinationUri(Uri.fromFile(file))
+            .addRequestHeader(authKeeper.getKey(), authKeeper.getValue())
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setTitle(file.name)
+        val downloadId = downloadManager.enqueue(request)
+        val query = DownloadManager.Query().apply {
+            setFilterById(downloadId)
+        }
+        var downloading = true
+        var downloadedFileName: String? = null
+        while (downloading) {
+            downloadManager.query(query).use { cursor ->
+                if (cursor.moveToFirst()) {
+                    when (cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
+                        DownloadManager.STATUS_SUCCESSFUL, DownloadManager.STATUS_FAILED -> {
+                            downloading = false
+                            downloadedFileName = file.name
+                        }
+                    }
                 }
-                output.flush()
             }
         }
-    }
-
-    private fun generateUniqueFileName(file: File): File {
-        var uniqueFile = file
-        var counter = FILENAME_INDEX
-        while (uniqueFile.exists()) {
-            val fileName = file.nameWithoutExtension
-            val extension = file.extension
-            val newFileName = "$fileName ($counter).$extension"
-            uniqueFile = File(file.parent, newFileName)
-            counter++
-        }
-        return uniqueFile
+        return downloadedFileName ?: DEFAULT_FILE_NAME
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
@@ -139,13 +136,15 @@ class AttachmentHandlerImpl @Inject constructor(
         return fileName.ifBlank { DEFAULT_FILE_NAME }
     }
 
+    private fun String.getFileNameFromUrl(): String {
+        return this.substringAfterLast("/").ifBlank { DEFAULT_FILE_NAME }
+    }
+
     private companion object {
 
-        const val DOWNLOAD_BUFFER_SIZE = 1024
         const val TEMP_FILE_BUFFER_SIZE = 512 * 1024
         const val END_OF_FILE = -1
         const val NO_OFFSET = 0
-        const val FILENAME_INDEX = 1
         const val MAX_FILE_SIZE = 10 * 1024 * 1024L
         const val MIN_FILE_SIZE = 0L
         const val DEFAULT_FILE_NAME = "file"

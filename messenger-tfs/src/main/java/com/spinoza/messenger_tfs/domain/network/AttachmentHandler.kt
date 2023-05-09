@@ -6,7 +6,7 @@ import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
 
 interface AttachmentHandler {
 
-    suspend fun saveAttachments(urls: List<String>): Map<String, Boolean>
+    suspend fun saveAttachments(context: Context, urls: List<String>): Map<String, Boolean>
 
     suspend fun uploadFile(context: Context, uri: Uri): Result<UploadedFileInfo>
 }
