@@ -14,7 +14,7 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.util.*
+import java.util.TreeSet
 import javax.inject.Inject
 
 class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) {

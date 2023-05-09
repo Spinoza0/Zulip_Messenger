@@ -8,15 +8,7 @@ annotation class ApplicationScope
 
 @Scope
 @Retention(AnnotationRetention.RUNTIME)
-annotation class ActivityScope
-
-@Scope
-@Retention(AnnotationRetention.RUNTIME)
 annotation class LoginScope
-
-@Scope
-@Retention(AnnotationRetention.RUNTIME)
-annotation class MenuScope
 
 @Scope
 @Retention(AnnotationRetention.RUNTIME)

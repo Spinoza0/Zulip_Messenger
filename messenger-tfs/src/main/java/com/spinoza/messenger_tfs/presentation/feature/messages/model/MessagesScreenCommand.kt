@@ -1,7 +1,9 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
+import android.content.Context
 import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.Emoji
+import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 
 sealed class MessagesScreenCommand {
@@ -27,6 +29,7 @@ sealed class MessagesScreenCommand {
     class IsNextPageExisting(
         val messagesResultDelegate: MessagesResultDelegate,
         val isGoingToLastMessage: Boolean,
+        val messageSentId: Long = Message.UNDEFINED_ID,
     ) : MessagesScreenCommand()
 
     class SetMessagesRead(val messageIds: List<Long>) : MessagesScreenCommand()
@@ -37,7 +40,7 @@ sealed class MessagesScreenCommand {
 
     class UpdateReaction(val messageId: Long, val emoji: Emoji) : MessagesScreenCommand()
 
-    class UploadFile(val oldMessageText: String, val uri: Uri) : MessagesScreenCommand()
+    class UploadFile(val context: Context, val uri: Uri) : MessagesScreenCommand()
 
     class SaveAttachments(val urls: List<String>) : MessagesScreenCommand()
 }

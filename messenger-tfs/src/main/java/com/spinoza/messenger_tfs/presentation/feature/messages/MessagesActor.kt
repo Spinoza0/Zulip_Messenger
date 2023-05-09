@@ -5,43 +5,44 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessageDate
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
+import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
-import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.DeleteEventQueueUseCase
-import com.spinoza.messenger_tfs.domain.usecase.EventUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetDeleteMessageEventUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetMessageEventUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetMessagesUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetOwnUserIdUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetReactionEventUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetStoredMessagesUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUpdatedMessageFilterUserCase
-import com.spinoza.messenger_tfs.domain.usecase.RegisterEventQueueUseCase
-import com.spinoza.messenger_tfs.domain.usecase.SaveAttachmentsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.SendMessageUseCase
-import com.spinoza.messenger_tfs.domain.usecase.SetMessagesFlagToReadUserCase
-import com.spinoza.messenger_tfs.domain.usecase.SetOwnStatusActiveUseCase
-import com.spinoza.messenger_tfs.domain.usecase.UpdateReactionUseCase
-import com.spinoza.messenger_tfs.domain.usecase.UploadFileUseCase
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
+import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.EventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetMessageEventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetReactionEventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetMessagesUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetOwnUserIdUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetStoredMessagesUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetUpdatedMessageFilterUserCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.SaveAttachmentsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.SendMessageUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.SetMessagesFlagToReadUserCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.SetOwnStatusActiveUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.UpdateReactionUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.UploadFileUseCase
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
-import kotlinx.coroutines.Dispatchers
+import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
+import com.spinoza.messenger_tfs.presentation.util.getErrorText
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
@@ -78,6 +79,7 @@ class MessagesActor @Inject constructor(
     private val saveAttachmentsUseCase: SaveAttachmentsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<MessagesScreenCommand, MessagesScreenEvent.Internal> {
 
     private var messagesFilter: MessagesFilter = MessagesFilter()
@@ -143,9 +145,7 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.GetReactionsEvent ->
                     getReactionsEvent(command.isLastMessageVisible)
 
-                is MessagesScreenCommand.IsNextPageExisting ->
-                    isNextPageExisting(command.messagesResultDelegate, command.isGoingToLastMessage)
-
+                is MessagesScreenCommand.IsNextPageExisting -> isNextPageExisting(command)
                 is MessagesScreenCommand.Reload -> {
                     delay(DELAY_BEFORE_RELOAD)
                     var result: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
@@ -195,21 +195,24 @@ class MessagesActor @Inject constructor(
     }
 
     private suspend fun isNextPageExisting(
-        messagesResultDelegate: MessagesResultDelegate,
-        isGoingToLastMessage: Boolean,
+        command: MessagesScreenCommand.IsNextPageExisting,
     ): MessagesScreenEvent.Internal {
-        if (messagesResultDelegate.messages.isEmpty()) return getIdleEvent()
-        val lastItem = messagesResultDelegate.messages.last()
+        if (command.messagesResultDelegate.messages.isEmpty()) return getIdleEvent()
+        val lastItem = command.messagesResultDelegate.messages.last()
         if (lastItem !is UserMessageDelegateItem && lastItem !is OwnMessageDelegateItem) {
             return getIdleEvent()
         }
         val lastMessage = lastItem.content() as Message
-        val result = lastMessage.id != messagesFilter.topic.lastMessageId
-        return MessagesScreenEvent.Internal.NextPageExists(result, isGoingToLastMessage)
+        val result = if (command.messageSentId != Message.UNDEFINED_ID) {
+            lastMessage.id != command.messageSentId
+        } else {
+            lastMessage.id != messagesFilter.topic.lastMessageId
+        }
+        return MessagesScreenEvent.Internal.NextPageExists(result, command.isGoingToLastMessage)
     }
 
     private suspend fun loadStoredMessages(): MessagesScreenEvent.Internal =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
             getStoredMessagesUseCase(messagesFilter).onSuccess { messagesResult ->
                 return@withContext handleMessages(messagesResult, MessagesPageType.STORED)
             }.onFailure { error ->
@@ -283,8 +286,8 @@ class MessagesActor @Inject constructor(
 
     private suspend fun sendMessage(value: String): MessagesScreenEvent.Internal {
         if (value.isNotEmpty()) {
-            sendMessageUseCase(value, messagesFilter).onSuccess { messagesResult ->
-                return handleMessages(messagesResult, MessagesPageType.LAST, true)
+            sendMessageUseCase(value, messagesFilter).onSuccess { messageId ->
+                return MessagesScreenEvent.Internal.MessageSent(messageId)
             }.onFailure { error ->
                 return handleErrors(error)
             }
@@ -296,7 +299,7 @@ class MessagesActor @Inject constructor(
         messageId: Long,
         emoji: Emoji,
     ): MessagesScreenEvent.Internal =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
             updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
                 getOwnUserIdUseCase().onSuccess { userId ->
                     return@withContext MessagesScreenEvent.Internal.Messages(
@@ -310,7 +313,7 @@ class MessagesActor @Inject constructor(
         }
 
     private suspend fun loadMessages(messagesPageType: MessagesPageType): MessagesScreenEvent.Internal =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
             getMessagesUseCase(messagesPageType, messagesFilter).onSuccess { messagesResult ->
                 return@withContext handleMessages(messagesResult, messagesPageType)
             }.onFailure { error ->
@@ -352,7 +355,7 @@ class MessagesActor @Inject constructor(
                 isIconActionResIdChanged = true
                 iconActionResId = resId
             }
-            .flowOn(Dispatchers.Default)
+            .flowOn(defaultDispatcher)
             .launchIn(lifecycleScope)
     }
 
@@ -429,7 +432,7 @@ class MessagesActor @Inject constructor(
         onSuccessCallback: (EventsQueueHolder, T, Long) -> MessagesScreenEvent.Internal,
         emptyEvent: MessagesScreenEvent.Internal,
         isLastMessageVisible: Boolean,
-    ): MessagesScreenEvent.Internal = withContext(Dispatchers.Default) {
+    ): MessagesScreenEvent.Internal = withContext(defaultDispatcher) {
         if (eventsQueue.queue.queueId.isNotEmpty()) useCase(
             eventsQueue.queue,
             messagesFilter,
@@ -450,13 +453,9 @@ class MessagesActor @Inject constructor(
     private suspend fun handleMessages(
         messagesResult: MessagesResult,
         messagesPageType: MessagesPageType,
-        isAfterMessageSent: Boolean = false,
     ): MessagesScreenEvent.Internal {
         getOwnUserIdUseCase().onSuccess { userId ->
             val messagesResultDelegate = messagesResult.toDelegate(userId)
-            if (isAfterMessageSent) {
-                return MessagesScreenEvent.Internal.MessageSent(messagesResultDelegate)
-            }
             if (messagesPageType == MessagesPageType.STORED) {
                 return MessagesScreenEvent.Internal.StoredMessages(messagesResultDelegate)
             }
@@ -476,7 +475,7 @@ class MessagesActor @Inject constructor(
     private suspend fun uploadFile(
         command: MessagesScreenCommand.UploadFile,
     ): MessagesScreenEvent.Internal {
-        uploadFileUseCase(command.oldMessageText, command.uri).onSuccess {
+        uploadFileUseCase(command.context, command.uri).onSuccess {
             return MessagesScreenEvent.Internal.FileUploaded(it)
         }.onFailure {
             return handleErrors(it)

@@ -2,28 +2,31 @@ package com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.github.terrakok.cicerone.Router
 import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
+import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.repository.RepositoryError
 import com.spinoza.messenger_tfs.domain.usecase.*
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
+import com.spinoza.messenger_tfs.domain.usecase.channels.*
+import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.*
+import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
+import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
+import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
-import javax.inject.Inject
 
-class ChannelsPageFragmentViewModel @Inject constructor(
+class ChannelsPageFragmentViewModel(
     @ChannelIsSubscribed isSubscribed: Boolean,
-    private val router: Router,
+    private val router: AppRouter,
     private val getStoredTopicsUseCase: GetStoredTopicsUseCase,
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getStoredChannelsUseCase: GetStoredChannelsUseCase,
@@ -32,6 +35,8 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
+    @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
+    customCoroutineScope: CoroutineScope? = null,
 ) : ViewModel() {
 
     val state: StateFlow<ChannelsPageScreenState>
@@ -45,8 +50,9 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
     private val cache = mutableListOf<DelegateAdapterItem>()
+    private var vmScope = customCoroutineScope ?: viewModelScope
     private var eventsQueue =
-        EventsQueueHolder(viewModelScope, registerEventQueueUseCase, deleteEventQueueUseCase)
+        EventsQueueHolder(vmScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var updateMessagesCountJob: Job? = null
 
     @Volatile
@@ -66,6 +72,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
             is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
             is ChannelsPageScreenEvent.Ui.OnTopicClick ->
                 router.navigateTo(Screens.Messages(event.messagesFilter))
+
             is ChannelsPageScreenEvent.Ui.RegisterEventQueue -> registerEventQueue()
             is ChannelsPageScreenEvent.Ui.DeleteEventQueue -> deleteEventQueue()
         }
@@ -78,14 +85,14 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun setChannelsFilter(newFilter: ChannelsFilter) {
-        viewModelScope.launch {
+        vmScope.launch {
             channelsQueryState.emit(newFilter)
         }
     }
 
     private fun loadItems() {
         if (isLoading) return
-        viewModelScope.launch(Dispatchers.Default) {
+        vmScope.launch(defaultDispatcher) {
             isLoading = true
             stopUpdateMessagesCountJob()
             var storedChannels = emptyList<Channel>()
@@ -121,7 +128,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
 
     private fun updateMessagesCount() {
         stopUpdateMessagesCountJob()
-        updateMessagesCountJob = viewModelScope.launch(Dispatchers.Default) {
+        updateMessagesCountJob = vmScope.launch(defaultDispatcher) {
             for (i in 0 until cache.size) {
                 if (!isActive) return@launch
                 runCatching {
@@ -143,7 +150,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun onChannelClickListener(channelItem: ChannelItem) {
-        viewModelScope.launch(Dispatchers.Default) {
+        vmScope.launch(defaultDispatcher) {
             val oldChannelDelegateItem = cache.find { delegateAdapterItem ->
                 if (delegateAdapterItem is ChannelDelegateItem) {
                     val item = delegateAdapterItem.content() as ChannelItem
@@ -154,9 +161,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
             if (oldChannelDelegateItem != null) {
                 val index = cache.indexOf(oldChannelDelegateItem)
                 val oldChannelItem = oldChannelDelegateItem.content() as ChannelItem
-                if (!oldChannelItem.isFolded) {
-                    stopUpdateMessagesCountJob()
-                }
+                stopUpdateMessagesCountJob()
                 val newChannelDelegateItem = ChannelDelegateItem(
                     oldChannelItem.copy(isFolded = !oldChannelItem.isFolded)
                 )
@@ -187,12 +192,12 @@ class ChannelsPageFragmentViewModel @Inject constructor(
                 channelsFilter = it
                 loadItems()
             }
-            .flowOn(Dispatchers.Default)
-            .launchIn(viewModelScope)
+            .flowOn(defaultDispatcher)
+            .launchIn(vmScope)
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        viewModelScope.launch(Dispatchers.Default) {
+        vmScope.launch(defaultDispatcher) {
             while (isActive) {
                 delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
                 getChannelEventsUseCase(eventsQueue.queue, channelsFilter).onSuccess { events ->
@@ -278,8 +283,8 @@ class ChannelsPageFragmentViewModel @Inject constructor(
         newChannels: List<Channel>,
     ) {
         newChannels.forEach { newChannel ->
-            val oldChannelDelegateItem = cache.find { storedDelegateItem ->
-                storedDelegateItem !is ChannelDelegateItem ||
+            val oldChannelDelegateItem = newCache.find { storedDelegateItem ->
+                storedDelegateItem is ChannelDelegateItem &&
                         (storedDelegateItem.content() as ChannelItem)
                             .channel.channelId == newChannel.channelId
             }
@@ -328,7 +333,7 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun updateTopicsMessageCount() {
-        viewModelScope.launch {
+        vmScope.launch {
             while (isActive) {
                 delay(DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO)
                 updateMessagesCount()
@@ -358,13 +363,13 @@ class ChannelsPageFragmentViewModel @Inject constructor(
     }
 
     private fun registerEventQueue() {
-        viewModelScope.launch {
+        vmScope.launch {
             eventsQueue.registerQueue(listOf(EventType.CHANNEL), ::handleOnSuccessQueueRegistration)
         }
     }
 
     private fun deleteEventQueue() {
-        viewModelScope.launch {
+        vmScope.launch {
             eventsQueue.deleteQueue()
         }
     }

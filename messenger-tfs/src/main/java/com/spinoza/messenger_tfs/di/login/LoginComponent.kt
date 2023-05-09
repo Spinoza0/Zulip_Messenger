@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.di.login
 
 import androidx.lifecycle.LifecycleCoroutineScope
-import com.spinoza.messenger_tfs.di.ApplicationComponent
+import com.spinoza.messenger_tfs.di.app.ApplicationComponent
 import com.spinoza.messenger_tfs.di.LoginScope
 import com.spinoza.messenger_tfs.presentation.feature.login.LoginFragment
 import dagger.BindsInstance

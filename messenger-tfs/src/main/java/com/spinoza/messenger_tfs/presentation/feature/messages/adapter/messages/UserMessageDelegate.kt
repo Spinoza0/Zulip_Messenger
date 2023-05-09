@@ -9,8 +9,8 @@ import com.spinoza.messenger_tfs.databinding.UserMessageItemBinding
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.AdapterDelegate
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.DelegateAdapterItem
+import com.spinoza.messenger_tfs.presentation.adapter.AdapterDelegate
+import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 

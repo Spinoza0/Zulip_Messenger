@@ -1,15 +1,16 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.ui
 
-import android.content.Context
 import android.util.TypedValue
 import android.view.View
-import androidx.core.view.*
+import androidx.core.view.marginBottom
+import androidx.core.view.marginLeft
+import androidx.core.view.marginRight
+import androidx.core.view.marginTop
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.facebook.shimmer.ShimmerFrameLayout
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.presentation.feature.app.adapter.MainDelegateAdapter
+import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
 
@@ -92,20 +93,4 @@ fun RecyclerView.smoothScrollToLastPosition() {
     if (lastItemPosition != null) {
         smoothScrollToTargetPosition(lastItemPosition)
     }
-}
-
-fun Context.getThemeColor(attr: Int): Int {
-    val typedValue = TypedValue()
-    this.theme.resolveAttribute(attr, typedValue, true)
-    return typedValue.data
-}
-
-fun ShimmerFrameLayout.on() {
-    isVisible = true
-    startShimmer()
-}
-
-fun ShimmerFrameLayout.off() {
-    stopShimmer()
-    isVisible = false
 }

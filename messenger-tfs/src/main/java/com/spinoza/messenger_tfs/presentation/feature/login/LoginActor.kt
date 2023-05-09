@@ -1,22 +1,32 @@
 package com.spinoza.messenger_tfs.presentation.feature.login
 
 import androidx.lifecycle.LifecycleCoroutineScope
-import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.GetApiKeyUseCase
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
+import com.spinoza.messenger_tfs.di.DispatcherDefault
+import com.spinoza.messenger_tfs.domain.model.RepositoryError
+import com.spinoza.messenger_tfs.domain.usecase.login.GetApiKeyUseCase
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
-import kotlinx.coroutines.Dispatchers
+import com.spinoza.messenger_tfs.presentation.util.getErrorText
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import vivid.money.elmslie.coroutines.Actor
 import javax.inject.Inject
 
 class LoginActor @Inject constructor(
     private val lifecycleScope: LifecycleCoroutineScope,
     private val getApiKeyUseCase: GetApiKeyUseCase,
+    @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<LoginScreenCommand, LoginScreenEvent.Internal> {
 
     private val newEmailFieldState = MutableSharedFlow<String>()
@@ -95,7 +105,7 @@ class LoginActor @Inject constructor(
                     it.isNotEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(it).matches()
                 isEmailStatusChanged = oldStatus != isEmailValid
             }
-            .flowOn(Dispatchers.Default)
+            .flowOn(defaultDispatcher)
             .launchIn(lifecycleScope)
     }
 
@@ -110,7 +120,7 @@ class LoginActor @Inject constructor(
                 isPasswordNotEmpty = it.isNotEmpty()
                 isPasswordStatusChanged = oldStatus != isPasswordNotEmpty
             }
-            .flowOn(Dispatchers.Default)
+            .flowOn(defaultDispatcher)
             .launchIn(lifecycleScope)
     }
 

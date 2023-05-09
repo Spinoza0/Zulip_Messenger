@@ -1,0 +1,21 @@
+{
+    "result": "success",
+    "msg": "",
+    "email": "user604180@tinkoff-android-spring-2023.zulipchat.com",
+    "user_id": 604180,
+    "avatar_version": 3,
+    "is_admin": true,
+    "is_owner": false,
+    "is_guest": false,
+    "is_billing_admin": false,
+    "role": 200,
+    "is_bot": false,
+    "full_name": "Full name",
+    "timezone": "Europe/Moscow",
+    "is_active": true,
+    "date_joined": "2023-03-28T16:43:25.859899+00:00",
+    "avatar_url": "https://zulip-avatars.s3.amazonaws.com/54137/d1a61287337e008d9ff009fb336daa89d23abf5f?version=3",
+    "delivery_email": "1234567@gmail.com",
+    "profile_data": {},
+    "max_message_id": 355182894
+}

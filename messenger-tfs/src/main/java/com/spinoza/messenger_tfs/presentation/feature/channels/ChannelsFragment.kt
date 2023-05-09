@@ -16,13 +16,13 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsBinding
 import com.spinoza.messenger_tfs.di.channels.DaggerChannelsComponent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelsPagerAdapter
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsScreenState
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.factory.ViewModelFactory
+import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -42,7 +42,7 @@ class ChannelsFragment : Fragment() {
     private val binding: FragmentChannelsBinding
         get() = _binding ?: throw RuntimeException("FragmentChannelsBinding == null")
 
-    private val searchFilters = arrayListOf("", "")
+    private val searchFilters = arrayListOf(EMPTY_FILTER, EMPTY_FILTER)
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -136,6 +136,7 @@ class ChannelsFragment : Fragment() {
     companion object {
 
         private const val PARAM_SEARCH_FILTERS = "filters"
+        private const val EMPTY_FILTER = ""
         private const val TAB_SUBSCRIBED = 0
         private const val TAB_ALL = 1
 

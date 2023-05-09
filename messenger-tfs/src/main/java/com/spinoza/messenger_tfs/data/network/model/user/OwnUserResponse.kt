@@ -1,12 +1,13 @@
 package com.spinoza.messenger_tfs.data.network.model.user
 
+import com.spinoza.messenger_tfs.data.network.apiservice.ZulipResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class OwnUserResponse(
-    @SerialName("result") val result: String,
-    @SerialName("msg") val msg: String,
+    @SerialName("result") override val result: String,
+    @SerialName("msg") override val msg: String,
     @SerialName("email") val email: String,
     @SerialName("user_id") val userId: Long,
     @SerialName("avatar_version") val avatarVersion: Int,
@@ -23,4 +24,4 @@ data class OwnUserResponse(
     @SerialName("avatar_url") val avatarUrl: String?,
     @SerialName("delivery_email") val deliveryEmail: String?,
     @SerialName("profile_data") val profileData: Map<String, ProfileDataDto>,
-)
+) : ZulipResponse

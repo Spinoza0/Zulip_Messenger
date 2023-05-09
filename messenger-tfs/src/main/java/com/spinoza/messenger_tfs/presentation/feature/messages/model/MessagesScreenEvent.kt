@@ -1,8 +1,10 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
+import android.content.Context
 import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 
 sealed class MessagesScreenEvent {
@@ -50,7 +52,7 @@ sealed class MessagesScreenEvent {
 
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
-        class UploadFile(val message: CharSequence?, val uri: Uri) : Ui()
+        class UploadFile(val context: Context, val uri: Uri) : Ui()
 
         class SaveAttachments(val urls: List<String>) : Ui()
     }
@@ -73,7 +75,7 @@ sealed class MessagesScreenEvent {
 
         class StoredMessages(val value: MessagesResultDelegate) : Internal()
 
-        class MessageSent(val value: MessagesResultDelegate) : Internal()
+        class MessageSent(val messageId: Long) : Internal()
 
         class MessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
@@ -81,7 +83,7 @@ sealed class MessagesScreenEvent {
 
         class ReactionsEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
-        class FileUploaded(val newMessageText: String) : Internal()
+        class FileUploaded(val value: UploadedFileInfo) : Internal()
 
         class FilesDownloaded(val value: Map<String, Boolean>) : Internal()
 

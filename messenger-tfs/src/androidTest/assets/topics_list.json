@@ -1,0 +1,22 @@
+{
+  "result": "success",
+  "msg": "",
+  "topics": [
+    {
+      "name": "test",
+      "max_id": 355144919
+    },
+    {
+      "name": "(no topic)",
+      "max_id": 355142859
+    },
+    {
+      "name": "stream events",
+      "max_id": 355101217
+    },
+    {
+      "name": "general",
+      "max_id": 355051928
+    }
+  ]
+}

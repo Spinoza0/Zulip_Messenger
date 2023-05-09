@@ -4,25 +4,43 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.coroutineScope
+import com.spinoza.messenger_tfs.di.DispatcherDefault
+import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.repository.RepositoryError
-import com.spinoza.messenger_tfs.domain.usecase.GetPresenceEventsUseCase
-import com.spinoza.messenger_tfs.domain.usecase.GetUsersByFilterUseCase
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getErrorText
+import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.people.GetAllUsersUseCase
+import com.spinoza.messenger_tfs.domain.util.isContainingWords
+import com.spinoza.messenger_tfs.domain.util.splitToWords
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEvent
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
+import com.spinoza.messenger_tfs.presentation.util.getErrorText
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import vivid.money.elmslie.coroutines.Actor
 import javax.inject.Inject
 
 class PeopleActor @Inject constructor(
     lifecycle: Lifecycle,
-    private val getUsersByFilterUseCase: GetUsersByFilterUseCase,
+    private val getAllUsersUseCase: GetAllUsersUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
     private val eventsQueue: EventsQueueHolder,
+    @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<PeopleScreenCommand, PeopleScreenEvent.Internal> {
 
     private val lifecycleScope = lifecycle.coroutineScope
@@ -56,6 +74,7 @@ class PeopleActor @Inject constructor(
                 } else {
                     loadUsers()
                 }
+
             is PeopleScreenCommand.Load -> loadUsers()
             is PeopleScreenCommand.GetEvent -> if (isUsersCacheChanged) {
                 isUsersCacheChanged = false
@@ -84,7 +103,7 @@ class PeopleActor @Inject constructor(
             .debounce(DELAY_BEFORE_SET_FILTER)
             .flatMapLatest { flow { emit(it) } }
             .onEach { usersFilter = it }
-            .flowOn(Dispatchers.Default)
+            .flowOn(defaultDispatcher)
             .launchIn(lifecycleScope)
     }
 
@@ -92,7 +111,7 @@ class PeopleActor @Inject constructor(
         if (isLoading) return getIdleEvent()
         isLoading = true
         var event: PeopleScreenEvent.Internal = PeopleScreenEvent.Internal.Idle
-        getUsersByFilterUseCase(NO_FILTER).onSuccess {
+        getAllUsersUseCase().onSuccess {
             usersCache.clear()
             usersCache.addAll(it)
             event = PeopleScreenEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
@@ -110,7 +129,7 @@ class PeopleActor @Inject constructor(
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        lifecycleScope.launch(Dispatchers.Default) {
+        lifecycleScope.launch(defaultDispatcher) {
             var lastUpdatingTimeStamp = 0L
             while (isActive) {
                 getPresenceEventsUseCase(eventsQueue.queue).onSuccess { events ->
@@ -147,16 +166,18 @@ class PeopleActor @Inject constructor(
     }
 
     private suspend fun List<User>.toSortedList(filter: String = NO_FILTER): List<User> =
-        withContext(Dispatchers.Default) {
+        withContext(defaultDispatcher) {
             val sortedList = ArrayList(this@toSortedList)
             sortedList.sortWith(compareBy<User> { it.presence }.thenBy { it.fullName })
-            if (filter.isBlank()) {
-                sortedList
-            } else {
-                sortedList.filter {
-                    it.fullName.contains(filter, true) || it.email.contains(filter, true)
-                }
-            }
+            sortedList.filterByNameAndEmail(filter)
+        }
+
+    private fun List<User>.filterByNameAndEmail(filter: String): List<User> =
+        if (filter.isBlank()) {
+            this
+        } else {
+            val words = filter.splitToWords()
+            filter { it.fullName.isContainingWords(words) || it.email.isContainingWords(words) }
         }
 
     private companion object {

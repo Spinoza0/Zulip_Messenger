@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.feature.profile
 
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,15 +11,15 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentProfileBinding
 import com.spinoza.messenger_tfs.di.profile.DaggerProfileComponent
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getParam
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
-import com.spinoza.messenger_tfs.presentation.feature.messages.ui.off
-import com.spinoza.messenger_tfs.presentation.feature.messages.ui.on
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenState
+import com.spinoza.messenger_tfs.presentation.util.getAppComponent
+import com.spinoza.messenger_tfs.presentation.util.getParam
+import com.spinoza.messenger_tfs.presentation.util.off
+import com.spinoza.messenger_tfs.presentation.util.on
+import com.spinoza.messenger_tfs.presentation.util.showError
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
@@ -59,10 +58,6 @@ open class ProfileFragment :
         }
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -86,6 +81,7 @@ open class ProfileFragment :
         when (effect) {
             is ProfileScreenEffect.Failure.ErrorUserLoading ->
                 showError("${getString(R.string.error_user_loading)} ${effect.value}")
+
             is ProfileScreenEffect.Failure.ErrorNetwork ->
                 showError("${getString(R.string.error_network)} ${effect.value}")
         }

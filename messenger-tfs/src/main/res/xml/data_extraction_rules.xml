@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- check build.gradle/SHAREDPREF, must be the same without file extension -->
+        <exclude domain="sharedpref" path="messenger-tfs_shared_prefs.xml"/>
+    </cloud-backup>
+</data-extraction-rules>

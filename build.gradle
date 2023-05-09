@@ -2,11 +2,12 @@ buildscript {
     ext.versions = [
             androidGradlePlugin     : '8.0.0',
 
-            androidxCore            : "1.9.0",
+            androidxCore            : "1.10.0",
             androidxAppCompat       : "1.6.1",
             androidxCrypto          : "1.1.0-alpha06",
             androidxConstraintlayout: "2.1.4",
             androidxActivity        : "1.7.1",
+            androidxFragment        : "1.5.7",
 
             navigation              : "2.5.3",
             cicerone                : "7.1",
@@ -19,7 +20,9 @@ buildscript {
             targetCompatibility     : JavaVersion.VERSION_19,
             jvmTarget               : "19",
 
-            kotlin                  : "1.8.0",
+            kotlin                  : "1.8.21",
+
+            okhttp3                 : "4.11.0",
 
             kotlinxCoroutines       : "1.6.4",
             kotlinxSerializationJson: "1.5.0",
@@ -40,6 +43,11 @@ buildscript {
             elmslie                 : "2.1.1",
 
             junit4                  : "4.13.2",
+            androidxCoreTesting     : "2.2.0",
+            androidxJUnit           : "1.1.5",
+            androidxRunner          : "1.5.2",
+            kaspresso               : "1.5.2",
+            orchestrator            : "1.4.2",
 
             androidxTestExt         : "1.1.5",
             androidxEspresso        : "3.5.1",
@@ -50,9 +58,10 @@ buildscript {
     ext.androidx = [
             core            : "androidx.core:core-ktx:${versions.androidxCore}",
             activity        : "androidx.activity:activity-ktx:${versions.androidxActivity}",
+            fragment        : "androidx.fragment:fragment-ktx:${versions.androidxFragment}",
             appcompat       : "androidx.appcompat:appcompat:${versions.androidxAppCompat}",
-            crypto          : "androidx.security:security-crypto:${versions.androidxCrypto}",
-            constraintlayout: "androidx.constraintlayout:constraintlayout:${versions.androidxConstraintlayout}"
+            constraintlayout: "androidx.constraintlayout:constraintlayout:${versions.androidxConstraintlayout}",
+            crypto          : "androidx.security:security-crypto:${versions.androidxCrypto}"
     ]
 
     ext.dagger = [
@@ -66,6 +75,8 @@ buildscript {
             cicerone: "com.github.terrakok:cicerone:${versions.cicerone}"
     ]
 
+    ext.okhttp3 = "com.squareup.okhttp3:okhttp:${versions.okhttp3}"
+
     ext.room = [
             runtime : "androidx.room:room-runtime:${versions.room}",
             compiler: "androidx.room:room-compiler:${versions.room}",
@@ -77,9 +88,8 @@ buildscript {
             compiler: "com.github.bumptech.glide:compiler:${versions.glide}"
     ]
 
-    ext.kotlinx = [
-            serializationJson: "org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.kotlinxSerializationJson}"
-    ]
+    ext.kotlinxSerializationJson =
+            "org.jetbrains.kotlinx:kotlinx-serialization-json:${versions.kotlinxSerializationJson}"
 
     ext.retrofit = [
             retrofit : "com.squareup.retrofit2:retrofit:${versions.retrofit}",
@@ -96,6 +106,22 @@ buildscript {
             android   : "com.github.vivid-money.elmslie:elmslie-android:${versions.elmslie}",
             core      : "com.github.vivid-money.elmslie:elmslie-core:${versions.elmslie}",
             coroutines: "com.github.vivid-money.elmslie:elmslie-coroutines:${versions.elmslie}",
+    ]
+
+    ext.test = [
+            junit4      : "junit:junit:${versions.junit4}",
+            coroutines  : "org.jetbrains.kotlinx:kotlinx-coroutines-test:${versions.kotlinxCoroutines}",
+            androidxCore: "androidx.arch.core:core-testing:${versions.androidxCoreTesting}",
+            fragment    : "androidx.fragment:fragment-testing:${versions.androidxFragment}"
+    ]
+
+    ext.androidTest = [
+            junit         : "androidx.test.ext:junit-ktx:${versions.androidxJUnit}",
+            kaspresso     : "com.kaspersky.android-components:kaspresso:${versions.kaspresso}",
+            mockWebServer : "com.squareup.okhttp3:mockwebserver:${versions.okhttp3}",
+            androidxRunner: "androidx.test:runner:${versions.androidxRunner}",
+            dagger        : "com.google.dagger:dagger-compiler:${versions.dagger}",
+            orchestrator  : "androidx.test:orchestrator:${versions.orchestrator}"
     ]
 
     repositories {

@@ -16,11 +16,21 @@ android {
         targetSdk versions.targetSdk
         versionCode 1
         versionName "1.0"
+
         buildConfigField "String", "ZULIP_SERVER_URL", "\"https://tinkoff-android-spring-2023.zulipchat.com\""
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "DATABASE_NAME", "\"messenger-tfs-cache.db\""
+
+        // check data_extraction_rules.xml, must be the same without file extension
+        buildConfigField "String", "SHAREDPREF", "\"messenger-tfs_shared_prefs\""
+
+        testInstrumentationRunner "com.spinoza.messenger_tfs.CustomTestRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
     }
 
     buildTypes {
+        debug {
+            buildConfigField "Integer", "MOCKWEBSERVER_PORT", "1234"
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -41,9 +51,12 @@ android {
 dependencies {
     implementation androidx.core
     implementation androidx.activity
+    implementation androidx.fragment
     implementation androidx.appcompat
-    implementation androidx.crypto
     implementation androidx.constraintlayout
+    implementation androidx.crypto
+
+    implementation okhttp3
 
     implementation dagger.dagger
     kapt dagger.compiler
@@ -62,7 +75,7 @@ dependencies {
 
     implementation retrofit.retrofit
     implementation retrofit.converter
-    implementation kotlinx.serializationJson
+    implementation kotlinxSerializationJson
 
     implementation elmslie.core
     implementation elmslie.android
@@ -73,4 +86,14 @@ dependencies {
     implementation room.ktx
 
     debugImplementation leakcanary
+
+    testImplementation test.junit4
+    testImplementation test.androidxCore
+    testImplementation test.coroutines
+    androidTestImplementation androidTest.junit
+    androidTestImplementation androidTest.kaspresso
+    androidTestImplementation androidTest.mockWebServer
+    androidTestImplementation androidTest.androidxRunner
+    androidTestUtil androidTest.orchestrator
+    kaptAndroidTest androidTest.dagger
 }

@@ -12,13 +12,13 @@ import androidx.lifecycle.coroutineScope
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentLoginBinding
 import com.spinoza.messenger_tfs.di.login.DaggerLoginComponent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.getAppComponent
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.showCheckInternetConnectionDialog
-import com.spinoza.messenger_tfs.presentation.feature.app.utils.showError
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenState
+import com.spinoza.messenger_tfs.presentation.util.getAppComponent
+import com.spinoza.messenger_tfs.presentation.util.showCheckInternetConnectionDialog
+import com.spinoza.messenger_tfs.presentation.util.showError
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
@@ -83,6 +83,7 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
             is LoginScreenEffect.ButtonStatus -> binding.buttonLogin.isEnabled = effect.isEnabled
             is LoginScreenEffect.Failure.ErrorLogin ->
                 showError("${getString(R.string.error_login)} ${effect.value}")
+
             is LoginScreenEffect.Failure.ErrorNetwork -> {
                 showError("${getString(R.string.error_network)} ${effect.value}")
                 showCheckInternetConnectionDialog({ }) {
