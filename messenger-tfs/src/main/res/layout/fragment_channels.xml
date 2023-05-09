@@ -27,7 +27,8 @@
             android:paddingEnd="28dp"
             android:textColor="?attr/text_200_color"
             android:textColorHint="?attr/text_200_color"
-            android:textSize="22sp" />
+            android:textSize="22sp"
+            tools:ignore="VisualLintTextFieldSize" />
 
         <TextView
             android:layout_width="match_parent"
@@ -53,9 +54,8 @@
         app:tabMode="fixed"
         app:tabSelectedTextColor="?attr/text_300_color"
         app:tabTextAppearance="@style/ChannelsTabStyle"
-        app:tabTextColor="?attr/text_300_color">
-
-    </com.google.android.material.tabs.TabLayout>
+        app:tabTextColor="?attr/text_300_color"
+        tools:ignore="SpeakableTextPresentCheck" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"

@@ -167,6 +167,7 @@ class MessagesReducer @Inject constructor(
             if (visibleMessageIds.size > MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS) {
                 visibleMessageIds.clear()
             }
+            state { copy(isNextMessageExisting = event.isNextMessageExisting) }
             commands { +MessagesScreenCommand.SetMessagesRead(list) }
         }
 

@@ -19,7 +19,7 @@ sealed class MessagesScreenEvent {
 
         object Exit : Ui()
 
-        object MessagesScrollStateIdle : Ui()
+        class MessagesScrollStateIdle(val isNextMessageExisting: Boolean) : Ui()
 
         object ScrollToLastMessage : Ui()
 

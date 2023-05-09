@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/background_700_color"
     tools:context=".presentation.feature.login.LoginFragment">
 
-    <LinearLayout xmlns:app="http://schemas.android.com/apk/res-auto"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center_vertical"
@@ -48,7 +49,8 @@
             android:textColor="?attr/text_300_color"
             android:textColorHint="?attr/text_300_color"
             android:visibility="gone"
-            tools:visibility="visible" />
+            tools:visibility="visible"
+            tools:ignore="VisualLintTextFieldSize" />
 
         <EditText
             android:id="@+id/editTextPassword"
@@ -64,7 +66,8 @@
             android:textColor="?attr/text_300_color"
             android:textColorHint="?attr/text_300_color"
             android:visibility="gone"
-            tools:visibility="visible" />
+            tools:visibility="visible"
+            tools:ignore="VisualLintTextFieldSize" />
 
         <Button
             android:id="@+id/buttonLogin"
@@ -81,7 +84,8 @@
             android:textSize="20sp"
             android:visibility="gone"
             app:cornerRadius="31dp"
-            tools:visibility="visible" />
+            tools:visibility="visible"
+            tools:ignore="VisualLintButtonSize" />
 
         <TextView
             android:id="@+id/textViewForgotPassword"
