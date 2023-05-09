@@ -19,7 +19,8 @@ class MessagesScreen : KScreen<MessagesScreen>() {
     val messagesList =
         KRecyclerView({ withId(R.id.recyclerViewMessages) }, { itemType(::MessageItem) })
     val errorMessage = KTextView { withText(R.string.check_internet_connection) }
-    val chooseReactionDialogTopLine = KView { withId(R.id.textViewTopLine) }
+    val itemAddReaction = KTextView { withText(R.string.add_reaction) }
+    val itemCopyToClipboard = KTextView { withText(R.string.copy_to_clipboard) }
 
     class MessageItem(parent: Matcher<View>) : KRecyclerItem<MessageItem>(parent) {
         val messageDate = KTextView(parent) { withId(R.id.textViewDate) }

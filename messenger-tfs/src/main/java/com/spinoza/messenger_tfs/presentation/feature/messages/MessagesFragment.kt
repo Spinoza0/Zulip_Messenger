@@ -1,13 +1,17 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
+import android.app.AlertDialog
 import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
+import android.text.InputFilter
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
@@ -241,16 +245,13 @@ class MessagesFragment :
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
 
             is MessagesScreenEffect.ShowMessageMenu -> showMessageMenu(effect)
-            is MessagesScreenEffect.ShowChooseReactionDialog -> {
-                val dialog = ChooseReactionDialogFragment.newInstance(
-                    effect.messageId,
-                )
-                dialog.listener = ::updateReaction
-                dialog.show(
-                    requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG
-                )
-            }
+            is MessagesScreenEffect.ShowChooseReactionDialog ->
+                showChooseReactionDialog(effect.messageId)
 
+            is MessagesScreenEffect.RawMessageContent ->
+                showEditMessageDialog(effect.messageId, effect.content)
+
+            is MessagesScreenEffect.ConfirmDeleteMessage -> confirmDeleteMessage(effect.messageId)
             is MessagesScreenEffect.Failure.ErrorMessages ->
                 showError("${getString(R.string.error_messages)} ${effect.value}")
 
@@ -273,6 +274,68 @@ class MessagesFragment :
         }
     }
 
+    private fun showChooseReactionDialog(messageId: Long) {
+        val dialog = ChooseReactionDialogFragment.newInstance(messageId)
+        dialog.listener = ::updateReaction
+        dialog.show(requireActivity().supportFragmentManager, ChooseReactionDialogFragment.TAG)
+    }
+
+    private fun confirmDeleteMessage(messageId: Long) {
+        AlertDialog.Builder(requireContext())
+            .setMessage(getString(R.string.confirm_delete_message))
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.yes)) { _, _ ->
+                store.accept(MessagesScreenEvent.Ui.DeleteMessage(messageId))
+            }
+            .setNegativeButton(getString(R.string.no)) { _, _ ->
+            }
+            .create()
+            .show()
+    }
+
+    private fun showEditTopicDialog(messageView: MessageView) {
+        showInputTextDialog(
+            getString(R.string.edit_topic), messageView.messageId, messageView.subject, true
+        ) { id, text ->
+            store.accept(MessagesScreenEvent.Ui.EditMessageTopic(id, text))
+        }
+    }
+
+    private fun showEditMessageDialog(messageId: Long, content: String) {
+        showInputTextDialog(
+            getString(R.string.edit_message), messageId, content, false
+        ) { id, text ->
+            store.accept(MessagesScreenEvent.Ui.EditMessageContent(id, text))
+        }
+    }
+
+    private fun showInputTextDialog(
+        title: String, messageId: Long, content: String, isTopic: Boolean,
+        positiveCallback: (Long, CharSequence) -> Unit,
+    ) {
+        val input = EditText(requireContext()).apply {
+            maxLines = MAX_LINES
+            inputType = InputType.TYPE_CLASS_TEXT
+            if (isTopic) {
+                filters = arrayOf(InputFilter.LengthFilter(TOPIC_MAX_LENGTH))
+            } else {
+                inputType = inputType or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+            }
+            setText(content)
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle(title)
+            .setView(input)
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.save)) { _, _ ->
+                positiveCallback(messageId, input.text)
+            }
+            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
+            }
+            .create()
+            .show()
+    }
+
     private fun showNotification(value: Map<String, Boolean>) {
         notificator.createNotificationChannel(CHANNEL_NAME, CHANNEL_ID)
         val title = getString(R.string.downloading_result)
@@ -288,11 +351,44 @@ class MessagesFragment :
 
     private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
         val popupMenu = PopupMenu(requireContext(), binding.textViewTopic)
-        popupMenu.inflate(R.menu.menu_long_click_on_message)
+        val isMessageWithAttachments = effect.urls.isNotEmpty()
+        popupMenu.inflate(R.menu.menu_actions_with_message)
+        popupMenu.menu.findItem(R.id.itemSaveAttachments).isVisible = isMessageWithAttachments
+        popupMenu.menu.findItem(R.id.itemEditMessage).isVisible = effect.isEditMessageVisible
+        popupMenu.menu.findItem(R.id.itemEditTopic).isVisible = effect.isEditTopicVisible
+        popupMenu.menu.findItem(R.id.itemDeleteMessage).isVisible = effect.isDeleteMessageVisible
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.itemAddReaction -> {
                     onReactionAddClickListener(effect.messageView)
+                    true
+                }
+
+                R.id.itemCopyToClipboard -> {
+                    store.accept(
+                        MessagesScreenEvent.Ui.CopyToClipboard(
+                            requireContext(), effect.messageView, isMessageWithAttachments
+                        )
+                    )
+                    true
+                }
+
+                R.id.itemEditMessage -> {
+                    store.accept(
+                        MessagesScreenEvent.Ui.GetRawMessageContent(
+                            effect.messageView, isMessageWithAttachments
+                        )
+                    )
+                    true
+                }
+
+                R.id.itemEditTopic -> {
+                    showEditTopicDialog(effect.messageView)
+                    true
+                }
+
+                R.id.itemDeleteMessage -> {
+                    store.accept(MessagesScreenEvent.Ui.ConfirmDeleteMessage(effect.messageView))
                     true
                 }
 
@@ -477,7 +573,9 @@ class MessagesFragment :
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
         private const val PARAM_RECYCLERVIEW_STATE = "recyclerViewState"
         private const val NO_ITEMS = 0
+        private const val MAX_LINES = 5
         private const val LAST_ITEM_OFFSET = 1
+        private const val TOPIC_MAX_LENGTH = 60
         private const val CHANNEL_NAME = "Downloads"
         private const val CHANNEL_ID = "downloads_channel"
 

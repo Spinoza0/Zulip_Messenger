@@ -14,6 +14,8 @@ sealed class MessagesScreenCommand {
 
     class GetMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
 
+    class GetUpdateMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
+
     class GetDeleteMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
 
     class GetReactionsEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
@@ -44,5 +46,28 @@ sealed class MessagesScreenCommand {
 
     class UploadFile(val context: Context, val uri: Uri) : MessagesScreenCommand()
 
+    class CopyToClipboard(
+        val context: Context,
+        val messageId: Long,
+        val content: String,
+        val isMessageWithAttachments: Boolean,
+    ) :
+        MessagesScreenCommand()
+
+    class EditMessageContent(val messageId: Long, val content: CharSequence) :
+        MessagesScreenCommand()
+
+    class EditMessageTopic(val messageId: Long, val topic: CharSequence) :
+        MessagesScreenCommand()
+
+    class GetRawMessageContent(
+        val messageId: Long,
+        val content: String,
+        val isMessageWithAttachments: Boolean,
+    ) :
+        MessagesScreenCommand()
+
     class SaveAttachments(val context: Context, val urls: List<String>) : MessagesScreenCommand()
+
+    class DeleteMessage(val messageId: Long) : MessagesScreenCommand()
 }

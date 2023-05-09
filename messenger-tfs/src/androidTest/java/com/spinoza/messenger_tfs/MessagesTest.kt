@@ -82,7 +82,7 @@ class MessagesTest : TestCase() {
     }
 
     @Test
-    fun shouldLongClickOnMessageOpensChooseReactionDialog() = run {
+    fun shouldLongClickOnMessageOpensPopupMenu() = run {
         setupMockServerDispatcher(ServerType.WITH_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -93,10 +93,11 @@ class MessagesTest : TestCase() {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
             { topic.click() }
         }
-        step("Long click on message opens choose reaction dialog") {
+        step("Long click on message opens popup menu") {
             messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1)
             { longClick() }
-            messagesScreen.chooseReactionDialogTopLine.isVisible()
+            messagesScreen.itemAddReaction.isVisible()
+            messagesScreen.itemCopyToClipboard.isVisible()
         }
     }
 

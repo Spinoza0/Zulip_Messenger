@@ -52,11 +52,29 @@ sealed class MessagesScreenEvent {
 
         class OnMessageLongClick(val messageView: MessageView) : Ui()
 
+        class GetRawMessageContent(
+            val messageView: MessageView,
+            val isMessageWithAttachments: Boolean,
+        ) : Ui()
+
+        class CopyToClipboard(
+            val context: Context, val messageView: MessageView,
+            val isMessageWithAttachments: Boolean,
+        ) : Ui()
+
+        class EditMessageContent(val messageId: Long, val content: CharSequence) : Ui()
+
+        class EditMessageTopic(val messageId: Long, val topic: CharSequence) : Ui()
+
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
         class UploadFile(val context: Context, val uri: Uri) : Ui()
 
         class SaveAttachments(val context: Context, val urls: List<String>) : Ui()
+
+        class ConfirmDeleteMessage(val messageView: MessageView) : Ui()
+
+        class DeleteMessage(val messageId: Long) : Ui()
     }
 
     sealed class Internal : MessagesScreenEvent() {
@@ -68,6 +86,8 @@ sealed class MessagesScreenEvent {
         object LogOut : Internal()
 
         object EmptyMessagesQueueEvent : Internal()
+
+        object EmptyUpdateMessagesQueueEvent : Internal()
 
         object EmptyDeleteMessagesQueueEvent : Internal()
 
@@ -85,6 +105,8 @@ sealed class MessagesScreenEvent {
 
         class MessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
+        class UpdateMessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
+
         class DeleteMessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
         class ReactionsEventFromQueue(val value: MessagesResultDelegate) : Internal()
@@ -92,6 +114,8 @@ sealed class MessagesScreenEvent {
         class FileUploaded(val value: UploadedFileInfo) : Internal()
 
         class FilesDownloaded(val value: Map<String, Boolean>) : Internal()
+
+        class RawMessageContent(val messageId: Long, val content: String) : Internal()
 
         class ErrorNetwork(val value: String) : Internal()
 

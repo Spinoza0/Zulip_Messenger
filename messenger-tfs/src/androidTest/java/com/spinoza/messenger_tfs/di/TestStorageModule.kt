@@ -16,9 +16,11 @@ object TestStorageModule {
 
     @ApplicationScope
     @Provides
-    fun provideUserManager(): AuthorizationStorage = object : AuthorizationStorage {
+    fun provideAuthorizationStorage(): AuthorizationStorage = object : AuthorizationStorage {
 
         override fun isUserLoggedIn(): Boolean = true
+
+        override fun isAdmin(): Boolean = false
 
         override fun isAuthorizationDataExisted(): Boolean = true
 
@@ -30,7 +32,14 @@ object TestStorageModule {
 
         override fun getUserId(): Long = 604180
 
-        override fun saveData(userId: Long, email: String, password: String, apiKey: String) {}
+        override fun saveData(
+            userId: Long,
+            isAdmin: Boolean,
+            email: String,
+            password: String,
+            apiKey: String,
+        ) {
+        }
 
         override fun getEmail(): String = "email"
 

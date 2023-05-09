@@ -18,6 +18,7 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import com.spinoza.messenger_tfs.util.createChannels
 
@@ -51,6 +52,20 @@ class WebRepositoryStub : WebRepository {
         messagesPageType: MessagesPageType,
         filter: MessagesFilter,
     ): Result<MessagesResult> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
+    override suspend fun editMessage(
+        messageId: Long,
+        topic: String,
+        content: String,
+    ): Result<Boolean> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
+    override suspend fun getMessageRawContent(messageId: Long, default: String): String = ""
+
+    override suspend fun deleteMessage(messageId: Long): Result<Boolean> {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
@@ -107,6 +122,14 @@ class WebRepositoryStub : WebRepository {
         filter: MessagesFilter,
         isLastMessageVisible: Boolean,
     ): Result<MessageEvent> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
+    override suspend fun getUpdateMessageEvent(
+        queue: EventsQueue,
+        filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
+    ): Result<UpdateMessageEvent> {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 

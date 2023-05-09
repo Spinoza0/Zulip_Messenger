@@ -7,17 +7,23 @@ import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.utils.dbModelToDto
 import com.spinoza.messenger_tfs.data.utils.isEqualTopicName
 import com.spinoza.messenger_tfs.data.utils.toDbModel
+import com.spinoza.messenger_tfs.data.utils.toDomain
 import com.spinoza.messenger_tfs.data.utils.toReactionDto
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.TreeSet
 import javax.inject.Inject
 
-class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) {
+class MessagesCache @Inject constructor(
+    private val messengerDao: MessengerDao,
+    private val authorizationStorage: AuthorizationStorage,
+) {
 
     private val data = TreeSet<MessageDto>()
     private val dataMutex = Mutex()
@@ -49,10 +55,24 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
                 val subject = if (messagesDto.isNotEmpty()) {
                     messagesDto.first().subject
                 } else {
-                    EMPTY_SUBJECT
+                    EMPTY_STRING
                 }
                 saveToDatabase(messagesPageType == MessagesPageType.OLDEST, subject)
             }
+        }
+    }
+
+    suspend fun update(messageId: Long, subject: String?, content: String?) {
+        dataMutex.withLock {
+            val oldMessage = data.find { it.id == messageId } ?: return
+            var newMessage = oldMessage
+            if (subject != null) {
+                newMessage = oldMessage.copy(subject = subject)
+            }
+            if (content != null) {
+                newMessage = newMessage.copy(content = content)
+            }
+            replace(newMessage)
         }
     }
 
@@ -73,9 +93,8 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
     }
 
     suspend fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
-        val messages = data.filter { messageId == it.id }
-        if (messages.isEmpty()) return
-        val isAddReaction = null == messages.first().reactions.find {
+        val message = data.find { messageId == it.id } ?: return
+        val isAddReaction = null == message.reactions.find {
             it.emojiName == reactionDto.emojiName && it.userId == userId
         }
         updateReaction(
@@ -94,32 +113,30 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
 
     suspend fun updateReaction(reactionEventDto: ReactionEventDto) {
         dataMutex.withLock {
-            data.find { it.id == reactionEventDto.messageId }?.let { messageDto ->
-                val isUserReactionExisting = messageDto.reactions.find {
-                    it.emojiName == reactionEventDto.emoji_name &&
-                            it.userId == reactionEventDto.userId
-                } != null
-                if (reactionEventDto.operation == ReactionEventDto.Operation.ADD.value &&
-                    !isUserReactionExisting
-                ) {
-                    val reactions = mutableListOf<ReactionDto>()
-                    reactions.addAll(messageDto.reactions)
-                    reactions.add(reactionEventDto.toReactionDto())
-                    replace(messageDto.copy(reactions = reactions))
-                }
-                if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value &&
-                    isUserReactionExisting
-                ) {
-                    val reactions = mutableListOf<ReactionDto>()
-                    val reactionToRemove = reactionEventDto.toReactionDto()
-                    reactions.addAll(messageDto.reactions.filter { it != reactionToRemove })
-                    replace(messageDto.copy(reactions = reactions))
-                }
+            val message = data.find { it.id == reactionEventDto.messageId } ?: return
+            val isUserReactionExisting = message.reactions.find {
+                it.emojiName == reactionEventDto.emoji_name && it.userId == reactionEventDto.userId
+            } != null
+            if (reactionEventDto.operation == ReactionEventDto.Operation.ADD.value &&
+                !isUserReactionExisting
+            ) {
+                val reactions = mutableListOf<ReactionDto>()
+                reactions.addAll(message.reactions)
+                reactions.add(reactionEventDto.toReactionDto())
+                replace(message.copy(reactions = reactions))
+            }
+            if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value &&
+                isUserReactionExisting
+            ) {
+                val reactions = mutableListOf<ReactionDto>()
+                val reactionToRemove = reactionEventDto.toReactionDto()
+                reactions.addAll(message.reactions.filter { it != reactionToRemove })
+                replace(message.copy(reactions = reactions))
             }
         }
     }
 
-    suspend fun getMessages(filter: MessagesFilter): List<MessageDto> {
+    suspend fun getMessages(filter: MessagesFilter): List<Message> {
         dataMutex.withLock {
             val streamMessages =
                 if (filter.channel.channelId != Channel.UNDEFINED_ID) {
@@ -133,7 +150,7 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
                 } else {
                     streamMessages
                 }
-            return topicMessages.toList()
+            return topicMessages.toDomain(authorizationStorage.getUserId())
         }
     }
 
@@ -162,6 +179,5 @@ class MessagesCache @Inject constructor(private val messengerDao: MessengerDao) 
 
         private const val UNDEFINED_EVENT_ID = -1L
         private const val MAX_CACHE_SIZE = 50
-        private const val EMPTY_SUBJECT = ""
     }
 }

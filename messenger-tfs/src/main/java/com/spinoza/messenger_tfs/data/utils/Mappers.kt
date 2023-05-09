@@ -28,6 +28,9 @@ import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
+import com.spinoza.messenger_tfs.domain.util.MILLIS_IN_SECOND
+import com.spinoza.messenger_tfs.domain.util.SECONDS_IN_DAY
 import com.spinoza.messenger_tfs.domain.util.isContainingWords
 import com.spinoza.messenger_tfs.domain.util.splitToWords
 import java.text.SimpleDateFormat
@@ -65,9 +68,9 @@ fun List<StreamDto>.toDbModel(channelsFilter: ChannelsFilter): List<StreamDbMode
 }
 
 fun MessageDto.toDomain(userId: Long): Message {
-    val strippedTimestamp = timestamp.stripTimeFromTimestamp()
+    val dateTimestamp = timestamp.getDateFromTimestamp()
     return Message(
-        date = MessageDate(strippedTimestamp.unixTimeToString(), strippedTimestamp),
+        date = MessageDate(dateTimestamp.unixTimeToString(), dateTimestamp, timestamp),
         user = User(
             userId = senderId,
             email = senderEmail,
@@ -109,7 +112,7 @@ fun ReactionEventDto.toReactionDto(): ReactionDto {
     )
 }
 
-fun List<MessageDto>.toDomain(userId: Long): List<Message> {
+fun Collection<MessageDto>.toDomain(userId: Long): List<Message> {
     return filter {
         !it.isMeMessage
     }.map { it.toDomain(userId) }
@@ -175,7 +178,7 @@ fun List<TopicDbModel>.dbToDomain(): List<Topic> {
 private fun TopicDbModel.dbToDomain(): Topic {
     return Topic(
         name = name,
-        messageCount = NO_MESSAGES,
+        messageCount = Topic.NO_MESSAGES,
         channelId = streamId,
         lastMessageId = Message.UNDEFINED_ID
     )
@@ -184,7 +187,7 @@ private fun TopicDbModel.dbToDomain(): Topic {
 fun TopicDto.dtoToDomain(channel: Channel): Topic {
     return Topic(
         name = name,
-        messageCount = NO_MESSAGES,
+        messageCount = Topic.NO_MESSAGES,
         channelId = channel.channelId,
         lastMessageId = maxId
     )
@@ -202,6 +205,7 @@ private fun EventType.toDto(): EventTypeDto = when (this) {
     EventType.PRESENCE -> EventTypeDto.PRESENCE
     EventType.CHANNEL -> EventTypeDto.STREAM
     EventType.MESSAGE -> EventTypeDto.MESSAGE
+    EventType.UPDATE_MESSAGE -> EventTypeDto.UPDATE_MESSAGE
     EventType.DELETE_MESSAGE -> EventTypeDto.DELETE_MESSAGE
     EventType.REACTION -> EventTypeDto.REACTION
 }
@@ -326,12 +330,8 @@ private fun Long.unixTimeToString(): String {
     ).format(Date(this * MILLIS_IN_SECOND))
 }
 
-private fun Long.stripTimeFromTimestamp(): Long {
+private fun Long.getDateFromTimestamp(): Long {
     return this - (this % SECONDS_IN_DAY)
 }
 
 private const val DATE_FORMAT = "dd.MM.yyyy"
-private const val MILLIS_IN_SECOND = 1000L
-private const val SECONDS_IN_DAY = 24 * 60 * 60
-private const val NO_MESSAGES = 0
-private const val EMPTY_STRING = ""

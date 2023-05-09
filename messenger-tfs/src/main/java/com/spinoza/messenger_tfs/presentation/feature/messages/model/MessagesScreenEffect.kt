@@ -11,14 +11,23 @@ sealed class MessagesScreenEffect {
 
     object AddAttachment : MessagesScreenEffect()
 
-    class ShowMessageMenu(val urls: List<String>, val messageView: MessageView) :
-        MessagesScreenEffect()
+    class ShowMessageMenu(
+        val isDeleteMessageVisible: Boolean,
+        val isEditMessageVisible: Boolean,
+        val isEditTopicVisible: Boolean,
+        val urls: List<String>,
+        val messageView: MessageView,
+    ) : MessagesScreenEffect()
 
     class ShowChooseReactionDialog(val messageId: Long) : MessagesScreenEffect()
 
     class FileUploaded(val value: UploadedFileInfo) : MessagesScreenEffect()
 
     class FilesDownloaded(val value: Map<String, Boolean>) : MessagesScreenEffect()
+
+    class ConfirmDeleteMessage(val messageId: Long) : MessagesScreenEffect()
+
+    class RawMessageContent(val messageId: Long, val content: String) : MessagesScreenEffect()
 
     sealed class Failure : MessagesScreenEffect() {
 

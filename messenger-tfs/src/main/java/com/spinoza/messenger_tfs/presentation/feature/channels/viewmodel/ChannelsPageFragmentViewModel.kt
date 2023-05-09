@@ -14,6 +14,7 @@ import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
+import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegateItem
@@ -21,7 +22,6 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.model.*
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.util.*
@@ -107,7 +107,7 @@ class ChannelsPageFragmentViewModel(
                 if (error is RepositoryError) {
                     openLoginScreen()
                 } else {
-                    _effects.emit(ChannelsPageScreenEffect.Failure.Network(error.getErrorText()))
+                    _effects.emit(ChannelsPageScreenEffect.Failure.Network(error.getText()))
                 }
             }
         }
@@ -360,7 +360,7 @@ class ChannelsPageFragmentViewModel(
         val channelsPageScreenEffect = if (error is RepositoryError) {
             ChannelsPageScreenEffect.Failure.Error(error.value)
         } else {
-            ChannelsPageScreenEffect.Failure.Network(error.getErrorText())
+            ChannelsPageScreenEffect.Failure.Network(error.getText())
         }
         _effects.emit(channelsPageScreenEffect)
     }

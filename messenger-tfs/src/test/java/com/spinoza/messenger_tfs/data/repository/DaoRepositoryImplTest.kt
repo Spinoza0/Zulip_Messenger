@@ -17,7 +17,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class WebRepositoryImplTest {
+class DaoRepositoryImplTest {
 
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
@@ -31,7 +31,7 @@ class WebRepositoryImplTest {
 
     @Test
     fun `should getStoredMessages returns empty list of messages`() = runTest {
-        val repository = createRepository(MessengerDaoStub.Type.EMPTY)
+        val repository = createDaoRepository(MessengerDaoStub.Type.EMPTY)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
         val result = repository.getStoredMessages(messagesFilter)
@@ -41,7 +41,7 @@ class WebRepositoryImplTest {
 
     @Test
     fun `should getStoredMessages returns not empty list of messages`() = runTest {
-        val repository = createRepository(MessengerDaoStub.Type.WITH_MESSAGES)
+        val repository = createDaoRepository(MessengerDaoStub.Type.WITH_MESSAGES)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
         val result = repository.getStoredMessages(messagesFilter)
@@ -51,7 +51,7 @@ class WebRepositoryImplTest {
 
     @Test
     fun `should getStoredMessages returns error`() = runTest {
-        val repository = createRepository(MessengerDaoStub.Type.WITH_GET_MESSAGES_ERROR)
+        val repository = createDaoRepository(MessengerDaoStub.Type.WITH_GET_MESSAGES_ERROR)
         val messagesFilter = provideMessagesFilter(messagesGenerator)
 
         val result = repository.getStoredMessages(messagesFilter)
@@ -68,11 +68,10 @@ class WebRepositoryImplTest {
         )
     }
 
-    private fun createRepository(type: MessengerDaoStub.Type): DaoRepository {
+    private fun createDaoRepository(type: MessengerDaoStub.Type): DaoRepository {
         val messengerDao = MessengerDaoStub(messagesGenerator, type)
         return DaoRepositoryImpl(
-            AuthorizationStorageStub(),
-            MessagesCache(messengerDao),
+            MessagesCache(messengerDao, AuthorizationStorageStub()),
             messengerDao,
             mainDispatcherRule.testDispatcher
         )

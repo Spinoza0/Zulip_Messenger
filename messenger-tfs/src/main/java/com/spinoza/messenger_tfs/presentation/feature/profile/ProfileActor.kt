@@ -13,10 +13,10 @@ import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.profile.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.profile.GetUserUseCase
+import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -87,7 +87,7 @@ class ProfileActor @Inject constructor(
             event = if (it is RepositoryError) {
                 ProfileScreenEvent.Internal.ErrorUserLoading(it.value)
             } else {
-                ProfileScreenEvent.Internal.ErrorNetwork(it.getErrorText())
+                ProfileScreenEvent.Internal.ErrorNetwork(it.getText())
             }
         }
         return event
@@ -104,7 +104,7 @@ class ProfileActor @Inject constructor(
             event = if (error is RepositoryError) {
                 ProfileScreenEvent.Internal.LogOut
             } else {
-                ProfileScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+                ProfileScreenEvent.Internal.ErrorNetwork(error.getText())
             }
         }
         return event

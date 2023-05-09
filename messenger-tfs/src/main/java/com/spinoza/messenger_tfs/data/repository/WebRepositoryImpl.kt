@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
+import com.spinoza.messenger_tfs.data.network.model.BasicResponse
 import com.spinoza.messenger_tfs.data.network.model.event.DeleteMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.HeartBeatEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.MessageEventsResponse
@@ -12,6 +13,7 @@ import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.event.StreamEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.UpdateMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
@@ -51,8 +53,11 @@ import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
+import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -72,27 +77,32 @@ class WebRepositoryImpl @Inject constructor(
 
     override suspend fun logIn(email: String, password: String): Result<Boolean> =
         withContext(ioDispatcher) {
-            if (authorizationStorage.makeAuthHeader(email).isNotBlank()) {
-                runCatchingNonCancellation {
-                    apiRequest<OwnUserResponse> { apiService.getOwnUser() }
-                }.onSuccess {
-                    authorizationStorage.saveData(it.userId, email, password)
-                    return@withContext Result.success(true)
-                }
+            authorizationStorage.makeAuthHeader(email)
+            if (saveOwnUserData(email, password)) {
+                return@withContext Result.success(true)
             }
             runCatchingNonCancellation {
                 val apiKeyResponse =
                     apiRequest<ApiKeyResponse> { apiService.fetchApiKey(email, password) }
                 authorizationStorage.makeAuthHeader(apiKeyResponse.email, apiKeyResponse.apiKey)
-                authorizationStorage.saveData(
-                    apiKeyResponse.userId,
-                    apiKeyResponse.email,
-                    password,
-                    apiKeyResponse.apiKey
-                )
-                true
+                saveOwnUserData(email, password, apiKeyResponse.apiKey)
             }
         }
+
+    private suspend fun saveOwnUserData(
+        email: String,
+        password: String,
+        apiKey: String = EMPTY_STRING,
+    ): Boolean {
+        if (authorizationStorage.getAuthHeaderValue().isBlank()) return false
+        runCatchingNonCancellation {
+            apiRequest<OwnUserResponse> { apiService.getOwnUser() }
+        }.onSuccess {
+            authorizationStorage.saveData(it.userId, it.isAdmin, email, password, apiKey)
+            return true
+        }
+        return false
+    }
 
     override suspend fun setOwnStatusActive() {
         withContext(ioDispatcher) {
@@ -186,12 +196,32 @@ class WebRepositoryImpl @Inject constructor(
                 else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
             messagesCache.addAll(messagesResponse.messages, messagesPageType)
-            MessagesResult(
-                messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
-                position
-            )
+            MessagesResult(messagesCache.getMessages(filter), position)
         }
     }
+
+    override suspend fun editMessage(
+        messageId: Long,
+        topic: String,
+        content: String,
+    ): Result<Boolean> = withContext(ioDispatcher) {
+        runCatchingNonCancellation {
+            if (topic.isBlank()) {
+                apiRequest<BasicResponse> { apiService.editMessageContent(messageId, content) }
+            } else {
+                apiRequest<BasicResponse> { apiService.editMessageTopic(messageId, topic) }
+            }
+            true
+        }
+    }
+
+    override suspend fun deleteMessage(messageId: Long): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                apiRequest<BasicResponse> { apiService.deleteMessage(messageId) }
+                true
+            }
+        }
 
     override suspend fun getChannels(
         channelsFilter: ChannelsFilter,
@@ -291,7 +321,7 @@ class WebRepositoryImpl @Inject constructor(
             val ownUserId = authorizationStorage.getUserId()
             messagesCache.updateReaction(messageId, ownUserId, emoji.toDto(ownUserId))
             val result = MessagesResult(
-                messagesCache.getMessages(filter).toDomain(ownUserId),
+                messagesCache.getMessages(filter),
                 MessagePosition(MessagePosition.Type.EXACTLY, messageId)
             )
             updateReactionOnServer(messageId, emoji)
@@ -382,10 +412,37 @@ class WebRepositoryImpl @Inject constructor(
             MessageEvent(
                 eventResponse.events.last().id,
                 MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
+                    messagesCache.getMessages(filter),
                     MessagePosition(),
                     eventResponse.events.isNotEmpty()
                 )
+            )
+        }
+    }
+
+    override suspend fun getUpdateMessageEvent(
+        queue: EventsQueue,
+        filter: MessagesFilter,
+        isLastMessageVisible: Boolean,
+    ): Result<UpdateMessageEvent> = withContext(ioDispatcher) {
+        runCatchingNonCancellation {
+            val responseBody = getNonHeartBeatEventResponse(queue)
+            val eventResponse = jsonConverter.decodeFromString(
+                UpdateMessageEventsResponse.serializer(), responseBody
+            )
+            if (eventResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(eventResponse.msg)
+            }
+            eventResponse.events.forEach { updateMessageEventDto ->
+                messagesCache.update(
+                    updateMessageEventDto.messageId,
+                    updateMessageEventDto.subject,
+                    updateMessageEventDto.renderedContent
+                )
+            }
+            UpdateMessageEvent(
+                eventResponse.events.last().id,
+                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
             )
         }
     }
@@ -408,10 +465,7 @@ class WebRepositoryImpl @Inject constructor(
             }
             DeleteMessageEvent(
                 eventResponse.events.last().id,
-                MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
-                    MessagePosition()
-                )
+                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
             )
         }
     }
@@ -434,10 +488,7 @@ class WebRepositoryImpl @Inject constructor(
             }
             ReactionEvent(
                 eventResponse.events.last().id,
-                MessagesResult(
-                    messagesCache.getMessages(filter).toDomain(authorizationStorage.getUserId()),
-                    MessagePosition()
-                )
+                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
             )
         }
     }
@@ -473,6 +524,20 @@ class WebRepositoryImpl @Inject constructor(
                 }
             }
         }
+    }
+
+    override suspend fun getMessageRawContent(
+        messageId: Long,
+        default: String,
+    ): String = withContext(ioDispatcher) {
+        var result = default
+        runCatchingNonCancellation {
+            val singleMessageResponse = apiRequest<SingleMessageResponse> {
+                apiService.getSingleMessage(messageId, false)
+            }
+            result = singleMessageResponse.message.content
+        }
+        result
     }
 
     private suspend fun getUserPresence(userId: Long): User.Presence = runCatchingNonCancellation {
@@ -518,7 +583,7 @@ class WebRepositoryImpl @Inject constructor(
             throw RepositoryError(usersResponse.msg)
         }
         val users = mutableListOf<User>()
-        val timestamp = System.currentTimeMillis() / MILLIS_IN_SECOND
+        val timestamp = getCurrentTimestamp()
         usersResponse.members
             .filter { it.isBot.not() && it.isActive }
             .forEach { userDto ->
@@ -541,7 +606,6 @@ class WebRepositoryImpl @Inject constructor(
 
     companion object {
 
-        private const val MILLIS_IN_SECOND = 1000
         private const val OFFLINE_TIME = 180
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
         private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500

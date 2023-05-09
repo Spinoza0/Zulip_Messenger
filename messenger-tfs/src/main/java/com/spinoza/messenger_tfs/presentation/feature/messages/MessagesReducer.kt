@@ -4,10 +4,13 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebUtil
+import com.spinoza.messenger_tfs.domain.util.SECONDS_IN_DAY
+import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
@@ -43,6 +46,7 @@ class MessagesReducer @Inject constructor(
             }
             commands {
                 +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
                 +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
                 +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
             }
@@ -75,6 +79,11 @@ class MessagesReducer @Inject constructor(
             commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
         }
 
+        is MessagesScreenEvent.Internal.UpdateMessagesEventFromQueue -> {
+            state { copy(messages = event.value) }
+            commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
+        }
+
         is MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue -> {
             state { copy(messages = event.value) }
             commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
@@ -87,6 +96,9 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Internal.EmptyMessagesQueueEvent ->
             commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
+
+        is MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent ->
+            commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
 
         is MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent ->
             commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
@@ -124,6 +136,11 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Internal.FilesDownloaded ->
             effects { +MessagesScreenEffect.FilesDownloaded(event.value) }
+
+        is MessagesScreenEvent.Internal.RawMessageContent -> {
+            state { copy(isLongOperation = false) }
+            effects { +MessagesScreenEffect.RawMessageContent(event.messageId, event.content) }
+        }
 
         is MessagesScreenEvent.Internal.ErrorMessages -> {
             state { copy(isLoading = false, isLongOperation = false, isSendingMessage = false) }
@@ -180,13 +197,19 @@ class MessagesReducer @Inject constructor(
         }
 
         is MessagesScreenEvent.Ui.OnMessageLongClick -> {
-            val attachments = webUtil.getAttachmentsUrls(event.messageView.rawContent)
-            if (attachments.isNotEmpty()) {
-                effects { +MessagesScreenEffect.ShowMessageMenu(attachments, event.messageView) }
-            } else {
-                effects {
-                    +MessagesScreenEffect.ShowChooseReactionDialog(event.messageView.messageId)
-                }
+            val messageView = event.messageView
+            val isAdmin = authorizationStorage.isAdmin()
+            val attachments = webUtil.getAttachmentsUrls(messageView.rawContent)
+            val isMessageEditable = messageView.isOwn() && messageView.isMessageEditable()
+            val isTopicEditable = isAdmin || (messageView.isOwn() && messageView.isTopicEditable())
+            effects {
+                +MessagesScreenEffect.ShowMessageMenu(
+                    isDeleteMessageVisible = isAdmin,
+                    isEditMessageVisible = isMessageEditable,
+                    isEditTopicVisible = isTopicEditable,
+                    attachments,
+                    event.messageView
+                )
             }
         }
 
@@ -243,8 +266,41 @@ class MessagesReducer @Inject constructor(
             commands { +MessagesScreenCommand.UploadFile(event.context, event.uri) }
         }
 
+        is MessagesScreenEvent.Ui.CopyToClipboard ->
+            commands {
+                +MessagesScreenCommand.CopyToClipboard(
+                    event.context,
+                    event.messageView.messageId,
+                    event.messageView.rawContent,
+                    event.isMessageWithAttachments
+                )
+            }
+
+        is MessagesScreenEvent.Ui.GetRawMessageContent -> {
+            state { copy(isLongOperation = event.isMessageWithAttachments) }
+            commands {
+                +MessagesScreenCommand.GetRawMessageContent(
+                    event.messageView.messageId,
+                    event.messageView.rawContent,
+                    event.isMessageWithAttachments
+                )
+            }
+        }
+
+        is MessagesScreenEvent.Ui.EditMessageContent ->
+            commands { +MessagesScreenCommand.EditMessageContent(event.messageId, event.content) }
+
+        is MessagesScreenEvent.Ui.EditMessageTopic ->
+            commands { +MessagesScreenCommand.EditMessageTopic(event.messageId, event.topic) }
+
         is MessagesScreenEvent.Ui.SaveAttachments ->
             commands { +MessagesScreenCommand.SaveAttachments(event.context, event.urls) }
+
+        is MessagesScreenEvent.Ui.ConfirmDeleteMessage ->
+            effects { +MessagesScreenEffect.ConfirmDeleteMessage(event.messageView.messageId) }
+
+        is MessagesScreenEvent.Ui.DeleteMessage ->
+            commands { +MessagesScreenCommand.DeleteMessage(event.messageId) }
 
         is MessagesScreenEvent.Ui.CheckLoginStatus -> {
             if (!authorizationStorage.isUserLoggedIn()) {
@@ -265,9 +321,23 @@ class MessagesReducer @Inject constructor(
 
     private fun Int.isScrollDown() = this > 0
 
+    private fun MessageView.isMessageEditable(): Boolean {
+        return (getCurrentTimestamp() - this.date.fullTimeStamp) < MESSAGE_EDITABLE_TIME_IN_SECONDS
+    }
+
+    private fun MessageView.isTopicEditable(): Boolean {
+        return (getCurrentTimestamp() - this.date.fullTimeStamp) < TOPIC_EDITABLE_TIME_IN_SECONDS
+    }
+
+    private fun MessageView.isOwn(): Boolean {
+        return this.userId == authorizationStorage.getUserId()
+    }
+
     private companion object {
 
         const val BORDER_POSITION = 5
         const val MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS = 50
+        const val MESSAGE_EDITABLE_TIME_IN_SECONDS = 300
+        const val TOPIC_EDITABLE_TIME_IN_SECONDS = SECONDS_IN_DAY * 3
     }
 }

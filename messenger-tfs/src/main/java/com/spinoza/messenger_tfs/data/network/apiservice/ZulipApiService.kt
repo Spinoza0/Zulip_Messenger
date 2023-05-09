@@ -76,6 +76,7 @@ interface ZulipApiService {
     @GET("messages/{$QUERY_MESSAGE_ID}")
     suspend fun getSingleMessage(
         @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): SingleMessageResponse
 
     @POST("messages/{$QUERY_MESSAGE_ID}/reactions")
@@ -89,6 +90,23 @@ interface ZulipApiService {
         @Path(QUERY_MESSAGE_ID) messageId: Long,
         @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): BasicResponse
+
+    @PATCH("messages/{$QUERY_MESSAGE_ID}")
+    suspend fun editMessageTopic(
+        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Query(QUERY_TOPIC) topic: String,
+        @Query(QUERY_SEND_NOTIFICATION_TO_OLD_THREAD) sendNotificationToOldThread: Boolean = true,
+        @Query(QUERY_SEND_NOTIFICATION_TO_NEW_THREAD) sendNotificationToNewThread: Boolean = true,
+    ): BasicResponse
+
+    @PATCH("messages/{$QUERY_MESSAGE_ID}")
+    suspend fun editMessageContent(
+        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Query(QUERY_CONTENT) content: String,
+    ): BasicResponse
+
+    @DELETE("messages/{$QUERY_MESSAGE_ID}")
+    suspend fun deleteMessage(@Path(QUERY_MESSAGE_ID) messageId: Long): BasicResponse
 
     @POST("messages")
     suspend fun sendMessageToStream(
@@ -155,7 +173,6 @@ interface ZulipApiService {
         private const val QUERY_MESSAGE_IDS = "messages"
         private const val QUERY_OPERATION = "op"
         private const val QUERY_OPERATION_ADD = "add"
-        private const val QUERY_OPERATION_REMOVE = "remove"
 
         private const val QUERY_FLAG = "flag"
         private const val QUERY_FLAG_READ = "read"
@@ -163,11 +180,12 @@ interface ZulipApiService {
         private const val QUERY_TOPIC = "topic"
         private const val QUERY_TYPE = "type"
         private const val QUERY_CONTENT = "content"
+        private const val QUERY_SEND_NOTIFICATION_TO_OLD_THREAD = "send_notification_to_old_thread"
+        private const val QUERY_SEND_NOTIFICATION_TO_NEW_THREAD = "send_notification_to_new_thread"
 
         private const val DEFAULT_EMPTY_JSON = "[]"
         private const val DEFAULT_APPLY_MARKDOWN = true
 
-        private const val SEND_MESSAGE_TYPE_PRIVATE = "private"
         private const val SEND_MESSAGE_TYPE_STREAM = "stream"
     }
 }

@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.stub.AuthorizationStorageStub
 import com.spinoza.messenger_tfs.stub.MessagesGenerator
 import com.spinoza.messenger_tfs.stub.MessengerDaoStub
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -71,12 +72,12 @@ class MessagesCacheTest {
         val messagesCache = createNotEmptyMessagesCache()
         val id = messagesGenerator.getLastId()
         val messagesBefore = messagesCache.getMessages(provideMessagesFilter())
-        val reactionsBefore = messagesBefore.find { it.senderId == id }?.reactions
+        val reactionsBefore = messagesBefore.find { it.user.userId == id }?.reactions
         val newReactionDto = createReactionDto()
 
         messagesCache.updateReaction(messagesGenerator.getLastId(), ownUserId, newReactionDto)
         val messagesAfter = messagesCache.getMessages(provideMessagesFilter())
-        val reactionsAfter = messagesAfter.find { it.senderId == id }?.reactions
+        val reactionsAfter = messagesAfter.find { it.user.userId == id }?.reactions
 
         assertNotEquals(reactionsBefore, reactionsAfter)
     }
@@ -154,12 +155,15 @@ class MessagesCacheTest {
         }
 
     private fun createEmptyMessagesCache(): MessagesCache {
-        return MessagesCache(MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY))
+        return MessagesCache(
+            MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY),
+            AuthorizationStorageStub()
+        )
     }
 
     private fun createNotEmptyMessagesCache(): MessagesCache = runBlocking {
-        val messengerDao =  MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY)
-        val messagesCache = MessagesCache(messengerDao)
+        val messengerDao = MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY)
+        val messagesCache = MessagesCache(messengerDao, AuthorizationStorageStub())
         messagesCache.addAll(messagesGenerator.getListOfMessagesDto(), provideMessagePageType())
         messagesCache
     }

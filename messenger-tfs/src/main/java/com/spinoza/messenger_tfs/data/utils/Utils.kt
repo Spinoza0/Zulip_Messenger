@@ -6,6 +6,7 @@ import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperator
 import com.spinoza.messenger_tfs.data.network.model.message.NarrowOperatorItemDto
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
+import com.spinoza.messenger_tfs.domain.util.getText
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -16,7 +17,7 @@ suspend fun <R> runCatchingNonCancellation(block: suspend () -> R): Result<R> {
         Result.success(block())
     } catch (e: CancellationException) {
         throw e
-    } catch (e: Exception) {
+    } catch (e: Throwable) {
         Result.failure(e)
     }
 }
@@ -54,9 +55,18 @@ inline fun <reified T> Response<T>?.getBodyOrThrow(): T {
 }
 
 inline fun <reified T> apiRequest(apiCall: () -> ZulipResponse): T {
-    val result = apiCall.invoke()
-    if (result.result != RESULT_SUCCESS) {
-        throw RepositoryError(result.msg)
+    var errorResult: Throwable? = null
+    runCatching {
+        val result = apiCall.invoke()
+        if (result.result != RESULT_SUCCESS) {
+            throw RepositoryError(result.msg)
+        }
+        return result as T
+    }.onFailure { error ->
+        errorResult = error
+        if (error is retrofit2.HttpException) {
+            throw RepositoryError(error.getText())
+        }
     }
-    return result as T
+    throw Throwable(errorResult)
 }

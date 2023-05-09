@@ -1,5 +1,8 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
+import android.content.ClipData
+import android.content.Context
+import android.text.Html
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
@@ -17,16 +20,20 @@ import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.EventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetReactionEventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetUpdateMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.DeleteMessageUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.EditMessageUseCase
+import com.spinoza.messenger_tfs.domain.usecase.messages.GetMessageRawContentUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetMessagesUseCase
-import com.spinoza.messenger_tfs.domain.usecase.messages.GetOwnUserIdUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetStoredMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetUpdatedMessageFilterUserCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.SaveAttachmentsUseCase
@@ -35,6 +42,7 @@ import com.spinoza.messenger_tfs.domain.usecase.messages.SetMessagesFlagToReadUs
 import com.spinoza.messenger_tfs.domain.usecase.messages.SetOwnStatusActiveUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.UploadFileUseCase
+import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
@@ -43,7 +51,6 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesRes
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
-import com.spinoza.messenger_tfs.presentation.util.getErrorText
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -68,12 +75,15 @@ class MessagesActor @Inject constructor(
     lifecycle: Lifecycle,
     private val authorizationStorage: AuthorizationStorage,
     private val logInUseCase: LogInUseCase,
-    private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
     private val getStoredMessagesUseCase: GetStoredMessagesUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
+    private val getMessageRawContentUseCase: GetMessageRawContentUseCase,
     private val sendMessageUseCase: SendMessageUseCase,
+    private val editMessageUseCase: EditMessageUseCase,
+    private val deleteMessageUseCase: DeleteMessageUseCase,
     private val updateReactionUseCase: UpdateReactionUseCase,
     private val getMessageEventUseCase: GetMessageEventUseCase,
+    private val getUpdateMessageEventUseCase: GetUpdateMessageEventUseCase,
     private val getDeleteMessageEventUseCase: GetDeleteMessageEventUseCase,
     private val getReactionEventUseCase: GetReactionEventUseCase,
     private val setOwnStatusActiveUseCase: SetOwnStatusActiveUseCase,
@@ -90,6 +100,8 @@ class MessagesActor @Inject constructor(
     private val lifecycleScope = lifecycle.coroutineScope
     private val newMessageFieldState = MutableSharedFlow<String>()
     private var messagesQueue: EventsQueueHolder =
+        EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
+    private var updateMessagesQueue: EventsQueueHolder =
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var deleteMessagesQueue: EventsQueueHolder =
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
@@ -115,6 +127,7 @@ class MessagesActor @Inject constructor(
         override fun onDestroy(owner: LifecycleOwner) {
             lifecycleScope.launch {
                 messagesQueue.deleteQueue()
+                updateMessagesQueue.deleteQueue()
                 deleteMessagesQueue.deleteQueue()
                 reactionsQueue.deleteQueue()
             }
@@ -142,6 +155,9 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.SendMessage -> sendMessage(command.value)
                 is MessagesScreenCommand.GetMessagesEvent ->
                     getMessagesEvent(command.isLastMessageVisible)
+
+                is MessagesScreenCommand.GetUpdateMessagesEvent ->
+                    getUpdateMessagesEvent(command.isLastMessageVisible)
 
                 is MessagesScreenCommand.GetDeleteMessagesEvent ->
                     getDeleteMessagesEvent(command.isLastMessageVisible)
@@ -188,7 +204,12 @@ class MessagesActor @Inject constructor(
                 }
 
                 is MessagesScreenCommand.UploadFile -> uploadFile(command)
+                is MessagesScreenCommand.CopyToClipboard -> copyToClipboard(command)
+                is MessagesScreenCommand.EditMessageContent -> editMessageContent(command)
+                is MessagesScreenCommand.EditMessageTopic -> editMessageTopic(command)
+                is MessagesScreenCommand.GetRawMessageContent -> getRawMessageContent(command)
                 is MessagesScreenCommand.SaveAttachments -> saveAttachments(command)
+                is MessagesScreenCommand.DeleteMessage -> deleteMessage(command.messageId)
                 is MessagesScreenCommand.LogIn -> logIn()
             }
             emit(event)
@@ -205,7 +226,7 @@ class MessagesActor @Inject constructor(
             event = if (error is RepositoryError) {
                 MessagesScreenEvent.Internal.LogOut
             } else {
-                MessagesScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+                MessagesScreenEvent.Internal.ErrorNetwork(error.getText())
             }
         }
         return event
@@ -317,15 +338,20 @@ class MessagesActor @Inject constructor(
         return getIdleEvent()
     }
 
+    private suspend fun deleteMessage(messageId: Long): MessagesScreenEvent.Internal {
+        deleteMessageUseCase(messageId).onFailure { error ->
+            return handleErrors(error)
+        }
+        return getIdleEvent()
+    }
+
     private suspend fun updateReaction(
         messageId: Long,
         emoji: Emoji,
     ): MessagesScreenEvent.Internal =
         withContext(defaultDispatcher) {
             updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
-                return@withContext MessagesScreenEvent.Internal.Messages(
-                    messagesResult.toDelegate(getOwnUserIdUseCase())
-                )
+                return@withContext MessagesScreenEvent.Internal.Messages(messagesResult.toDelegate())
             }
             getIdleEvent()
         }
@@ -387,6 +413,16 @@ class MessagesActor @Inject constructor(
         )
     }
 
+    private suspend fun getUpdateMessagesEvent(
+        isLastMessageVisible: Boolean,
+    ): MessagesScreenEvent.Internal {
+        return getEvent(
+            updateMessagesQueue, getUpdateMessageEventUseCase, ::onSuccessUpdateMessageEvent,
+            MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent,
+            isLastMessageVisible
+        )
+    }
+
     private suspend fun getDeleteMessagesEvent(
         isLastMessageVisible: Boolean,
     ): MessagesScreenEvent.Internal {
@@ -410,33 +446,40 @@ class MessagesActor @Inject constructor(
     private fun onSuccessMessageEvent(
         eventsQueue: EventsQueueHolder,
         event: MessageEvent,
-        userId: Long,
     ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
         return MessagesScreenEvent.Internal.MessagesEventFromQueue(
-            event.messagesResult.toDelegate(userId)
+            event.messagesResult.toDelegate()
+        )
+    }
+
+    private fun onSuccessUpdateMessageEvent(
+        eventsQueue: EventsQueueHolder,
+        event: UpdateMessageEvent,
+    ): MessagesScreenEvent.Internal {
+        updateLastEventId(eventsQueue, event.lastEventId)
+        return MessagesScreenEvent.Internal.UpdateMessagesEventFromQueue(
+            event.messagesResult.toDelegate()
         )
     }
 
     private fun onSuccessDeleteMessageEvent(
         eventsQueue: EventsQueueHolder,
         event: DeleteMessageEvent,
-        userId: Long,
     ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
         return MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue(
-            event.messagesResult.toDelegate(userId)
+            event.messagesResult.toDelegate()
         )
     }
 
     private fun onSuccessReactionEvent(
         eventsQueue: EventsQueueHolder,
         event: ReactionEvent,
-        userId: Long,
     ): MessagesScreenEvent.Internal {
         updateLastEventId(eventsQueue, event.lastEventId)
         return MessagesScreenEvent.Internal.ReactionsEventFromQueue(
-            event.messagesResult.toDelegate(userId)
+            event.messagesResult.toDelegate()
         )
     }
 
@@ -447,7 +490,7 @@ class MessagesActor @Inject constructor(
     private suspend fun <T> getEvent(
         eventsQueue: EventsQueueHolder,
         useCase: EventUseCase<T>,
-        onSuccessCallback: (EventsQueueHolder, T, Long) -> MessagesScreenEvent.Internal,
+        onSuccessCallback: (EventsQueueHolder, T) -> MessagesScreenEvent.Internal,
         emptyEvent: MessagesScreenEvent.Internal,
         isLastMessageVisible: Boolean,
     ): MessagesScreenEvent.Internal = withContext(defaultDispatcher) {
@@ -456,21 +499,25 @@ class MessagesActor @Inject constructor(
             messagesFilter,
             isLastMessageVisible
         ).onSuccess { event ->
-            return@withContext onSuccessCallback(eventsQueue, event, getOwnUserIdUseCase())
+            return@withContext onSuccessCallback(eventsQueue, event)
         }
         delay(DELAY_BEFORE_CHECK_EVENTS)
         emptyEvent
     }
 
-    private fun MessagesResult.toDelegate(userId: Long): MessagesResultDelegate {
-        return MessagesResultDelegate(messages.groupByDate(userId), position, isNewMessageExisting)
+    private fun MessagesResult.toDelegate(): MessagesResultDelegate {
+        return MessagesResultDelegate(
+            messages.groupByDate(authorizationStorage.getUserId()),
+            position,
+            isNewMessageExisting
+        )
     }
 
     private fun handleMessages(
         messagesResult: MessagesResult,
         messagesPageType: MessagesPageType,
     ): MessagesScreenEvent.Internal {
-        val messagesResultDelegate = messagesResult.toDelegate(getOwnUserIdUseCase())
+        val messagesResultDelegate = messagesResult.toDelegate()
         if (messagesPageType == MessagesPageType.STORED) {
             return MessagesScreenEvent.Internal.StoredMessages(messagesResultDelegate)
         }
@@ -479,6 +526,7 @@ class MessagesActor @Inject constructor(
 
     private fun registerEventQueues() {
         messagesQueue.registerQueue(listOf(EventType.MESSAGE))
+        updateMessagesQueue.registerQueue(listOf(EventType.UPDATE_MESSAGE))
         deleteMessagesQueue.registerQueue(listOf(EventType.DELETE_MESSAGE))
         reactionsQueue.registerQueue(listOf(EventType.REACTION))
     }
@@ -494,6 +542,59 @@ class MessagesActor @Inject constructor(
         return getIdleEvent()
     }
 
+    private suspend fun copyToClipboard(
+        command: MessagesScreenCommand.CopyToClipboard,
+    ): MessagesScreenEvent.Internal {
+        val context = command.context
+        val text =
+            getRawMessageText(command.messageId, command.content, command.isMessageWithAttachments)
+        val clipboard =
+            context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = ClipData.newPlainText(context.getString(R.string.message), text)
+        clipboard.setPrimaryClip(clip)
+        return getIdleEvent()
+    }
+
+    private suspend fun editMessageContent(
+        command: MessagesScreenCommand.EditMessageContent,
+    ): MessagesScreenEvent.Internal {
+        editMessageUseCase(command.messageId, content = command.content.toString()).onFailure {
+            return handleErrors(it)
+        }
+        return getIdleEvent()
+    }
+
+    private suspend fun editMessageTopic(
+        command: MessagesScreenCommand.EditMessageTopic,
+    ): MessagesScreenEvent.Internal {
+        editMessageUseCase(command.messageId, topic = command.topic.toString()).onFailure {
+            return handleErrors(it)
+        }
+        return getIdleEvent()
+    }
+
+    private suspend fun getRawMessageContent(
+        command: MessagesScreenCommand.GetRawMessageContent,
+    ): MessagesScreenEvent.Internal {
+        val text =
+            getRawMessageText(command.messageId, command.content, command.isMessageWithAttachments)
+        return MessagesScreenEvent.Internal.RawMessageContent(command.messageId, text)
+    }
+
+    private suspend fun getRawMessageText(
+        messageId: Long, default: String, isMessageWithAttachments: Boolean,
+    ): String {
+        var text = Html.fromHtml(default, Html.FROM_HTML_MODE_COMPACT).toString()
+        if (text.endsWith(LINE_FEED)) {
+            text = text.dropLast(LINE_FEED.length)
+        }
+        return if (isMessageWithAttachments) {
+            getMessageRawContentUseCase(messageId, text)
+        } else {
+            text
+        }
+    }
+
     private suspend fun saveAttachments(
         command: MessagesScreenCommand.SaveAttachments,
     ): MessagesScreenEvent.Internal {
@@ -506,7 +607,7 @@ class MessagesActor @Inject constructor(
         return if (error is RepositoryError) {
             MessagesScreenEvent.Internal.ErrorMessages(error.value)
         } else {
-            MessagesScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+            MessagesScreenEvent.Internal.ErrorNetwork(error.getText())
         }
     }
 
@@ -519,7 +620,7 @@ class MessagesActor @Inject constructor(
         dates.forEach { messageDate ->
             messageAdapterItemList.add(DateDelegateItem(messageDate))
             val allDayMessages = this.filter { message ->
-                message.date.value == messageDate.value
+                message.date.dateString == messageDate.dateString
             }
             allDayMessages.forEach { message ->
                 if (message.user.userId == userId) {
@@ -541,5 +642,6 @@ class MessagesActor @Inject constructor(
         const val DELAY_BEFORE_RELOAD = 500L
         const val DELAY_BEFORE_UPDATE_MESSAGE_FILTER = 55_000L
         const val DELAY_AFTER_UPDATE_MESSAGE_FILTER = 5_000L
+        const val LINE_FEED = "\n"
     }
 }
