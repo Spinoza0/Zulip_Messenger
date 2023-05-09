@@ -22,9 +22,9 @@ object Screens {
 
     fun UserProfile(userId: Long) = FragmentScreen { UserProfileFragment.newInstance(userId) }
 
-    fun ItemChannels() = FragmentScreen { ChannelsFragment.newInstance() }
+    fun Channels() = FragmentScreen { ChannelsFragment.newInstance() }
 
-    fun ItemPeople() = FragmentScreen { PeopleFragment.newInstance() }
+    fun People() = FragmentScreen { PeopleFragment.newInstance() }
 
-    fun ItemProfile() = FragmentScreen { OwnUserProfileFragment.newInstance() }
+    fun OwnUserProfile() = FragmentScreen { OwnUserProfileFragment.newInstance() }
 }

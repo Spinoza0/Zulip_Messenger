@@ -17,12 +17,14 @@ import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.EventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetReactionEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetMessagesUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetOwnUserIdUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.GetStoredMessagesUseCase
@@ -64,6 +66,8 @@ import javax.inject.Inject
 
 class MessagesActor @Inject constructor(
     lifecycle: Lifecycle,
+    private val authorizationStorage: AuthorizationStorage,
+    private val logInUseCase: LogInUseCase,
     private val getOwnUserIdUseCase: GetOwnUserIdUseCase,
     private val getStoredMessagesUseCase: GetStoredMessagesUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
@@ -185,9 +189,27 @@ class MessagesActor @Inject constructor(
 
                 is MessagesScreenCommand.UploadFile -> uploadFile(command)
                 is MessagesScreenCommand.SaveAttachments -> saveAttachments(command)
+                is MessagesScreenCommand.LogIn -> logIn()
             }
             emit(event)
         }
+
+    private suspend fun logIn(): MessagesScreenEvent.Internal {
+        var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
+        logInUseCase(
+            authorizationStorage.getEmail(),
+            authorizationStorage.getPassword()
+        ).onSuccess {
+            event = MessagesScreenEvent.Internal.LoginSuccess
+        }.onFailure { error ->
+            event = if (error is RepositoryError) {
+                MessagesScreenEvent.Internal.LogOut
+            } else {
+                MessagesScreenEvent.Internal.ErrorNetwork(error.getErrorText())
+            }
+        }
+        return event
+    }
 
     private suspend fun getIdleEvent(): MessagesScreenEvent.Internal.Idle {
         delay(DELAY_BEFORE_RETURN_IDLE_EVENT)
@@ -301,13 +323,9 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal =
         withContext(defaultDispatcher) {
             updateReactionUseCase(messageId, emoji, messagesFilter).onSuccess { messagesResult ->
-                getOwnUserIdUseCase().onSuccess { userId ->
-                    return@withContext MessagesScreenEvent.Internal.Messages(
-                        messagesResult.toDelegate(userId)
-                    )
-                }.onFailure { error ->
-                    return@withContext handleErrors(error)
-                }
+                return@withContext MessagesScreenEvent.Internal.Messages(
+                    messagesResult.toDelegate(getOwnUserIdUseCase())
+                )
             }
             getIdleEvent()
         }
@@ -438,9 +456,7 @@ class MessagesActor @Inject constructor(
             messagesFilter,
             isLastMessageVisible
         ).onSuccess { event ->
-            getOwnUserIdUseCase().onSuccess { userId ->
-                return@withContext onSuccessCallback(eventsQueue, event, userId)
-            }
+            return@withContext onSuccessCallback(eventsQueue, event, getOwnUserIdUseCase())
         }
         delay(DELAY_BEFORE_CHECK_EVENTS)
         emptyEvent
@@ -450,20 +466,15 @@ class MessagesActor @Inject constructor(
         return MessagesResultDelegate(messages.groupByDate(userId), position, isNewMessageExisting)
     }
 
-    private suspend fun handleMessages(
+    private fun handleMessages(
         messagesResult: MessagesResult,
         messagesPageType: MessagesPageType,
     ): MessagesScreenEvent.Internal {
-        getOwnUserIdUseCase().onSuccess { userId ->
-            val messagesResultDelegate = messagesResult.toDelegate(userId)
-            if (messagesPageType == MessagesPageType.STORED) {
-                return MessagesScreenEvent.Internal.StoredMessages(messagesResultDelegate)
-            }
-            return MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
-        }.onFailure {
-            return handleErrors(it)
+        val messagesResultDelegate = messagesResult.toDelegate(getOwnUserIdUseCase())
+        if (messagesPageType == MessagesPageType.STORED) {
+            return MessagesScreenEvent.Internal.StoredMessages(messagesResultDelegate)
         }
-        return getIdleEvent()
+        return MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
     }
 
     private fun registerEventQueues() {

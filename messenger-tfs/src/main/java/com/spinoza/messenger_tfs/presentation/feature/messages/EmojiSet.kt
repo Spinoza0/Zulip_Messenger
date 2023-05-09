@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.domain.utils
+package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import com.spinoza.messenger_tfs.domain.model.Emoji
 

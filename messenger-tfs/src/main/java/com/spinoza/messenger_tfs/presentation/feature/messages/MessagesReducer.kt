@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
@@ -15,6 +16,7 @@ import javax.inject.Inject
 class MessagesReducer @Inject constructor(
     private val router: AppRouter,
     private val webUtil: WebUtil,
+    private val authorizationStorage: AuthorizationStorage,
 ) : ScreenDslReducer<
         MessagesScreenEvent,
         MessagesScreenEvent.Ui,
@@ -133,6 +135,8 @@ class MessagesReducer @Inject constructor(
             effects { +MessagesScreenEffect.Failure.ErrorNetwork(event.value) }
         }
 
+        is MessagesScreenEvent.Internal.LogOut -> router.exit()
+        is MessagesScreenEvent.Internal.LoginSuccess -> {}
         is MessagesScreenEvent.Internal.Idle -> {}
     }
 
@@ -241,6 +245,17 @@ class MessagesReducer @Inject constructor(
 
         is MessagesScreenEvent.Ui.SaveAttachments ->
             commands { +MessagesScreenCommand.SaveAttachments(event.context, event.urls) }
+
+        is MessagesScreenEvent.Ui.CheckLoginStatus -> {
+            if (!authorizationStorage.isUserLoggedIn()) {
+                if (authorizationStorage.isAuthorizationDataExisted()) {
+                    commands { +MessagesScreenCommand.LogIn }
+                } else {
+                    router.exit()
+                }
+            }
+            effects { }
+        }
 
         is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.Init -> {}

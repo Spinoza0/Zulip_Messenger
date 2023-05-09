@@ -8,7 +8,9 @@ import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.profile.GetOwnUserUseCase
 import com.spinoza.messenger_tfs.domain.usecase.profile.GetUserUseCase
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenCommand
@@ -25,6 +27,8 @@ import javax.inject.Inject
 
 class ProfileActor @Inject constructor(
     lifecycle: Lifecycle,
+    private val authorizationStorage: AuthorizationStorage,
+    private val logInUseCase: LogInUseCase,
     private val getOwnUserUseCase: GetOwnUserUseCase,
     private val getUserUseCase: GetUserUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
@@ -66,6 +70,8 @@ class ProfileActor @Inject constructor(
                 subscribePresence()
                 ProfileScreenEvent.Internal.EmptyQueueEvent
             }
+
+            is ProfileScreenCommand.LogIn -> logIn()
         }
         emit(event)
     }
@@ -82,6 +88,23 @@ class ProfileActor @Inject constructor(
                 ProfileScreenEvent.Internal.ErrorUserLoading(it.value)
             } else {
                 ProfileScreenEvent.Internal.ErrorNetwork(it.getErrorText())
+            }
+        }
+        return event
+    }
+
+    private suspend fun logIn(): ProfileScreenEvent.Internal {
+        var event: ProfileScreenEvent.Internal = ProfileScreenEvent.Internal.Idle
+        logInUseCase(
+            authorizationStorage.getEmail(),
+            authorizationStorage.getPassword()
+        ).onSuccess {
+            event = ProfileScreenEvent.Internal.LoginSuccess
+        }.onFailure { error ->
+            event = if (error is RepositoryError) {
+                ProfileScreenEvent.Internal.LogOut
+            } else {
+                ProfileScreenEvent.Internal.ErrorNetwork(error.getErrorText())
             }
         }
         return event

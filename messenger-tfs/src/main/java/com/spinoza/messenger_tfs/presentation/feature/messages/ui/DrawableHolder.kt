@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable
 import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.model.GlideUrl
+import com.bumptech.glide.load.model.LazyHeaders
 import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,9 +25,14 @@ class DrawableHolder(private val resources: Resources, bitmap: Bitmap? = null) :
 
     suspend fun loadImage(context: Context, imageUrl: String, textView: TextView) {
         runCatching {
-            val webUtil = context.getAppComponent().webUtil()
+            val appComponent = context.getAppComponent()
+            val webUtil = appComponent.getWebUtil()
             val fullUrl = webUtil.getFullUrl(imageUrl)
-            val glideUrl = GlideUrl(fullUrl, webUtil.getLazyHeaders())
+            val headers = LazyHeaders.Builder().addHeader(
+                appComponent.getAuthorizationStorage().getAuthHeaderTitle(),
+                appComponent.getAuthorizationStorage().getAuthHeaderValue()
+            ).build()
+            val glideUrl = GlideUrl(fullUrl, headers)
             val bitmap = Glide.with(context)
                 .asBitmap()
                 .load(glideUrl)

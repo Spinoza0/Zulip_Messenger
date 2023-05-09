@@ -111,6 +111,9 @@ class MessagesFragment :
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         parseParams(savedInstanceState)
+        if (savedInstanceState != null) {
+            store.accept(MessagesScreenEvent.Ui.CheckLoginStatus)
+        }
         setupRecyclerView()
         setupStatusBar()
         setupListeners()

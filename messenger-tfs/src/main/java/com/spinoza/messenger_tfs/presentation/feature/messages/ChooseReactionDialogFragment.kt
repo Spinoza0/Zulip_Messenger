@@ -10,7 +10,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.spinoza.messenger_tfs.databinding.FragmentDialogChooseReactionBinding
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.utils.emojiSet
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 
 class ChooseReactionDialogFragment : BottomSheetDialogFragment() {

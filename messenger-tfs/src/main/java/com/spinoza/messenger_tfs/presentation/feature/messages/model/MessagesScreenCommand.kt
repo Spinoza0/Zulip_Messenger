@@ -8,6 +8,8 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 
 sealed class MessagesScreenCommand {
 
+    object LogIn : MessagesScreenCommand()
+
     object Reload : MessagesScreenCommand()
 
     class GetMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()

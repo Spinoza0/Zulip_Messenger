@@ -1,11 +1,11 @@
 package com.spinoza.messenger_tfs.data.repository
 
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
-import com.spinoza.messenger_tfs.data.network.ownuser.OwnUserKeeperImpl
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
+import com.spinoza.messenger_tfs.stub.AuthorizationStorageStub
 import com.spinoza.messenger_tfs.stub.MessagesGenerator
 import com.spinoza.messenger_tfs.stub.MessengerDaoStub
 import com.spinoza.messenger_tfs.util.MainDispatcherRule
@@ -71,7 +71,7 @@ class WebRepositoryImplTest {
     private fun createRepository(type: MessengerDaoStub.Type): DaoRepository {
         val messengerDao = MessengerDaoStub(messagesGenerator, type)
         return DaoRepositoryImpl(
-            OwnUserKeeperImpl,
+            AuthorizationStorageStub(),
             MessagesCache(messengerDao),
             messengerDao,
             mainDispatcherRule.testDispatcher

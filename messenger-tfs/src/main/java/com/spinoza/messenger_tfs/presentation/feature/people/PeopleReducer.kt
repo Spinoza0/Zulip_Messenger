@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.people
 
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEvent
@@ -9,7 +10,10 @@ import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
 import javax.inject.Inject
 
-class PeopleReducer @Inject constructor(private val router: AppRouter) : ScreenDslReducer<
+class PeopleReducer @Inject constructor(
+    private val router: AppRouter,
+    private val authorizationStorage: AuthorizationStorage,
+) : ScreenDslReducer<
         PeopleScreenEvent,
         PeopleScreenEvent.Ui,
         PeopleScreenEvent.Internal,
@@ -48,6 +52,8 @@ class PeopleReducer @Inject constructor(private val router: AppRouter) : ScreenD
             effects { +PeopleScreenEffect.Failure.ErrorNetwork(event.value) }
         }
 
+        is PeopleScreenEvent.Internal.LogOut -> router.exit()
+        is PeopleScreenEvent.Internal.LoginSuccess -> {}
         is PeopleScreenEvent.Internal.Idle -> {}
     }
 
@@ -69,6 +75,17 @@ class PeopleReducer @Inject constructor(private val router: AppRouter) : ScreenD
                 commands { +PeopleScreenCommand.Load }
             }
             effects {}
+        }
+
+        is PeopleScreenEvent.Ui.CheckLoginStatus -> {
+            if (!authorizationStorage.isUserLoggedIn()) {
+                if (authorizationStorage.isAuthorizationDataExisted()) {
+                    commands { +PeopleScreenCommand.LogIn }
+                } else {
+                    router.exit()
+                }
+            }
+            effects { }
         }
 
         is PeopleScreenEvent.Ui.Init -> {}

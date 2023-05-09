@@ -34,7 +34,7 @@ class MainMenuFragment : Fragment(), OnItemSelectedListener {
         navigatorHolder = cicerone.getNavigatorHolder()
         localRouter = cicerone.router
         if (savedInstanceState == null) {
-            localRouter.newRootScreen(Screens.ItemChannels())
+            localRouter.newRootScreen(Screens.Channels())
         }
     }
 
@@ -74,9 +74,9 @@ class MainMenuFragment : Fragment(), OnItemSelectedListener {
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         if (item.itemId != binding.bottomNavigationView.selectedItemId) {
             when (item.itemId) {
-                R.id.menu_channels -> localRouter.backTo(Screens.ItemChannels())
-                R.id.menu_people -> localRouter.navigateTo(Screens.ItemPeople())
-                R.id.menu_profile -> localRouter.navigateTo(Screens.ItemProfile())
+                R.id.menu_channels -> localRouter.backTo(Screens.Channels())
+                R.id.menu_people -> localRouter.navigateTo(Screens.People())
+                R.id.menu_profile -> localRouter.navigateTo(Screens.OwnUserProfile())
             }
         }
         return true

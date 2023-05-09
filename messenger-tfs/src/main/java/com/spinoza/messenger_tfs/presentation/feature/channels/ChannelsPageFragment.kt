@@ -72,6 +72,9 @@ class ChannelsPageFragment : Fragment() {
         DaggerChannelsComponent.factory()
             .create(requireContext().getAppComponent(), isSubscribed)
             .inject(this)
+        if (savedInstanceState != null) {
+            store.accept(ChannelsPageScreenEvent.Ui.CheckLoginStatus)
+        }
         setupRecyclerView()
         setupObservers()
     }

@@ -48,7 +48,7 @@ class MessageView @JvmOverloads constructor(
     val avatarImage: ImageView
         get() = binding.avatarImageView
 
-    private val ioDispatcher = context.getAppComponent().dispatcherIO()
+    private val ioDispatcher = context.getAppComponent().getDispatcherIO()
     private var imageJob: Job? = null
 
     private val imageGetter = ImageGetter { imageUrl ->

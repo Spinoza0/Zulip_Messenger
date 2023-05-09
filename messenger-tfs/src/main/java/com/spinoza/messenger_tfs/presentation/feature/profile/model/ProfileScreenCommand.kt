@@ -4,6 +4,8 @@ import com.spinoza.messenger_tfs.domain.model.User
 
 sealed class ProfileScreenCommand {
 
+    object LogIn : ProfileScreenCommand()
+
     object LoadCurrentUser : ProfileScreenCommand()
 
     object GetEvent : ProfileScreenCommand()

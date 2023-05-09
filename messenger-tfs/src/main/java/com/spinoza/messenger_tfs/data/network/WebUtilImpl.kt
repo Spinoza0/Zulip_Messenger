@@ -1,15 +1,10 @@
 package com.spinoza.messenger_tfs.data.network
 
-import com.bumptech.glide.load.model.LazyHeaders
-import com.spinoza.messenger_tfs.data.network.authorization.AppAuthKeeper
 import com.spinoza.messenger_tfs.di.BaseUrl
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import javax.inject.Inject
 
-class WebUtilImpl @Inject constructor(
-    private val authKeeper: AppAuthKeeper,
-    @BaseUrl private val baseUrl: String,
-) : WebUtil {
+class WebUtilImpl @Inject constructor(@BaseUrl private val baseUrl: String) : WebUtil {
 
     private val urlUserUploadsPrefix = "${baseUrl}/user_uploads"
 
@@ -25,10 +20,6 @@ class WebUtilImpl @Inject constructor(
 
     override fun isUserUploadsUrl(url: String): Boolean =
         url.startsWith(urlUserUploadsPrefix, ignoreCase = true)
-
-    override fun getLazyHeaders(): LazyHeaders =
-        LazyHeaders.Builder()
-            .addHeader(authKeeper.getKey(), authKeeper.getValue()).build()
 
     override fun getAttachmentsUrls(content: String): List<String> {
         val links = mutableSetOf<String>()

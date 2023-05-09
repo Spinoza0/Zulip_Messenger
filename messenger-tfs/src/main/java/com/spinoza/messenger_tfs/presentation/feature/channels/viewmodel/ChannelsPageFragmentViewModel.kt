@@ -7,11 +7,13 @@ import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
+import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.domain.usecase.channels.*
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
+import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegateItem
@@ -26,7 +28,9 @@ import java.util.*
 
 class ChannelsPageFragmentViewModel(
     @ChannelIsSubscribed isSubscribed: Boolean,
+    private val authorizationStorage: AuthorizationStorage,
     private val router: AppRouter,
+    private val logInUseCase: LogInUseCase,
     private val getStoredTopicsUseCase: GetStoredTopicsUseCase,
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getStoredChannelsUseCase: GetStoredChannelsUseCase,
@@ -75,6 +79,7 @@ class ChannelsPageFragmentViewModel(
 
             is ChannelsPageScreenEvent.Ui.RegisterEventQueue -> registerEventQueue()
             is ChannelsPageScreenEvent.Ui.DeleteEventQueue -> deleteEventQueue()
+            is ChannelsPageScreenEvent.Ui.CheckLoginStatus -> checkLoginStatus()
         }
     }
 
@@ -82,6 +87,34 @@ class ChannelsPageFragmentViewModel(
         super.onCleared()
         stopUpdateMessagesCountJob()
         cache.clear()
+    }
+
+    private fun checkLoginStatus() {
+        if (!authorizationStorage.isUserLoggedIn()) {
+            if (authorizationStorage.isAuthorizationDataExisted()) {
+                logIn()
+            } else {
+                openLoginScreen()
+            }
+        }
+    }
+
+    private fun logIn() {
+        vmScope.launch {
+            logInUseCase(
+                authorizationStorage.getEmail(), authorizationStorage.getPassword()
+            ).onFailure { error ->
+                if (error is RepositoryError) {
+                    openLoginScreen()
+                } else {
+                    _effects.emit(ChannelsPageScreenEffect.Failure.Network(error.getErrorText()))
+                }
+            }
+        }
+    }
+
+    private fun openLoginScreen() {
+        router.replaceScreen(Screens.Login())
     }
 
     private fun setChannelsFilter(newFilter: ChannelsFilter) {

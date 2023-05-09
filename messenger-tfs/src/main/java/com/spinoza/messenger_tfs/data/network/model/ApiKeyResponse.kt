@@ -10,4 +10,5 @@ data class ApiKeyResponse(
     @SerialName("msg") override val msg: String,
     @SerialName("api_key") val apiKey: String,
     @SerialName("email") val email: String,
+    @SerialName("user_id") val userId: Long,
 ) : ZulipResponse
