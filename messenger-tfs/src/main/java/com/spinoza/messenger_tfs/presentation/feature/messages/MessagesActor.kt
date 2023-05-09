@@ -56,6 +56,7 @@ import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -112,6 +113,7 @@ class MessagesActor @Inject constructor(
     private var iconActionResId = R.drawable.ic_add_circle_outline
     private var isIconActionResIdChanged = false
     private var lastLoadCommand: MessagesScreenCommand? = null
+    private var updatingInfoJob: Job? = null
 
     @Volatile
     private var isLoadingFirstPage = false
@@ -132,6 +134,7 @@ class MessagesActor @Inject constructor(
                 updateMessagesQueue.deleteQueue()
                 deleteMessagesQueue.deleteQueue()
                 reactionsQueue.deleteQueue()
+                updatingInfoJob?.cancel()
             }
         }
     }
@@ -139,7 +142,6 @@ class MessagesActor @Inject constructor(
     init {
         lifecycle.addObserver(lifecycleObserver)
         subscribeToNewMessageFieldChanges()
-        startUpdatingInfo()
     }
 
     override fun execute(command: MessagesScreenCommand): Flow<MessagesScreenEvent.Internal> =
@@ -282,6 +284,7 @@ class MessagesActor @Inject constructor(
         isLoadingFirstPage = false
         if (event is MessagesScreenEvent.Internal.Messages) {
             registerEventQueues()
+            startUpdatingInfo()
         }
         return event
     }
@@ -374,12 +377,13 @@ class MessagesActor @Inject constructor(
     }
 
     private fun startUpdatingInfo() {
-        lifecycleScope.launch {
+        updatingInfoJob?.cancel()
+        updatingInfoJob = lifecycleScope.launch {
             while (isActive) {
-                setOwnStatusActiveUseCase()
-                delay(DELAY_BEFORE_UPDATE_MESSAGE_FILTER)
                 messagesFilter = getUpdatedMessageFilterUserCase(messagesFilter)
-                delay(DELAY_AFTER_UPDATE_MESSAGE_FILTER)
+                delay(DELAY_BEFORE_UPDATE_STATUS_ACTIVE)
+                setOwnStatusActiveUseCase()
+                delay(DELAY_AFTER_UPDATE_STATUS_ACTIVE)
             }
         }
     }
@@ -496,14 +500,13 @@ class MessagesActor @Inject constructor(
         emptyEvent: MessagesScreenEvent.Internal,
         isLastMessageVisible: Boolean,
     ): MessagesScreenEvent.Internal = withContext(defaultDispatcher) {
-        if (eventsQueue.queue.queueId.isNotEmpty()) useCase(
-            eventsQueue.queue,
-            messagesFilter,
-            isLastMessageVisible
-        ).onSuccess { event ->
-            return@withContext onSuccessCallback(eventsQueue, event)
-        }.onFailure {
-            registerEventQueues()
+        if (eventsQueue.queue.queueId.isNotEmpty()) {
+            useCase(eventsQueue.queue, messagesFilter, isLastMessageVisible)
+                .onSuccess { event ->
+                    return@withContext onSuccessCallback(eventsQueue, event)
+                }.onFailure {
+                    registerEventQueues()
+                }
         }
         delay(DELAY_BEFORE_CHECK_EVENTS)
         emptyEvent
@@ -650,11 +653,11 @@ class MessagesActor @Inject constructor(
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_CHECK_ACTION_ICON = 300L
-        const val DELAY_BEFORE_RETURN_IDLE_EVENT = 1000L
-        const val DELAY_BEFORE_CHECK_EVENTS = 1000L
+        const val DELAY_BEFORE_RETURN_IDLE_EVENT = 3_000L
+        const val DELAY_BEFORE_CHECK_EVENTS = 2_000L
         const val DELAY_BEFORE_RELOAD = 500L
-        const val DELAY_BEFORE_UPDATE_MESSAGE_FILTER = 55_000L
-        const val DELAY_AFTER_UPDATE_MESSAGE_FILTER = 5_000L
+        const val DELAY_BEFORE_UPDATE_STATUS_ACTIVE = 5_000L
+        const val DELAY_AFTER_UPDATE_STATUS_ACTIVE = 40_000L
         const val LINE_FEED = "\n"
     }
 }

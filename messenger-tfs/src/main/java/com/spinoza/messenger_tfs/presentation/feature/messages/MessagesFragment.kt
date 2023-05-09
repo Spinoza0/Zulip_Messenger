@@ -21,6 +21,7 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
@@ -153,37 +154,45 @@ class MessagesFragment :
 
     private fun setupRecyclerView() {
         with(messagesAdapter) {
+            borderPosition = BORDER_POSITION
+            onReachStartListener = { store.accept(MessagesScreenEvent.Ui.LoadPreviousPage) }
+            onReachEndListener = { store.accept(MessagesScreenEvent.Ui.LoadNextPage) }
+            val showChooseActionMenu: (MessageView) -> Unit = {
+                store.accept(MessagesScreenEvent.Ui.ShowChooseActionMenu(it))
+            }
+            val showUserInfo: (MessageView) -> Unit = {
+                store.accept(MessagesScreenEvent.Ui.ShowUserInfo(it))
+            }
+            val updateReaction: (MessageView, ReactionView) -> Unit = { message, reaction ->
+                updateReaction(message.messageId, reaction.emoji)
+            }
+            val loadMessages: (String) -> Unit = {
+                loadMessages(it)
+            }
             addDelegate(
                 UserMessageDelegate(
-                    ::onMessageLongClickListener,
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener,
-                    ::onAvatarClickListener,
+                    showChooseActionMenu, ::addReaction, updateReaction, showUserInfo
                 )
             )
             addDelegate(
                 OwnMessageDelegate(
-                    ::onMessageLongClickListener,
-                    ::onReactionAddClickListener,
-                    ::onReactionClickListener
+                    showChooseActionMenu, ::addReaction, updateReaction
                 )
             )
             addDelegate(DateDelegate())
-            addDelegate(MessagesTopicDelegate(topicNameTemplate, ::onTopicClickListener))
+            addDelegate(MessagesTopicDelegate(topicNameTemplate, loadMessages))
         }
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val firstVisiblePosition = recyclerView.findFirstVisibleItemPosition()
                 val lastVisiblePosition = recyclerView.findLastVisibleItemPosition()
                 store.accept(
                     MessagesScreenEvent.Ui.MessagesOnScrolled(
-                        recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_UP),
-                        recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_DOWN),
                         getVisibleMessagesIds(firstVisiblePosition, lastVisiblePosition),
-                        firstVisiblePosition, lastVisiblePosition, messagesAdapter.itemCount, dy,
                         isNextMessageExisting(lastVisiblePosition),
                         isLastMessageVisible(lastVisiblePosition)
                     )
@@ -192,11 +201,15 @@ class MessagesFragment :
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    store.accept(MessagesScreenEvent.Ui.MessagesScrollStateDragging)
+                }
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    val lastVisiblePosition = recyclerView.findLastVisibleItemPosition()
                     store.accept(
                         MessagesScreenEvent.Ui.MessagesScrollStateIdle(
-                            isNextMessageExisting(lastVisiblePosition)
+                            recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_UP),
+                            recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_DOWN),
+                            isNextMessageExisting(recyclerView.findLastVisibleItemPosition())
                         )
                     )
                 }
@@ -223,6 +236,7 @@ class MessagesFragment :
                 store.accept(MessagesScreenEvent.Ui.NewMessageText(text))
             }
             fabViewArrow.setOnClickListener {
+                recyclerViewMessages.smoothScrollToLastPosition()
                 store.accept(MessagesScreenEvent.Ui.ScrollToLastMessage)
             }
         }
@@ -373,7 +387,7 @@ class MessagesFragment :
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.itemAddReaction -> {
-                    onReactionAddClickListener(effect.messageView)
+                    addReaction(effect.messageView)
                     true
                 }
 
@@ -489,24 +503,8 @@ class MessagesFragment :
         )
     }
 
-    private fun onAvatarClickListener(messageView: MessageView) {
-        store.accept(MessagesScreenEvent.Ui.ShowUserInfo(messageView))
-    }
-
-    private fun onMessageLongClickListener(messageView: MessageView) {
-        store.accept(MessagesScreenEvent.Ui.OnMessageLongClick(messageView))
-    }
-
-    private fun onReactionAddClickListener(messageView: MessageView) {
+    private fun addReaction(messageView: MessageView) {
         store.accept(MessagesScreenEvent.Ui.ShowChooseReactionDialog(messageView))
-    }
-
-    private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
-        updateReaction(messageView.messageId, reactionView.emoji)
-    }
-
-    private fun onTopicClickListener(topicName: String) {
-        loadMessages(topicName)
     }
 
     private fun updateReaction(messageId: Long, emoji: Emoji) {
@@ -598,6 +596,7 @@ class MessagesFragment :
         private const val TOPIC_MAX_LENGTH = 60
         private const val CHANNEL_NAME = "Downloads"
         private const val CHANNEL_ID = "downloads_channel"
+        private const val BORDER_POSITION = BuildConfig.MESSAGES_BORDER_POSITION
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {

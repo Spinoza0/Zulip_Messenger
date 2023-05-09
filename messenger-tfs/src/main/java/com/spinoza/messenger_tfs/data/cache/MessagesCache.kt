@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data.cache
 
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
@@ -178,6 +179,6 @@ class MessagesCache @Inject constructor(
     private companion object {
 
         private const val UNDEFINED_EVENT_ID = -1L
-        private const val MAX_CACHE_SIZE = 50
+        private const val MAX_CACHE_SIZE = BuildConfig.MAX_MESSAGES_CACHE_SIZE
     }
 }

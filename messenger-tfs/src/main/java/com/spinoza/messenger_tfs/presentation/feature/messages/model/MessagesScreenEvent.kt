@@ -21,25 +21,29 @@ sealed class MessagesScreenEvent {
 
         object Exit : Ui()
 
-        class MessagesScrollStateIdle(val isNextMessageExisting: Boolean) : Ui()
+        object LoadPreviousPage : Ui()
+
+        object LoadNextPage : Ui()
 
         object ScrollToLastMessage : Ui()
 
-        class SendMessage(val value: CharSequence?) : Ui()
-
-        class AfterSubmitMessages(
+        class MessagesOnScrolled(
+            val visibleMessagesIds: List<Long>,
             val isNextMessageExisting: Boolean,
             val isLastMessageVisible: Boolean,
         ) : Ui()
 
-        class MessagesOnScrolled(
+        class MessagesScrollStateIdle(
             val canScrollUp: Boolean,
             val canScrollDown: Boolean,
-            val visibleMessagesIds: List<Long>,
-            val firstVisiblePosition: Int,
-            val lastVisiblePosition: Int,
-            val itemCount: Int,
-            val dy: Int,
+            val isNextMessageExisting: Boolean,
+        ) : Ui()
+
+        object MessagesScrollStateDragging : Ui()
+
+        class SendMessage(val value: CharSequence?) : Ui()
+
+        class AfterSubmitMessages(
             val isNextMessageExisting: Boolean,
             val isLastMessageVisible: Boolean,
         ) : Ui()
@@ -50,7 +54,7 @@ sealed class MessagesScreenEvent {
 
         class ShowUserInfo(val message: MessageView) : Ui()
 
-        class OnMessageLongClick(val messageView: MessageView) : Ui()
+        class ShowChooseActionMenu(val messageView: MessageView) : Ui()
 
         class GetRawMessageContent(
             val messageView: MessageView,

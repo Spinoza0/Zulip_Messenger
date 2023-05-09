@@ -8,6 +8,10 @@ import javax.inject.Inject
 class MainDelegateAdapter @Inject constructor() :
     ListAdapter<DelegateAdapterItem, RecyclerView.ViewHolder>(DelegateAdapterItemCallback()) {
 
+    var borderPosition: Int = DEFAULT_BORDER_POSITION
+    var onReachStartListener: (() -> Unit)? = null
+    var onReachEndListener: (() -> Unit)? = null
+
     private val delegates: MutableList<AdapterDelegate> = mutableListOf()
 
     fun addDelegate(delegate: AdapterDelegate) {
@@ -23,10 +27,7 @@ class MainDelegateAdapter @Inject constructor() :
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        if (position != RecyclerView.NO_POSITION)
-            delegates[getItemViewType(position)].onBindViewHolder(
-                holder, getItem(position), position
-            )
+        onBindViewHolder(holder, position, mutableListOf())
     }
 
     override fun onBindViewHolder(
@@ -34,10 +35,20 @@ class MainDelegateAdapter @Inject constructor() :
         position: Int,
         payloads: MutableList<Any>,
     ) {
-        if (position != RecyclerView.NO_POSITION)
-            delegates[getItemViewType(position)].onBindViewHolder(
-                holder, getItem(position), position, payloads
-            )
+        if (position != RecyclerView.NO_POSITION) {
+            onReachStartListener?.let { listener ->
+                if (position - borderPosition <= FIRST_POSITION) {
+                    listener()
+                }
+            }
+            onReachEndListener?.let { listener ->
+                if (position + borderPosition >= itemCount) {
+                    listener()
+                }
+            }
+            delegates[getItemViewType(position)]
+                .onBindViewHolder(holder, getItem(position), position, payloads)
+        }
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -49,5 +60,11 @@ class MainDelegateAdapter @Inject constructor() :
 
     public override fun getItem(position: Int): DelegateAdapterItem {
         return super.getItem(position)
+    }
+
+    private companion object {
+
+        const val FIRST_POSITION = 0
+        const val DEFAULT_BORDER_POSITION = 10
     }
 }

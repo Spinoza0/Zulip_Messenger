@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data.network.apiservice
 
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
 import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
@@ -150,8 +151,8 @@ interface ZulipApiService {
         const val ANCHOR_NEWEST = "newest"
         const val ANCHOR_OLDEST = "oldest"
         const val ANCHOR_FIRST_UNREAD = "first_unread"
-        const val MAX_MESSAGES_PACKET = 20
-        const val HALF_MESSAGES_PACKET = 10
+        const val MAX_MESSAGES_PACKET = BuildConfig.MAX_MESSAGES_PACKET
+        const val HALF_MESSAGES_PACKET = MAX_MESSAGES_PACKET / 2
         const val EMPTY_MESSAGES_PACKET = 0
 
         private const val QUERY_USERNAME = "username"

@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
@@ -608,6 +609,7 @@ class WebRepositoryImpl @Inject constructor(
 
         private const val OFFLINE_TIME = 180
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
-        private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500
+        private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT =
+            BuildConfig.GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT
     }
 }
