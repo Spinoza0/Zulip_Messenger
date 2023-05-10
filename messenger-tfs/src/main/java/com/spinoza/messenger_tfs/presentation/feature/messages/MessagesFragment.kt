@@ -50,6 +50,8 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToLastPosition
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToMessage
 import com.spinoza.messenger_tfs.presentation.notification.Notificator
+import com.spinoza.messenger_tfs.presentation.util.DIRECTION_DOWN
+import com.spinoza.messenger_tfs.presentation.util.DIRECTION_UP
 import com.spinoza.messenger_tfs.presentation.util.ExternalStoragePermission
 import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import com.spinoza.messenger_tfs.presentation.util.getInstanceState
@@ -207,8 +209,8 @@ class MessagesFragment :
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     store.accept(
                         MessagesScreenEvent.Ui.MessagesScrollStateIdle(
-                            recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_UP),
-                            recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_DOWN),
+                            recyclerView.canScrollVertically(DIRECTION_UP),
+                            recyclerView.canScrollVertically(DIRECTION_DOWN),
                             isNextMessageExisting(recyclerView.findLastVisibleItemPosition())
                         )
                     )

@@ -125,10 +125,4 @@ sealed class MessagesScreenEvent {
 
         class ErrorMessages(val value: String) : Internal()
     }
-
-    companion object {
-
-        const val DIRECTION_UP = -1
-        const val DIRECTION_DOWN = 1
-    }
 }

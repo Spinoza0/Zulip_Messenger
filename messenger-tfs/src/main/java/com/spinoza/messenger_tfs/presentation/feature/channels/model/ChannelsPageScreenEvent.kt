@@ -23,12 +23,10 @@ sealed class ChannelsPageScreenEvent {
 
         class OpenMessagesScreen(val messagesFilter: MessagesFilter) : Ui()
 
-        class OnScrolled(val canScrollUp: Boolean, val canScrollDown: Boolean, val dy: Int) : Ui()
-    }
+        object OnScrolled : Ui()
 
-    companion object {
+        object ScrollStateDragging : Ui()
 
-        const val DIRECTION_UP = -1
-        const val DIRECTION_DOWN = 1
+        class ScrollStateIdle(val canScrollUp: Boolean, val canScrollDown: Boolean) : Ui()
     }
 }

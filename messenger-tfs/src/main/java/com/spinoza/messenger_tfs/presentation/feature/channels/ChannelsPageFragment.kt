@@ -29,6 +29,8 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.model.SearchQuery
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsPageFragmentViewModel
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.factory.ViewModelFactory
+import com.spinoza.messenger_tfs.presentation.util.DIRECTION_DOWN
+import com.spinoza.messenger_tfs.presentation.util.DIRECTION_UP
 import com.spinoza.messenger_tfs.presentation.util.closeApplication
 import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import com.spinoza.messenger_tfs.presentation.util.getThemeColor
@@ -97,15 +99,25 @@ class ChannelsPageFragment : Fragment() {
         )
         binding.recyclerViewChannels.adapter = channelsAdapter
         binding.recyclerViewChannels.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                store.accept(
-                    ChannelsPageScreenEvent.Ui.OnScrolled(
-                        recyclerView.canScrollVertically(ChannelsPageScreenEvent.DIRECTION_UP),
-                        recyclerView.canScrollVertically(ChannelsPageScreenEvent.DIRECTION_DOWN),
-                        dy
+                store.accept(ChannelsPageScreenEvent.Ui.OnScrolled)
+            }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    store.accept(ChannelsPageScreenEvent.Ui.ScrollStateDragging)
+                }
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    store.accept(
+                        ChannelsPageScreenEvent.Ui.ScrollStateIdle(
+                            recyclerView.canScrollVertically(DIRECTION_UP),
+                            recyclerView.canScrollVertically(DIRECTION_DOWN)
+                        )
                     )
-                )
+                }
             }
         })
         binding.recyclerViewChannels.itemAnimator = null

@@ -23,6 +23,8 @@ class PeopleReducer @Inject constructor(
     PeopleScreenEvent.Ui::class, PeopleScreenEvent.Internal::class
 ) {
 
+    private var isDraggingWithoutScroll = false
+
     override fun Result.internal(event: PeopleScreenEvent.Internal) = when (event) {
         is PeopleScreenEvent.Internal.UsersLoaded -> {
             state { copy(isLoading = false, users = event.value) }
@@ -66,13 +68,15 @@ class PeopleReducer @Inject constructor(
         is PeopleScreenEvent.Ui.OpenMainMenu -> router.navigateTo(Screens.MainMenu())
         is PeopleScreenEvent.Ui.ShowUserInfo -> router.navigateTo(Screens.UserProfile(event.userId))
         is PeopleScreenEvent.Ui.Filter -> commands { +PeopleScreenCommand.SetNewFilter(event.value) }
-        is PeopleScreenEvent.Ui.OnScrolled -> {
-            if (!event.canScrollUp && event.dy <= PeopleScreenEvent.DIRECTION_UP) {
-                state { copy(isLoading = true) }
-                commands { +PeopleScreenCommand.Load }
-            } else if (!event.canScrollDown && event.dy >= PeopleScreenEvent.DIRECTION_DOWN) {
-                state { copy(isLoading = true) }
-                commands { +PeopleScreenCommand.Load }
+        is PeopleScreenEvent.Ui.ScrollStateDragging -> isDraggingWithoutScroll = true
+        is PeopleScreenEvent.Ui.OnScrolled -> isDraggingWithoutScroll = false
+        is PeopleScreenEvent.Ui.ScrollStateIdle -> {
+            if (isDraggingWithoutScroll) {
+                isDraggingWithoutScroll = false
+                if (!event.canScrollUp || !event.canScrollDown) {
+                    state { copy(isLoading = true) }
+                    commands { +PeopleScreenCommand.Load }
+                }
             }
             effects {}
         }

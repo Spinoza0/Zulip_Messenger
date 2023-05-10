@@ -58,6 +58,7 @@ class ChannelsPageFragmentViewModel(
     private var eventsQueue =
         EventsQueueHolder(vmScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var updateMessagesCountJob: Job? = null
+    private var isDraggingWithoutScroll = false
 
     @Volatile
     private var isLoading = false
@@ -70,7 +71,9 @@ class ChannelsPageFragmentViewModel(
     fun accept(event: ChannelsPageScreenEvent) {
         when (event) {
             is ChannelsPageScreenEvent.Ui.Filter -> setChannelsFilter(event.filter)
-            is ChannelsPageScreenEvent.Ui.OnScrolled -> onScrolled(event)
+            is ChannelsPageScreenEvent.Ui.OnScrolled -> isDraggingWithoutScroll = false
+            is ChannelsPageScreenEvent.Ui.ScrollStateDragging -> isDraggingWithoutScroll = true
+            is ChannelsPageScreenEvent.Ui.ScrollStateIdle -> scrollStateIdleHandler(event)
             is ChannelsPageScreenEvent.Ui.Load -> loadItems()
             is ChannelsPageScreenEvent.Ui.UpdateMessageCount -> updateMessagesCount()
             is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
@@ -151,11 +154,12 @@ class ChannelsPageFragmentViewModel(
         }
     }
 
-    private fun onScrolled(event: ChannelsPageScreenEvent.Ui.OnScrolled) {
-        if ((!event.canScrollUp && event.dy <= ChannelsPageScreenEvent.DIRECTION_UP) ||
-            (!event.canScrollDown && event.dy >= ChannelsPageScreenEvent.DIRECTION_DOWN)
-        ) {
-            loadItems()
+    private fun scrollStateIdleHandler(event: ChannelsPageScreenEvent.Ui.ScrollStateIdle) {
+        if (isDraggingWithoutScroll) {
+            isDraggingWithoutScroll = false
+            if (!event.canScrollUp || !event.canScrollDown) {
+                loadItems()
+            }
         }
     }
 
