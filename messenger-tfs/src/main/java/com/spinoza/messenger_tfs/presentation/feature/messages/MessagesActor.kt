@@ -72,6 +72,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import vivid.money.elmslie.coroutines.Actor
 import java.util.TreeSet
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 class MessagesActor @Inject constructor(
@@ -115,17 +116,10 @@ class MessagesActor @Inject constructor(
     private var lastLoadCommand: MessagesScreenCommand? = null
     private var updatingInfoJob: Job? = null
 
-    @Volatile
-    private var isLoadingFirstPage = false
-
-    @Volatile
-    private var isLoadingPreviousPage = false
-
-    @Volatile
-    private var isLoadingNextPage = false
-
-    @Volatile
-    private var isLoadingLastPage = false
+    private var isLoadingFirstPage = AtomicBoolean(false)
+    private var isLoadingPreviousPage = AtomicBoolean(false)
+    private var isLoadingNextPage = AtomicBoolean(false)
+    private var isLoadingLastPage = AtomicBoolean(false)
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
@@ -271,17 +265,13 @@ class MessagesActor @Inject constructor(
     private suspend fun loadFirstPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        if (isLoadingFirstPage) return getIdleEvent()
-        isLoadingFirstPage = true
-        lastLoadCommand = command
         val messagesPageType =
             if ((command as MessagesScreenCommand.LoadFirstPage).isMessagesListEmpty) {
                 MessagesPageType.FIRST_UNREAD
             } else {
                 MessagesPageType.AFTER_STORED
             }
-        val event = loadMessages(messagesPageType)
-        isLoadingFirstPage = false
+        val event = loadPage(command, messagesPageType, isLoadingFirstPage)
         if (event is MessagesScreenEvent.Internal.Messages) {
             registerEventQueues()
             startUpdatingInfo()
@@ -292,33 +282,31 @@ class MessagesActor @Inject constructor(
     private suspend fun loadPreviousPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        if (isLoadingPreviousPage) return getIdleEvent()
-        isLoadingPreviousPage = true
-        lastLoadCommand = command
-        val event = loadMessages(MessagesPageType.OLDEST)
-        isLoadingPreviousPage = false
-        return event
+        return loadPage(command, MessagesPageType.OLDEST, isLoadingPreviousPage)
     }
 
     private suspend fun loadNextPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        if (isLoadingNextPage) return getIdleEvent()
-        isLoadingNextPage = true
-        lastLoadCommand = command
-        val event = loadMessages(MessagesPageType.NEWEST)
-        isLoadingNextPage = false
-        return event
+        return loadPage(command, MessagesPageType.NEWEST, isLoadingNextPage)
     }
 
     private suspend fun loadLastPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        if (isLoadingLastPage) return getIdleEvent()
-        isLoadingLastPage = true
+        return loadPage(command, MessagesPageType.LAST, isLoadingLastPage)
+    }
+
+    private suspend fun loadPage(
+        command: MessagesScreenCommand,
+        pageType: MessagesPageType,
+        isLoadingFlag: AtomicBoolean,
+    ): MessagesScreenEvent.Internal {
+        if (isLoadingFlag.get()) return getIdleEvent()
+        isLoadingFlag.set(true)
         lastLoadCommand = command
-        val event = loadMessages(MessagesPageType.LAST)
-        isLoadingLastPage = false
+        val event = loadMessages(pageType)
+        isLoadingFlag.set(false)
         return event
     }
 
