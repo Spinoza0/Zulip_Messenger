@@ -61,6 +61,7 @@ import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -572,6 +573,9 @@ class WebRepositoryImpl @Inject constructor(
                 lastEventId = heartBeatEventDto.id
                 isHeartBeat = heartBeatEventDto.type == ZulipApiService.EVENT_HEARTBEAT
             }
+            if (isHeartBeat) {
+                delay(DELAY_BEFORE_GET_NEXT_HEARTBEAT)
+            }
         } while (isHeartBeat)
         return responseBody
     }
@@ -608,6 +612,7 @@ class WebRepositoryImpl @Inject constructor(
     companion object {
 
         private const val OFFLINE_TIME = 180
+        private const val DELAY_BEFORE_GET_NEXT_HEARTBEAT = 1_000L
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
         private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT =
             BuildConfig.GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT
