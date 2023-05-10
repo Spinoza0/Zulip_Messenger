@@ -6,11 +6,13 @@ import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.util.SECONDS_IN_DAY
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessageDraft
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.feature.messages.util.isReadyToSend
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
@@ -186,9 +188,11 @@ class MessagesReducer @Inject constructor(
         }
 
         is MessagesScreenEvent.Ui.MessagesScrollStateDragging -> isDraggingWithoutScroll = true
-        is MessagesScreenEvent.Ui.NewMessageText -> {
+        is MessagesScreenEvent.Ui.NewMessageText ->
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
-        }
+
+        is MessagesScreenEvent.Ui.NewTopicName ->
+            commands { +MessagesScreenCommand.NewTopicName(event.value) }
 
         is MessagesScreenEvent.Ui.ShowChooseActionMenu -> {
             val messageView = event.messageView
@@ -220,11 +224,12 @@ class MessagesReducer @Inject constructor(
         }
 
         is MessagesScreenEvent.Ui.SendMessage -> {
-            val text = event.value.toString().trim()
-            when (text.isNotEmpty()) {
+            val messageDraft =
+                MessageDraft(event.subject.toString().trim(), event.content.toString().trim())
+            when (messageDraft.isReadyToSend(event.messagesFilter)) {
                 true -> {
                     state { copy(isSendingMessage = true) }
-                    commands { +MessagesScreenCommand.SendMessage(text) }
+                    commands { +MessagesScreenCommand.SendMessage(messageDraft) }
                 }
 
                 false -> effects { +MessagesScreenEffect.AddAttachment }

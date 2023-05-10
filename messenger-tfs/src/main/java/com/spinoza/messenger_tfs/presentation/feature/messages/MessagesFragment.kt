@@ -96,7 +96,7 @@ class MessagesFragment :
     private var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     private var recyclerViewState: Parcelable? = null
     private var recyclerViewStateOnDestroy: Parcelable? = null
-    private var topicNameTemplate = EMPTY_STRING
+    private val topicNameTemplate by lazy { getString(R.string.messages_topic_template) }
 
     override val storeHolder:
             StoreHolder<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState> by lazy {
@@ -125,7 +125,6 @@ class MessagesFragment :
         if (savedInstanceState != null) {
             store.accept(MessagesScreenEvent.Ui.CheckLoginStatus)
         }
-        topicNameTemplate = getString(R.string.messages_topic_template)
         setupRecyclerView()
         setupStatusBar()
         setupListeners()
@@ -228,11 +227,17 @@ class MessagesFragment :
                 loadMessages(EMPTY_STRING)
             }
             imageViewAction.setOnClickListener {
-                store.accept(MessagesScreenEvent.Ui.SendMessage(editTextMessage.text))
+                store.accept(
+                    MessagesScreenEvent.Ui
+                        .SendMessage(messagesFilter, editTextTopicName.text, editTextMessage.text)
+                )
             }
             imageViewAction.setOnLongClickListener {
                 addAttachment()
                 true
+            }
+            editTextTopicName.doOnTextChanged { text, _, _, _ ->
+                store.accept(MessagesScreenEvent.Ui.NewTopicName(text))
             }
             editTextMessage.doOnTextChanged { text, _, _, _ ->
                 store.accept(MessagesScreenEvent.Ui.NewMessageText(text))
@@ -262,6 +267,10 @@ class MessagesFragment :
                 }
             }
             progressBarLoadingPage.isVisible = state.isLongOperation
+            val isEditTopicVisible =
+                messagesFilter.topic.name.isBlank() && editTextMessage.text.toString().isNotBlank()
+            viewNewTopicBorder.isVisible = isEditTopicVisible
+            editTextTopicName.isVisible = isEditTopicVisible
             imageViewAction.setImageResource(state.iconActionResId)
             fabViewArrow.isVisible = state.isNextMessageExisting || state.isNewMessageExisting
         }

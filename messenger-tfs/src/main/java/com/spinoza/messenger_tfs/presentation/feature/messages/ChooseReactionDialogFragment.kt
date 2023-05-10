@@ -11,6 +11,7 @@ import com.spinoza.messenger_tfs.databinding.FragmentDialogChooseReactionBinding
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
+import com.spinoza.messenger_tfs.presentation.feature.messages.util.emojiSet
 
 class ChooseReactionDialogFragment : BottomSheetDialogFragment() {
 

@@ -85,7 +85,11 @@ class WebRepositoryStub : WebRepository {
         return MessagesFilter()
     }
 
-    override suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long> {
+    override suspend fun sendMessage(
+        subject: String,
+        content: String,
+        filter: MessagesFilter,
+    ): Result<Long> {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 

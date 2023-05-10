@@ -28,6 +28,7 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="confirm_delete_message">Are you want to delete the message?</string>
+    <string name="topic_name">Topic name…</string>
 
     <!-- Fragment Channels -->
     <string name="search">Search…</string>

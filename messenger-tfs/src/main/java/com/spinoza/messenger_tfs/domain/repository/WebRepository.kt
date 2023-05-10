@@ -46,7 +46,11 @@ interface WebRepository {
 
     suspend fun getUpdatedMessageFilter(filter: MessagesFilter): MessagesFilter
 
-    suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long>
+    suspend fun sendMessage(
+        subject: String,
+        content: String,
+        filter: MessagesFilter,
+    ): Result<Long>
 
     suspend fun updateReaction(
         messageId: Long,

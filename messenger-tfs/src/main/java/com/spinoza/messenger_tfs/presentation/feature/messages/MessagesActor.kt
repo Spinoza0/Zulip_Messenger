@@ -49,9 +49,11 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.Date
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.topic.MessagesTopicDelegateItem
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessageDraft
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
+import com.spinoza.messenger_tfs.presentation.feature.messages.util.isReadyToSend
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -102,7 +104,7 @@ class MessagesActor @Inject constructor(
 
     private var messagesFilter: MessagesFilter = MessagesFilter()
     private val lifecycleScope = lifecycle.coroutineScope
-    private val newMessageFieldState = MutableSharedFlow<String>()
+    private val newMessageDraftState = MutableSharedFlow<MessageDraft>()
     private var messagesQueue: EventsQueueHolder =
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var updateMessagesQueue: EventsQueueHolder =
@@ -111,6 +113,7 @@ class MessagesActor @Inject constructor(
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var reactionsQueue: EventsQueueHolder =
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
+    private var lastMessageDraft = MessageDraft(EMPTY_STRING, EMPTY_STRING)
     private var iconActionResId = R.drawable.ic_add_circle_outline
     private var isIconActionResIdChanged = false
     private var lastLoadCommand: MessagesScreenCommand? = null
@@ -135,13 +138,14 @@ class MessagesActor @Inject constructor(
 
     init {
         lifecycle.addObserver(lifecycleObserver)
-        subscribeToNewMessageFieldChanges()
+        subscribeToNewMessageDraftChanges()
     }
 
     override fun execute(command: MessagesScreenCommand): Flow<MessagesScreenEvent.Internal> =
         flow {
             val event = when (command) {
                 is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
+                is MessagesScreenCommand.NewTopicName -> newTopicName(command.value)
                 is MessagesScreenCommand.LoadFirstPage -> loadFirstPage(command)
                 is MessagesScreenCommand.LoadPreviousPage -> loadPreviousPage(command)
                 is MessagesScreenCommand.LoadNextPage -> loadNextPage(command)
@@ -311,7 +315,7 @@ class MessagesActor @Inject constructor(
     }
 
     private suspend fun newMessageText(text: CharSequence?): MessagesScreenEvent.Internal {
-        newMessageFieldState.emit(text.toString())
+        newMessageDraftState.emit(MessageDraft(lastMessageDraft.subject, text.toString()))
         delay(DELAY_BEFORE_CHECK_ACTION_ICON)
         if (isIconActionResIdChanged) {
             isIconActionResIdChanged = false
@@ -320,13 +324,24 @@ class MessagesActor @Inject constructor(
         return getIdleEvent()
     }
 
-    private suspend fun sendMessage(value: String): MessagesScreenEvent.Internal {
-        if (value.isNotEmpty()) {
-            sendMessageUseCase(value, messagesFilter).onSuccess { messageId ->
-                return MessagesScreenEvent.Internal.MessageSent(messageId)
-            }.onFailure { error ->
-                return handleErrors(error)
-            }
+    private suspend fun newTopicName(text: CharSequence?): MessagesScreenEvent.Internal {
+        newMessageDraftState.emit(MessageDraft(text.toString(), lastMessageDraft.content))
+        delay(DELAY_BEFORE_CHECK_ACTION_ICON)
+        if (isIconActionResIdChanged) {
+            isIconActionResIdChanged = false
+            return MessagesScreenEvent.Internal.IconActionResId(iconActionResId)
+        }
+        return getIdleEvent()
+    }
+
+    private suspend fun sendMessage(draft: MessageDraft): MessagesScreenEvent.Internal {
+        if (draft.content.isNotEmpty()) {
+            sendMessageUseCase(draft.subject, draft.content, messagesFilter)
+                .onSuccess { messageId ->
+                    return MessagesScreenEvent.Internal.MessageSent(messageId)
+                }.onFailure { error ->
+                    return handleErrors(error)
+                }
         }
         return getIdleEvent()
     }
@@ -377,16 +392,16 @@ class MessagesActor @Inject constructor(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    private fun subscribeToNewMessageFieldChanges() {
-        newMessageFieldState
+    private fun subscribeToNewMessageDraftChanges() {
+        newMessageDraftState
             .distinctUntilChanged()
             .debounce(DELAY_BEFORE_UPDATE_ACTION_ICON)
-            .mapLatest { text ->
-                val resId = if (text.isNotBlank())
+            .mapLatest { draft ->
+                lastMessageDraft = draft
+                if (draft.isReadyToSend(messagesFilter))
                     R.drawable.ic_send
                 else
                     R.drawable.ic_add_circle_outline
-                resId
             }
             .distinctUntilChanged()
             .onEach { resId ->

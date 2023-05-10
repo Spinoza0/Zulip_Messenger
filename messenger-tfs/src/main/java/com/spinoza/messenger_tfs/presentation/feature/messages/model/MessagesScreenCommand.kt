@@ -38,9 +38,11 @@ sealed class MessagesScreenCommand {
 
     class SetMessagesRead(val messageIds: List<Long>) : MessagesScreenCommand()
 
+    class NewTopicName(val value: CharSequence?) : MessagesScreenCommand()
+
     class NewMessageText(val value: CharSequence?) : MessagesScreenCommand()
 
-    class SendMessage(val value: String) : MessagesScreenCommand()
+    class SendMessage(val value: MessageDraft) : MessagesScreenCommand()
 
     class UpdateReaction(val messageId: Long, val emoji: Emoji) : MessagesScreenCommand()
 

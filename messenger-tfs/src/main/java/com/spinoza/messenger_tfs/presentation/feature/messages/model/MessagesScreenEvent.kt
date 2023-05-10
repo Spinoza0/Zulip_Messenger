@@ -41,7 +41,11 @@ sealed class MessagesScreenEvent {
 
         object MessagesScrollStateDragging : Ui()
 
-        class SendMessage(val value: CharSequence?) : Ui()
+        class SendMessage(
+            val messagesFilter: MessagesFilter,
+            val subject: CharSequence?,
+            val content: CharSequence?,
+        ) : Ui()
 
         class AfterSubmitMessages(
             val isNextMessageExisting: Boolean,
@@ -49,6 +53,8 @@ sealed class MessagesScreenEvent {
         ) : Ui()
 
         class UpdateReaction(val messageId: Long, val emoji: Emoji) : Ui()
+
+        class NewTopicName(val value: CharSequence?) : Ui()
 
         class NewMessageText(val value: CharSequence?) : Ui()
 

@@ -299,14 +299,16 @@ class WebRepositoryImpl @Inject constructor(
         }
 
     override suspend fun sendMessage(
+        subject: String,
         content: String,
         filter: MessagesFilter,
     ): Result<Long> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
+            val topicName = if (subject.isBlank()) filter.topic.name else subject
             val sendMessageResponse = apiRequest<SendMessageResponse> {
                 apiService.sendMessageToStream(
                     filter.channel.channelId,
-                    filter.topic.name,
+                    topicName,
                     content
                 )
             }
