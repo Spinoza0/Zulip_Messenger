@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Messenger-TFS</string>
 
     <!-- Fragment Login -->
-    <string name="icon">Icon image</string>
+    <string name="logo">Logo</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
     <string name="log_in">Log in</string>
@@ -33,7 +34,7 @@
     <string name="all_streams">All Streams</string>
     <string name="subscribed_streams">Subscribed</string>
     <string name="arrow">Arrow</string>
-    <string name="mes">mes</string>
+    <string name="mes">new mes.</string>
     <string name="channel_name_template">#%s</string>
 
     <!-- Fragment People -->
@@ -54,9 +55,6 @@
     <string name="people">People</string>
     <string name="profile">Profile</string>
 
-    <!-- Shimmer -->
-    <string name="loading">Loading…</string>
-
     <!-- Errors -->
     <string name="error_user_loading">User loading error.</string>
     <string name="error_messages">Error while working with messages.</string>
@@ -71,6 +69,6 @@
     <string name="error_downloading">downloading error</string>
     <string name="check_internet_connection">Check your internet connection</string>
     <string name="ok">OK</string>
-    <string name="close">Close</string>
+    <string name="close">Close screen</string>
 
 </resources>

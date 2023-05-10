@@ -13,7 +13,7 @@
         android:layout_height="128dp"
         android:layout_margin="30dp"
         android:adjustViewBounds="true"
-        android:contentDescription="@string/icon"
+        android:contentDescription="@string/logo"
         android:src="@mipmap/ic_launcher_round"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

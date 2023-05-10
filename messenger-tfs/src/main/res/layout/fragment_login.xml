@@ -20,7 +20,7 @@
             android:layout_gravity="center_horizontal"
             android:layout_margin="16dp"
             android:adjustViewBounds="true"
-            android:contentDescription="@string/icon"
+            android:contentDescription="@string/logo"
             android:src="@mipmap/ic_launcher_round" />
 
         <TextView
