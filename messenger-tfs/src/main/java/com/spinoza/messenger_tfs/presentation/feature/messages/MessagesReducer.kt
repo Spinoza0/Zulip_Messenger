@@ -45,12 +45,6 @@ class MessagesReducer @Inject constructor(
                     messages = event.value
                 )
             }
-            commands {
-                +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
-            }
         }
 
         is MessagesScreenEvent.Internal.StoredMessages -> {
@@ -61,7 +55,13 @@ class MessagesReducer @Inject constructor(
                     messages = event.value
                 )
             }
-            commands { +MessagesScreenCommand.LoadFirstPage(event.value.messages.isEmpty()) }
+            commands {
+                +MessagesScreenCommand.LoadFirstPage(event.value.messages.isEmpty())
+                +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
+            }
         }
 
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
