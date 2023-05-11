@@ -72,9 +72,14 @@ sealed class MessagesScreenEvent {
             val isMessageWithAttachments: Boolean,
         ) : Ui()
 
-        class EditMessageContent(val messageId: Long, val content: CharSequence) : Ui()
+        class EditMessageContent(
+            val messageId: Long,
+            val oldContent: String,
+            val content: CharSequence,
+        ) : Ui()
 
-        class EditMessageTopic(val messageId: Long, val topic: CharSequence) : Ui()
+        class EditMessageTopic(val messageId: Long, val oldTopic: String, val topic: CharSequence) :
+            Ui()
 
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
@@ -120,6 +125,10 @@ sealed class MessagesScreenEvent {
         class DeleteMessagesEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
         class ReactionsEventFromQueue(val value: MessagesResultDelegate) : Internal()
+
+        object MessageContentChanged : Internal()
+
+        class MessageTopicChanged(val newTopicName: String) : Internal()
 
         class FileUploaded(val value: UploadedFileInfo) : Internal()
 

@@ -314,15 +314,15 @@ class MessagesActor @Inject constructor(
 
     private suspend fun newMessageText(text: CharSequence?): MessagesScreenEvent.Internal {
         newMessageDraftState.emit(MessageDraft(messageDraft.subject, text.toString()))
-        return getChangedIconActionResId()
+        return getChangedMessageDraft()
     }
 
     private suspend fun newTopicName(text: CharSequence?): MessagesScreenEvent.Internal {
         newMessageDraftState.emit(MessageDraft(text.toString(), messageDraft.content))
-        return getChangedIconActionResId()
+        return getChangedMessageDraft()
     }
 
-    private suspend fun getChangedIconActionResId(): MessagesScreenEvent.Internal {
+    private suspend fun getChangedMessageDraft(): MessagesScreenEvent.Internal {
         delay(DELAY_BEFORE_CHECK_ACTION_ICON)
         if (isMessageDraftChanged) {
             isMessageDraftChanged = false
@@ -558,18 +558,27 @@ class MessagesActor @Inject constructor(
     private suspend fun editMessageContent(
         command: MessagesScreenCommand.EditMessageContent,
     ): MessagesScreenEvent.Internal {
-        editMessageUseCase(command.messageId, content = command.content.toString()).onFailure {
-            return handleErrors(it)
-        }
+        editMessageUseCase(command.messageId, content = command.content.toString())
+            .onSuccess {
+                return MessagesScreenEvent.Internal.MessageContentChanged
+            }
+            .onFailure {
+                return handleErrors(it)
+            }
         return getIdleEvent()
     }
 
     private suspend fun editMessageTopic(
         command: MessagesScreenCommand.EditMessageTopic,
     ): MessagesScreenEvent.Internal {
-        editMessageUseCase(command.messageId, topic = command.topic.toString()).onFailure {
-            return handleErrors(it)
-        }
+        val newTopicName = command.topic.toString()
+        editMessageUseCase(command.messageId, topic = newTopicName)
+            .onSuccess {
+                return MessagesScreenEvent.Internal.MessageTopicChanged(newTopicName)
+            }
+            .onFailure {
+                return handleErrors(it)
+            }
         return getIdleEvent()
     }
 

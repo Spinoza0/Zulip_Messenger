@@ -117,6 +117,14 @@ class MessagesReducer @Inject constructor(
             state { copy(isSendingMessage = false, isNewMessageExisting = false) }
         }
 
+        is MessagesScreenEvent.Internal.MessageContentChanged ->
+            state { copy(isSendingMessage = false) }
+
+        is MessagesScreenEvent.Internal.MessageTopicChanged -> {
+            state { copy(isSendingMessage = false) }
+            effects { +MessagesScreenEffect.MessageTopicChanged(event.newTopicName) }
+        }
+
         is MessagesScreenEvent.Internal.NewMessageDraft ->
             effects { +MessagesScreenEffect.NewMessageDraft(event.value) }
 
@@ -295,11 +303,26 @@ class MessagesReducer @Inject constructor(
             }
         }
 
-        is MessagesScreenEvent.Ui.EditMessageContent ->
-            commands { +MessagesScreenCommand.EditMessageContent(event.messageId, event.content) }
+        is MessagesScreenEvent.Ui.EditMessageContent -> {
+            if (event.oldContent != event.content) {
+                state { copy(isLongOperation = true) }
+                commands {
+                    +MessagesScreenCommand.EditMessageContent(
+                        event.messageId,
+                        event.content
+                    )
+                }
+            }
+            effects {}
+        }
 
-        is MessagesScreenEvent.Ui.EditMessageTopic ->
-            commands { +MessagesScreenCommand.EditMessageTopic(event.messageId, event.topic) }
+        is MessagesScreenEvent.Ui.EditMessageTopic -> {
+            if (!event.oldTopic.equals(event.topic.toString(), ignoreCase = true)) {
+                state { copy(isLongOperation = true) }
+                commands { +MessagesScreenCommand.EditMessageTopic(event.messageId, event.topic) }
+            }
+            effects {}
+        }
 
         is MessagesScreenEvent.Ui.SaveAttachments ->
             commands { +MessagesScreenCommand.SaveAttachments(event.context, event.urls) }

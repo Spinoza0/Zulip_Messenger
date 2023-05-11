@@ -45,12 +45,12 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScr
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.feature.messages.notification.Notificator
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToLastPosition
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToMessage
 import com.spinoza.messenger_tfs.presentation.feature.messages.util.isReadyToSend
-import com.spinoza.messenger_tfs.presentation.notification.Notificator
 import com.spinoza.messenger_tfs.presentation.util.DIRECTION_DOWN
 import com.spinoza.messenger_tfs.presentation.util.DIRECTION_UP
 import com.spinoza.messenger_tfs.presentation.util.ExternalStoragePermission
@@ -170,9 +170,6 @@ class MessagesFragment :
             val updateReaction: (MessageView, ReactionView) -> Unit = { message, reaction ->
                 updateReaction(message.messageId, reaction.emoji)
             }
-            val loadMessages: (String) -> Unit = {
-                loadMessages(it)
-            }
             addDelegate(
                 UserMessageDelegate(
                     showChooseActionMenu, ::addReaction, updateReaction, showUserInfo
@@ -184,7 +181,9 @@ class MessagesFragment :
                 )
             )
             addDelegate(DateDelegate())
-            addDelegate(MessagesTopicDelegate(topicNameTemplate, loadMessages))
+            addDelegate(MessagesTopicDelegate(topicNameTemplate) {
+                loadMessages(it)
+            })
         }
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
@@ -299,6 +298,10 @@ class MessagesFragment :
             is MessagesScreenEffect.RawMessageContent ->
                 showEditMessageDialog(effect.messageId, effect.content)
 
+            is MessagesScreenEffect.MessageTopicChanged -> if (messagesFilter.topic.name.isNotBlank()) {
+                loadMessages(effect.newTopicName)
+            }
+
             is MessagesScreenEffect.ConfirmDeleteMessage -> confirmDeleteMessage(effect.messageId)
             is MessagesScreenEffect.Failure.ErrorMessages ->
                 showError("${getString(R.string.error_messages)} ${effect.value}")
@@ -345,7 +348,7 @@ class MessagesFragment :
         showInputTextDialog(
             getString(R.string.edit_topic), messageView.messageId, messageView.subject, true
         ) { id, text ->
-            store.accept(MessagesScreenEvent.Ui.EditMessageTopic(id, text))
+            store.accept(MessagesScreenEvent.Ui.EditMessageTopic(id, messageView.subject, text))
         }
     }
 
@@ -353,7 +356,7 @@ class MessagesFragment :
         showInputTextDialog(
             getString(R.string.edit_message), messageId, content, false
         ) { id, text ->
-            store.accept(MessagesScreenEvent.Ui.EditMessageContent(id, text))
+            store.accept(MessagesScreenEvent.Ui.EditMessageContent(id, content, text))
         }
     }
 

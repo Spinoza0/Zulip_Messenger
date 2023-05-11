@@ -34,7 +34,7 @@ interface WebRepository {
 
     suspend fun getMessageRawContent(messageId: Long, default: String): String
 
-    suspend fun editMessage(messageId: Long, topic: String, content: String): Result<Boolean>
+    suspend fun editMessage(messageId: Long, topic: String, content: String): Result<Long>
 
     suspend fun deleteMessage(messageId: Long): Result<Boolean>
 

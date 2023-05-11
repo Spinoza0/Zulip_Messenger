@@ -8,8 +8,8 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScr
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
-import com.spinoza.messenger_tfs.presentation.notification.Notificator
-import com.spinoza.messenger_tfs.presentation.notification.NotificatorImpl
+import com.spinoza.messenger_tfs.presentation.feature.messages.notification.Notificator
+import com.spinoza.messenger_tfs.presentation.feature.messages.notification.NotificatorImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides

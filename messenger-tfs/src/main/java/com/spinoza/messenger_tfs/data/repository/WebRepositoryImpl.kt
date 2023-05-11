@@ -206,14 +206,14 @@ class WebRepositoryImpl @Inject constructor(
         messageId: Long,
         topic: String,
         content: String,
-    ): Result<Boolean> = withContext(ioDispatcher) {
+    ): Result<Long> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             if (topic.isBlank()) {
                 apiRequest<BasicResponse> { apiService.editMessageContent(messageId, content) }
             } else {
                 apiRequest<BasicResponse> { apiService.editMessageTopic(messageId, topic) }
             }
-            true
+            messageId
         }
     }
 

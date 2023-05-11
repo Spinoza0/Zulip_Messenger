@@ -59,7 +59,7 @@ class WebRepositoryStub : WebRepository {
         messageId: Long,
         topic: String,
         content: String,
-    ): Result<Boolean> {
+    ): Result<Long> {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
