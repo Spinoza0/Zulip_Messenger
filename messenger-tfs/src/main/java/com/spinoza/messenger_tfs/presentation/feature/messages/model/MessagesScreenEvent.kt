@@ -105,7 +105,7 @@ sealed class MessagesScreenEvent {
 
         class NextPageExists(val value: Boolean, val isGoingToLastMessage: Boolean) : Internal()
 
-        class IconActionResId(val value: Int) : Internal()
+        class NewMessageDraft(val value: MessageDraft) : Internal()
 
         class Messages(val value: MessagesResultDelegate) : Internal()
 

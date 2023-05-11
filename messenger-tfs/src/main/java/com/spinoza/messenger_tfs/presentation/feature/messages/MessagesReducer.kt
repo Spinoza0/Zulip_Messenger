@@ -117,8 +117,8 @@ class MessagesReducer @Inject constructor(
             state { copy(isSendingMessage = false, isNewMessageExisting = false) }
         }
 
-        is MessagesScreenEvent.Internal.IconActionResId ->
-            state { copy(iconActionResId = event.value) }
+        is MessagesScreenEvent.Internal.NewMessageDraft ->
+            effects { +MessagesScreenEffect.NewMessageDraft(event.value) }
 
         is MessagesScreenEvent.Internal.NextPageExists -> {
             if (event.isGoingToLastMessage) {

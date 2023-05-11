@@ -14,7 +14,8 @@
     <string name="message">Message</string>
     <string name="arrow_back">Arrow back</string>
     <string name="action">Action</string>
-    <string name="write_message">Write text here…</string>
+    <string name="topic_name">Topic…</string>
+    <string name="write_message">Write message…</string>
     <string name="messages_topic_template">Topic: #%s</string>
     <string name="add_reaction">Add reaction</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>
@@ -28,7 +29,6 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="confirm_delete_message">Are you want to delete the message?</string>
-    <string name="topic_name">Topic name…</string>
 
     <!-- Fragment Channels -->
     <string name="search">Search…</string>

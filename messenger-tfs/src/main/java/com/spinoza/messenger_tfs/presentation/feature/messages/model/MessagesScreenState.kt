@@ -1,7 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
-import com.spinoza.messenger_tfs.R
-
 data class MessagesScreenState(
     val isLoading: Boolean = false,
     val isLongOperation: Boolean = false,
@@ -9,5 +7,4 @@ data class MessagesScreenState(
     val isNextMessageExisting: Boolean = false,
     val isNewMessageExisting: Boolean = false,
     val messages: MessagesResultDelegate? = null,
-    val iconActionResId: Int = R.drawable.ic_add_circle_outline,
 )

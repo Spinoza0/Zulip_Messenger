@@ -53,7 +53,6 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessageDraf
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
-import com.spinoza.messenger_tfs.presentation.feature.messages.util.isReadyToSend
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -64,10 +63,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -113,9 +112,8 @@ class MessagesActor @Inject constructor(
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var reactionsQueue: EventsQueueHolder =
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
-    private var lastMessageDraft = MessageDraft(EMPTY_STRING, EMPTY_STRING)
-    private var iconActionResId = R.drawable.ic_add_circle_outline
-    private var isIconActionResIdChanged = false
+    private var messageDraft = MessageDraft(EMPTY_STRING, EMPTY_STRING)
+    private var isMessageDraftChanged = false
     private var lastLoadCommand: MessagesScreenCommand? = null
     private var updatingInfoJob: Job? = null
 
@@ -315,21 +313,20 @@ class MessagesActor @Inject constructor(
     }
 
     private suspend fun newMessageText(text: CharSequence?): MessagesScreenEvent.Internal {
-        newMessageDraftState.emit(MessageDraft(lastMessageDraft.subject, text.toString()))
-        delay(DELAY_BEFORE_CHECK_ACTION_ICON)
-        if (isIconActionResIdChanged) {
-            isIconActionResIdChanged = false
-            return MessagesScreenEvent.Internal.IconActionResId(iconActionResId)
-        }
-        return getIdleEvent()
+        newMessageDraftState.emit(MessageDraft(messageDraft.subject, text.toString()))
+        return getChangedIconActionResId()
     }
 
     private suspend fun newTopicName(text: CharSequence?): MessagesScreenEvent.Internal {
-        newMessageDraftState.emit(MessageDraft(text.toString(), lastMessageDraft.content))
+        newMessageDraftState.emit(MessageDraft(text.toString(), messageDraft.content))
+        return getChangedIconActionResId()
+    }
+
+    private suspend fun getChangedIconActionResId(): MessagesScreenEvent.Internal {
         delay(DELAY_BEFORE_CHECK_ACTION_ICON)
-        if (isIconActionResIdChanged) {
-            isIconActionResIdChanged = false
-            return MessagesScreenEvent.Internal.IconActionResId(iconActionResId)
+        if (isMessageDraftChanged) {
+            isMessageDraftChanged = false
+            return MessagesScreenEvent.Internal.NewMessageDraft(messageDraft)
         }
         return getIdleEvent()
     }
@@ -396,17 +393,10 @@ class MessagesActor @Inject constructor(
         newMessageDraftState
             .distinctUntilChanged()
             .debounce(DELAY_BEFORE_UPDATE_ACTION_ICON)
-            .mapLatest { draft ->
-                lastMessageDraft = draft
-                if (draft.isReadyToSend(messagesFilter))
-                    R.drawable.ic_send
-                else
-                    R.drawable.ic_add_circle_outline
-            }
-            .distinctUntilChanged()
-            .onEach { resId ->
-                isIconActionResIdChanged = true
-                iconActionResId = resId
+            .flatMapLatest { flow { emit(it) } }
+            .onEach {
+                messageDraft = it
+                isMessageDraftChanged = true
             }
             .flowOn(defaultDispatcher)
             .launchIn(lifecycleScope)

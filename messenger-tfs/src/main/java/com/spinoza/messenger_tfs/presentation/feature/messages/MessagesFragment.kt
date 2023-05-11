@@ -49,6 +49,7 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToLastPosition
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToMessage
+import com.spinoza.messenger_tfs.presentation.feature.messages.util.isReadyToSend
 import com.spinoza.messenger_tfs.presentation.notification.Notificator
 import com.spinoza.messenger_tfs.presentation.util.DIRECTION_DOWN
 import com.spinoza.messenger_tfs.presentation.util.DIRECTION_UP
@@ -132,9 +133,11 @@ class MessagesFragment :
 
     private fun setupTopicTitle() {
         with(binding) {
-            textViewTopic.isVisible = messagesFilter.topic.name.isNotEmpty()
-            imageViewTopicArrow.isVisible = messagesFilter.topic.name.isNotEmpty()
+            val isTopicNameNotEmpty = messagesFilter.topic.name.isNotEmpty()
+            textViewTopic.isVisible = isTopicNameNotEmpty
+            imageViewTopicArrow.isVisible = isTopicNameNotEmpty
             textViewTopic.text = String.format(topicNameTemplate, messagesFilter.topic.name)
+            editTextTopicName.setText(messagesFilter.topic.name)
         }
     }
 
@@ -267,17 +270,24 @@ class MessagesFragment :
                 }
             }
             progressBarLoadingPage.isVisible = state.isLongOperation
-            val isEditTopicVisible =
-                messagesFilter.topic.name.isBlank() && editTextMessage.text.toString().isNotBlank()
-            viewNewTopicBorder.isVisible = isEditTopicVisible
-            editTextTopicName.isVisible = isEditTopicVisible
-            imageViewAction.setImageResource(state.iconActionResId)
             fabViewArrow.isVisible = state.isNextMessageExisting || state.isNewMessageExisting
         }
     }
 
     override fun handleEffect(effect: MessagesScreenEffect) {
         when (effect) {
+            is MessagesScreenEffect.NewMessageDraft -> {
+                val isEditTopicVisible =
+                    messagesFilter.topic.name.isBlank() && effect.value.content.isNotBlank()
+                binding.viewNewTopicBorder.isVisible = isEditTopicVisible
+                binding.editTextTopicName.isVisible = isEditTopicVisible
+                val iconActionResId = if (effect.value.isReadyToSend(messagesFilter))
+                    R.drawable.ic_send
+                else
+                    R.drawable.ic_add_circle_outline
+                binding.imageViewAction.setImageResource(iconActionResId)
+            }
+
             is MessagesScreenEffect.MessageSent -> binding.editTextMessage.text?.clear()
             is MessagesScreenEffect.ScrollToLastMessage ->
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
