@@ -19,6 +19,7 @@ import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
+import com.spinoza.messenger_tfs.data.network.model.stream.SubscriptionItemDto
 import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
@@ -221,6 +222,16 @@ class WebRepositoryImpl @Inject constructor(
         withContext(ioDispatcher) {
             runCatchingNonCancellation {
                 apiRequest<BasicResponse> { apiService.deleteMessage(messageId) }
+                true
+            }
+        }
+
+    override suspend fun createChannel(name: String, description: String): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                val subscriptions = listOf(SubscriptionItemDto(name, description))
+                val param = Json.encodeToString(subscriptions)
+                apiRequest<BasicResponse> { apiService.subscribeToStream(param) }
                 true
             }
         }

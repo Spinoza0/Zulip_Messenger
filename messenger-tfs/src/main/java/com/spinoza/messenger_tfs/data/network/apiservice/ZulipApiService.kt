@@ -29,6 +29,44 @@ interface ZulipApiService {
         @Query(QUERY_PASSWORD) password: String,
     ): ApiKeyResponse
 
+    @POST("users/me/presence?status=active")
+    suspend fun setOwnStatusActive()
+
+    @POST("messages/{$QUERY_MESSAGE_ID}/reactions")
+    suspend fun addReaction(
+        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Query(QUERY_EMOJI_NAME) emojiName: String,
+    ): BasicResponse
+
+    @POST("messages")
+    suspend fun sendMessageToStream(
+        @Query(QUERY_TO) streamId: Long,
+        @Query(QUERY_TOPIC) topic: String,
+        @Query(QUERY_CONTENT) content: String,
+        @Query(QUERY_TYPE) type: String = SEND_MESSAGE_TYPE_STREAM,
+    ): SendMessageResponse
+
+    @POST("register")
+    suspend fun registerEventQueue(
+        @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
+        @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
+    ): RegisterEventQueueResponse
+
+    @POST("messages/flags")
+    suspend fun setMessageFlagsToRead(
+        @Query(QUERY_MESSAGE_IDS) messageIds: String,
+        @Query(QUERY_OPERATION) operation: String = QUERY_OPERATION_ADD,
+        @Query(QUERY_FLAG) flag: String = QUERY_FLAG_READ,
+    ): BasicResponse
+
+    @Multipart
+    @POST("user_uploads")
+    suspend fun uploadFile(@Part filePart: MultipartBody.Part): UploadFileResponse
+
+    @POST("users/me/subscriptions")
+    suspend fun subscribeToStream(@Query(QUERY_SUBSCRIPTIONS) subscriptions: String): BasicResponse
+
     @GET("users/me")
     suspend fun getOwnUser(): OwnUserResponse
 
@@ -43,9 +81,6 @@ interface ZulipApiService {
 
     @GET("realm/presence")
     suspend fun getAllPresences(): Response<AllPresencesResponse>
-
-    @POST("users/me/presence?status=active")
-    suspend fun setOwnStatusActive()
 
     @GET("users/me/subscriptions")
     suspend fun getSubscribedStreams(): SubscribedStreamsResponse
@@ -80,17 +115,11 @@ interface ZulipApiService {
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): SingleMessageResponse
 
-    @POST("messages/{$QUERY_MESSAGE_ID}/reactions")
-    suspend fun addReaction(
-        @Path(QUERY_MESSAGE_ID) messageId: Long,
-        @Query(QUERY_EMOJI_NAME) emojiName: String,
-    ): BasicResponse
-
-    @DELETE("messages/{$QUERY_MESSAGE_ID}/reactions")
-    suspend fun removeReaction(
-        @Path(QUERY_MESSAGE_ID) messageId: Long,
-        @Query(QUERY_EMOJI_NAME) emojiName: String,
-    ): BasicResponse
+    @GET("events")
+    suspend fun getEventsFromQueue(
+        @Query(QUERY_QUEUE_ID) queueId: String,
+        @Query(QUERY_LAST_EVENT_ID) lastEventId: Long,
+    ): Response<ResponseBody>
 
     @PATCH("messages/{$QUERY_MESSAGE_ID}")
     suspend fun editMessageTopic(
@@ -106,43 +135,17 @@ interface ZulipApiService {
         @Query(QUERY_CONTENT) content: String,
     ): BasicResponse
 
+    @DELETE("messages/{$QUERY_MESSAGE_ID}/reactions")
+    suspend fun removeReaction(
+        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Query(QUERY_EMOJI_NAME) emojiName: String,
+    ): BasicResponse
+
     @DELETE("messages/{$QUERY_MESSAGE_ID}")
     suspend fun deleteMessage(@Path(QUERY_MESSAGE_ID) messageId: Long): BasicResponse
 
-    @POST("messages")
-    suspend fun sendMessageToStream(
-        @Query(QUERY_TO) streamId: Long,
-        @Query(QUERY_TOPIC) topic: String,
-        @Query(QUERY_CONTENT) content: String,
-        @Query(QUERY_TYPE) type: String = SEND_MESSAGE_TYPE_STREAM,
-    ): SendMessageResponse
-
-    @POST("register")
-    suspend fun registerEventQueue(
-        @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
-    ): RegisterEventQueueResponse
-
     @DELETE("events")
     suspend fun deleteEventQueue(@Query(QUERY_QUEUE_ID) queueId: String): BasicResponse
-
-    @GET("events")
-    suspend fun getEventsFromQueue(
-        @Query(QUERY_QUEUE_ID) queueId: String,
-        @Query(QUERY_LAST_EVENT_ID) lastEventId: Long,
-    ): Response<ResponseBody>
-
-    @POST("messages/flags")
-    suspend fun setMessageFlagsToRead(
-        @Query(QUERY_MESSAGE_IDS) messageIds: String,
-        @Query(QUERY_OPERATION) operation: String = QUERY_OPERATION_ADD,
-        @Query(QUERY_FLAG) flag: String = QUERY_FLAG_READ,
-    ): BasicResponse
-
-    @Multipart
-    @POST("user_uploads")
-    suspend fun uploadFile(@Part filePart: MultipartBody.Part): UploadFileResponse
 
     companion object {
 
@@ -155,6 +158,7 @@ interface ZulipApiService {
         const val HALF_MESSAGES_PACKET = MAX_MESSAGES_PACKET / 2
         const val EMPTY_MESSAGES_PACKET = 0
 
+        private const val QUERY_SUBSCRIPTIONS = "subscriptions"
         private const val QUERY_USERNAME = "username"
         private const val QUERY_PASSWORD = "password"
         private const val QUERY_USER_ID = "user_id"
