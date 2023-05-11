@@ -17,6 +17,7 @@ import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
+import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.CreateChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.*
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
@@ -396,6 +397,7 @@ class ChannelsPageFragmentViewModel(
                 result.addAll(channelTopics)
             }
         }
+        result.add(CreateChannelDelegateItem())
         return result
     }
 

@@ -19,6 +19,7 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegate
+import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.CreateChannelDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEffect
@@ -83,20 +84,25 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        channelsAdapter.addDelegate(
-            ChannelDelegate(
-                getString(R.string.channel_name_template),
-                ::onChannelClickListener,
-                ::onArrowClickListener
+        with(channelsAdapter) {
+            addDelegate(
+                ChannelDelegate(
+                    getString(R.string.channel_name_template),
+                    ::onChannelClickListener,
+                    ::onArrowClickListener
+                )
             )
-        )
-        channelsAdapter.addDelegate(
-            TopicDelegate(
-                requireContext().getThemeColor(R.attr.even_topic_color),
-                requireContext().getThemeColor(R.attr.odd_topic_color),
-                ::onTopicClickListener
+            addDelegate(
+                TopicDelegate(
+                    requireContext().getThemeColor(R.attr.even_topic_color),
+                    requireContext().getThemeColor(R.attr.odd_topic_color),
+                    ::onTopicClickListener
+                )
             )
-        )
+            addDelegate(CreateChannelDelegate {
+                TODO()
+            })
+        }
         binding.recyclerViewChannels.adapter = channelsAdapter
         binding.recyclerViewChannels.addOnScrollListener(object : RecyclerView.OnScrollListener() {
 

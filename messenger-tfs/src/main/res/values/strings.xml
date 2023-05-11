@@ -35,8 +35,9 @@
     <string name="all_streams">All Streams</string>
     <string name="subscribed_streams">Subscribed</string>
     <string name="arrow">Arrow</string>
-    <string name="mes">new mes.</string>
+    <string name="new_messages">new mes.</string>
     <string name="channel_name_template">#%s</string>
+    <string name="create_channel">Create channel</string>
 
     <!-- Fragment People -->
     <string name="users">Users…</string>

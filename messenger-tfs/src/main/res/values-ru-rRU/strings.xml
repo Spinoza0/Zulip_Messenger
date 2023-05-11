@@ -35,8 +35,9 @@
     <string name="all_streams">Все каналы</string>
     <string name="subscribed_streams">С подпиской</string>
     <string name="arrow">Стрелка</string>
-    <string name="mes">нов.сообщ.</string>
+    <string name="new_messages">нов.сообщ.</string>
     <string name="channel_name_template">#%s</string>
+    <string name="create_channel">Создать канал</string>
 
     <!-- Fragment People -->
     <string name="users">Пользователи…</string>
