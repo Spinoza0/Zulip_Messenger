@@ -116,11 +116,7 @@ class MessagesActor @Inject constructor(
     private var isMessageDraftChanged = false
     private var lastLoadCommand: MessagesScreenCommand? = null
     private var updatingInfoJob: Job? = null
-
-    private var isLoadingFirstPage = AtomicBoolean(false)
-    private var isLoadingPreviousPage = AtomicBoolean(false)
-    private var isLoadingNextPage = AtomicBoolean(false)
-    private var isLoadingLastPage = AtomicBoolean(false)
+    private var isLoadingMessages = AtomicBoolean(false)
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
@@ -191,9 +187,6 @@ class MessagesActor @Inject constructor(
 
                             else -> throw RuntimeException("Invalid command: $lastCommand")
                         }
-                    }
-                    if (result is MessagesScreenEvent.Internal.Idle) {
-                        delay(DELAY_BEFORE_RETURN_IDLE_EVENT)
                     }
                     result
                 }
@@ -273,7 +266,7 @@ class MessagesActor @Inject constructor(
             } else {
                 MessagesPageType.AFTER_STORED
             }
-        val event = loadPage(command, messagesPageType, isLoadingFirstPage)
+        val event = loadMessages(command, messagesPageType)
         if (event is MessagesScreenEvent.Internal.Messages) {
             registerEventQueues()
             startUpdatingInfo()
@@ -284,32 +277,19 @@ class MessagesActor @Inject constructor(
     private suspend fun loadPreviousPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        return loadPage(command, MessagesPageType.OLDEST, isLoadingPreviousPage)
+        return loadMessages(command, MessagesPageType.OLDEST)
     }
 
     private suspend fun loadNextPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        return loadPage(command, MessagesPageType.NEWEST, isLoadingNextPage)
+        return loadMessages(command, MessagesPageType.NEWEST)
     }
 
     private suspend fun loadLastPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        return loadPage(command, MessagesPageType.LAST, isLoadingLastPage)
-    }
-
-    private suspend fun loadPage(
-        command: MessagesScreenCommand,
-        pageType: MessagesPageType,
-        isLoadingFlag: AtomicBoolean,
-    ): MessagesScreenEvent.Internal {
-        if (isLoadingFlag.get()) return getIdleEvent()
-        isLoadingFlag.set(true)
-        lastLoadCommand = command
-        val event = loadMessages(pageType)
-        isLoadingFlag.set(false)
-        return event
+        return loadMessages(command, MessagesPageType.LAST)
     }
 
     private suspend fun newMessageText(text: CharSequence?): MessagesScreenEvent.Internal {
@@ -361,14 +341,23 @@ class MessagesActor @Inject constructor(
             getIdleEvent()
         }
 
-    private suspend fun loadMessages(messagesPageType: MessagesPageType): MessagesScreenEvent.Internal =
+    private suspend fun loadMessages(
+        command: MessagesScreenCommand,
+        messagesPageType: MessagesPageType,
+    ): MessagesScreenEvent.Internal =
         withContext(defaultDispatcher) {
-            getMessagesUseCase(messagesPageType, messagesFilter).onSuccess { messagesResult ->
-                return@withContext handleMessages(messagesResult, messagesPageType)
-            }.onFailure { error ->
-                return@withContext handleErrors(error)
-            }
-            getIdleEvent()
+            if (isLoadingMessages.get()) return@withContext getIdleEvent()
+            isLoadingMessages.set(true)
+            lastLoadCommand = command
+            var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
+            getMessagesUseCase(messagesPageType, messagesFilter)
+                .onSuccess { messagesResult ->
+                    event = handleMessages(messagesResult, messagesPageType)
+                }.onFailure { error ->
+                    event = handleErrors(error)
+                }
+            isLoadingMessages.set(false)
+            event
         }
 
     private suspend fun setMessageReadFlags(messageIds: List<Long>): MessagesScreenEvent.Internal {

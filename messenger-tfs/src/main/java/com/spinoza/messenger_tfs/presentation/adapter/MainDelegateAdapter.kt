@@ -36,13 +36,15 @@ class MainDelegateAdapter @Inject constructor() :
         payloads: MutableList<Any>,
     ) {
         if (position != RecyclerView.NO_POSITION) {
-            onReachStartListener?.let { listener ->
-                if (position - borderPosition <= FIRST_POSITION) {
+            var isListenerInvoked = false
+            onReachEndListener?.let { listener ->
+                if (position + borderPosition >= itemCount) {
+                    isListenerInvoked = true
                     listener()
                 }
             }
-            onReachEndListener?.let { listener ->
-                if (position + borderPosition >= itemCount) {
+            if (!isListenerInvoked) onReachStartListener?.let { listener ->
+                if (position - borderPosition <= FIRST_POSITION) {
                     listener()
                 }
             }

@@ -30,7 +30,7 @@ class MessagesTest : TestCase() {
 
         step("Click on first channel") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
         }
         step("Click on first topic") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
@@ -50,7 +50,7 @@ class MessagesTest : TestCase() {
 
         step("Click on first channel") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
         }
         step("Click on second topic") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(2)
@@ -70,7 +70,7 @@ class MessagesTest : TestCase() {
 
         step("Click on first channel") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
         }
         step("Click on third topic") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(3)
@@ -89,7 +89,7 @@ class MessagesTest : TestCase() {
 
         step("Open messages screen") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
             { topic.click() }
         }
@@ -109,7 +109,7 @@ class MessagesTest : TestCase() {
 
         step("Open messages screen") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
             { topic.click() }
         }
@@ -127,7 +127,7 @@ class MessagesTest : TestCase() {
 
         step("Open messages screen") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
             { topic.click() }
         }
@@ -145,7 +145,7 @@ class MessagesTest : TestCase() {
 
         step("Open messages screen") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
             { topic.click() }
         }
@@ -164,7 +164,7 @@ class MessagesTest : TestCase() {
 
         step("Open messages screen") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
             { topic.click() }
         }
@@ -178,14 +178,18 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldClickOnUserReactionAddsReaction() = run {
-        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        setupMockServerDispatcher(
+            ServerType.WITH_MESSAGES,
+            "/api/v1/messages/346542882",
+            "changed_346542882_message.json"
+        )
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
         val messageIndex = 1
 
         step("Open messages screen") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
             { topic.click() }
         }
@@ -209,14 +213,18 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldClickOnOwnReactionDeletesReaction() = run {
-        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        setupMockServerDispatcher(
+            ServerType.WITH_MESSAGES,
+            "/api/v1/messages/351668250",
+            "changed_351668250_message.json"
+        )
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
         val messageIndex = 4
 
         step("Open messages screen") {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(0)
-            { channel.click() }
+            { arrowArea.click() }
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
             { topic.click() }
         }
@@ -238,13 +246,17 @@ class MessagesTest : TestCase() {
         }
     }
 
-    private fun setupMockServerDispatcher(type: ServerType) {
+    private fun setupMockServerDispatcher(
+        type: ServerType,
+        redirectPath: String = "no_value",
+        redirectData: String = "messages_list.json",
+    ) {
         val universalPaths = listOf(
-            "/api/v1/messages",
+            MockRequestDispatcher.REDIRECT_FROM_KEY,
             "/api/v1/register",
             "/api/v1/fetch_api_key"
         )
-        val dispatcher = MockRequestDispatcher(universalPaths).apply {
+        val dispatcher = MockRequestDispatcher(universalPaths, redirectPath).apply {
             returnsForPath("/api/v1/fetch_api_key")
             { setBody(loadFromAssets("fetch_api_key.json")) }
             returnsForPath("/api/v1/users/me")
@@ -257,16 +269,20 @@ class MessagesTest : TestCase() {
             { setBody(loadFromAssets("default.json")) }
             returnsForPath("/api/v1/register")
             { setBody(loadFromAssets("default.json")) }
+            returnsForPath(MockRequestDispatcher.REDIRECT_DATA_KEY)
+            { setBody(loadFromAssets(redirectData)) }
         }
         when (type) {
-            ServerType.WITH_MESSAGES -> dispatcher.returnsForPath("/api/v1/messages")
-            { setBody(loadFromAssets("messages_list.json")) }
+            ServerType.WITH_MESSAGES ->
+                dispatcher.returnsForPath(MockRequestDispatcher.REDIRECT_FROM_KEY)
+                { setBody(loadFromAssets("messages_list.json")) }
 
-            ServerType.WITHOUT_MESSAGES -> dispatcher.returnsForPath("/api/v1/messages")
-            { setBody(loadFromAssets("empty_messages_list.json")) }
+            ServerType.WITHOUT_MESSAGES ->
+                dispatcher.returnsForPath(MockRequestDispatcher.REDIRECT_FROM_KEY)
+                { setBody(loadFromAssets("empty_messages_list.json")) }
 
             ServerType.WITH_GETTING_MESSAGES_ERROR ->
-                dispatcher.returnsForPath("/api/v1/messages") { setBody("[]") }
+                dispatcher.returnsForPath(MockRequestDispatcher.REDIRECT_FROM_KEY) { setBody("[]") }
         }
         mockServer.dispatcher = dispatcher
     }

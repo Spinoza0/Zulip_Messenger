@@ -159,8 +159,12 @@ class MessagesFragment :
     private fun setupRecyclerView() {
         with(messagesAdapter) {
             borderPosition = BORDER_POSITION
-            onReachStartListener = { store.accept(MessagesScreenEvent.Ui.LoadPreviousPage) }
-            onReachEndListener = { store.accept(MessagesScreenEvent.Ui.LoadNextPage) }
+            onReachStartListener = {
+                store.accept(MessagesScreenEvent.Ui.LoadPreviousPage)
+            }
+            onReachEndListener = {
+                store.accept(MessagesScreenEvent.Ui.LoadNextPage)
+            }
             val showChooseActionMenu: (MessageView) -> Unit = {
                 store.accept(MessagesScreenEvent.Ui.ShowChooseActionMenu(it))
             }

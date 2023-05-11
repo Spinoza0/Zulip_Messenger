@@ -69,6 +69,10 @@ class WebRepositoryStub : WebRepository {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
+    override suspend fun createChannel(name: String, description: String): Result<Boolean> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
     override suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> {
         return createChannels(channelsFilter)
     }
