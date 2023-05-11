@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.di.app
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.spinoza.messenger_tfs.data.network.WebLimitationImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.attachment.AttachmentHandlerImpl
@@ -10,6 +11,7 @@ import com.spinoza.messenger_tfs.di.ApplicationScope
 import com.spinoza.messenger_tfs.di.BaseUrl
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
@@ -41,6 +43,10 @@ interface DataModule {
     @ApplicationScope
     @Binds
     fun bindAttachmentHandler(impl: AttachmentHandlerImpl): AttachmentHandler
+
+    @ApplicationScope
+    @Binds
+    fun bindWebLimitation(impl: WebLimitationImpl): WebLimitation
 
     companion object {
 

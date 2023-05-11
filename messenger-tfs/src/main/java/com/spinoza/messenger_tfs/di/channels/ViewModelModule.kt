@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.usecase.channels.CreateChannelUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredTopicsUseCase
@@ -46,6 +47,7 @@ interface ViewModelModule {
             getChannelsUseCase: GetChannelsUseCase,
             getTopicUseCase: GetTopicUseCase,
             getChannelEventsUseCase: GetChannelEventsUseCase,
+            createChannelUseCase: CreateChannelUseCase,
             registerEventQueueUseCase: RegisterEventQueueUseCase,
             deleteEventQueueUseCase: DeleteEventQueueUseCase,
             @DispatcherDefault defaultDispatcher: CoroutineDispatcher,
@@ -59,6 +61,7 @@ interface ViewModelModule {
                 getTopicsUseCase,
                 getStoredChannelsUseCase,
                 getChannelsUseCase,
+                createChannelUseCase,
                 getTopicUseCase,
                 getChannelEventsUseCase,
                 registerEventQueueUseCase,

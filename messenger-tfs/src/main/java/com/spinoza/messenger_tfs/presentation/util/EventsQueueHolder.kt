@@ -51,6 +51,6 @@ class EventsQueueHolder(
 
     companion object {
 
-        private const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 10_000L
+        private const val DELAY_BEFORE_REGISTRATION_ATTEMPT = 5_000L
     }
 }

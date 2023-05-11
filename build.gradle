@@ -22,7 +22,7 @@ buildscript {
 
             kotlin                  : "1.8.21",
             kotlinxCoroutines       : "1.7.0",
-            kotlinxSerializationJson: "1.5.0",
+            kotlinxSerializationJson: "1.5.1",
 
             okhttp3                 : "4.11.0",
 

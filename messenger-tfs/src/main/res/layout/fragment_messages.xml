@@ -107,7 +107,6 @@
         android:layout_marginBottom="12dp"
         android:background="@drawable/shape_channel_new_message_text"
         android:hint="@string/topic_name"
-        android:maxLength="60"
         android:paddingHorizontal="20dp"
         android:paddingVertical="16dp"
         android:textColor="?attr/text_300_color"

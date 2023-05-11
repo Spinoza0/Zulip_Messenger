@@ -14,6 +14,7 @@ import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
@@ -36,6 +37,7 @@ class ChannelsPageFragmentViewModel(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getStoredChannelsUseCase: GetStoredChannelsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
+    private val createChannelUseCase: CreateChannelUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
@@ -50,7 +52,7 @@ class ChannelsPageFragmentViewModel(
     val effects: SharedFlow<ChannelsPageScreenEffect>
         get() = _effects.asSharedFlow()
 
-    private var channelsFilter = ChannelsFilter(EMPTY_NAME, isSubscribed)
+    private var channelsFilter = ChannelsFilter(EMPTY_STRING, isSubscribed)
     private val _state = MutableStateFlow(ChannelsPageScreenState())
     private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
@@ -84,6 +86,7 @@ class ChannelsPageFragmentViewModel(
             is ChannelsPageScreenEvent.Ui.RegisterEventQueue -> registerEventQueue()
             is ChannelsPageScreenEvent.Ui.DeleteEventQueue -> deleteEventQueue()
             is ChannelsPageScreenEvent.Ui.CheckLoginStatus -> checkLoginStatus()
+            is ChannelsPageScreenEvent.Ui.CreateChannel -> createChannel(event)
         }
     }
 
@@ -174,6 +177,12 @@ class ChannelsPageFragmentViewModel(
                     if (delegateItem is TopicDelegateItem) updateTopicDelegateItem(delegateItem, i)
                 }
             }
+        }
+    }
+
+    private fun createChannel(event: ChannelsPageScreenEvent.Ui.CreateChannel) {
+        vmScope.launch {
+            TODO()
         }
     }
 
@@ -415,7 +424,6 @@ class ChannelsPageFragmentViewModel(
 
     private companion object {
 
-        const val EMPTY_NAME = ""
         const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
         const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
     }

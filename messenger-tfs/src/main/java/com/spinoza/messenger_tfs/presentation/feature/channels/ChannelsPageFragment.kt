@@ -100,7 +100,7 @@ class ChannelsPageFragment : Fragment() {
                 )
             )
             addDelegate(CreateChannelDelegate {
-                TODO()
+                showCreateChannelDialog()
             })
         }
         binding.recyclerViewChannels.adapter = channelsAdapter
@@ -195,6 +195,10 @@ class ChannelsPageFragment : Fragment() {
                 )
             }
         }
+    }
+
+    private fun showCreateChannelDialog() {
+        TODO()
     }
 
     private fun parseParams() {

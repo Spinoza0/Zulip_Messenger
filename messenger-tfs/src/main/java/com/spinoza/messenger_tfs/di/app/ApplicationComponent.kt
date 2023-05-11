@@ -6,6 +6,7 @@ import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
@@ -32,6 +33,8 @@ interface ApplicationComponent {
     fun getAppRouter(): AppRouter
 
     fun getWebUtil(): WebUtil
+
+    fun webLimitation(): WebLimitation
 
     fun getAuthorizationStorage(): AuthorizationStorage
 

@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
 import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
+import com.spinoza.messenger_tfs.data.network.model.event.WebLimitationsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
@@ -52,6 +53,11 @@ interface ZulipApiService {
         @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): RegisterEventQueueResponse
+
+    @POST("register")
+    suspend fun getWebLimitations(
+        @Query(QUERY_FETCH_EVENT_TYPES) fetchEventTypes: String = "[\"realm\"]",
+    ): WebLimitationsResponse
 
     @POST("messages/flags")
     suspend fun setMessageFlagsToRead(
@@ -172,6 +178,7 @@ interface ZulipApiService {
         private const val QUERY_QUEUE_ID = "queue_id"
         private const val QUERY_LAST_EVENT_ID = "last_event_id"
         private const val QUERY_EVENT_TYPES = "event_types"
+        private const val QUERY_FETCH_EVENT_TYPES = "fetch_event_types"
         private const val QUERY_APPLY_MARKDOWN = "apply_markdown"
         private const val QUERY_TO = "to"
 

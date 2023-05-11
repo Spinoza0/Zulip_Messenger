@@ -22,6 +22,7 @@ import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.EventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
@@ -79,6 +80,7 @@ import javax.inject.Inject
 class MessagesActor @Inject constructor(
     lifecycle: Lifecycle,
     private val authorizationStorage: AuthorizationStorage,
+    private val webLimitation: WebLimitation,
     private val logInUseCase: LogInUseCase,
     private val getStoredMessagesUseCase: GetStoredMessagesUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
@@ -367,12 +369,14 @@ class MessagesActor @Inject constructor(
 
     private fun startUpdatingInfo() {
         updatingInfoJob?.cancel()
+        val delayBeforeUpdateStatusActive =
+            webLimitation.getPresencePingIntervalSeconds() - DELAY_BEFORE_UPDATE_STATUS_ACTIVE * 2
         updatingInfoJob = lifecycleScope.launch {
             while (isActive) {
                 messagesFilter = getUpdatedMessageFilterUserCase(messagesFilter)
                 delay(DELAY_BEFORE_UPDATE_STATUS_ACTIVE)
                 setOwnStatusActiveUseCase()
-                delay(DELAY_AFTER_UPDATE_STATUS_ACTIVE)
+                delay(delayBeforeUpdateStatusActive)
             }
         }
     }
@@ -648,7 +652,6 @@ class MessagesActor @Inject constructor(
         const val DELAY_BEFORE_CHECK_EVENTS = 2_000L
         const val DELAY_BEFORE_RELOAD = 500L
         const val DELAY_BEFORE_UPDATE_STATUS_ACTIVE = 5_000L
-        const val DELAY_AFTER_UPDATE_STATUS_ACTIVE = 40_000L
         const val LINE_FEED = "\n"
     }
 }

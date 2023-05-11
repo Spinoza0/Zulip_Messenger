@@ -31,6 +31,7 @@ import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
@@ -88,6 +89,9 @@ class MessagesFragment :
     @Inject
     lateinit var externalStoragePermission: ExternalStoragePermission
 
+    @Inject
+    lateinit var webLimitation: WebLimitation
+
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
@@ -129,6 +133,14 @@ class MessagesFragment :
         setupRecyclerView()
         setupStatusBar()
         setupListeners()
+        setupEditTextLimitations()
+    }
+
+    private fun setupEditTextLimitations() {
+        binding.editTextTopicName.filters =
+            arrayOf(InputFilter.LengthFilter(webLimitation.getMaxTopicName()))
+        binding.editTextMessage.filters =
+            arrayOf(InputFilter.LengthFilter(webLimitation.getMaxMessage()))
     }
 
     private fun setupTopicTitle() {
@@ -350,7 +362,11 @@ class MessagesFragment :
 
     private fun showEditTopicDialog(messageView: MessageView) {
         showInputTextDialog(
-            getString(R.string.edit_topic), messageView.messageId, messageView.subject, true
+            getString(R.string.edit_topic),
+            messageView.messageId,
+            messageView.subject,
+            false,
+            webLimitation.getMaxTopicName()
         ) { id, text ->
             store.accept(MessagesScreenEvent.Ui.EditMessageTopic(id, messageView.subject, text))
         }
@@ -358,22 +374,25 @@ class MessagesFragment :
 
     private fun showEditMessageDialog(messageId: Long, content: String) {
         showInputTextDialog(
-            getString(R.string.edit_message), messageId, content, false
+            getString(R.string.edit_message),
+            messageId,
+            content,
+            true,
+            webLimitation.getMaxMessage()
         ) { id, text ->
             store.accept(MessagesScreenEvent.Ui.EditMessageContent(id, content, text))
         }
     }
 
     private fun showInputTextDialog(
-        title: String, messageId: Long, content: String, isTopic: Boolean,
+        title: String, messageId: Long, content: String, isMessage: Boolean, maxLength: Int,
         positiveCallback: (Long, CharSequence) -> Unit,
     ) {
         val input = EditText(requireContext()).apply {
             maxLines = MAX_LINES
             inputType = InputType.TYPE_CLASS_TEXT
-            if (isTopic) {
-                filters = arrayOf(InputFilter.LengthFilter(TOPIC_MAX_LENGTH))
-            } else {
+            filters = arrayOf(InputFilter.LengthFilter(maxLength))
+            if (isMessage) {
                 inputType = inputType or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             }
             setText(content)
@@ -621,7 +640,6 @@ class MessagesFragment :
         private const val NO_ITEMS = 0
         private const val MAX_LINES = 5
         private const val LAST_ITEM_OFFSET = 1
-        private const val TOPIC_MAX_LENGTH = 60
         private const val CHANNEL_NAME = "Downloads"
         private const val CHANNEL_ID = "downloads_channel"
         private const val BORDER_POSITION = BuildConfig.MESSAGES_BORDER_POSITION

@@ -15,6 +15,7 @@ import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.event.StreamEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.UpdateMessageEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.WebLimitationsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
@@ -57,6 +58,7 @@ import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
@@ -75,6 +77,7 @@ class WebRepositoryImpl @Inject constructor(
     private val apiService: ZulipApiService,
     private val authorizationStorage: AuthorizationStorage,
     private val jsonConverter: Json,
+    private val webLimitation: WebLimitation,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : WebRepository {
 
@@ -82,15 +85,32 @@ class WebRepositoryImpl @Inject constructor(
         withContext(ioDispatcher) {
             authorizationStorage.makeAuthHeader(email)
             if (saveOwnUserData(email, password)) {
+                updateWebLimitations()
                 return@withContext Result.success(true)
             }
             runCatchingNonCancellation {
                 val apiKeyResponse =
                     apiRequest<ApiKeyResponse> { apiService.fetchApiKey(email, password) }
                 authorizationStorage.makeAuthHeader(apiKeyResponse.email, apiKeyResponse.apiKey)
+                updateWebLimitations()
                 saveOwnUserData(email, password, apiKeyResponse.apiKey)
             }
         }
+
+
+    private suspend fun updateWebLimitations() {
+        runCatchingNonCancellation {
+            val response = apiRequest<WebLimitationsResponse> { apiService.getWebLimitations() }
+            webLimitation.updateLimitations(
+                response.maxStreamNameLength,
+                response.maxStreamDescriptionLength,
+                response.maxTopicLength,
+                response.maxMessageLength,
+                response.serverPresencePingIntervalSeconds,
+                response.serverPresenceOfflineThresholdSeconds,
+            )
+        }
+    }
 
     private suspend fun saveOwnUserData(
         email: String,
@@ -149,6 +169,7 @@ class WebRepositoryImpl @Inject constructor(
         runCatchingNonCancellation {
             val messagesResponse = apiRequest<MessagesResponse> {
                 when (messagesPageType) {
+                    // TODO: refactoring -> single request
                     MessagesPageType.FIRST_UNREAD -> apiService.getMessages(
                         numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                         numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
@@ -356,13 +377,13 @@ class WebRepositoryImpl @Inject constructor(
         messagesFilter: MessagesFilter,
     ): Result<EventsQueue> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val registerResponse = apiRequest<RegisterEventQueueResponse> {
+            val response = apiRequest<RegisterEventQueueResponse> {
                 apiService.registerEventQueue(
                     narrow = messagesFilter.createNarrowJsonForEvents(),
                     eventTypes = Json.encodeToString(eventTypes.toStringsList())
                 )
             }
-            EventsQueue(registerResponse.queueId, registerResponse.lastEventId, eventTypes)
+            EventsQueue(response.queueId, response.lastEventId, eventTypes)
         }
     }
 
@@ -608,7 +629,9 @@ class WebRepositoryImpl @Inject constructor(
                 val presence =
                     if (presencesResponse != null && presencesResponse.result == RESULT_SUCCESS) {
                         presencesResponse.presences[userDto.email]?.let { presenceDto ->
-                            if (timestamp - presenceDto.aggregated.timestamp < OFFLINE_TIME) {
+                            if ((timestamp - presenceDto.aggregated.timestamp) <
+                                webLimitation.getPresenceOfflineThresholdSeconds()
+                            ) {
                                 presenceDto.toDomain()
                             } else {
                                 User.Presence.OFFLINE
@@ -624,7 +647,6 @@ class WebRepositoryImpl @Inject constructor(
 
     companion object {
 
-        private const val OFFLINE_TIME = 180
         private const val DELAY_BEFORE_GET_NEXT_HEARTBEAT = 1_000L
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
         private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT =
