@@ -12,6 +12,9 @@ class WebLimitationImpl @Inject constructor() : WebLimitation {
     private var serverPresencePingIntervalSeconds: Int = SERVER_PRESENCE_PING_INTERVAL_SECONDS
     private var serverPresenceOfflineThresholdSeconds: Int =
         SERVER_PRESENCE_OFFLINE_THRESHOLD_SECONDS
+    private var messageContentEditLimitSeconds: Int = MESSAGE_CONTENT_EDIT_LIMIT_SECONDS
+    private var topicEditingLimitSeconds: Int = TOPIC_EDITING_LIMIT_SECONDS
+    private var maxFileUploadSizeMib: Int = MAX_FILE_UPLOAD_SIZE_MIB
 
     override fun updateLimitations(
         maxStreamNameLength: Int,
@@ -20,6 +23,9 @@ class WebLimitationImpl @Inject constructor() : WebLimitation {
         maxMessageLength: Int,
         serverPresencePingIntervalSeconds: Int,
         serverPresenceOfflineThresholdSeconds: Int,
+        messageContentEditLimitSeconds: Int,
+        topicEditingLimitSeconds: Int,
+        maxFileUploadSizeMib: Int,
     ) {
         this.maxChannelNameLength = maxStreamNameLength
         this.maxChannelDescriptionLength = maxStreamDescriptionLength
@@ -27,6 +33,9 @@ class WebLimitationImpl @Inject constructor() : WebLimitation {
         this.maxMessageLength = maxMessageLength
         this.serverPresencePingIntervalSeconds = serverPresencePingIntervalSeconds
         this.serverPresenceOfflineThresholdSeconds = serverPresenceOfflineThresholdSeconds
+        this.messageContentEditLimitSeconds = messageContentEditLimitSeconds
+        this.topicEditingLimitSeconds = topicEditingLimitSeconds
+        this.maxFileUploadSizeMib = maxFileUploadSizeMib
     }
 
     override fun getMaxChannelName(): Int = maxChannelNameLength
@@ -42,6 +51,12 @@ class WebLimitationImpl @Inject constructor() : WebLimitation {
     override fun getPresenceOfflineThresholdSeconds(): Int =
         serverPresenceOfflineThresholdSeconds
 
+    override fun getMessageContentEditLimitSeconds(): Int = messageContentEditLimitSeconds
+
+    override fun getTopicEditingLimitSeconds(): Int = topicEditingLimitSeconds
+
+    override fun getMaxFileUploadSizeMib(): Int = maxFileUploadSizeMib
+
     private companion object {
 
         const val MAX_CHANNEL_NAME_LENGTH = 60
@@ -50,5 +65,8 @@ class WebLimitationImpl @Inject constructor() : WebLimitation {
         const val MAX_MESSAGE_LENGTH = 10000
         const val SERVER_PRESENCE_PING_INTERVAL_SECONDS = 60
         const val SERVER_PRESENCE_OFFLINE_THRESHOLD_SECONDS = 140
+        const val MESSAGE_CONTENT_EDIT_LIMIT_SECONDS = 300
+        const val TOPIC_EDITING_LIMIT_SECONDS = 86400
+        const val MAX_FILE_UPLOAD_SIZE_MIB = 5
     }
 }

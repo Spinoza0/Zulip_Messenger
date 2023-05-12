@@ -7,6 +7,7 @@ import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
+import com.spinoza.messenger_tfs.data.network.model.WebLimitationsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.DeleteMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.HeartBeatEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.MessageEventsResponse
@@ -15,7 +16,6 @@ import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.event.StreamEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.UpdateMessageEventsResponse
-import com.spinoza.messenger_tfs.data.network.model.event.WebLimitationsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
@@ -108,6 +108,9 @@ class WebRepositoryImpl @Inject constructor(
                 response.maxMessageLength,
                 response.serverPresencePingIntervalSeconds,
                 response.serverPresenceOfflineThresholdSeconds,
+                response.messageContentEditLimitSeconds,
+                response.topicEditingLimitSeconds,
+                response.maxFileUploadSizeMib
             )
         }
     }

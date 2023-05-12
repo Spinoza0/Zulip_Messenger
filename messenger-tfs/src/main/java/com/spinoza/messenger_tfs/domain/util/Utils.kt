@@ -15,5 +15,4 @@ fun Throwable.getText(): String = localizedMessage ?: message ?: toString()
 fun getCurrentTimestamp(): Long = System.currentTimeMillis() / MILLIS_IN_SECOND
 
 const val MILLIS_IN_SECOND = 1000L
-const val SECONDS_IN_DAY = 24 * 60 * 60
 const val EMPTY_STRING = ""

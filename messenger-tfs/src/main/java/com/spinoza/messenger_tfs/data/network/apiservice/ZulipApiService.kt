@@ -5,7 +5,7 @@ import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
 import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
-import com.spinoza.messenger_tfs.data.network.model.event.WebLimitationsResponse
+import com.spinoza.messenger_tfs.data.network.model.WebLimitationsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse

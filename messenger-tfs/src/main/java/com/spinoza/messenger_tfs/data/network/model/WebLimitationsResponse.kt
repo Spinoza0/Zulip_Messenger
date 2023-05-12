@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.data.network.model.event
+package com.spinoza.messenger_tfs.data.network.model
 
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipResponse
 import kotlinx.serialization.SerialName
@@ -14,4 +14,7 @@ class WebLimitationsResponse(
     @SerialName("max_message_length") val maxMessageLength: Int,
     @SerialName("server_presence_ping_interval_seconds") val serverPresencePingIntervalSeconds: Int,
     @SerialName("server_presence_offline_threshold_seconds") val serverPresenceOfflineThresholdSeconds: Int,
+    @SerialName("realm_message_content_edit_limit_seconds") val messageContentEditLimitSeconds: Int,
+    @SerialName("realm_community_topic_editing_limit_seconds") val topicEditingLimitSeconds: Int,
+    @SerialName("max_file_upload_size_mib") val maxFileUploadSizeMib: Int,
 ) : ZulipResponse

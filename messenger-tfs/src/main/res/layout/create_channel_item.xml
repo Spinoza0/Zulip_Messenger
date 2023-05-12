@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginVertical="4dp"
-        android:backgroundTint="?attr/background_600_color"
+        android:backgroundTint="?attr/background_500_color"
         android:paddingHorizontal="56dp"
         android:paddingVertical="8dp"
         android:text="@string/create_channel"

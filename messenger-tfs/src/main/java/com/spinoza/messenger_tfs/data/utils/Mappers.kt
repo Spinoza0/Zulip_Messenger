@@ -30,7 +30,6 @@ import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.MILLIS_IN_SECOND
-import com.spinoza.messenger_tfs.domain.util.SECONDS_IN_DAY
 import com.spinoza.messenger_tfs.domain.util.isContainingWords
 import com.spinoza.messenger_tfs.domain.util.splitToWords
 import java.text.SimpleDateFormat
@@ -335,3 +334,4 @@ private fun Long.getDateFromTimestamp(): Long {
 }
 
 private const val DATE_FORMAT = "dd.MM.yyyy"
+private const val SECONDS_IN_DAY = 24 * 60 * 60

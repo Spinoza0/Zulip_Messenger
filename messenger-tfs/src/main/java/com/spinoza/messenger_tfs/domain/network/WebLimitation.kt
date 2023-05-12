@@ -9,6 +9,9 @@ interface WebLimitation {
         maxMessageLength: Int,
         serverPresencePingIntervalSeconds: Int,
         serverPresenceOfflineThresholdSeconds: Int,
+        messageContentEditLimitSeconds: Int,
+        topicEditingLimitSeconds: Int,
+        maxFileUploadSizeMib: Int,
     )
 
     fun getMaxChannelName(): Int
@@ -22,4 +25,10 @@ interface WebLimitation {
     fun getPresencePingIntervalSeconds(): Int
 
     fun getPresenceOfflineThresholdSeconds(): Int
+
+    fun getMessageContentEditLimitSeconds(): Int
+
+    fun getTopicEditingLimitSeconds(): Int
+
+    fun getMaxFileUploadSizeMib(): Int
 }

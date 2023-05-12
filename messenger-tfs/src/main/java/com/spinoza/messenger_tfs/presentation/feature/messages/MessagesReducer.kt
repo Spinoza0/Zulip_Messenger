@@ -3,8 +3,8 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.network.WebUtil
-import com.spinoza.messenger_tfs.domain.util.SECONDS_IN_DAY
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessageDraft
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
@@ -22,6 +22,7 @@ class MessagesReducer @Inject constructor(
     private val router: AppRouter,
     private val webUtil: WebUtil,
     private val authorizationStorage: AuthorizationStorage,
+    private val webLimitation: WebLimitation,
 ) : ScreenDslReducer<
         MessagesScreenEvent,
         MessagesScreenEvent.Ui,
@@ -349,11 +350,13 @@ class MessagesReducer @Inject constructor(
     }
 
     private fun MessageView.isMessageEditable(): Boolean {
-        return (getCurrentTimestamp() - this.date.fullTimeStamp) < MESSAGE_EDITABLE_TIME_IN_SECONDS
+        return (getCurrentTimestamp() - this.date.fullTimeStamp) <
+                webLimitation.getMessageContentEditLimitSeconds()
     }
 
     private fun MessageView.isTopicEditable(): Boolean {
-        return (getCurrentTimestamp() - this.date.fullTimeStamp) < TOPIC_EDITABLE_TIME_IN_SECONDS
+        return (getCurrentTimestamp() - this.date.fullTimeStamp) <
+                webLimitation.getTopicEditingLimitSeconds()
     }
 
     private fun MessageView.isOwn(): Boolean {
@@ -363,7 +366,5 @@ class MessagesReducer @Inject constructor(
     private companion object {
 
         const val MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS = 50
-        const val MESSAGE_EDITABLE_TIME_IN_SECONDS = 300
-        const val TOPIC_EDITABLE_TIME_IN_SECONDS = SECONDS_IN_DAY * 3
     }
 }
