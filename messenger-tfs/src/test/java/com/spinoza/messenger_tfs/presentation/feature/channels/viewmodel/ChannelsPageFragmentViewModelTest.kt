@@ -18,6 +18,7 @@ import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
 import com.spinoza.messenger_tfs.stub.AppRouterStub
 import com.spinoza.messenger_tfs.stub.AuthorizationStorageStub
+import com.spinoza.messenger_tfs.stub.ChannelRepositoryStub
 import com.spinoza.messenger_tfs.stub.DaoRepositoryStub
 import com.spinoza.messenger_tfs.stub.EventsRepositoryStub
 import com.spinoza.messenger_tfs.stub.WebRepositoryStub
@@ -53,6 +54,7 @@ class ChannelsPageFragmentViewModelTest {
     private fun createViewModel(scope: CoroutineScope?): ChannelsPageFragmentViewModel {
         val webRepository = WebRepositoryStub()
         val eventsRepository = EventsRepositoryStub()
+        val channelRepository = ChannelRepositoryStub()
         val daoRepository = DaoRepositoryStub()
         return ChannelsPageFragmentViewModel(
             isSubscribed = true,
@@ -61,18 +63,20 @@ class ChannelsPageFragmentViewModelTest {
             logInUseCase = LogInUseCase(webRepository),
             getStoredChannelsUseCase = GetStoredChannelsUseCase(daoRepository),
             getStoredTopicsUseCase = GetStoredTopicsUseCase(daoRepository),
-            getTopicsUseCase = GetTopicsUseCase(webRepository),
-            getChannelsUseCase = GetChannelsUseCase(webRepository),
-            getTopicUseCase = GetTopicUseCase(webRepository),
+            getTopicsUseCase = GetTopicsUseCase(channelRepository),
+            getChannelsUseCase = GetChannelsUseCase(channelRepository),
+            getTopicUseCase = GetTopicUseCase(channelRepository),
             getChannelEventsUseCase = GetChannelEventsUseCase(eventsRepository),
             registerEventQueueUseCase = RegisterEventQueueUseCase(eventsRepository),
             deleteEventQueueUseCase = DeleteEventQueueUseCase(eventsRepository),
             defaultDispatcher = mainDispatcherRule.testDispatcher,
             customCoroutineScope = scope,
-            getChannelSubscriptionStatusUseCase = GetChannelSubscriptionStatusUseCase(webRepository),
-            createChannelUseCase = CreateChannelUseCase(webRepository),
-            deleteChannelUseCase = DeleteChannelUseCase(webRepository),
-            unsubscribeFromChannelUseCase = UnsubscribeFromChannelUseCase(webRepository),
+            getChannelSubscriptionStatusUseCase = GetChannelSubscriptionStatusUseCase(
+                channelRepository
+            ),
+            createChannelUseCase = CreateChannelUseCase(channelRepository),
+            deleteChannelUseCase = DeleteChannelUseCase(channelRepository),
+            unsubscribeFromChannelUseCase = UnsubscribeFromChannelUseCase(channelRepository),
             getChannelSubscriptionEventsUseCase = GetChannelSubscriptionEventsUseCase(
                 eventsRepository
             )

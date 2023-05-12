@@ -1,12 +1,9 @@
 package com.spinoza.messenger_tfs.domain.repository
 
-import com.spinoza.messenger_tfs.domain.model.Channel
-import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
-import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.model.User
 
 interface WebRepository {
@@ -29,20 +26,6 @@ interface WebRepository {
     suspend fun editMessage(messageId: Long, topic: String, content: String): Result<Long>
 
     suspend fun deleteMessage(messageId: Long): Result<Boolean>
-
-    suspend fun getChannelSubscriptionStatus(channelId: Long): Result<Boolean>
-
-    suspend fun createChannel(name: String, description: String): Result<Boolean>
-
-    suspend fun unsubscribeFromChannel(name: String): Result<Boolean>
-
-    suspend fun deleteChannel(channelId: Long): Result<Boolean>
-
-    suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>
-
-    suspend fun getTopics(channel: Channel): Result<List<Topic>>
-
-    suspend fun getTopic(filter: MessagesFilter): Result<Topic>
 
     suspend fun getUpdatedMessageFilter(filter: MessagesFilter): MessagesFilter
 

@@ -12,6 +12,7 @@ import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.repository.EventsRepository
+import com.spinoza.messenger_tfs.util.ERROR_MSG
 
 class EventsRepositoryStub : EventsRepository {
 
@@ -72,10 +73,5 @@ class EventsRepositoryStub : EventsRepository {
         isLastMessageVisible: Boolean,
     ): Result<ReactionEvent> {
         return Result.failure(RepositoryError(ERROR_MSG))
-    }
-
-    private companion object {
-
-        const val ERROR_MSG = "Repository error"
     }
 }

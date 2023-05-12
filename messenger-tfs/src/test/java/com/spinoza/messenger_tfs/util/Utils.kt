@@ -5,6 +5,8 @@ import com.spinoza.messenger_tfs.data.utils.dtoToDomain
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 
+const val ERROR_MSG = "Repository error"
+
 fun createChannels(channelsFilter: ChannelsFilter): Result<List<Channel>> {
     var id = 0L
     val streams = mutableListOf<StreamDto>()
