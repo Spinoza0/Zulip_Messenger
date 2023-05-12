@@ -1,19 +1,13 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels
 
 import android.app.AlertDialog
-import android.graphics.Typeface
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
-import android.text.Spannable
-import android.text.SpannableStringBuilder
-import android.text.style.AbsoluteSizeSpan
-import android.text.style.StyleSpan
-import android.text.style.UnderlineSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -21,8 +15,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.CreateChannelDialogBinding
+import com.spinoza.messenger_tfs.databinding.DialogChannelActionsBinding
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.di.channels.DaggerChannelsComponent
 import com.spinoza.messenger_tfs.domain.model.Channel
@@ -209,48 +205,28 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun showChannelMenu(effect: ChannelsPageScreenEffect.ShowChannelMenu) {
-        val popupMenu = PopupMenu(requireContext(), effect.view)
-        popupMenu.inflate(R.menu.menu_actions_with_channel)
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogBinding = DialogChannelActionsBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
         val channelName = effect.channelItem.channel.name
-        val title = SpannableStringBuilder(channelName).apply {
-            setSpan(
-                StyleSpan(Typeface.BOLD), FIRST_POSITION, this.length,
-                Spannable.SPAN_INCLUSIVE_INCLUSIVE
-            )
-            setSpan(
-                AbsoluteSizeSpan(TITLE_FONT_SIZE_SP, true), FIRST_POSITION, this.length,
-                Spannable.SPAN_INCLUSIVE_INCLUSIVE
-            )
-            setSpan(UnderlineSpan(), FIRST_POSITION, length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+        dialogBinding.textViewTitle.text =
+            String.format(getString(R.string.channel_name_template), channelName)
+        dialogBinding.textViewSubscribe.isVisible = effect.isItemSubscribeVisible
+        dialogBinding.textViewUnsubscribe.isVisible = effect.isItemUnsubscribeVisible
+        dialogBinding.textViewDelete.isVisible = effect.isItemDeleteVisible
+        dialogBinding.textViewSubscribe.setOnClickListener {
+            store.accept(ChannelsPageScreenEvent.Ui.SubscribeToChannel(channelName))
+            dialog.dismiss()
         }
-        popupMenu.menu.findItem(R.id.itemTitle).title = title
-        popupMenu.menu.findItem(R.id.itemSubscribeChannel).isVisible = effect.isItemSubscribeVisible
-        popupMenu.menu.findItem(R.id.itemUnsubscribeChannel).isVisible =
-            effect.isItemUnsubscribeVisible
-        popupMenu.menu.findItem(R.id.itemDeleteChannel).isVisible = effect.isItemDeleteVisible
-        popupMenu.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.itemSubscribeChannel -> {
-                    store.accept(
-                        ChannelsPageScreenEvent.Ui.SubscribeToChannel(channelName)
-                    )
-                    true
-                }
-
-                R.id.itemUnsubscribeChannel -> {
-                    store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(channelName))
-                    true
-                }
-
-                R.id.itemDeleteChannel -> {
-                    confirmDeleteChannel(effect.channelItem.channel)
-                    true
-                }
-
-                else -> false
-            }
+        dialogBinding.textViewUnsubscribe.setOnClickListener {
+            store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(channelName))
+            dialog.dismiss()
         }
-        popupMenu.show()
+        dialogBinding.textViewDelete.setOnClickListener {
+            confirmDeleteChannel(effect.channelItem.channel)
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun confirmDeleteChannel(channel: Channel) {
@@ -320,8 +296,6 @@ class ChannelsPageFragment : Fragment() {
 
     companion object {
 
-        private const val FIRST_POSITION = 0
-        private const val TITLE_FONT_SIZE_SP = 18
         private const val PARAM_IS_SUBSCRIBED = "isSubscribed"
 
         fun newInstance(isSubscribed: Boolean): ChannelsPageFragment {
