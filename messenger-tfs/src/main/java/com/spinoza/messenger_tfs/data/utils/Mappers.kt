@@ -26,6 +26,7 @@ import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.EventOperation
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
@@ -214,8 +215,8 @@ private fun StreamEventDto.toDomain(
     channelsFilter: ChannelsFilter,
 ): ChannelEvent {
     val operation =
-        if (operation == ChannelEvent.Operation.DELETE.value) ChannelEvent.Operation.DELETE
-        else ChannelEvent.Operation.CREATE
+        if (operation == EventOperation.DELETE.value) EventOperation.DELETE
+        else EventOperation.CREATE
     return ChannelEvent(id, operation, streamDto.dtoToDomain(channelsFilter))
 }
 

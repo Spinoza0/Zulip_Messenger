@@ -18,9 +18,5 @@ private fun createStream(streamId: Long): StreamDto {
     return StreamDto(
         streamId = streamId,
         name = "Name $streamId",
-        dateCreated = 0L,
-        firstMessageId = null,
-        inviteOnly = false,
-        isAnnouncementOnly = false
     )
 }
