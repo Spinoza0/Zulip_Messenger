@@ -315,7 +315,7 @@ class MessageView @JvmOverloads constructor(
 
         const val REACTION_PADDING_HORIZONTAL = 10f
         const val REACTION_PADDING_VERTICAL = 7f
-        const val TIME_PADDING_END = 12f
+        const val TIME_PADDING_END = 14f
         const val TIME_PADDING_BOTTOM = 4f
     }
 }
