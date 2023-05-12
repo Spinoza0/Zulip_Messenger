@@ -48,6 +48,7 @@ import com.spinoza.messenger_tfs.presentation.util.on
 import com.spinoza.messenger_tfs.presentation.util.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.util.showError
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 class ChannelsPageFragment : Fragment() {
@@ -68,6 +69,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private var isSubscribed = true
+    private val isShowingChannelMenu = AtomicBoolean(false)
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
@@ -205,6 +207,8 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun showChannelMenu(effect: ChannelsPageScreenEffect.ShowChannelMenu) {
+        if(isShowingChannelMenu.get()) return
+        isShowingChannelMenu.set(true)
         val dialog = BottomSheetDialog(requireContext())
         val dialogBinding = DialogChannelActionsBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
@@ -217,15 +221,15 @@ class ChannelsPageFragment : Fragment() {
             textViewDelete.isVisible = effect.isItemDeleteVisible
             textViewSubscribe.setOnClickListener {
                 store.accept(ChannelsPageScreenEvent.Ui.SubscribeToChannel(channelName))
-                dialog.dismiss()
+                dialog.off(isShowingChannelMenu)
             }
             textViewUnsubscribe.setOnClickListener {
                 store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(channelName))
-                dialog.dismiss()
+                dialog.off(isShowingChannelMenu)
             }
             textViewDelete.setOnClickListener {
                 confirmDeleteChannel(effect.channelItem.channel)
-                dialog.dismiss()
+                dialog.off(isShowingChannelMenu)
             }
         }
         dialog.show()

@@ -69,6 +69,7 @@ import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
 import vivid.money.elmslie.coroutines.ElmStoreCompat
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 class MessagesFragment :
@@ -102,6 +103,7 @@ class MessagesFragment :
     private var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     private var recyclerViewState: Parcelable? = null
     private var recyclerViewStateOnDestroy: Parcelable? = null
+    private val isShowingMessageMenu = AtomicBoolean(false)
     private val topicNameTemplate by lazy { getString(R.string.messages_topic_template) }
 
     override val storeHolder:
@@ -426,6 +428,8 @@ class MessagesFragment :
     }
 
     private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
+        if (isShowingMessageMenu.get()) return
+        isShowingMessageMenu.set(true)
         val dialog = BottomSheetDialog(requireContext())
         val dialogBinding = DialogMessageActionsBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
@@ -437,7 +441,7 @@ class MessagesFragment :
             itemDeleteMessage.isVisible = effect.isDeleteMessageVisible
             itemAddReaction.setOnClickListener {
                 addReaction(effect.messageView)
-                dialog.dismiss()
+                dialog.off(isShowingMessageMenu)
             }
             itemCopyToClipboard.setOnClickListener {
                 store.accept(
@@ -445,7 +449,7 @@ class MessagesFragment :
                         requireContext(), effect.messageView, isMessageWithAttachments
                     )
                 )
-                dialog.dismiss()
+                dialog.off(isShowingMessageMenu)
             }
             itemEditMessage.setOnClickListener {
                 store.accept(
@@ -453,15 +457,15 @@ class MessagesFragment :
                         effect.messageView, isMessageWithAttachments
                     )
                 )
-                dialog.dismiss()
+                dialog.off(isShowingMessageMenu)
             }
             itemEditTopic.setOnClickListener {
                 showEditTopicDialog(effect.messageView)
-                dialog.dismiss()
+                dialog.off(isShowingMessageMenu)
             }
             itemDeleteMessage.setOnClickListener {
                 store.accept(MessagesScreenEvent.Ui.ConfirmDeleteMessage(effect.messageView))
-                dialog.dismiss()
+                dialog.off(isShowingMessageMenu)
             }
             itemSaveAttachments.setOnClickListener {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
@@ -473,7 +477,7 @@ class MessagesFragment :
                 } else {
                     saveAttachments(effect.urls)
                 }
-                dialog.dismiss()
+                dialog.off(isShowingMessageMenu)
             }
         }
         dialog.show()
