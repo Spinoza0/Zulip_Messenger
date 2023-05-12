@@ -9,6 +9,7 @@ import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
+import com.spinoza.messenger_tfs.domain.repository.EventsRepository
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
@@ -25,6 +26,8 @@ interface ApplicationComponent {
     fun getContext(): Context
 
     fun getWebRepository(): WebRepository
+
+    fun getEventsRepository(): EventsRepository
 
     fun getDaoRepository(): DaoRepository
 

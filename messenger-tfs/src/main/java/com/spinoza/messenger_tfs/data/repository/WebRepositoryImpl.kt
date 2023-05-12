@@ -8,15 +8,6 @@ import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService.Compani
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
 import com.spinoza.messenger_tfs.data.network.model.WebLimitationsResponse
-import com.spinoza.messenger_tfs.data.network.model.event.DeleteMessageEventsResponse
-import com.spinoza.messenger_tfs.data.network.model.event.HeartBeatEventsResponse
-import com.spinoza.messenger_tfs.data.network.model.event.MessageEventsResponse
-import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventsResponse
-import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventsResponse
-import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
-import com.spinoza.messenger_tfs.data.network.model.event.StreamEventsResponse
-import com.spinoza.messenger_tfs.data.network.model.event.SubscriptionEventsResponse
-import com.spinoza.messenger_tfs.data.network.model.event.UpdateMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
@@ -28,17 +19,13 @@ import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
 import com.spinoza.messenger_tfs.data.network.model.user.UserResponse
 import com.spinoza.messenger_tfs.data.utils.apiRequest
-import com.spinoza.messenger_tfs.data.utils.createNarrowJsonForEvents
 import com.spinoza.messenger_tfs.data.utils.createNarrowJsonForMessages
 import com.spinoza.messenger_tfs.data.utils.dtoToDomain
-import com.spinoza.messenger_tfs.data.utils.getBodyOrThrow
 import com.spinoza.messenger_tfs.data.utils.isEqualTopicName
-import com.spinoza.messenger_tfs.data.utils.listToDomain
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.data.utils.toDbModel
 import com.spinoza.messenger_tfs.data.utils.toDomain
 import com.spinoza.messenger_tfs.data.utils.toDto
-import com.spinoza.messenger_tfs.data.utils.toStringsList
 import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
@@ -51,14 +38,6 @@ import com.spinoza.messenger_tfs.domain.model.MessagesResult
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.model.User
-import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
-import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
-import com.spinoza.messenger_tfs.domain.model.event.EventType
-import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
-import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
-import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
-import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
-import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
@@ -66,7 +45,6 @@ import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -78,7 +56,6 @@ class WebRepositoryImpl @Inject constructor(
     private val messengerDao: MessengerDao,
     private val apiService: ZulipApiService,
     private val authorizationStorage: AuthorizationStorage,
-    private val jsonConverter: Json,
     private val webLimitation: WebLimitation,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : WebRepository {
@@ -410,178 +387,6 @@ class WebRepositoryImpl @Inject constructor(
             }
         }
 
-    override suspend fun registerEventQueue(
-        eventTypes: List<EventType>,
-        messagesFilter: MessagesFilter,
-    ): Result<EventsQueue> = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            val response = apiRequest<RegisterEventQueueResponse> {
-                apiService.registerEventQueue(
-                    narrow = messagesFilter.createNarrowJsonForEvents(),
-                    eventTypes = Json.encodeToString(eventTypes.toStringsList())
-                )
-            }
-            EventsQueue(response.queueId, response.lastEventId, eventTypes)
-        }
-    }
-
-    override suspend fun deleteEventQueue(queueId: String): Unit = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            apiService.deleteEventQueue(queueId)
-        }
-    }
-
-    override suspend fun getPresenceEvents(
-        queue: EventsQueue,
-    ): Result<List<PresenceEvent>> = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            val eventResponseBody = getNonHeartBeatEventResponse(queue)
-            val eventResponse = jsonConverter.decodeFromString(
-                PresenceEventsResponse.serializer(), eventResponseBody
-            )
-            if (eventResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(eventResponse.msg)
-            }
-            eventResponse.events.toDomain()
-        }
-    }
-
-    override suspend fun getChannelEvents(
-        queue: EventsQueue,
-        channelsFilter: ChannelsFilter,
-    ): Result<List<ChannelEvent>> = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            val eventResponseBody = getNonHeartBeatEventResponse(queue)
-            val eventResponse = jsonConverter.decodeFromString(
-                StreamEventsResponse.serializer(), eventResponseBody
-            )
-            if (eventResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(eventResponse.msg)
-            }
-            eventResponse.events.toDomain(channelsFilter)
-        }
-    }
-
-    override suspend fun getChannelSubscriptionEvents(
-        queue: EventsQueue,
-        channelsFilter: ChannelsFilter,
-    ): Result<List<ChannelEvent>> = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            val eventResponseBody = getNonHeartBeatEventResponse(queue)
-            val eventResponse = jsonConverter.decodeFromString(
-                SubscriptionEventsResponse.serializer(), eventResponseBody
-            )
-            if (eventResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(eventResponse.msg)
-            }
-            eventResponse.events.listToDomain(channelsFilter)
-        }
-    }
-
-    override suspend fun getMessageEvent(
-        queue: EventsQueue,
-        filter: MessagesFilter,
-        isLastMessageVisible: Boolean,
-    ): Result<MessageEvent> = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            val responseBody = getNonHeartBeatEventResponse(queue)
-            val eventResponse = jsonConverter.decodeFromString(
-                MessageEventsResponse.serializer(), responseBody
-            )
-            if (eventResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(eventResponse.msg)
-            }
-            if (messagesCache.isNotEmpty() &&
-                filter.topic.lastMessageId == messagesCache.getLastMessageId(filter)
-            ) {
-                eventResponse.events.forEach { messageEventDto ->
-                    messagesCache.add(messageEventDto.message, isLastMessageVisible)
-                }
-            }
-            MessageEvent(
-                eventResponse.events.last().id,
-                MessagesResult(
-                    messagesCache.getMessages(filter),
-                    MessagePosition(),
-                    eventResponse.events.isNotEmpty()
-                )
-            )
-        }
-    }
-
-    override suspend fun getUpdateMessageEvent(
-        queue: EventsQueue,
-        filter: MessagesFilter,
-        isLastMessageVisible: Boolean,
-    ): Result<UpdateMessageEvent> = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            val responseBody = getNonHeartBeatEventResponse(queue)
-            val eventResponse = jsonConverter.decodeFromString(
-                UpdateMessageEventsResponse.serializer(), responseBody
-            )
-            if (eventResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(eventResponse.msg)
-            }
-            eventResponse.events.forEach { updateMessageEventDto ->
-                messagesCache.update(
-                    updateMessageEventDto.messageId,
-                    updateMessageEventDto.subject,
-                    updateMessageEventDto.renderedContent
-                )
-            }
-            UpdateMessageEvent(
-                eventResponse.events.last().id,
-                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
-            )
-        }
-    }
-
-    override suspend fun getDeleteMessageEvent(
-        queue: EventsQueue,
-        filter: MessagesFilter,
-        isLastMessageVisible: Boolean,
-    ): Result<DeleteMessageEvent> = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            val responseBody = getNonHeartBeatEventResponse(queue)
-            val eventResponse = jsonConverter.decodeFromString(
-                DeleteMessageEventsResponse.serializer(), responseBody
-            )
-            if (eventResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(eventResponse.msg)
-            }
-            eventResponse.events.forEach { deleteMessageEventDto ->
-                messagesCache.remove(deleteMessageEventDto.messageId)
-            }
-            DeleteMessageEvent(
-                eventResponse.events.last().id,
-                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
-            )
-        }
-    }
-
-    override suspend fun getReactionEvent(
-        queue: EventsQueue,
-        filter: MessagesFilter,
-        isLastMessageVisible: Boolean,
-    ): Result<ReactionEvent> = withContext(ioDispatcher) {
-        runCatchingNonCancellation {
-            val responseBody = getNonHeartBeatEventResponse(queue)
-            val eventResponse = jsonConverter.decodeFromString(
-                ReactionEventsResponse.serializer(), responseBody
-            )
-            if (eventResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(eventResponse.msg)
-            }
-            eventResponse.events.forEach { reactionEventDto ->
-                messagesCache.updateReaction(reactionEventDto)
-            }
-            ReactionEvent(
-                eventResponse.events.last().id,
-                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
-            )
-        }
-    }
-
     private suspend fun apiGetMessages(
         numBefore: Int,
         numAfter: Int,
@@ -640,33 +445,6 @@ class WebRepositoryImpl @Inject constructor(
         User.Presence.OFFLINE
     }
 
-    private suspend fun getNonHeartBeatEventResponse(queue: EventsQueue): String {
-        var lastEventId = queue.lastEventId
-        var isHeartBeat = true
-        var responseBody: String
-        do {
-            val response = apiService.getEventsFromQueue(queue.queueId, lastEventId)
-            if (!response.isSuccessful) {
-                throw RepositoryError(response.message())
-            }
-            responseBody = response.getBodyOrThrow().string()
-            val heartBeatEventsResponse = jsonConverter.decodeFromString(
-                HeartBeatEventsResponse.serializer(), responseBody
-            )
-            if (heartBeatEventsResponse.result != RESULT_SUCCESS) {
-                throw RepositoryError(heartBeatEventsResponse.msg)
-            }
-            heartBeatEventsResponse.events.forEach { heartBeatEventDto ->
-                lastEventId = heartBeatEventDto.id
-                isHeartBeat = heartBeatEventDto.type == ZulipApiService.EVENT_HEARTBEAT
-            }
-            if (isHeartBeat) {
-                delay(DELAY_BEFORE_GET_NEXT_HEARTBEAT)
-            }
-        } while (isHeartBeat)
-        return responseBody
-    }
-
     private fun makeAllUsersAnswer(
         usersResponse: AllUsersResponse,
         presencesResponse: AllPresencesResponse? = null,
@@ -700,7 +478,6 @@ class WebRepositoryImpl @Inject constructor(
 
     companion object {
 
-        private const val DELAY_BEFORE_GET_NEXT_HEARTBEAT = 1_000L
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
         private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT =
             BuildConfig.GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT
