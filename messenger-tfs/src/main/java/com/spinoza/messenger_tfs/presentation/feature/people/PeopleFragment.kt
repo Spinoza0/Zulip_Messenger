@@ -16,6 +16,8 @@ import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenC
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.people.model.PeopleScreenState
+import com.spinoza.messenger_tfs.presentation.util.DIRECTION_DOWN
+import com.spinoza.messenger_tfs.presentation.util.DIRECTION_UP
 import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import com.spinoza.messenger_tfs.presentation.util.getInstanceState
 import com.spinoza.messenger_tfs.presentation.util.getParam
@@ -80,22 +82,32 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
     private fun setupRecyclerView() {
         binding.recyclerViewUsers.adapter = PeopleAdapter(::onUserClickListener)
         binding.recyclerViewUsers.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                store.accept(
-                    PeopleScreenEvent.Ui.OnScrolled(
-                        recyclerView.canScrollVertically(PeopleScreenEvent.DIRECTION_UP),
-                        recyclerView.canScrollVertically(PeopleScreenEvent.DIRECTION_DOWN),
-                        dy
+                store.accept(PeopleScreenEvent.Ui.OnScrolled)
+            }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    store.accept(PeopleScreenEvent.Ui.ScrollStateDragging)
+                }
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    store.accept(
+                        PeopleScreenEvent.Ui.ScrollStateIdle(
+                            recyclerView.canScrollVertically(DIRECTION_UP),
+                            recyclerView.canScrollVertically(DIRECTION_DOWN)
+                        )
                     )
-                )
+                }
             }
         })
     }
 
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
-            store.accept(PeopleScreenEvent.Ui.Filter(text.toString()))
+            store.accept(PeopleScreenEvent.Ui.Filter(text))
         }
     }
 
@@ -139,7 +151,7 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
 
     override fun onResume() {
         super.onResume()
-        store.accept(PeopleScreenEvent.Ui.Filter(binding.editTextSearch.text.toString()))
+        store.accept(PeopleScreenEvent.Ui.Filter(binding.editTextSearch.text))
     }
 
     override fun onPause() {

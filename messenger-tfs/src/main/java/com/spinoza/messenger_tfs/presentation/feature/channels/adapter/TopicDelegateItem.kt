@@ -14,7 +14,7 @@ class TopicDelegateItem(private val value: MessagesFilter) : DelegateAdapterItem
     }
 
     override fun compareToOther(other: DelegateAdapterItem): Boolean {
-        return (other as TopicDelegateItem).value == content()
+        return (other as TopicDelegateItem).value == value
     }
 
     override fun getChangePayload(newItem: DelegateAdapterItem): Any? {

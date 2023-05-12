@@ -15,7 +15,9 @@ import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -28,6 +30,7 @@ import javax.inject.Inject
 class AttachmentHandlerImpl @Inject constructor(
     private val authorizationStorage: AuthorizationStorage,
     private val apiService: ZulipApiService,
+    private val webLimitation: WebLimitation,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : AttachmentHandler {
 
@@ -61,7 +64,7 @@ class AttachmentHandlerImpl @Inject constructor(
             }
         }
 
-    private fun downloadFile(context: Context, url: String): String {
+    private suspend fun downloadFile(context: Context, url: String): String {
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val fileName = url.getFileNameFromUrl()
         val file = File(
@@ -83,6 +86,7 @@ class AttachmentHandlerImpl @Inject constructor(
         var downloading = true
         var downloadedFileName: String? = null
         while (downloading) {
+            delay(DELAY_BEFORE_CHECK_DOWNLOAD_STATUS)
             downloadManager.query(query).use { cursor ->
                 if (cursor.moveToFirst()) {
                     when (cursor.getInt(cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
@@ -122,7 +126,7 @@ class AttachmentHandlerImpl @Inject constructor(
         if (fileSize <= MIN_FILE_SIZE) {
             throw RepositoryError(context.getString(R.string.error_uri))
         }
-        if (fileSize >= MAX_FILE_SIZE) {
+        if (fileSize >= (webLimitation.getMaxFileUploadSizeMib() * MIB_SIZE)) {
             throw RepositoryError(context.getString(R.string.error_file_size))
         }
         return tempFile
@@ -145,10 +149,11 @@ class AttachmentHandlerImpl @Inject constructor(
 
     private companion object {
 
+        const val DELAY_BEFORE_CHECK_DOWNLOAD_STATUS = 500L
         const val TEMP_FILE_BUFFER_SIZE = 512 * 1024
+        const val MIB_SIZE = 1024 * 1024
         const val END_OF_FILE = -1
         const val NO_OFFSET = 0
-        const val MAX_FILE_SIZE = 10 * 1024 * 1024L
         const val MIN_FILE_SIZE = 0L
         const val DEFAULT_FILE_NAME = "file"
         const val TEMP_FILE_NAME = "temp_file"

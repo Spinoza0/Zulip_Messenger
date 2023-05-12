@@ -1,6 +1,8 @@
 package com.spinoza.messenger_tfs.data.cache
 
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.database.MessengerDao
+import com.spinoza.messenger_tfs.domain.model.event.EventOperation
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
@@ -100,8 +102,7 @@ class MessagesCache @Inject constructor(
         updateReaction(
             ReactionEventDto(
                 UNDEFINED_EVENT_ID,
-                if (isAddReaction) ReactionEventDto.Operation.ADD.value
-                else ReactionEventDto.Operation.REMOVE.value,
+                if (isAddReaction) EventOperation.ADD.value else EventOperation.REMOVE.value,
                 reactionDto.userId,
                 messageId,
                 reactionDto.emojiName,
@@ -117,7 +118,7 @@ class MessagesCache @Inject constructor(
             val isUserReactionExisting = message.reactions.find {
                 it.emojiName == reactionEventDto.emoji_name && it.userId == reactionEventDto.userId
             } != null
-            if (reactionEventDto.operation == ReactionEventDto.Operation.ADD.value &&
+            if (reactionEventDto.operation == EventOperation.ADD.value &&
                 !isUserReactionExisting
             ) {
                 val reactions = mutableListOf<ReactionDto>()
@@ -125,9 +126,7 @@ class MessagesCache @Inject constructor(
                 reactions.add(reactionEventDto.toReactionDto())
                 replace(message.copy(reactions = reactions))
             }
-            if (reactionEventDto.operation == ReactionEventDto.Operation.REMOVE.value &&
-                isUserReactionExisting
-            ) {
+            if (reactionEventDto.operation == EventOperation.REMOVE.value && isUserReactionExisting) {
                 val reactions = mutableListOf<ReactionDto>()
                 val reactionToRemove = reactionEventDto.toReactionDto()
                 reactions.addAll(message.reactions.filter { it != reactionToRemove })
@@ -178,6 +177,6 @@ class MessagesCache @Inject constructor(
     private companion object {
 
         private const val UNDEFINED_EVENT_ID = -1L
-        private const val MAX_CACHE_SIZE = 50
+        private const val MAX_CACHE_SIZE = BuildConfig.MAX_MESSAGES_CACHE_SIZE
     }
 }

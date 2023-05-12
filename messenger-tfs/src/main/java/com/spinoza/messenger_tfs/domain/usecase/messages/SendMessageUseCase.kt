@@ -7,9 +7,10 @@ import javax.inject.Inject
 class SendMessageUseCase @Inject constructor(private val repository: WebRepository) {
 
     suspend operator fun invoke(
+        subject: String,
         content: String,
         messagesFilter: MessagesFilter,
     ): Result<Long> {
-        return repository.sendMessage(content, messagesFilter)
+        return repository.sendMessage(subject, content, messagesFilter)
     }
 }

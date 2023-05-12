@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Messenger-TFS</string>
+
+    <!-- Fragment Login -->
+    <string name="logo">Логотип</string>
+    <string name="email">Эп.почта</string>
+    <string name="password">Пароль</string>
+    <string name="log_in">Войти</string>
+    <string name="forgot_password"><a href="https://tinkoff-android-spring-2023.zulipchat.com/accounts/password/reset">Забыли пароль?</a>
+    </string>
+
+    <!-- Fragment Messages -->
+    <string name="message">Сообщение</string>
+    <string name="arrow_back">Стрелка назад</string>
+    <string name="action">Действие</string>
+    <string name="topic_name">Тема…</string>
+    <string name="write_message">Написать сообщение…</string>
+    <string name="messages_topic_template">Тема: #%s</string>
+    <string name="add_reaction">Добавить реакцию</string>
+    <string name="copy_to_clipboard">Копировать в буфер обмена</string>
+    <string name="edit_message">Редактировать сообщение</string>
+    <string name="edit_topic">Изменить тему</string>
+    <string name="delete_message">Удалить сообщение</string>
+    <string name="save_attachments">Сохранить вложения</string>
+    <string name="downloading_result">Результат загрузки</string>
+
+    <!-- Fragment Channels -->
+    <string name="search">Искать…</string>
+    <string name="all_streams">Все каналы</string>
+    <string name="subscribed_streams">С подпиской</string>
+    <string name="arrow">Стрелка</string>
+    <string name="new_messages">нов.сообщ.</string>
+    <string name="channel_name_template">#%s</string>
+    <string name="subscribe_to_channel">Подписаться</string>
+    <string name="unsubscribe_from_channel">Отписаться</string>
+    <string name="delete_channel">Удалить</string>
+
+    <!-- Fragment People -->
+    <string name="users">Пользователи…</string>
+    <string name="online_status">Онлайн статус</string>
+
+    <!-- Fragment Profile -->
+    <string name="active">В сети</string>
+    <string name="idle">Нет активности</string>
+    <string name="offline">Не в сети</string>
+    <string name="log_out">Войти под другим аккаунтом</string>
+
+    <!-- MessageView -->
+    <string name="avatar">Аватар</string>
+
+    <!-- Bottom navigation -->
+    <string name="channels">Каналы</string>
+    <string name="people">Пользователи</string>
+    <string name="profile">Профиль</string>
+
+    <!-- Dialog -->
+    <string name="check_internet_connection">Проверьте соединение с интернетом</string>
+    <string name="confirm_delete_message">Вы уверены, что хотите удалить сообщение?</string>
+    <string name="confirm_delete_channel">Вы уверены, что хотите удалить канал?</string>
+    <string name="create_channel">Создать канал</string>
+    <string name="channel_name">Название канала…</string>
+    <string name="channel_description">Описание канала…</string>
+    <string name="ok">Ок</string>
+    <string name="close">Закрыть экран</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="create">Создать</string>
+
+    <!-- Errors -->
+    <string name="error_user_loading">Ошибка загрузки пользователя.</string>
+    <string name="error_messages">Ошибка работы с сообщениями.</string>
+    <string name="error_channels">Ошибка работы с каналами.</string>
+    <string name="error_loading_users">Ошибка загрузки пользователей.</string>
+    <string name="error_network">Ошибка сети.</string>
+    <string name="error_login">Ошибка проверки почты и пароля.</string>
+    <string name="error_file_not_found">Файл не найден.</string>
+    <string name="error_uri">Неверный uri.</string>
+    <string name="error_file_size">Файл слишком большой.</string>
+    <string name="error_unknown_file_type">Неизвестный тип файла.</string>
+    <string name="error_downloading">ошибка загрузки</string>
+
+</resources>

@@ -4,13 +4,18 @@ import androidx.lifecycle.ViewModel
 import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.usecase.channels.CreateChannelUseCase
+import com.spinoza.messenger_tfs.domain.usecase.channels.DeleteChannelUseCase
+import com.spinoza.messenger_tfs.domain.usecase.channels.GetChannelSubscriptionStatusUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredTopicsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetTopicUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetTopicsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.channels.UnsubscribeFromChannelUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelSubscriptionEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
@@ -44,8 +49,13 @@ interface ViewModelModule {
             getTopicsUseCase: GetTopicsUseCase,
             getStoredChannelsUseCase: GetStoredChannelsUseCase,
             getChannelsUseCase: GetChannelsUseCase,
+            getChannelSubscriptionStatusUseCase: GetChannelSubscriptionStatusUseCase,
             getTopicUseCase: GetTopicUseCase,
             getChannelEventsUseCase: GetChannelEventsUseCase,
+            getChannelSubscriptionEventsUseCase: GetChannelSubscriptionEventsUseCase,
+            createChannelUseCase: CreateChannelUseCase,
+            unsubscribeFromChannelUseCase: UnsubscribeFromChannelUseCase,
+            deleteChannelUseCase: DeleteChannelUseCase,
             registerEventQueueUseCase: RegisterEventQueueUseCase,
             deleteEventQueueUseCase: DeleteEventQueueUseCase,
             @DispatcherDefault defaultDispatcher: CoroutineDispatcher,
@@ -59,8 +69,13 @@ interface ViewModelModule {
                 getTopicsUseCase,
                 getStoredChannelsUseCase,
                 getChannelsUseCase,
+                getChannelSubscriptionStatusUseCase,
+                createChannelUseCase,
+                unsubscribeFromChannelUseCase,
+                deleteChannelUseCase,
                 getTopicUseCase,
                 getChannelEventsUseCase,
+                getChannelSubscriptionEventsUseCase,
                 registerEventQueueUseCase,
                 deleteEventQueueUseCase,
                 defaultDispatcher,

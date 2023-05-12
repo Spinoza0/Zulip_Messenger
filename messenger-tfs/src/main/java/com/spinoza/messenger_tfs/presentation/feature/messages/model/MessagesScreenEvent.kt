@@ -21,36 +21,46 @@ sealed class MessagesScreenEvent {
 
         object Exit : Ui()
 
-        class MessagesScrollStateIdle(val isNextMessageExisting: Boolean) : Ui()
+        object LoadPreviousPage : Ui()
+
+        object LoadNextPage : Ui()
 
         object ScrollToLastMessage : Ui()
 
-        class SendMessage(val value: CharSequence?) : Ui()
+        class MessagesOnScrolled(
+            val visibleMessagesIds: List<Long>,
+            val isNextMessageExisting: Boolean,
+            val isLastMessageVisible: Boolean,
+        ) : Ui()
+
+        class MessagesScrollStateIdle(
+            val canScrollUp: Boolean,
+            val canScrollDown: Boolean,
+            val isNextMessageExisting: Boolean,
+        ) : Ui()
+
+        object MessagesScrollStateDragging : Ui()
+
+        class SendMessage(
+            val messagesFilter: MessagesFilter,
+            val subject: CharSequence?,
+            val content: CharSequence?,
+        ) : Ui()
 
         class AfterSubmitMessages(
             val isNextMessageExisting: Boolean,
             val isLastMessageVisible: Boolean,
         ) : Ui()
 
-        class MessagesOnScrolled(
-            val canScrollUp: Boolean,
-            val canScrollDown: Boolean,
-            val visibleMessagesIds: List<Long>,
-            val firstVisiblePosition: Int,
-            val lastVisiblePosition: Int,
-            val itemCount: Int,
-            val dy: Int,
-            val isNextMessageExisting: Boolean,
-            val isLastMessageVisible: Boolean,
-        ) : Ui()
-
         class UpdateReaction(val messageId: Long, val emoji: Emoji) : Ui()
+
+        class NewTopicName(val value: CharSequence?) : Ui()
 
         class NewMessageText(val value: CharSequence?) : Ui()
 
         class ShowUserInfo(val message: MessageView) : Ui()
 
-        class OnMessageLongClick(val messageView: MessageView) : Ui()
+        class ShowChooseActionMenu(val messageView: MessageView) : Ui()
 
         class GetRawMessageContent(
             val messageView: MessageView,
@@ -62,9 +72,17 @@ sealed class MessagesScreenEvent {
             val isMessageWithAttachments: Boolean,
         ) : Ui()
 
-        class EditMessageContent(val messageId: Long, val content: CharSequence) : Ui()
+        class EditMessageContent(
+            val messageId: Long,
+            val oldContent: String,
+            val content: CharSequence?,
+        ) : Ui()
 
-        class EditMessageTopic(val messageId: Long, val topic: CharSequence) : Ui()
+        class EditMessageTopic(
+            val messageId: Long,
+            val oldTopic: String,
+            val topic: CharSequence?,
+        ) : Ui()
 
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
@@ -95,7 +113,7 @@ sealed class MessagesScreenEvent {
 
         class NextPageExists(val value: Boolean, val isGoingToLastMessage: Boolean) : Internal()
 
-        class IconActionResId(val value: Int) : Internal()
+        class NewMessageDraft(val value: MessageDraft) : Internal()
 
         class Messages(val value: MessagesResultDelegate) : Internal()
 
@@ -111,6 +129,10 @@ sealed class MessagesScreenEvent {
 
         class ReactionsEventFromQueue(val value: MessagesResultDelegate) : Internal()
 
+        object MessageContentChanged : Internal()
+
+        class MessageTopicChanged(val newTopicName: String) : Internal()
+
         class FileUploaded(val value: UploadedFileInfo) : Internal()
 
         class FilesDownloaded(val value: Map<String, Boolean>) : Internal()
@@ -120,11 +142,5 @@ sealed class MessagesScreenEvent {
         class ErrorNetwork(val value: String) : Internal()
 
         class ErrorMessages(val value: String) : Internal()
-    }
-
-    companion object {
-
-        const val DIRECTION_UP = -1
-        const val DIRECTION_DOWN = 1
     }
 }

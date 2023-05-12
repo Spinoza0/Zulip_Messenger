@@ -29,6 +29,10 @@ sealed class MessagesScreenEffect {
 
     class RawMessageContent(val messageId: Long, val content: String) : MessagesScreenEffect()
 
+    class MessageTopicChanged(val newTopicName: String) : MessagesScreenEffect()
+
+    class NewMessageDraft(val value: MessageDraft): MessagesScreenEffect()
+
     sealed class Failure : MessagesScreenEffect() {
 
         class ErrorNetwork(val value: String) : Failure()

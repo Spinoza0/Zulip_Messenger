@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.presentation.notification
+package com.spinoza.messenger_tfs.presentation.feature.messages.notification
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

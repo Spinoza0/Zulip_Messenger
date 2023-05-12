@@ -4,12 +4,21 @@ import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.RecordedRequest
 
-class MockRequestDispatcher(private val universalPaths: List<String>) : Dispatcher() {
+class MockRequestDispatcher(
+    private val universalPaths: List<String>,
+    private val redirectPath: String,
+) : Dispatcher() {
 
     private val responses: MutableMap<String, MockResponse> = mutableMapOf()
 
     override fun dispatch(request: RecordedRequest): MockResponse {
-        val key = universalPaths.getUniversalKey(request.path) ?: request.path
+        val path = request.path ?: throw RuntimeException("Invalid path")
+        if (path.startsWith(redirectPath)) {
+            val response = responses[REDIRECT_DATA_KEY]
+                ?: throw RuntimeException("Invalid data")
+            responses[REDIRECT_FROM_KEY] = response
+        }
+        val key = universalPaths.getUniversalKey(path) ?: path
         return responses[key] ?: MockResponse().setResponseCode(404)
     }
 
@@ -27,5 +36,11 @@ class MockRequestDispatcher(private val universalPaths: List<String>) : Dispatch
             }
         }
         return result
+    }
+
+    companion object {
+
+        const val REDIRECT_FROM_KEY = "/api/v1/messages?num_before"
+        const val REDIRECT_DATA_KEY = "redirect"
     }
 }

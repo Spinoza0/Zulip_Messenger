@@ -1,11 +1,13 @@
 package com.spinoza.messenger_tfs.data.repository
 
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.database.MessengerDao
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService.Companion.RESULT_SUCCESS
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
+import com.spinoza.messenger_tfs.data.network.model.WebLimitationsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.DeleteMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.HeartBeatEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.MessageEventsResponse
@@ -13,11 +15,14 @@ import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.event.StreamEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.SubscriptionEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.UpdateMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
+import com.spinoza.messenger_tfs.data.network.model.stream.StreamSubscriptionStatusResponse
+import com.spinoza.messenger_tfs.data.network.model.stream.SubscriptionItemDto
 import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
 import com.spinoza.messenger_tfs.data.network.model.user.OwnUserResponse
@@ -55,11 +60,13 @@ import com.spinoza.messenger_tfs.domain.model.event.PresenceEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.repository.WebRepository
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -72,6 +79,7 @@ class WebRepositoryImpl @Inject constructor(
     private val apiService: ZulipApiService,
     private val authorizationStorage: AuthorizationStorage,
     private val jsonConverter: Json,
+    private val webLimitation: WebLimitation,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
 ) : WebRepository {
 
@@ -79,15 +87,35 @@ class WebRepositoryImpl @Inject constructor(
         withContext(ioDispatcher) {
             authorizationStorage.makeAuthHeader(email)
             if (saveOwnUserData(email, password)) {
+                updateWebLimitations()
                 return@withContext Result.success(true)
             }
             runCatchingNonCancellation {
                 val apiKeyResponse =
                     apiRequest<ApiKeyResponse> { apiService.fetchApiKey(email, password) }
                 authorizationStorage.makeAuthHeader(apiKeyResponse.email, apiKeyResponse.apiKey)
+                updateWebLimitations()
                 saveOwnUserData(email, password, apiKeyResponse.apiKey)
             }
         }
+
+
+    private suspend fun updateWebLimitations() {
+        runCatchingNonCancellation {
+            val response = apiRequest<WebLimitationsResponse> { apiService.getWebLimitations() }
+            webLimitation.updateLimitations(
+                response.maxStreamNameLength,
+                response.maxStreamDescriptionLength,
+                response.maxTopicLength,
+                response.maxMessageLength,
+                response.serverPresencePingIntervalSeconds,
+                response.serverPresenceOfflineThresholdSeconds,
+                response.messageContentEditLimitSeconds,
+                response.topicEditingLimitSeconds,
+                response.maxFileUploadSizeMib
+            )
+        }
+    }
 
     private suspend fun saveOwnUserData(
         email: String,
@@ -145,18 +173,19 @@ class WebRepositoryImpl @Inject constructor(
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val messagesResponse = apiRequest<MessagesResponse> {
+                val narrow = filter.createNarrowJsonForMessages()
                 when (messagesPageType) {
                     MessagesPageType.FIRST_UNREAD -> apiService.getMessages(
                         numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                         numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
                     )
 
                     MessagesPageType.NEWEST -> apiGetMessages(
                         numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
                         numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchorId = messagesCache.getLastMessageId(filter),
                         ZulipApiService.ANCHOR_NEWEST
                     )
@@ -164,7 +193,7 @@ class WebRepositoryImpl @Inject constructor(
                     MessagesPageType.OLDEST -> apiGetMessages(
                         numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                         numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchorId = messagesCache.getFirstMessageId(filter),
                         ZulipApiService.ANCHOR_OLDEST
                     )
@@ -172,7 +201,7 @@ class WebRepositoryImpl @Inject constructor(
                     MessagesPageType.AFTER_STORED -> apiGetMessages(
                         numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                         numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchorId = messagesCache.getLastMessageId(filter),
                         ZulipApiService.ANCHOR_NEWEST
                     )
@@ -180,7 +209,7 @@ class WebRepositoryImpl @Inject constructor(
                     MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
                         numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                         numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchor = ZulipApiService.ANCHOR_NEWEST
                     )
                 }
@@ -204,14 +233,14 @@ class WebRepositoryImpl @Inject constructor(
         messageId: Long,
         topic: String,
         content: String,
-    ): Result<Boolean> = withContext(ioDispatcher) {
+    ): Result<Long> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             if (topic.isBlank()) {
                 apiRequest<BasicResponse> { apiService.editMessageContent(messageId, content) }
             } else {
                 apiRequest<BasicResponse> { apiService.editMessageTopic(messageId, topic) }
             }
-            true
+            messageId
         }
     }
 
@@ -220,6 +249,49 @@ class WebRepositoryImpl @Inject constructor(
             runCatchingNonCancellation {
                 apiRequest<BasicResponse> { apiService.deleteMessage(messageId) }
                 true
+            }
+        }
+
+    override suspend fun createChannel(name: String, description: String): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                val subscriptions = listOf(SubscriptionItemDto(name, description))
+                val param = Json.encodeToString(subscriptions)
+                apiRequest<BasicResponse> { apiService.subscribeToStream(param) }
+                true
+            }
+        }
+
+    override suspend fun unsubscribeFromChannel(name: String): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                val subscriptions = Json.encodeToString(listOf(name))
+                val principals = Json.encodeToString(listOf(authorizationStorage.getUserId()))
+                apiRequest<BasicResponse> {
+                    apiService.unsubscribeFromStream(subscriptions, principals)
+                }
+                true
+            }
+        }
+
+    override suspend fun deleteChannel(channelId: Long): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                apiRequest<BasicResponse> { apiService.deleteStream(channelId) }
+                true
+            }
+        }
+
+    override suspend fun getChannelSubscriptionStatus(channelId: Long): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                val response = apiRequest<StreamSubscriptionStatusResponse> {
+                    apiService.getStreamSubscriptionStatus(
+                        authorizationStorage.getUserId(),
+                        channelId
+                    )
+                }
+                response.isSubscribed
             }
         }
 
@@ -297,14 +369,16 @@ class WebRepositoryImpl @Inject constructor(
         }
 
     override suspend fun sendMessage(
+        subject: String,
         content: String,
         filter: MessagesFilter,
     ): Result<Long> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
+            val topicName = subject.ifBlank { filter.topic.name }
             val sendMessageResponse = apiRequest<SendMessageResponse> {
                 apiService.sendMessageToStream(
                     filter.channel.channelId,
-                    filter.topic.name,
+                    topicName,
                     content
                 )
             }
@@ -341,13 +415,13 @@ class WebRepositoryImpl @Inject constructor(
         messagesFilter: MessagesFilter,
     ): Result<EventsQueue> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val registerResponse = apiRequest<RegisterEventQueueResponse> {
+            val response = apiRequest<RegisterEventQueueResponse> {
                 apiService.registerEventQueue(
                     narrow = messagesFilter.createNarrowJsonForEvents(),
                     eventTypes = Json.encodeToString(eventTypes.toStringsList())
                 )
             }
-            EventsQueue(registerResponse.queueId, registerResponse.lastEventId, eventTypes)
+            EventsQueue(response.queueId, response.lastEventId, eventTypes)
         }
     }
 
@@ -375,19 +449,34 @@ class WebRepositoryImpl @Inject constructor(
     override suspend fun getChannelEvents(
         queue: EventsQueue,
         channelsFilter: ChannelsFilter,
-    ): Result<List<ChannelEvent>> =
-        withContext(ioDispatcher) {
-            runCatchingNonCancellation {
-                val eventResponseBody = getNonHeartBeatEventResponse(queue)
-                val eventResponse = jsonConverter.decodeFromString(
-                    StreamEventsResponse.serializer(), eventResponseBody
-                )
-                if (eventResponse.result != RESULT_SUCCESS) {
-                    throw RepositoryError(eventResponse.msg)
-                }
-                eventResponse.events.listToDomain(channelsFilter)
+    ): Result<List<ChannelEvent>> = withContext(ioDispatcher) {
+        runCatchingNonCancellation {
+            val eventResponseBody = getNonHeartBeatEventResponse(queue)
+            val eventResponse = jsonConverter.decodeFromString(
+                StreamEventsResponse.serializer(), eventResponseBody
+            )
+            if (eventResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(eventResponse.msg)
             }
+            eventResponse.events.toDomain(channelsFilter)
         }
+    }
+
+    override suspend fun getChannelSubscriptionEvents(
+        queue: EventsQueue,
+        channelsFilter: ChannelsFilter,
+    ): Result<List<ChannelEvent>> = withContext(ioDispatcher) {
+        runCatchingNonCancellation {
+            val eventResponseBody = getNonHeartBeatEventResponse(queue)
+            val eventResponse = jsonConverter.decodeFromString(
+                SubscriptionEventsResponse.serializer(), eventResponseBody
+            )
+            if (eventResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(eventResponse.msg)
+            }
+            eventResponse.events.listToDomain(channelsFilter)
+        }
+    }
 
     override suspend fun getMessageEvent(
         queue: EventsQueue,
@@ -571,6 +660,9 @@ class WebRepositoryImpl @Inject constructor(
                 lastEventId = heartBeatEventDto.id
                 isHeartBeat = heartBeatEventDto.type == ZulipApiService.EVENT_HEARTBEAT
             }
+            if (isHeartBeat) {
+                delay(DELAY_BEFORE_GET_NEXT_HEARTBEAT)
+            }
         } while (isHeartBeat)
         return responseBody
     }
@@ -590,7 +682,9 @@ class WebRepositoryImpl @Inject constructor(
                 val presence =
                     if (presencesResponse != null && presencesResponse.result == RESULT_SUCCESS) {
                         presencesResponse.presences[userDto.email]?.let { presenceDto ->
-                            if (timestamp - presenceDto.aggregated.timestamp < OFFLINE_TIME) {
+                            if ((timestamp - presenceDto.aggregated.timestamp) <
+                                webLimitation.getPresenceOfflineThresholdSeconds()
+                            ) {
                                 presenceDto.toDomain()
                             } else {
                                 User.Presence.OFFLINE
@@ -606,8 +700,9 @@ class WebRepositoryImpl @Inject constructor(
 
     companion object {
 
-        private const val OFFLINE_TIME = 180
+        private const val DELAY_BEFORE_GET_NEXT_HEARTBEAT = 1_000L
         private const val GET_TOPIC_IGNORE_PREVIOUS_MESSAGES = 0
-        private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT = 500
+        private const val GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT =
+            BuildConfig.GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT
     }
 }

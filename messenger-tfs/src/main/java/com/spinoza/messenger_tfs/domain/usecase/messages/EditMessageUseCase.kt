@@ -10,7 +10,7 @@ class EditMessageUseCase @Inject constructor(private val repository: WebReposito
         messageId: Long,
         topic: String = EMPTY_STRING,
         content: String = EMPTY_STRING,
-    ): Result<Boolean> {
+    ): Result<Long> {
         return repository.editMessage(messageId, topic, content)
     }
 }

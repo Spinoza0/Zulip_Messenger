@@ -75,7 +75,6 @@ class MessageTagHandler : Html.TagHandler {
         private val emojiPattern = Pattern.compile(EMOJI_CODE_REGEXP)
         private val emojiTagRegex = Regex("<span(.+?class=\"emoji.+?):\\w+?:</span>")
 
-        // TODO: prepare href -> make full url
         fun prepareTag(source: String): String {
             return source.replace(emojiTagRegex, "<emojiSpan$1</emojiSpan>")
         }

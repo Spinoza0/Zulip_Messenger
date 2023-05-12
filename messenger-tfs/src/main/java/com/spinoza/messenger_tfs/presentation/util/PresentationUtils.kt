@@ -93,3 +93,6 @@ private fun Fragment.isNetworkConnected(): Boolean {
         requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     return cm.activeNetwork != null && cm.getNetworkCapabilities(cm.activeNetwork) != null
 }
+
+const val DIRECTION_UP = -1
+const val DIRECTION_DOWN = 1

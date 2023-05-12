@@ -9,9 +9,11 @@ import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.usecase.event.GetPresenceEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.people.GetAllUsersUseCase
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
 import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.domain.util.isContainingWords
@@ -22,6 +24,7 @@ import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -45,6 +48,7 @@ class PeopleActor @Inject constructor(
     private val getAllUsersUseCase: GetAllUsersUseCase,
     private val getPresenceEventsUseCase: GetPresenceEventsUseCase,
     private val eventsQueue: EventsQueueHolder,
+    private val webLimitation: WebLimitation,
     @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
 ) : Actor<PeopleScreenCommand, PeopleScreenEvent.Internal> {
 
@@ -53,12 +57,14 @@ class PeopleActor @Inject constructor(
     private var usersCache = mutableListOf<User>()
     private var isUsersCacheChanged = false
     private var usersFilter = ""
+    private var eventsQueueJob: Job? = null
 
     @Volatile
     private var isLoading = false
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
+            eventsQueueJob?.cancel()
             lifecycleScope.launch {
                 eventsQueue.deleteQueue()
             }
@@ -72,7 +78,7 @@ class PeopleActor @Inject constructor(
 
     override fun execute(command: PeopleScreenCommand): Flow<PeopleScreenEvent.Internal> = flow {
         val event = when (command) {
-            is PeopleScreenCommand.SetNewFilter -> setNewFilter(command.filter.trim())
+            is PeopleScreenCommand.SetNewFilter -> setNewFilter(command.filter)
             is PeopleScreenCommand.GetFilteredList ->
                 if (usersCache.isNotEmpty()) {
                     PeopleScreenEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
@@ -111,10 +117,11 @@ class PeopleActor @Inject constructor(
         return event
     }
 
-    private suspend fun setNewFilter(filter: String): PeopleScreenEvent.Internal {
-        searchQueryState.emit(filter)
+    private suspend fun setNewFilter(filter: CharSequence?): PeopleScreenEvent.Internal {
+        val newFilter = filter.toString().trim()
+        searchQueryState.emit(newFilter)
         delay(DELAY_BEFORE_CHECK_FILTER)
-        if (filter == usersFilter) {
+        if (newFilter == usersFilter) {
             return PeopleScreenEvent.Internal.FilterChanged
         }
         return PeopleScreenEvent.Internal.Idle
@@ -153,7 +160,8 @@ class PeopleActor @Inject constructor(
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        lifecycleScope.launch(defaultDispatcher) {
+        eventsQueueJob?.cancel()
+        eventsQueueJob = lifecycleScope.launch(defaultDispatcher) {
             var lastUpdatingTimeStamp = 0L
             while (isActive) {
                 getPresenceEventsUseCase(eventsQueue.queue).onSuccess { events ->
@@ -170,7 +178,9 @@ class PeopleActor @Inject constructor(
                     }
                 }.onFailure {
                     val currentTimeStamp = getCurrentTimestamp()
-                    if (currentTimeStamp - lastUpdatingTimeStamp > OFFLINE_TIME) {
+                    if ((currentTimeStamp - lastUpdatingTimeStamp) >
+                        webLimitation.getPresenceOfflineThresholdSeconds()
+                    ) {
                         for (index in 0 until usersCache.size) {
                             usersCache[index] =
                                 usersCache[index].copy(presence = User.Presence.OFFLINE)
@@ -189,7 +199,7 @@ class PeopleActor @Inject constructor(
         return PeopleScreenEvent.Internal.Idle
     }
 
-    private suspend fun List<User>.toSortedList(filter: String = NO_FILTER): List<User> =
+    private suspend fun List<User>.toSortedList(filter: String = EMPTY_STRING): List<User> =
         withContext(defaultDispatcher) {
             val sortedList = ArrayList(this@toSortedList)
             sortedList.sortWith(compareBy<User> { it.presence }.thenBy { it.fullName })
@@ -206,12 +216,10 @@ class PeopleActor @Inject constructor(
 
     private companion object {
 
-        const val NO_FILTER = ""
         const val DELAY_BEFORE_SET_FILTER = 300L
         const val DELAY_BEFORE_CHECK_FILTER = 400L
         const val DELAY_BEFORE_UPDATE_INFO = 30_000L
-        const val INDEX_NOT_FOUND = -1
-        const val OFFLINE_TIME = 180
         const val DELAY_BEFORE_RETURN_IDLE_EVENT = 1000L
+        const val INDEX_NOT_FOUND = -1
     }
 }

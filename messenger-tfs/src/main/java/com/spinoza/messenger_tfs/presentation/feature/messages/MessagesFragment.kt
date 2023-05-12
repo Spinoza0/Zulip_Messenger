@@ -11,7 +11,6 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
@@ -21,14 +20,19 @@ import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
+import com.spinoza.messenger_tfs.databinding.MessagesDialogInputFieldBinding
 import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
+import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegate
@@ -36,16 +40,20 @@ import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.topic.MessagesTopicDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
+import com.spinoza.messenger_tfs.presentation.feature.messages.notification.Notificator
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.ReactionView
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToLastPosition
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.smoothScrollToMessage
-import com.spinoza.messenger_tfs.presentation.notification.Notificator
+import com.spinoza.messenger_tfs.presentation.feature.messages.util.isReadyToSend
+import com.spinoza.messenger_tfs.presentation.util.DIRECTION_DOWN
+import com.spinoza.messenger_tfs.presentation.util.DIRECTION_UP
 import com.spinoza.messenger_tfs.presentation.util.ExternalStoragePermission
 import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import com.spinoza.messenger_tfs.presentation.util.getInstanceState
@@ -81,6 +89,9 @@ class MessagesFragment :
     @Inject
     lateinit var externalStoragePermission: ExternalStoragePermission
 
+    @Inject
+    lateinit var webLimitation: WebLimitation
+
     private var _binding: FragmentMessagesBinding? = null
     private val binding: FragmentMessagesBinding
         get() = _binding ?: throw RuntimeException("FragmentMessagesBinding == null")
@@ -90,6 +101,7 @@ class MessagesFragment :
     private var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
     private var recyclerViewState: Parcelable? = null
     private var recyclerViewStateOnDestroy: Parcelable? = null
+    private val topicNameTemplate by lazy { getString(R.string.messages_topic_template) }
 
     override val storeHolder:
             StoreHolder<MessagesScreenEvent, MessagesScreenEffect, MessagesScreenState> by lazy {
@@ -121,12 +133,24 @@ class MessagesFragment :
         setupRecyclerView()
         setupStatusBar()
         setupListeners()
-        setupScreen()
+        setupEditTextLimitations()
     }
 
-    private fun setupScreen() {
-        binding.textViewTopic.text =
-            String.format(getString(R.string.messages_topic_template), messagesFilter.topic.name)
+    private fun setupEditTextLimitations() {
+        binding.editTextTopicName.filters =
+            arrayOf(InputFilter.LengthFilter(webLimitation.getMaxTopicName()))
+        binding.editTextMessage.filters =
+            arrayOf(InputFilter.LengthFilter(webLimitation.getMaxMessage()))
+    }
+
+    private fun setupTopicTitle() {
+        with(binding) {
+            val isTopicNameNotEmpty = messagesFilter.topic.name.isNotEmpty()
+            textViewTopic.isVisible = isTopicNameNotEmpty
+            imageViewTopicArrow.isVisible = isTopicNameNotEmpty
+            textViewTopic.text = String.format(topicNameTemplate, messagesFilter.topic.name)
+            editTextTopicName.setText(messagesFilter.topic.name)
+        }
     }
 
     private fun setupOnBackPressedCallback() {
@@ -145,35 +169,49 @@ class MessagesFragment :
     }
 
     private fun setupRecyclerView() {
-        messagesAdapter.addDelegate(
-            UserMessageDelegate(
-                ::onMessageLongClickListener,
-                ::onReactionAddClickListener,
-                ::onReactionClickListener,
-                ::onAvatarClickListener,
+        with(messagesAdapter) {
+            borderPosition = BORDER_POSITION
+            onReachStartListener = {
+                store.accept(MessagesScreenEvent.Ui.LoadPreviousPage)
+            }
+            onReachEndListener = {
+                store.accept(MessagesScreenEvent.Ui.LoadNextPage)
+            }
+            val showChooseActionMenu: (MessageView) -> Unit = {
+                store.accept(MessagesScreenEvent.Ui.ShowChooseActionMenu(it))
+            }
+            val showUserInfo: (MessageView) -> Unit = {
+                store.accept(MessagesScreenEvent.Ui.ShowUserInfo(it))
+            }
+            val updateReaction: (MessageView, ReactionView) -> Unit = { message, reaction ->
+                updateReaction(message.messageId, reaction.emoji)
+            }
+            addDelegate(
+                UserMessageDelegate(
+                    showChooseActionMenu, ::addReaction, updateReaction, showUserInfo
+                )
             )
-        )
-        messagesAdapter.addDelegate(
-            OwnMessageDelegate(
-                ::onMessageLongClickListener,
-                ::onReactionAddClickListener,
-                ::onReactionClickListener
+            addDelegate(
+                OwnMessageDelegate(
+                    showChooseActionMenu, ::addReaction, updateReaction
+                )
             )
-        )
-        messagesAdapter.addDelegate(DateDelegate())
+            addDelegate(DateDelegate())
+            addDelegate(MessagesTopicDelegate(topicNameTemplate) {
+                loadMessages(it)
+            })
+        }
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
                 val firstVisiblePosition = recyclerView.findFirstVisibleItemPosition()
                 val lastVisiblePosition = recyclerView.findLastVisibleItemPosition()
                 store.accept(
                     MessagesScreenEvent.Ui.MessagesOnScrolled(
-                        recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_UP),
-                        recyclerView.canScrollVertically(MessagesScreenEvent.DIRECTION_DOWN),
                         getVisibleMessagesIds(firstVisiblePosition, lastVisiblePosition),
-                        firstVisiblePosition, lastVisiblePosition, messagesAdapter.itemCount, dy,
                         isNextMessageExisting(lastVisiblePosition),
                         isLastMessageVisible(lastVisiblePosition)
                     )
@@ -182,11 +220,15 @@ class MessagesFragment :
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    store.accept(MessagesScreenEvent.Ui.MessagesScrollStateDragging)
+                }
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    val lastVisiblePosition = recyclerView.findLastVisibleItemPosition()
                     store.accept(
                         MessagesScreenEvent.Ui.MessagesScrollStateIdle(
-                            isNextMessageExisting(lastVisiblePosition)
+                            recyclerView.canScrollVertically(DIRECTION_UP),
+                            recyclerView.canScrollVertically(DIRECTION_DOWN),
+                            isNextMessageExisting(recyclerView.findLastVisibleItemPosition())
                         )
                     )
                 }
@@ -199,17 +241,27 @@ class MessagesFragment :
             toolbar.setNavigationOnClickListener {
                 goBack()
             }
+            imageViewTopicArrow.setOnClickListener {
+                loadMessages(EMPTY_STRING)
+            }
             imageViewAction.setOnClickListener {
-                store.accept(MessagesScreenEvent.Ui.SendMessage(editTextMessage.text))
+                store.accept(
+                    MessagesScreenEvent.Ui
+                        .SendMessage(messagesFilter, editTextTopicName.text, editTextMessage.text)
+                )
             }
             imageViewAction.setOnLongClickListener {
                 addAttachment()
                 true
             }
+            editTextTopicName.doOnTextChanged { text, _, _, _ ->
+                store.accept(MessagesScreenEvent.Ui.NewTopicName(text))
+            }
             editTextMessage.doOnTextChanged { text, _, _, _ ->
                 store.accept(MessagesScreenEvent.Ui.NewMessageText(text))
             }
             fabViewArrow.setOnClickListener {
+                recyclerViewMessages.smoothScrollToLastPosition()
                 store.accept(MessagesScreenEvent.Ui.ScrollToLastMessage)
             }
         }
@@ -233,13 +285,24 @@ class MessagesFragment :
                 }
             }
             progressBarLoadingPage.isVisible = state.isLongOperation
-            imageViewAction.setImageResource(state.iconActionResId)
             fabViewArrow.isVisible = state.isNextMessageExisting || state.isNewMessageExisting
         }
     }
 
     override fun handleEffect(effect: MessagesScreenEffect) {
         when (effect) {
+            is MessagesScreenEffect.NewMessageDraft -> {
+                val isEditTopicVisible =
+                    messagesFilter.topic.name.isBlank() && effect.value.content.isNotBlank()
+                binding.viewNewTopicBorder.isVisible = isEditTopicVisible
+                binding.editTextTopicName.isVisible = isEditTopicVisible
+                val iconActionResId = if (effect.value.isReadyToSend(messagesFilter))
+                    R.drawable.ic_send
+                else
+                    R.drawable.ic_add_circle_outline
+                binding.imageViewAction.setImageResource(iconActionResId)
+            }
+
             is MessagesScreenEffect.MessageSent -> binding.editTextMessage.text?.clear()
             is MessagesScreenEffect.ScrollToLastMessage ->
                 binding.recyclerViewMessages.smoothScrollToLastPosition()
@@ -250,6 +313,10 @@ class MessagesFragment :
 
             is MessagesScreenEffect.RawMessageContent ->
                 showEditMessageDialog(effect.messageId, effect.content)
+
+            is MessagesScreenEffect.MessageTopicChanged -> if (messagesFilter.topic.name.isNotBlank()) {
+                loadMessages(effect.newTopicName)
+            }
 
             is MessagesScreenEffect.ConfirmDeleteMessage -> confirmDeleteMessage(effect.messageId)
             is MessagesScreenEffect.Failure.ErrorMessages ->
@@ -295,40 +362,48 @@ class MessagesFragment :
 
     private fun showEditTopicDialog(messageView: MessageView) {
         showInputTextDialog(
-            getString(R.string.edit_topic), messageView.messageId, messageView.subject, true
+            getString(R.string.edit_topic),
+            messageView.messageId,
+            messageView.subject,
+            false,
+            webLimitation.getMaxTopicName()
         ) { id, text ->
-            store.accept(MessagesScreenEvent.Ui.EditMessageTopic(id, text))
+            store.accept(MessagesScreenEvent.Ui.EditMessageTopic(id, messageView.subject, text))
         }
     }
 
     private fun showEditMessageDialog(messageId: Long, content: String) {
         showInputTextDialog(
-            getString(R.string.edit_message), messageId, content, false
+            getString(R.string.edit_message),
+            messageId,
+            content,
+            true,
+            webLimitation.getMaxMessage()
         ) { id, text ->
-            store.accept(MessagesScreenEvent.Ui.EditMessageContent(id, text))
+            store.accept(MessagesScreenEvent.Ui.EditMessageContent(id, content, text))
         }
     }
 
     private fun showInputTextDialog(
-        title: String, messageId: Long, content: String, isTopic: Boolean,
-        positiveCallback: (Long, CharSequence) -> Unit,
+        title: String, messageId: Long, content: String, isMessage: Boolean, maxLength: Int,
+        positiveCallback: (Long, CharSequence?) -> Unit,
     ) {
-        val input = EditText(requireContext()).apply {
+        val inputField = MessagesDialogInputFieldBinding.inflate(layoutInflater)
+        with(inputField.input) {
             maxLines = MAX_LINES
             inputType = InputType.TYPE_CLASS_TEXT
-            if (isTopic) {
-                filters = arrayOf(InputFilter.LengthFilter(TOPIC_MAX_LENGTH))
-            } else {
+            filters = arrayOf(InputFilter.LengthFilter(maxLength))
+            if (isMessage) {
                 inputType = inputType or InputType.TYPE_TEXT_FLAG_MULTI_LINE
             }
             setText(content)
         }
         AlertDialog.Builder(requireContext())
             .setTitle(title)
-            .setView(input)
+            .setView(inputField.root)
             .setCancelable(false)
             .setPositiveButton(getString(R.string.save)) { _, _ ->
-                positiveCallback(messageId, input.text)
+                positiveCallback(messageId, inputField.input.text)
             }
             .setNegativeButton(getString(R.string.cancel)) { _, _ ->
             }
@@ -360,7 +435,7 @@ class MessagesFragment :
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.itemAddReaction -> {
-                    onReactionAddClickListener(effect.messageView)
+                    addReaction(effect.messageView)
                     true
                 }
 
@@ -476,20 +551,8 @@ class MessagesFragment :
         )
     }
 
-    private fun onAvatarClickListener(messageView: MessageView) {
-        store.accept(MessagesScreenEvent.Ui.ShowUserInfo(messageView))
-    }
-
-    private fun onMessageLongClickListener(messageView: MessageView) {
-        store.accept(MessagesScreenEvent.Ui.OnMessageLongClick(messageView))
-    }
-
-    private fun onReactionAddClickListener(messageView: MessageView) {
+    private fun addReaction(messageView: MessageView) {
         store.accept(MessagesScreenEvent.Ui.ShowChooseReactionDialog(messageView))
-    }
-
-    private fun onReactionClickListener(messageView: MessageView, reactionView: ReactionView) {
-        updateReaction(messageView.messageId, reactionView.emoji)
     }
 
     private fun updateReaction(messageId: Long, emoji: Emoji) {
@@ -501,14 +564,11 @@ class MessagesFragment :
     }
 
     private fun parseParams(savedInstanceState: Bundle?) {
-        val newMessagesFilter = arguments?.getParam<MessagesFilter>(PARAM_CHANNEL_FILTER)
-        if (newMessagesFilter == null ||
-            newMessagesFilter.channel.channelId == Channel.UNDEFINED_ID ||
-            newMessagesFilter.topic.name.isEmpty()
-        ) {
+        val paramFilter = arguments?.getParam<MessagesFilter>(PARAM_CHANNEL_FILTER)
+        if (paramFilter == null || paramFilter.channel.channelId == Channel.UNDEFINED_ID) {
             goBack()
         } else {
-            messagesFilter = newMessagesFilter
+            messagesFilter = paramFilter
         }
         savedInstanceState?.let {
             recyclerViewState = it.getParam<Parcelable>(PARAM_RECYCLERVIEW_STATE)
@@ -527,6 +587,12 @@ class MessagesFragment :
         return (this.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
     }
 
+    private fun loadMessages(topicName: String) {
+        messagesFilter = messagesFilter.copy(topic = Topic(name = topicName))
+        setupTopicTitle()
+        store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
+    }
+
     override fun onStart() {
         super.onStart()
         setupOnBackPressedCallback()
@@ -535,7 +601,7 @@ class MessagesFragment :
     override fun onResume() {
         super.onResume()
         if (isMessagesListEmpty()) {
-            store.accept(MessagesScreenEvent.Ui.Load(messagesFilter))
+            loadMessages(messagesFilter.topic.name)
         }
     }
 
@@ -575,9 +641,9 @@ class MessagesFragment :
         private const val NO_ITEMS = 0
         private const val MAX_LINES = 5
         private const val LAST_ITEM_OFFSET = 1
-        private const val TOPIC_MAX_LENGTH = 60
         private const val CHANNEL_NAME = "Downloads"
         private const val CHANNEL_ID = "downloads_channel"
+        private const val BORDER_POSITION = BuildConfig.MESSAGES_BORDER_POSITION
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {
             return MessagesFragment().apply {

@@ -59,13 +59,29 @@ class WebRepositoryStub : WebRepository {
         messageId: Long,
         topic: String,
         content: String,
-    ): Result<Boolean> {
+    ): Result<Long> {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
     override suspend fun getMessageRawContent(messageId: Long, default: String): String = ""
 
     override suspend fun deleteMessage(messageId: Long): Result<Boolean> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
+    override suspend fun getChannelSubscriptionStatus(channelId: Long): Result<Boolean> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
+    override suspend fun createChannel(name: String, description: String): Result<Boolean> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
+    override suspend fun unsubscribeFromChannel(name: String): Result<Boolean> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
+    override suspend fun deleteChannel(channelId: Long): Result<Boolean> {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
@@ -85,7 +101,11 @@ class WebRepositoryStub : WebRepository {
         return MessagesFilter()
     }
 
-    override suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long> {
+    override suspend fun sendMessage(
+        subject: String,
+        content: String,
+        filter: MessagesFilter,
+    ): Result<Long> {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
@@ -111,6 +131,13 @@ class WebRepositoryStub : WebRepository {
     }
 
     override suspend fun getChannelEvents(
+        queue: EventsQueue,
+        channelsFilter: ChannelsFilter,
+    ): Result<List<ChannelEvent>> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
+    override suspend fun getChannelSubscriptionEvents(
         queue: EventsQueue,
         channelsFilter: ChannelsFilter,
     ): Result<List<ChannelEvent>> {

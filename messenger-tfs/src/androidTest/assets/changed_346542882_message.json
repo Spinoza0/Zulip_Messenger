@@ -1,0 +1,142 @@
+{
+  "result": "success",
+  "msg": "",
+  "messages": [
+    {
+      "id": 346542882,
+      "sender_id": 100006,
+      "content": "TEST",
+      "recipient_id": 1047523,
+      "timestamp": 1680523078,
+      "client": "Internal",
+      "subject": "(no topic)",
+      "topic_links": [],
+      "is_me_message": false,
+      "reactions": [
+        {
+          "emoji_name": "innocent",
+          "emoji_code": "1f607",
+          "reaction_type": "unicode_emoji",
+          "user": {
+            "email": "user605850@tinkoff-android-spring-2023.zulipchat.com",
+            "id": 605850,
+            "full_name": "Full name 1"
+          },
+          "user_id": 605850
+        },
+        {
+          "emoji_name": "innocent",
+          "emoji_code": "1f607",
+          "reaction_type": "unicode_emoji",
+          "user": {
+            "email": "user604450@tinkoff-android-spring-2023.zulipchat.com",
+            "id": 604450,
+            "full_name": "Full name 3"
+          },
+          "user_id": 604450
+        },
+        {
+          "emoji_name": "innocent",
+          "emoji_code": "1f607",
+          "reaction_type": "unicode_emoji",
+          "user": {
+            "email": "user604180@tinkoff-android-spring-2023.zulipchat.com",
+            "id": 604180,
+            "full_name": "Full name"
+          },
+          "user_id": 604180
+        }
+      ],
+      "submessages": [],
+      "flags": [
+        "read",
+        "historical"
+      ],
+      "sender_full_name": "Notification Bot",
+      "sender_email": "notification-bot@zulip.com",
+      "sender_realm_str": "zulipcore",
+      "display_recipient": "MOCK: dev_to_dev",
+      "type": "stream",
+      "stream_id": 380669,
+      "avatar_url": "https://zulip-avatars.s3.amazonaws.com/1000/9fd9de59f964f6e3af477006ddd0116211347010?version=2",
+      "content_type": "text/html"
+    },
+    {
+      "id": 346543814,
+      "sender_id": 605850,
+      "content": "<p><span aria-label=\"working on it\" class=\"emoji emoji-1f6e0\" role=\"img\" title=\"working on it\">:working_on_it:</span></p>",
+      "recipient_id": 1047523,
+      "timestamp": 1680523268,
+      "client": "website",
+      "subject": "(no topic)",
+      "topic_links": [],
+      "is_me_message": false,
+      "reactions": [],
+      "submessages": [],
+      "flags": [
+        "read",
+        "historical"
+      ],
+      "sender_full_name": "Full name 1",
+      "sender_email": "user605850@tinkoff-android-spring-2023.zulipchat.com",
+      "sender_realm_str": "tinkoff-android-spring-2023",
+      "display_recipient": "dev_to_dev",
+      "type": "stream",
+      "stream_id": 380669,
+      "avatar_url": "https://secure.gravatar.com/avatar/1f91924bbe70ca6da7c28f2aa2ccfcf9?d=identicon&version=1",
+      "content_type": "text/html"
+    },
+    {
+      "id": 351668250,
+      "sender_id": 604180,
+      "content": "<p><span aria-label=\"face with monocle\" class=\"emoji emoji-1f9d0\" role=\"img\" title=\"face with monocle\">:face_with_monocle:</span></p>",
+      "recipient_id": 1047523,
+      "timestamp": 1682091854,
+      "client": "okhttp",
+      "subject": "(no topic)",
+      "topic_links": [],
+      "is_me_message": false,
+      "reactions": [
+        {
+          "emoji_name": "kiss",
+          "emoji_code": "1f48f",
+          "reaction_type": "unicode_emoji",
+          "user": {
+            "email": "user604290@tinkoff-android-spring-2023.zulipchat.com",
+            "id": 604290,
+            "full_name": "Full name 2"
+          },
+          "user_id": 604290
+        },
+        {
+          "emoji_name": "kiss",
+          "emoji_code": "1f48f",
+          "reaction_type": "unicode_emoji",
+          "user": {
+            "email": "user604180@tinkoff-android-spring-2023.zulipchat.com",
+            "id": 604180,
+            "full_name": "Full name"
+          },
+          "user_id": 604180
+        }
+      ],
+      "submessages": [],
+      "flags": [
+        "read"
+      ],
+      "sender_full_name": "Full name",
+      "sender_email": "user604180@tinkoff-android-spring-2023.zulipchat.com",
+      "sender_realm_str": "tinkoff-android-spring-2023",
+      "display_recipient": "dev_to_dev",
+      "type": "stream",
+      "stream_id": 380669,
+      "avatar_url": "https://zulip-avatars.s3.amazonaws.com/54137/d1a61287337e008d9ff009fb336daa89d23abf5f?version=3",
+      "content_type": "text/html"
+    }
+  ],
+  "found_anchor": false,
+  "found_oldest": true,
+  "found_newest": true,
+  "history_limited": false,
+  "anchor": 0
+}

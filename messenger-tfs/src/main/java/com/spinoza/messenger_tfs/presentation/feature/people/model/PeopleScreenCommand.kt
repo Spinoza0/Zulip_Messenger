@@ -10,5 +10,5 @@ sealed class PeopleScreenCommand {
 
     object Load : PeopleScreenCommand()
 
-    class SetNewFilter(val filter: String) : PeopleScreenCommand()
+    class SetNewFilter(val filter: CharSequence?) : PeopleScreenCommand()
 }

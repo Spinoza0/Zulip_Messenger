@@ -31,7 +31,7 @@
             style="@style/ChannelsTopicStyle"
             android:paddingStart="8dp"
             android:paddingEnd="16dp"
-            android:text="@string/mes"
+            android:text="@string/new_messages"
             tools:ignore="TextContrastCheck" />
 
     </LinearLayout>

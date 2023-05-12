@@ -12,11 +12,15 @@ sealed class PeopleScreenEvent {
 
         object Load : Ui()
 
-        class Filter(val value: String) : Ui()
+        class Filter(val value: CharSequence?) : Ui()
 
         class ShowUserInfo(val userId: Long) : Ui()
 
-        class OnScrolled(val canScrollUp: Boolean, val canScrollDown: Boolean, val dy: Int) : Ui()
+        object OnScrolled : Ui()
+
+        object ScrollStateDragging : Ui()
+
+        class ScrollStateIdle(val canScrollUp: Boolean, val canScrollDown: Boolean) : Ui()
 
         object OpenMainMenu : Ui()
     }
@@ -40,11 +44,5 @@ sealed class PeopleScreenEvent {
         class ErrorNetwork(val value: String) : Internal()
 
         class ErrorUserLoading(val value: String) : Internal()
-    }
-
-    companion object {
-
-        const val DIRECTION_UP = -1
-        const val DIRECTION_DOWN = 1
     }
 }

@@ -1,5 +1,6 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels.model
 
+import android.view.View
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 
@@ -13,22 +14,26 @@ sealed class ChannelsPageScreenEvent {
 
         object Load : Ui()
 
-        object RegisterEventQueue : Ui()
-
-        object DeleteEventQueue : Ui()
-
         class Filter(val filter: ChannelsFilter) : Ui()
 
         class OnChannelClick(val value: ChannelItem) : Ui()
 
-        class OnTopicClick(val messagesFilter: MessagesFilter) : Ui()
+        class OpenMessagesScreen(val messagesFilter: MessagesFilter) : Ui()
 
-        class OnScrolled(val canScrollUp: Boolean, val canScrollDown: Boolean, val dy: Int) : Ui()
-    }
+        object OnScrolled : Ui()
 
-    companion object {
+        object ScrollStateDragging : Ui()
 
-        const val DIRECTION_UP = -1
-        const val DIRECTION_DOWN = 1
+        class ScrollStateIdle(val canScrollUp: Boolean, val canScrollDown: Boolean) : Ui()
+
+        class CreateChannel(val name: CharSequence?, val description: CharSequence?) : Ui()
+
+        class ShowChannelMenu(val channelItem: ChannelItem, val view: View) : Ui()
+
+        class SubscribeToChannel(val name: String) : Ui()
+
+        class UnsubscribeFromChannel(val name: String) : Ui()
+
+        class DeleteChannel(val channelId: Long) : Ui()
     }
 }

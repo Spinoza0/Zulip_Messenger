@@ -19,6 +19,10 @@ android {
 
         buildConfigField "String", "ZULIP_SERVER_URL", "\"https://tinkoff-android-spring-2023.zulipchat.com\""
         buildConfigField "String", "DATABASE_NAME", "\"messenger-tfs-cache.db\""
+        buildConfigField "int", "MESSAGES_BORDER_POSITION", "5"
+        buildConfigField "int", "MAX_MESSAGES_CACHE_SIZE", "50"
+        buildConfigField "int", "MAX_MESSAGES_PACKET", "20"
+        buildConfigField "int", "GET_TOPIC_MAX_UNREAD_MESSAGES_COUNT", "500"
 
         // check data_extraction_rules.xml, must be the same without file extension
         buildConfigField "String", "SHAREDPREF", "\"messenger-tfs_shared_prefs\""
@@ -33,7 +37,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField "Integer", "MOCKWEBSERVER_PORT", "1234"
+            buildConfigField "int", "MOCKWEBSERVER_PORT", "1234"
         }
         release {
             minifyEnabled false

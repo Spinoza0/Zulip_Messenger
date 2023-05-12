@@ -22,6 +22,7 @@ import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.EventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
@@ -42,11 +43,14 @@ import com.spinoza.messenger_tfs.domain.usecase.messages.SetMessagesFlagToReadUs
 import com.spinoza.messenger_tfs.domain.usecase.messages.SetOwnStatusActiveUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.UpdateReactionUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.UploadFileUseCase
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
+import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.topic.MessagesTopicDelegateItem
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessageDraft
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesResultDelegate
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
@@ -54,26 +58,29 @@ import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import vivid.money.elmslie.coroutines.Actor
 import java.util.TreeSet
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 class MessagesActor @Inject constructor(
     lifecycle: Lifecycle,
     private val authorizationStorage: AuthorizationStorage,
+    private val webLimitation: WebLimitation,
     private val logInUseCase: LogInUseCase,
     private val getStoredMessagesUseCase: GetStoredMessagesUseCase,
     private val getMessagesUseCase: GetMessagesUseCase,
@@ -98,7 +105,7 @@ class MessagesActor @Inject constructor(
 
     private var messagesFilter: MessagesFilter = MessagesFilter()
     private val lifecycleScope = lifecycle.coroutineScope
-    private val newMessageFieldState = MutableSharedFlow<String>()
+    private val newMessageDraftState = MutableSharedFlow<MessageDraft>()
     private var messagesQueue: EventsQueueHolder =
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var updateMessagesQueue: EventsQueueHolder =
@@ -107,21 +114,11 @@ class MessagesActor @Inject constructor(
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
     private var reactionsQueue: EventsQueueHolder =
         EventsQueueHolder(lifecycleScope, registerEventQueueUseCase, deleteEventQueueUseCase)
-    private var iconActionResId = R.drawable.ic_add_circle_outline
-    private var isIconActionResIdChanged = false
+    private var messageDraft = MessageDraft(EMPTY_STRING, EMPTY_STRING)
+    private var isMessageDraftChanged = false
     private var lastLoadCommand: MessagesScreenCommand? = null
-
-    @Volatile
-    private var isLoadingFirstPage = false
-
-    @Volatile
-    private var isLoadingPreviousPage = false
-
-    @Volatile
-    private var isLoadingNextPage = false
-
-    @Volatile
-    private var isLoadingLastPage = false
+    private var updatingInfoJob: Job? = null
+    private var isLoadingMessages = AtomicBoolean(false)
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
@@ -130,20 +127,21 @@ class MessagesActor @Inject constructor(
                 updateMessagesQueue.deleteQueue()
                 deleteMessagesQueue.deleteQueue()
                 reactionsQueue.deleteQueue()
+                updatingInfoJob?.cancel()
             }
         }
     }
 
     init {
         lifecycle.addObserver(lifecycleObserver)
-        subscribeToNewMessageFieldChanges()
-        startUpdatingInfo()
+        subscribeToNewMessageDraftChanges()
     }
 
     override fun execute(command: MessagesScreenCommand): Flow<MessagesScreenEvent.Internal> =
         flow {
             val event = when (command) {
                 is MessagesScreenCommand.NewMessageText -> newMessageText(command.value)
+                is MessagesScreenCommand.NewTopicName -> newTopicName(command.value)
                 is MessagesScreenCommand.LoadFirstPage -> loadFirstPage(command)
                 is MessagesScreenCommand.LoadPreviousPage -> loadPreviousPage(command)
                 is MessagesScreenCommand.LoadNextPage -> loadNextPage(command)
@@ -191,9 +189,6 @@ class MessagesActor @Inject constructor(
 
                             else -> throw RuntimeException("Invalid command: $lastCommand")
                         }
-                    }
-                    if (result is MessagesScreenEvent.Internal.Idle) {
-                        delay(DELAY_BEFORE_RETURN_IDLE_EVENT)
                     }
                     result
                 }
@@ -267,19 +262,16 @@ class MessagesActor @Inject constructor(
     private suspend fun loadFirstPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        if (isLoadingFirstPage) return getIdleEvent()
-        isLoadingFirstPage = true
-        lastLoadCommand = command
         val messagesPageType =
             if ((command as MessagesScreenCommand.LoadFirstPage).isMessagesListEmpty) {
                 MessagesPageType.FIRST_UNREAD
             } else {
                 MessagesPageType.AFTER_STORED
             }
-        val event = loadMessages(messagesPageType)
-        isLoadingFirstPage = false
+        val event = loadMessages(command, messagesPageType)
         if (event is MessagesScreenEvent.Internal.Messages) {
             registerEventQueues()
+            startUpdatingInfo()
         }
         return event
     }
@@ -287,53 +279,48 @@ class MessagesActor @Inject constructor(
     private suspend fun loadPreviousPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        if (isLoadingPreviousPage) return getIdleEvent()
-        isLoadingPreviousPage = true
-        lastLoadCommand = command
-        val event = loadMessages(MessagesPageType.OLDEST)
-        isLoadingPreviousPage = false
-        return event
+        return loadMessages(command, MessagesPageType.OLDEST)
     }
 
     private suspend fun loadNextPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        if (isLoadingNextPage) return getIdleEvent()
-        isLoadingNextPage = true
-        lastLoadCommand = command
-        val event = loadMessages(MessagesPageType.NEWEST)
-        isLoadingNextPage = false
-        return event
+        return loadMessages(command, MessagesPageType.NEWEST)
     }
 
     private suspend fun loadLastPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
-        if (isLoadingLastPage) return getIdleEvent()
-        isLoadingLastPage = true
-        lastLoadCommand = command
-        val event = loadMessages(MessagesPageType.LAST)
-        isLoadingLastPage = false
-        return event
+        return loadMessages(command, MessagesPageType.LAST)
     }
 
     private suspend fun newMessageText(text: CharSequence?): MessagesScreenEvent.Internal {
-        newMessageFieldState.emit(text.toString())
+        newMessageDraftState.emit(MessageDraft(messageDraft.subject, text.toString()))
+        return getChangedMessageDraft()
+    }
+
+    private suspend fun newTopicName(text: CharSequence?): MessagesScreenEvent.Internal {
+        newMessageDraftState.emit(MessageDraft(text.toString(), messageDraft.content))
+        return getChangedMessageDraft()
+    }
+
+    private suspend fun getChangedMessageDraft(): MessagesScreenEvent.Internal {
         delay(DELAY_BEFORE_CHECK_ACTION_ICON)
-        if (isIconActionResIdChanged) {
-            isIconActionResIdChanged = false
-            return MessagesScreenEvent.Internal.IconActionResId(iconActionResId)
+        if (isMessageDraftChanged) {
+            isMessageDraftChanged = false
+            return MessagesScreenEvent.Internal.NewMessageDraft(messageDraft)
         }
         return getIdleEvent()
     }
 
-    private suspend fun sendMessage(value: String): MessagesScreenEvent.Internal {
-        if (value.isNotEmpty()) {
-            sendMessageUseCase(value, messagesFilter).onSuccess { messageId ->
-                return MessagesScreenEvent.Internal.MessageSent(messageId)
-            }.onFailure { error ->
-                return handleErrors(error)
-            }
+    private suspend fun sendMessage(draft: MessageDraft): MessagesScreenEvent.Internal {
+        if (draft.content.isNotEmpty()) {
+            sendMessageUseCase(draft.subject, draft.content, messagesFilter)
+                .onSuccess { messageId ->
+                    return MessagesScreenEvent.Internal.MessageSent(messageId)
+                }.onFailure { error ->
+                    return handleErrors(error)
+                }
         }
         return getIdleEvent()
     }
@@ -356,14 +343,23 @@ class MessagesActor @Inject constructor(
             getIdleEvent()
         }
 
-    private suspend fun loadMessages(messagesPageType: MessagesPageType): MessagesScreenEvent.Internal =
+    private suspend fun loadMessages(
+        command: MessagesScreenCommand,
+        messagesPageType: MessagesPageType,
+    ): MessagesScreenEvent.Internal =
         withContext(defaultDispatcher) {
-            getMessagesUseCase(messagesPageType, messagesFilter).onSuccess { messagesResult ->
-                return@withContext handleMessages(messagesResult, messagesPageType)
-            }.onFailure { error ->
-                return@withContext handleErrors(error)
-            }
-            getIdleEvent()
+            if (isLoadingMessages.get()) return@withContext getIdleEvent()
+            isLoadingMessages.set(true)
+            lastLoadCommand = command
+            var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
+            getMessagesUseCase(messagesPageType, messagesFilter)
+                .onSuccess { messagesResult ->
+                    event = handleMessages(messagesResult, messagesPageType)
+                }.onFailure { error ->
+                    event = handleErrors(error)
+                }
+            isLoadingMessages.set(false)
+            event
         }
 
     private suspend fun setMessageReadFlags(messageIds: List<Long>): MessagesScreenEvent.Internal {
@@ -372,32 +368,28 @@ class MessagesActor @Inject constructor(
     }
 
     private fun startUpdatingInfo() {
-        lifecycleScope.launch {
+        updatingInfoJob?.cancel()
+        val delayBeforeUpdateStatusActive =
+            webLimitation.getPresencePingIntervalSeconds() - DELAY_BEFORE_UPDATE_STATUS_ACTIVE * 2
+        updatingInfoJob = lifecycleScope.launch {
             while (isActive) {
-                setOwnStatusActiveUseCase()
-                delay(DELAY_BEFORE_UPDATE_MESSAGE_FILTER)
                 messagesFilter = getUpdatedMessageFilterUserCase(messagesFilter)
-                delay(DELAY_AFTER_UPDATE_MESSAGE_FILTER)
+                delay(DELAY_BEFORE_UPDATE_STATUS_ACTIVE)
+                setOwnStatusActiveUseCase()
+                delay(delayBeforeUpdateStatusActive)
             }
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
-    private fun subscribeToNewMessageFieldChanges() {
-        newMessageFieldState
+    private fun subscribeToNewMessageDraftChanges() {
+        newMessageDraftState
             .distinctUntilChanged()
             .debounce(DELAY_BEFORE_UPDATE_ACTION_ICON)
-            .mapLatest { text ->
-                val resId = if (text.isNotBlank())
-                    R.drawable.ic_send
-                else
-                    R.drawable.ic_add_circle_outline
-                resId
-            }
-            .distinctUntilChanged()
-            .onEach { resId ->
-                isIconActionResIdChanged = true
-                iconActionResId = resId
+            .flatMapLatest { flow { emit(it) } }
+            .onEach {
+                messageDraft = it
+                isMessageDraftChanged = true
             }
             .flowOn(defaultDispatcher)
             .launchIn(lifecycleScope)
@@ -494,12 +486,13 @@ class MessagesActor @Inject constructor(
         emptyEvent: MessagesScreenEvent.Internal,
         isLastMessageVisible: Boolean,
     ): MessagesScreenEvent.Internal = withContext(defaultDispatcher) {
-        if (eventsQueue.queue.queueId.isNotEmpty()) useCase(
-            eventsQueue.queue,
-            messagesFilter,
-            isLastMessageVisible
-        ).onSuccess { event ->
-            return@withContext onSuccessCallback(eventsQueue, event)
+        if (eventsQueue.queue.queueId.isNotEmpty()) {
+            useCase(eventsQueue.queue, messagesFilter, isLastMessageVisible)
+                .onSuccess { event ->
+                    return@withContext onSuccessCallback(eventsQueue, event)
+                }.onFailure {
+                    registerEventQueues()
+                }
         }
         delay(DELAY_BEFORE_CHECK_EVENTS)
         emptyEvent
@@ -558,18 +551,27 @@ class MessagesActor @Inject constructor(
     private suspend fun editMessageContent(
         command: MessagesScreenCommand.EditMessageContent,
     ): MessagesScreenEvent.Internal {
-        editMessageUseCase(command.messageId, content = command.content.toString()).onFailure {
-            return handleErrors(it)
-        }
+        editMessageUseCase(command.messageId, content = command.content.toString().trim())
+            .onSuccess {
+                return MessagesScreenEvent.Internal.MessageContentChanged
+            }
+            .onFailure {
+                return handleErrors(it)
+            }
         return getIdleEvent()
     }
 
     private suspend fun editMessageTopic(
         command: MessagesScreenCommand.EditMessageTopic,
     ): MessagesScreenEvent.Internal {
-        editMessageUseCase(command.messageId, topic = command.topic.toString()).onFailure {
-            return handleErrors(it)
-        }
+        val newTopicName = command.topic.toString().trim()
+        editMessageUseCase(command.messageId, topic = newTopicName)
+            .onSuccess {
+                return MessagesScreenEvent.Internal.MessageTopicChanged(newTopicName)
+            }
+            .onFailure {
+                return handleErrors(it)
+            }
         return getIdleEvent()
     }
 
@@ -617,17 +619,26 @@ class MessagesActor @Inject constructor(
         forEach {
             dates.add(it.date)
         }
+        var lastTopicName = EMPTY_STRING
         dates.forEach { messageDate ->
             messageAdapterItemList.add(DateDelegateItem(messageDate))
+            var isDateChanged = true
             val allDayMessages = this.filter { message ->
                 message.date.dateString == messageDate.dateString
             }
             allDayMessages.forEach { message ->
+                if (messagesFilter.topic.name.isEmpty() &&
+                    (isDateChanged || !lastTopicName.equals(message.subject, ignoreCase = true))
+                ) {
+                    lastTopicName = message.subject
+                    messageAdapterItemList.add(MessagesTopicDelegateItem(lastTopicName))
+                }
                 if (message.user.userId == userId) {
                     messageAdapterItemList.add(OwnMessageDelegateItem(message))
                 } else {
                     messageAdapterItemList.add(UserMessageDelegateItem(message))
                 }
+                isDateChanged = false
             }
         }
         return messageAdapterItemList
@@ -637,11 +648,10 @@ class MessagesActor @Inject constructor(
 
         const val DELAY_BEFORE_UPDATE_ACTION_ICON = 200L
         const val DELAY_BEFORE_CHECK_ACTION_ICON = 300L
-        const val DELAY_BEFORE_RETURN_IDLE_EVENT = 1000L
-        const val DELAY_BEFORE_CHECK_EVENTS = 1000L
+        const val DELAY_BEFORE_RETURN_IDLE_EVENT = 3_000L
+        const val DELAY_BEFORE_CHECK_EVENTS = 2_000L
         const val DELAY_BEFORE_RELOAD = 500L
-        const val DELAY_BEFORE_UPDATE_MESSAGE_FILTER = 55_000L
-        const val DELAY_AFTER_UPDATE_MESSAGE_FILTER = 5_000L
+        const val DELAY_BEFORE_UPDATE_STATUS_ACTIVE = 5_000L
         const val LINE_FEED = "\n"
     }
 }

@@ -34,9 +34,17 @@ interface WebRepository {
 
     suspend fun getMessageRawContent(messageId: Long, default: String): String
 
-    suspend fun editMessage(messageId: Long, topic: String, content: String): Result<Boolean>
+    suspend fun editMessage(messageId: Long, topic: String, content: String): Result<Long>
 
     suspend fun deleteMessage(messageId: Long): Result<Boolean>
+
+    suspend fun getChannelSubscriptionStatus(channelId: Long): Result<Boolean>
+
+    suspend fun createChannel(name: String, description: String): Result<Boolean>
+
+    suspend fun unsubscribeFromChannel(name: String): Result<Boolean>
+
+    suspend fun deleteChannel(channelId: Long): Result<Boolean>
 
     suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>
 
@@ -46,7 +54,11 @@ interface WebRepository {
 
     suspend fun getUpdatedMessageFilter(filter: MessagesFilter): MessagesFilter
 
-    suspend fun sendMessage(content: String, filter: MessagesFilter): Result<Long>
+    suspend fun sendMessage(
+        subject: String,
+        content: String,
+        filter: MessagesFilter,
+    ): Result<Long>
 
     suspend fun updateReaction(
         messageId: Long,
@@ -64,6 +76,11 @@ interface WebRepository {
     suspend fun getPresenceEvents(queue: EventsQueue): Result<List<PresenceEvent>>
 
     suspend fun getChannelEvents(
+        queue: EventsQueue,
+        channelsFilter: ChannelsFilter,
+    ): Result<List<ChannelEvent>>
+
+    suspend fun getChannelSubscriptionEvents(
         queue: EventsQueue,
         channelsFilter: ChannelsFilter,
     ): Result<List<ChannelEvent>>

@@ -12,10 +12,4 @@ data class ReactionEventDto(
     @SerialName("emoji_name") val emoji_name: String,
     @SerialName("emoji_code") val emoji_code: String,
     @SerialName("reaction_type") val reaction_type: String,
-) {
-
-    enum class Operation(val value: String) {
-        ADD("add"),
-        REMOVE("remove")
-    }
-}
+)

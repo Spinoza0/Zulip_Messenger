@@ -23,7 +23,7 @@ class ChannelsPageScreen : KScreen<ChannelsPageScreen>() {
     )
 
     class ChannelScreenItem(parent: Matcher<View>) : KRecyclerItem<ChannelScreenItem>(parent) {
-        val channel = KTextView(parent) { withId(R.id.textViewChannel) }
+        val arrowArea = KTextView(parent) { withId(R.id.textViewArrowArea) }
     }
 
     class TopicScreenItem(parent: Matcher<View>) : KRecyclerItem<TopicScreenItem>(parent) {

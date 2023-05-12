@@ -6,17 +6,21 @@ import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.*
 import com.spinoza.messenger_tfs.domain.model.event.ChannelEvent
+import com.spinoza.messenger_tfs.domain.model.event.EventOperation
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.*
 import com.spinoza.messenger_tfs.domain.usecase.channels.*
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelSubscriptionEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.domain.util.getText
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegateItem
+import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.CreateChannelDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.*
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
@@ -35,8 +39,13 @@ class ChannelsPageFragmentViewModel(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getStoredChannelsUseCase: GetStoredChannelsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
+    private val getChannelSubscriptionStatusUseCase: GetChannelSubscriptionStatusUseCase,
+    private val createChannelUseCase: CreateChannelUseCase,
+    private val unsubscribeFromChannelUseCase: UnsubscribeFromChannelUseCase,
+    private val deleteChannelUseCase: DeleteChannelUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
+    private val getChannelSubscriptionEventsUseCase: GetChannelSubscriptionEventsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
     @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
@@ -49,15 +58,20 @@ class ChannelsPageFragmentViewModel(
     val effects: SharedFlow<ChannelsPageScreenEffect>
         get() = _effects.asSharedFlow()
 
-    private var channelsFilter = ChannelsFilter(EMPTY_NAME, isSubscribed)
+    private var channelsFilter = ChannelsFilter(EMPTY_STRING, isSubscribed)
     private val _state = MutableStateFlow(ChannelsPageScreenState())
     private val _effects = MutableSharedFlow<ChannelsPageScreenEffect>()
     private val channelsQueryState = MutableSharedFlow<ChannelsFilter>()
     private val cache = mutableListOf<DelegateAdapterItem>()
     private var vmScope = customCoroutineScope ?: viewModelScope
-    private var eventsQueue =
+    private var channelEvents =
         EventsQueueHolder(vmScope, registerEventQueueUseCase, deleteEventQueueUseCase)
+    private var subscriptionEvents =
+        EventsQueueHolder(vmScope, registerEventQueueUseCase, deleteEventQueueUseCase)
+    private var channelEventsJob: Job? = null
+    private var subscriptionEventsJob: Job? = null
     private var updateMessagesCountJob: Job? = null
+    private var isDraggingWithoutScroll = false
 
     @Volatile
     private var isLoading = false
@@ -70,21 +84,38 @@ class ChannelsPageFragmentViewModel(
     fun accept(event: ChannelsPageScreenEvent) {
         when (event) {
             is ChannelsPageScreenEvent.Ui.Filter -> setChannelsFilter(event.filter)
-            is ChannelsPageScreenEvent.Ui.OnScrolled -> onScrolled(event)
+            is ChannelsPageScreenEvent.Ui.OnScrolled -> isDraggingWithoutScroll = false
+            is ChannelsPageScreenEvent.Ui.ScrollStateDragging -> isDraggingWithoutScroll = true
+            is ChannelsPageScreenEvent.Ui.ScrollStateIdle -> scrollStateIdleHandler(event)
             is ChannelsPageScreenEvent.Ui.Load -> loadItems()
             is ChannelsPageScreenEvent.Ui.UpdateMessageCount -> updateMessagesCount()
             is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
-            is ChannelsPageScreenEvent.Ui.OnTopicClick ->
+            is ChannelsPageScreenEvent.Ui.OpenMessagesScreen ->
                 router.navigateTo(Screens.Messages(event.messagesFilter))
 
-            is ChannelsPageScreenEvent.Ui.RegisterEventQueue -> registerEventQueue()
-            is ChannelsPageScreenEvent.Ui.DeleteEventQueue -> deleteEventQueue()
             is ChannelsPageScreenEvent.Ui.CheckLoginStatus -> checkLoginStatus()
+            is ChannelsPageScreenEvent.Ui.ShowChannelMenu -> showChannelMenu(event)
+            is ChannelsPageScreenEvent.Ui.CreateChannel ->
+                createChannel(event.name, event.description)
+
+            is ChannelsPageScreenEvent.Ui.SubscribeToChannel ->
+                createChannel(event.name, EMPTY_STRING)
+
+            is ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel ->
+                unsubscribeFromChannel(event.name)
+
+            is ChannelsPageScreenEvent.Ui.DeleteChannel -> deleteChannel(event.channelId)
         }
     }
 
     override fun onCleared() {
         super.onCleared()
+        channelEventsJob?.cancel()
+        subscriptionEventsJob?.cancel()
+        vmScope.launch {
+            channelEvents.deleteQueue()
+            subscriptionEvents.deleteQueue()
+        }
         stopUpdateMessagesCountJob()
         cache.clear()
     }
@@ -145,17 +176,19 @@ class ChannelsPageFragmentViewModel(
             isLoading = false
             result.onSuccess { newChannels ->
                 updateChannelsList(newChannels)
+                registerEventsQueues()
             }.onFailure {
                 handleErrors(it)
             }
         }
     }
 
-    private fun onScrolled(event: ChannelsPageScreenEvent.Ui.OnScrolled) {
-        if ((!event.canScrollUp && event.dy <= ChannelsPageScreenEvent.DIRECTION_UP) ||
-            (!event.canScrollDown && event.dy >= ChannelsPageScreenEvent.DIRECTION_DOWN)
-        ) {
-            loadItems()
+    private fun scrollStateIdleHandler(event: ChannelsPageScreenEvent.Ui.ScrollStateIdle) {
+        if (isDraggingWithoutScroll) {
+            isDraggingWithoutScroll = false
+            if (!event.canScrollUp || !event.canScrollDown) {
+                loadItems()
+            }
         }
     }
 
@@ -169,6 +202,47 @@ class ChannelsPageFragmentViewModel(
                     if (delegateItem is TopicDelegateItem) updateTopicDelegateItem(delegateItem, i)
                 }
             }
+        }
+    }
+
+    private fun createChannel(name: CharSequence?, description: CharSequence?) {
+        val trimmedName = name.toString().trim()
+        if (trimmedName.isNotBlank()) vmScope.launch {
+            createChannelUseCase(trimmedName, description.toString().trim()).onFailure {
+                handleErrors(it)
+            }
+        }
+    }
+
+    private fun unsubscribeFromChannel(name: String) {
+        vmScope.launch {
+            unsubscribeFromChannelUseCase(name).onFailure {
+                handleErrors(it)
+            }
+        }
+    }
+
+    private fun deleteChannel(channelId: Long) {
+        vmScope.launch {
+            deleteChannelUseCase(channelId).onFailure {
+                handleErrors(it)
+            }
+        }
+    }
+
+    private fun showChannelMenu(event: ChannelsPageScreenEvent.Ui.ShowChannelMenu) {
+        vmScope.launch {
+            getChannelSubscriptionStatusUseCase(event.channelItem.channel.channelId)
+                .onSuccess { isSubscribed ->
+                    _effects.emit(
+                        ChannelsPageScreenEffect.ShowChannelMenu(
+                            event.view, event.channelItem,
+                            !isSubscribed, isSubscribed, authorizationStorage.isAdmin()
+                        )
+                    )
+                }.onFailure {
+                    handleErrors(it)
+                }
         }
     }
 
@@ -229,34 +303,59 @@ class ChannelsPageFragmentViewModel(
             .launchIn(vmScope)
     }
 
-    private fun handleOnSuccessQueueRegistration() {
-        vmScope.launch(defaultDispatcher) {
+    private fun handleOnChannelEventsRegistration() {
+        channelEventsJob?.cancel()
+        channelEventsJob = vmScope.launch(defaultDispatcher) {
             while (isActive) {
-                delay(DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO)
-                getChannelEventsUseCase(eventsQueue.queue, channelsFilter).onSuccess { events ->
-                    val newChannels = mutableListOf<Channel>()
-                    newChannels.addAll(cache
-                        .filterIsInstance<ChannelDelegateItem>()
-                        .filter { channelDelegateItem ->
-                            val event = events.find { channelEvent ->
-                                channelEvent.channel.channelId == channelDelegateItem.id()
-                            }
-                            event == null || (event.operation != ChannelEvent.Operation.DELETE)
-                        }.map { (it.content() as ChannelItem).channel }
-                    )
-                    var lastEventId = eventsQueue.queue.lastEventId
-                    events
-                        .filter { it.operation != ChannelEvent.Operation.DELETE }
-                        .filter { !newChannels.contains(it.channel) }
-                        .forEach {
-                            lastEventId = it.id
-                            newChannels.add(it.channel)
-                        }
-                    eventsQueue.queue = eventsQueue.queue.copy(lastEventId = lastEventId)
-                    updateChannelsList(newChannels)
+                delay(DELAY_BEFORE_CHANNEL_EVENTS)
+                getChannelEventsUseCase(channelEvents.queue, channelsFilter).onSuccess {
+                    eventsHandler(channelEvents, it)
                 }
             }
         }
+    }
+
+    private fun handleOnChannelSubscriptionEventsRegistration() {
+        subscriptionEventsJob?.cancel()
+        subscriptionEventsJob = vmScope.launch(defaultDispatcher) {
+            while (isActive) {
+                delay(DELAY_BEFORE_CHANNEL_SUBSCRIPTION_EVENTS)
+                getChannelSubscriptionEventsUseCase(subscriptionEvents.queue, channelsFilter)
+                    .onSuccess {
+                        eventsHandler(subscriptionEvents, it)
+                    }
+            }
+        }
+    }
+
+    private suspend fun eventsHandler(
+        eventsQueueHolder: EventsQueueHolder,
+        events: List<ChannelEvent>,
+    ) {
+        val newChannels = mutableListOf<Channel>()
+        newChannels.addAll(cache
+            .filterIsInstance<ChannelDelegateItem>()
+            .filter { channelDelegateItem ->
+                val event = events.find { channelEvent ->
+                    channelEvent.channel.channelId == channelDelegateItem.id()
+                }
+                event == null ||
+                        (event.operation != EventOperation.DELETE &&
+                                event.operation != EventOperation.REMOVE)
+            }.map { (it.content() as ChannelItem).channel }
+        )
+        var lastEventId = eventsQueueHolder.queue.lastEventId
+        events
+            .filter {
+                it.operation != EventOperation.DELETE && it.operation != EventOperation.REMOVE
+            }
+            .filter { !newChannels.contains(it.channel) }
+            .forEach {
+                lastEventId = it.id
+                newChannels.add(it.channel)
+            }
+        eventsQueueHolder.queue = eventsQueueHolder.queue.copy(lastEventId = lastEventId)
+        updateChannelsList(newChannels)
     }
 
     private suspend fun unfoldChannel(channelItem: ChannelItem) {
@@ -392,25 +491,21 @@ class ChannelsPageFragmentViewModel(
                 result.addAll(channelTopics)
             }
         }
+        result.add(CreateChannelDelegateItem())
         return result
     }
 
-    private fun registerEventQueue() {
-        vmScope.launch {
-            eventsQueue.registerQueue(listOf(EventType.CHANNEL), ::handleOnSuccessQueueRegistration)
-        }
-    }
-
-    private fun deleteEventQueue() {
-        vmScope.launch {
-            eventsQueue.deleteQueue()
-        }
+    private fun registerEventsQueues() {
+        channelEvents.registerQueue(listOf(EventType.CHANNEL), ::handleOnChannelEventsRegistration)
+        subscriptionEvents.registerQueue(
+            listOf(EventType.CHANNEL_SUBSCRIPTION), ::handleOnChannelSubscriptionEventsRegistration
+        )
     }
 
     private companion object {
 
-        const val EMPTY_NAME = ""
-        const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
+        const val DELAY_BEFORE_CHANNEL_EVENTS = 3_000L
+        const val DELAY_BEFORE_CHANNEL_SUBSCRIPTION_EVENTS = 5_000L
         const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
     }
 }

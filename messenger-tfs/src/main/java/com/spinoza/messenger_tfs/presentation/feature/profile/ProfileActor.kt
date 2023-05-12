@@ -18,6 +18,7 @@ import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScree
 import com.spinoza.messenger_tfs.presentation.feature.profile.model.ProfileScreenEvent
 import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -39,9 +40,11 @@ class ProfileActor @Inject constructor(
     private val lifecycleScope = lifecycle.coroutineScope
     private var user: User? = null
     private var isUserChanged = false
+    private var eventsQueueJob: Job? = null
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
+            eventsQueueJob?.cancel()
             lifecycleScope.launch {
                 eventsQueue.deleteQueue()
             }
@@ -115,7 +118,8 @@ class ProfileActor @Inject constructor(
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        lifecycleScope.launch(defaultDispatcher) {
+        eventsQueueJob?.cancel()
+        eventsQueueJob = lifecycleScope.launch(defaultDispatcher) {
             while (user != null) {
                 getPresenceEventsUseCase(eventsQueue.queue).onSuccess { events ->
                     user?.let { userNotNull ->

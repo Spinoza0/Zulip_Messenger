@@ -1,8 +1,10 @@
 package com.spinoza.messenger_tfs.data.network.apiservice
 
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
 import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
+import com.spinoza.messenger_tfs.data.network.model.WebLimitationsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
@@ -10,6 +12,7 @@ import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageRespons
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.PresenceResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.AllStreamsResponse
+import com.spinoza.messenger_tfs.data.network.model.stream.StreamSubscriptionStatusResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.SubscribedStreamsResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
@@ -28,6 +31,49 @@ interface ZulipApiService {
         @Query(QUERY_PASSWORD) password: String,
     ): ApiKeyResponse
 
+    @POST("users/me/presence?status=active")
+    suspend fun setOwnStatusActive()
+
+    @POST("messages/{$QUERY_MESSAGE_ID}/reactions")
+    suspend fun addReaction(
+        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Query(QUERY_EMOJI_NAME) emojiName: String,
+    ): BasicResponse
+
+    @POST("messages")
+    suspend fun sendMessageToStream(
+        @Query(QUERY_TO) streamId: Long,
+        @Query(QUERY_TOPIC) topic: String,
+        @Query(QUERY_CONTENT) content: String,
+        @Query(QUERY_TYPE) type: String = SEND_MESSAGE_TYPE_STREAM,
+    ): SendMessageResponse
+
+    @POST("register")
+    suspend fun registerEventQueue(
+        @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
+        @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
+        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
+    ): RegisterEventQueueResponse
+
+    @POST("register")
+    suspend fun getWebLimitations(
+        @Query(QUERY_FETCH_EVENT_TYPES) fetchEventTypes: String = QUERY_WEB_LIMITATION,
+    ): WebLimitationsResponse
+
+    @POST("messages/flags")
+    suspend fun setMessageFlagsToRead(
+        @Query(QUERY_MESSAGE_IDS) messageIds: String,
+        @Query(QUERY_OPERATION) operation: String = QUERY_OPERATION_ADD,
+        @Query(QUERY_FLAG) flag: String = QUERY_FLAG_READ,
+    ): BasicResponse
+
+    @Multipart
+    @POST("user_uploads")
+    suspend fun uploadFile(@Part filePart: MultipartBody.Part): UploadFileResponse
+
+    @POST("users/me/subscriptions")
+    suspend fun subscribeToStream(@Query(QUERY_SUBSCRIPTIONS) subscriptions: String): BasicResponse
+
     @GET("users/me")
     suspend fun getOwnUser(): OwnUserResponse
 
@@ -43,8 +89,11 @@ interface ZulipApiService {
     @GET("realm/presence")
     suspend fun getAllPresences(): Response<AllPresencesResponse>
 
-    @POST("users/me/presence?status=active")
-    suspend fun setOwnStatusActive()
+    @GET("users/{$QUERY_USER_ID}/subscriptions/{$QUERY_STREAM_ID}")
+    suspend fun getStreamSubscriptionStatus(
+        @Path(QUERY_USER_ID) userId: Long,
+        @Path(QUERY_STREAM_ID) streamId: Long,
+    ): StreamSubscriptionStatusResponse
 
     @GET("users/me/subscriptions")
     suspend fun getSubscribedStreams(): SubscribedStreamsResponse
@@ -79,17 +128,11 @@ interface ZulipApiService {
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): SingleMessageResponse
 
-    @POST("messages/{$QUERY_MESSAGE_ID}/reactions")
-    suspend fun addReaction(
-        @Path(QUERY_MESSAGE_ID) messageId: Long,
-        @Query(QUERY_EMOJI_NAME) emojiName: String,
-    ): BasicResponse
-
-    @DELETE("messages/{$QUERY_MESSAGE_ID}/reactions")
-    suspend fun removeReaction(
-        @Path(QUERY_MESSAGE_ID) messageId: Long,
-        @Query(QUERY_EMOJI_NAME) emojiName: String,
-    ): BasicResponse
+    @GET("events")
+    suspend fun getEventsFromQueue(
+        @Query(QUERY_QUEUE_ID) queueId: String,
+        @Query(QUERY_LAST_EVENT_ID) lastEventId: Long,
+    ): Response<ResponseBody>
 
     @PATCH("messages/{$QUERY_MESSAGE_ID}")
     suspend fun editMessageTopic(
@@ -105,43 +148,26 @@ interface ZulipApiService {
         @Query(QUERY_CONTENT) content: String,
     ): BasicResponse
 
+    @DELETE("messages/{$QUERY_MESSAGE_ID}/reactions")
+    suspend fun removeReaction(
+        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Query(QUERY_EMOJI_NAME) emojiName: String,
+    ): BasicResponse
+
     @DELETE("messages/{$QUERY_MESSAGE_ID}")
     suspend fun deleteMessage(@Path(QUERY_MESSAGE_ID) messageId: Long): BasicResponse
-
-    @POST("messages")
-    suspend fun sendMessageToStream(
-        @Query(QUERY_TO) streamId: Long,
-        @Query(QUERY_TOPIC) topic: String,
-        @Query(QUERY_CONTENT) content: String,
-        @Query(QUERY_TYPE) type: String = SEND_MESSAGE_TYPE_STREAM,
-    ): SendMessageResponse
-
-    @POST("register")
-    suspend fun registerEventQueue(
-        @Query(QUERY_NARROW) narrow: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_EVENT_TYPES) eventTypes: String = DEFAULT_EMPTY_JSON,
-        @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
-    ): RegisterEventQueueResponse
 
     @DELETE("events")
     suspend fun deleteEventQueue(@Query(QUERY_QUEUE_ID) queueId: String): BasicResponse
 
-    @GET("events")
-    suspend fun getEventsFromQueue(
-        @Query(QUERY_QUEUE_ID) queueId: String,
-        @Query(QUERY_LAST_EVENT_ID) lastEventId: Long,
-    ): Response<ResponseBody>
-
-    @POST("messages/flags")
-    suspend fun setMessageFlagsToRead(
-        @Query(QUERY_MESSAGE_IDS) messageIds: String,
-        @Query(QUERY_OPERATION) operation: String = QUERY_OPERATION_ADD,
-        @Query(QUERY_FLAG) flag: String = QUERY_FLAG_READ,
+    @DELETE("users/me/subscriptions")
+    suspend fun unsubscribeFromStream(
+        @Query(QUERY_SUBSCRIPTIONS) subscriptions: String,
+        @Query(QUERY_STREAM_PRINCIPALS) principals: String,
     ): BasicResponse
 
-    @Multipart
-    @POST("user_uploads")
-    suspend fun uploadFile(@Part filePart: MultipartBody.Part): UploadFileResponse
+    @DELETE("streams/{$QUERY_STREAM_ID}")
+    suspend fun deleteStream(@Path(QUERY_STREAM_ID) streamId: Long): BasicResponse
 
     companion object {
 
@@ -150,10 +176,12 @@ interface ZulipApiService {
         const val ANCHOR_NEWEST = "newest"
         const val ANCHOR_OLDEST = "oldest"
         const val ANCHOR_FIRST_UNREAD = "first_unread"
-        const val MAX_MESSAGES_PACKET = 20
-        const val HALF_MESSAGES_PACKET = 10
+        const val MAX_MESSAGES_PACKET = BuildConfig.MAX_MESSAGES_PACKET
+        const val HALF_MESSAGES_PACKET = MAX_MESSAGES_PACKET / 2
         const val EMPTY_MESSAGES_PACKET = 0
 
+        private const val QUERY_SUBSCRIPTIONS = "subscriptions"
+        private const val QUERY_STREAM_PRINCIPALS = "principals"
         private const val QUERY_USERNAME = "username"
         private const val QUERY_PASSWORD = "password"
         private const val QUERY_USER_ID = "user_id"
@@ -169,6 +197,9 @@ interface ZulipApiService {
         private const val QUERY_EVENT_TYPES = "event_types"
         private const val QUERY_APPLY_MARKDOWN = "apply_markdown"
         private const val QUERY_TO = "to"
+
+        private const val QUERY_FETCH_EVENT_TYPES = "fetch_event_types"
+        private const val QUERY_WEB_LIMITATION = "[\"realm\"]"
 
         private const val QUERY_MESSAGE_IDS = "messages"
         private const val QUERY_OPERATION = "op"

@@ -3,14 +3,16 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.network.WebUtil
-import com.spinoza.messenger_tfs.domain.util.SECONDS_IN_DAY
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
+import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessageDraft
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenState
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
+import com.spinoza.messenger_tfs.presentation.feature.messages.util.isReadyToSend
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import com.spinoza.messenger_tfs.presentation.navigation.Screens
 import vivid.money.elmslie.core.store.dsl_reducer.ScreenDslReducer
@@ -20,6 +22,7 @@ class MessagesReducer @Inject constructor(
     private val router: AppRouter,
     private val webUtil: WebUtil,
     private val authorizationStorage: AuthorizationStorage,
+    private val webLimitation: WebLimitation,
 ) : ScreenDslReducer<
         MessagesScreenEvent,
         MessagesScreenEvent.Ui,
@@ -33,6 +36,7 @@ class MessagesReducer @Inject constructor(
     private val visibleMessageIds = mutableSetOf<Long>()
     private var isLastMessageVisible = false
     private var messageSentId = Message.UNDEFINED_ID
+    private var isDraggingWithoutScroll = false
 
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {
@@ -44,12 +48,6 @@ class MessagesReducer @Inject constructor(
                     messages = event.value
                 )
             }
-            commands {
-                +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
-            }
         }
 
         is MessagesScreenEvent.Internal.StoredMessages -> {
@@ -60,7 +58,13 @@ class MessagesReducer @Inject constructor(
                     messages = event.value
                 )
             }
-            commands { +MessagesScreenCommand.LoadFirstPage(event.value.messages.isEmpty()) }
+            commands {
+                +MessagesScreenCommand.LoadFirstPage(event.value.messages.isEmpty())
+                +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
+                +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
+            }
         }
 
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
@@ -114,8 +118,16 @@ class MessagesReducer @Inject constructor(
             state { copy(isSendingMessage = false, isNewMessageExisting = false) }
         }
 
-        is MessagesScreenEvent.Internal.IconActionResId ->
-            state { copy(iconActionResId = event.value) }
+        is MessagesScreenEvent.Internal.MessageContentChanged ->
+            state { copy(isSendingMessage = false) }
+
+        is MessagesScreenEvent.Internal.MessageTopicChanged -> {
+            state { copy(isSendingMessage = false) }
+            effects { +MessagesScreenEffect.MessageTopicChanged(event.newTopicName) }
+        }
+
+        is MessagesScreenEvent.Internal.NewMessageDraft ->
+            effects { +MessagesScreenEffect.NewMessageDraft(event.value) }
 
         is MessagesScreenEvent.Internal.NextPageExists -> {
             if (event.isGoingToLastMessage) {
@@ -159,44 +171,39 @@ class MessagesReducer @Inject constructor(
 
     override fun Result.ui(event: MessagesScreenEvent.Ui) = when (event) {
         is MessagesScreenEvent.Ui.MessagesOnScrolled -> {
-            if (event.dy.isScrollUp()) {
-                state { copy(isLongOperation = false) }
-                if (event.firstVisiblePosition <= BORDER_POSITION || !event.canScrollUp) {
-                    state { copy(isLongOperation = true) }
-                    commands { +MessagesScreenCommand.LoadPreviousPage }
-                }
-            }
-            if (event.dy.isScrollDown()) {
-                state { copy(isLongOperation = false) }
-                if (event.lastVisiblePosition >= (event.itemCount - BORDER_POSITION) ||
-                    !event.canScrollDown
-                ) {
-                    state.messages?.let {
-                        commands { +MessagesScreenCommand.IsNextPageExisting(it, false) }
-                    } ?: {
-                        commands { +MessagesScreenCommand.LoadNextPage }
-                    }
-                }
-            }
+            isDraggingWithoutScroll = false
             visibleMessageIds.addAll(event.visibleMessagesIds)
             isLastMessageVisible = event.isLastMessageVisible
             state { copy(isNextMessageExisting = event.isNextMessageExisting) }
         }
 
         is MessagesScreenEvent.Ui.MessagesScrollStateIdle -> {
-            val list = visibleMessageIds.toList()
-            if (visibleMessageIds.size > MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS) {
-                visibleMessageIds.clear()
+            if (isDraggingWithoutScroll) {
+                isDraggingWithoutScroll = false
+                if (!event.canScrollUp) {
+                    commands { +MessagesScreenCommand.LoadPreviousPage }
+                }
+                if (!event.canScrollDown) {
+                    commands { +MessagesScreenCommand.LoadNextPage }
+                }
+            } else {
+                val list = visibleMessageIds.toList()
+                if (visibleMessageIds.size > MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS) {
+                    visibleMessageIds.clear()
+                }
+                commands { +MessagesScreenCommand.SetMessagesRead(list) }
             }
             state { copy(isNextMessageExisting = event.isNextMessageExisting) }
-            commands { +MessagesScreenCommand.SetMessagesRead(list) }
         }
 
-        is MessagesScreenEvent.Ui.NewMessageText -> {
+        is MessagesScreenEvent.Ui.MessagesScrollStateDragging -> isDraggingWithoutScroll = true
+        is MessagesScreenEvent.Ui.NewMessageText ->
             commands { +MessagesScreenCommand.NewMessageText(event.value) }
-        }
 
-        is MessagesScreenEvent.Ui.OnMessageLongClick -> {
+        is MessagesScreenEvent.Ui.NewTopicName ->
+            commands { +MessagesScreenCommand.NewTopicName(event.value) }
+
+        is MessagesScreenEvent.Ui.ShowChooseActionMenu -> {
             val messageView = event.messageView
             val isAdmin = authorizationStorage.isAdmin()
             val attachments = webUtil.getAttachmentsUrls(messageView.rawContent)
@@ -216,12 +223,22 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Ui.Load ->
             commands { +MessagesScreenCommand.LoadStored(event.filter) }
 
+        is MessagesScreenEvent.Ui.LoadPreviousPage ->
+            commands { +MessagesScreenCommand.LoadPreviousPage }
+
+        is MessagesScreenEvent.Ui.LoadNextPage -> state.messages?.let {
+            commands { +MessagesScreenCommand.IsNextPageExisting(it, false) }
+        } ?: {
+            commands { +MessagesScreenCommand.LoadNextPage }
+        }
+
         is MessagesScreenEvent.Ui.SendMessage -> {
-            val text = event.value.toString().trim()
-            when (text.isNotEmpty()) {
+            val messageDraft =
+                MessageDraft(event.subject.toString().trim(), event.content.toString().trim())
+            when (messageDraft.isReadyToSend(event.messagesFilter)) {
                 true -> {
                     state { copy(isSendingMessage = true) }
-                    commands { +MessagesScreenCommand.SendMessage(text) }
+                    commands { +MessagesScreenCommand.SendMessage(messageDraft) }
                 }
 
                 false -> effects { +MessagesScreenEffect.AddAttachment }
@@ -287,11 +304,26 @@ class MessagesReducer @Inject constructor(
             }
         }
 
-        is MessagesScreenEvent.Ui.EditMessageContent ->
-            commands { +MessagesScreenCommand.EditMessageContent(event.messageId, event.content) }
+        is MessagesScreenEvent.Ui.EditMessageContent -> {
+            if (event.oldContent != event.content) {
+                state { copy(isLongOperation = true) }
+                commands {
+                    +MessagesScreenCommand.EditMessageContent(
+                        event.messageId,
+                        event.content
+                    )
+                }
+            }
+            effects {}
+        }
 
-        is MessagesScreenEvent.Ui.EditMessageTopic ->
-            commands { +MessagesScreenCommand.EditMessageTopic(event.messageId, event.topic) }
+        is MessagesScreenEvent.Ui.EditMessageTopic -> {
+            if (!event.oldTopic.equals(event.topic.toString(), ignoreCase = true)) {
+                state { copy(isLongOperation = true) }
+                commands { +MessagesScreenCommand.EditMessageTopic(event.messageId, event.topic) }
+            }
+            effects {}
+        }
 
         is MessagesScreenEvent.Ui.SaveAttachments ->
             commands { +MessagesScreenCommand.SaveAttachments(event.context, event.urls) }
@@ -317,16 +349,14 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Ui.Init -> {}
     }
 
-    private fun Int.isScrollUp() = this < 0
-
-    private fun Int.isScrollDown() = this > 0
-
     private fun MessageView.isMessageEditable(): Boolean {
-        return (getCurrentTimestamp() - this.date.fullTimeStamp) < MESSAGE_EDITABLE_TIME_IN_SECONDS
+        return (getCurrentTimestamp() - this.date.fullTimeStamp) <
+                webLimitation.getMessageContentEditLimitSeconds()
     }
 
     private fun MessageView.isTopicEditable(): Boolean {
-        return (getCurrentTimestamp() - this.date.fullTimeStamp) < TOPIC_EDITABLE_TIME_IN_SECONDS
+        return (getCurrentTimestamp() - this.date.fullTimeStamp) <
+                webLimitation.getTopicEditingLimitSeconds()
     }
 
     private fun MessageView.isOwn(): Boolean {
@@ -335,9 +365,6 @@ class MessagesReducer @Inject constructor(
 
     private companion object {
 
-        const val BORDER_POSITION = 5
         const val MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS = 50
-        const val MESSAGE_EDITABLE_TIME_IN_SECONDS = 300
-        const val TOPIC_EDITABLE_TIME_IN_SECONDS = SECONDS_IN_DAY * 3
     }
 }

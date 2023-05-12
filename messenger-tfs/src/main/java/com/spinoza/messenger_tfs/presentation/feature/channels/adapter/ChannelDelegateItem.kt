@@ -14,7 +14,7 @@ class ChannelDelegateItem(private val value: ChannelItem) : DelegateAdapterItem 
     }
 
     override fun compareToOther(other: DelegateAdapterItem): Boolean {
-        return (other as ChannelDelegateItem).value == content()
+        return (other as ChannelDelegateItem).value == value
     }
 
     override fun getChangePayload(newItem: DelegateAdapterItem): Any? {
