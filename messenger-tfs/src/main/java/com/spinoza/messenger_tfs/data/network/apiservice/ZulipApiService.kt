@@ -160,6 +160,12 @@ interface ZulipApiService {
     @DELETE("events")
     suspend fun deleteEventQueue(@Query(QUERY_QUEUE_ID) queueId: String): BasicResponse
 
+    @DELETE("users/me/subscriptions")
+    suspend fun unsubscribeFromStream(
+        @Query(QUERY_SUBSCRIPTIONS) subscriptions: String,
+        @Query(QUERY_STREAM_PRINCIPALS) principals: String,
+    ): BasicResponse
+
     companion object {
 
         const val RESULT_SUCCESS = "success"
@@ -172,6 +178,7 @@ interface ZulipApiService {
         const val EMPTY_MESSAGES_PACKET = 0
 
         private const val QUERY_SUBSCRIPTIONS = "subscriptions"
+        private const val QUERY_STREAM_PRINCIPALS = "principals"
         private const val QUERY_USERNAME = "username"
         private const val QUERY_PASSWORD = "password"
         private const val QUERY_USER_ID = "user_id"

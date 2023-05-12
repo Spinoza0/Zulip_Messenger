@@ -229,12 +229,12 @@ class ChannelsPageFragment : Fragment() {
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.itemSubscribeChannel -> {
-                    //
+                    store.accept(ChannelsPageScreenEvent.Ui.SubscribeToChannel(effect.title))
                     true
                 }
 
                 R.id.itemUnsubscribeChannel -> {
-                    //
+                    store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(effect.title))
                     true
                 }
 

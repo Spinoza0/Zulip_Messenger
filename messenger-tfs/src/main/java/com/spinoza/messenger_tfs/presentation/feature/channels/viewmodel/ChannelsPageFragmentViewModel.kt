@@ -39,6 +39,7 @@ class ChannelsPageFragmentViewModel(
     private val getChannelsUseCase: GetChannelsUseCase,
     private val getChannelSubscriptionStatusUseCase: GetChannelSubscriptionStatusUseCase,
     private val createChannelUseCase: CreateChannelUseCase,
+    private val unsubscribeFromChannelUseCase: UnsubscribeFromChannelUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
@@ -87,8 +88,15 @@ class ChannelsPageFragmentViewModel(
             is ChannelsPageScreenEvent.Ui.RegisterEventQueue -> registerEventQueue()
             is ChannelsPageScreenEvent.Ui.DeleteEventQueue -> deleteEventQueue()
             is ChannelsPageScreenEvent.Ui.CheckLoginStatus -> checkLoginStatus()
-            is ChannelsPageScreenEvent.Ui.CreateChannel -> createChannel(event)
             is ChannelsPageScreenEvent.Ui.ShowChannelMenu -> showChannelMenu(event)
+            is ChannelsPageScreenEvent.Ui.CreateChannel ->
+                createChannel(event.name, event.description)
+
+            is ChannelsPageScreenEvent.Ui.SubscribeToChannel ->
+                createChannel(event.name, EMPTY_STRING)
+
+            is ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel ->
+                unsubscribeFromChannel(event.name)
         }
     }
 
@@ -182,12 +190,20 @@ class ChannelsPageFragmentViewModel(
         }
     }
 
-    private fun createChannel(event: ChannelsPageScreenEvent.Ui.CreateChannel) {
-        val name = event.name.toString()
-        if (name.isNotBlank()) vmScope.launch {
-            _state.emit(state.value.copy(isLoading = true))
-            createChannelUseCase(name.trim(), event.description.toString().trim()).onSuccess {
-                _state.emit(state.value.copy(isLoading = false))
+    private fun createChannel(name: CharSequence?, description: CharSequence?) {
+        val trimmedName = name.toString().trim()
+        if (trimmedName.isNotBlank()) vmScope.launch {
+            createChannelUseCase(trimmedName, description.toString().trim()).onSuccess {
+                loadItems()
+            }.onFailure {
+                handleErrors(it)
+            }
+        }
+    }
+
+    private fun unsubscribeFromChannel(name: String) {
+        vmScope.launch {
+            unsubscribeFromChannelUseCase(name).onSuccess {
                 loadItems()
             }.onFailure {
                 handleErrors(it)
@@ -436,9 +452,7 @@ class ChannelsPageFragmentViewModel(
     }
 
     private fun registerEventQueue() {
-        vmScope.launch {
-            eventsQueue.registerQueue(listOf(EventType.CHANNEL), ::handleOnSuccessQueueRegistration)
-        }
+        eventsQueue.registerQueue(listOf(EventType.CHANNEL), ::handleOnSuccessQueueRegistration)
     }
 
     private fun deleteEventQueue() {
@@ -449,7 +463,7 @@ class ChannelsPageFragmentViewModel(
 
     private companion object {
 
-        const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 15_000L
+        const val DELAY_BEFORE_CHANNELS_LIST_UPDATE_INFO = 3_000L
         const val DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO = 60_000L
     }
 }

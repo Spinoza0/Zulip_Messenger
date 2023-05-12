@@ -261,6 +261,18 @@ class WebRepositoryImpl @Inject constructor(
             }
         }
 
+    override suspend fun unsubscribeFromChannel(name: String): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                val subscriptions = Json.encodeToString(listOf(name))
+                val principals = Json.encodeToString(listOf(authorizationStorage.getUserId()))
+                apiRequest<BasicResponse> {
+                    apiService.unsubscribeFromStream(subscriptions, principals)
+                }
+                true
+            }
+        }
+
     override suspend fun getChannelSubscriptionStatus(channelId: Long): Result<Boolean> =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {

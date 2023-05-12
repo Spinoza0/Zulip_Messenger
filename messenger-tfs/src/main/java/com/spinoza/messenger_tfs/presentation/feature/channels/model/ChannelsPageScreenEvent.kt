@@ -33,5 +33,9 @@ sealed class ChannelsPageScreenEvent {
         class CreateChannel(val name: CharSequence?, val description: CharSequence?) : Ui()
 
         class ShowChannelMenu(val channelItem: ChannelItem, val view: View) : Ui()
+
+        class SubscribeToChannel(val name: String) : Ui()
+
+        class UnsubscribeFromChannel(val name: String) : Ui()
     }
 }

@@ -42,6 +42,8 @@ interface WebRepository {
 
     suspend fun createChannel(name: String, description: String): Result<Boolean>
 
+    suspend fun unsubscribeFromChannel(name: String): Result<Boolean>
+
     suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>
 
     suspend fun getTopics(channel: Channel): Result<List<Topic>>

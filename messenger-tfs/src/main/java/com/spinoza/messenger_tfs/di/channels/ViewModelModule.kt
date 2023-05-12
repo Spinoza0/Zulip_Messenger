@@ -11,6 +11,7 @@ import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredChannelsUseCas
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredTopicsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetTopicUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetTopicsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.channels.UnsubscribeFromChannelUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
@@ -50,6 +51,7 @@ interface ViewModelModule {
             getTopicUseCase: GetTopicUseCase,
             getChannelEventsUseCase: GetChannelEventsUseCase,
             createChannelUseCase: CreateChannelUseCase,
+            unsubscribeFromChannelUseCase: UnsubscribeFromChannelUseCase,
             registerEventQueueUseCase: RegisterEventQueueUseCase,
             deleteEventQueueUseCase: DeleteEventQueueUseCase,
             @DispatcherDefault defaultDispatcher: CoroutineDispatcher,
@@ -65,6 +67,7 @@ interface ViewModelModule {
                 getChannelsUseCase,
                 getChannelSubscriptionStatusUseCase,
                 createChannelUseCase,
+                unsubscribeFromChannelUseCase,
                 getTopicUseCase,
                 getChannelEventsUseCase,
                 registerEventQueueUseCase,
