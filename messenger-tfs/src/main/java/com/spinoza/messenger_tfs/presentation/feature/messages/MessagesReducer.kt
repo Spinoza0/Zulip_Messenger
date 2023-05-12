@@ -350,12 +350,12 @@ class MessagesReducer @Inject constructor(
     }
 
     private fun MessageView.isMessageEditable(): Boolean {
-        return (getCurrentTimestamp() - this.date.fullTimeStamp) <
+        return (getCurrentTimestamp() - this.datetime.fullTimeStamp) <
                 webLimitation.getMessageContentEditLimitSeconds()
     }
 
     private fun MessageView.isTopicEditable(): Boolean {
-        return (getCurrentTimestamp() - this.date.fullTimeStamp) <
+        return (getCurrentTimestamp() - this.datetime.fullTimeStamp) <
                 webLimitation.getTopicEditingLimitSeconds()
     }
 

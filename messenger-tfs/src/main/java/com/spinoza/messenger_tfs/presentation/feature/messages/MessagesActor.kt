@@ -11,7 +11,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.MessageDateTime
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
@@ -615,16 +615,16 @@ class MessagesActor @Inject constructor(
 
     private fun List<Message>.groupByDate(userId: Long): List<DelegateAdapterItem> {
         val messageAdapterItemList = mutableListOf<DelegateAdapterItem>()
-        val dates = TreeSet<MessageDate>()
+        val dates = TreeSet<MessageDateTime>()
         forEach {
-            dates.add(it.date)
+            dates.add(it.datetime)
         }
         var lastTopicName = EMPTY_STRING
         dates.forEach { messageDate ->
             messageAdapterItemList.add(DateDelegateItem(messageDate))
             var isDateChanged = true
             val allDayMessages = this.filter { message ->
-                message.date.dateString == messageDate.dateString
+                message.datetime.dateString == messageDate.dateString
             }
             allDayMessages.forEach { message ->
                 if (messagesFilter.topic.name.isEmpty() &&

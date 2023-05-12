@@ -16,7 +16,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.MessageLayoutBinding
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.MessageDateTime
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import com.spinoza.messenger_tfs.domain.model.User
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
@@ -50,10 +50,12 @@ class MessageView @JvmOverloads constructor(
     val avatarImage: ImageView
         get() = binding.avatarImageView
 
-    var date = MessageDate()
+    var datetime = MessageDateTime()
 
     var subject = EMPTY_STRING
 
+    private val timePaddingEnd = TIME_PADDING_END.dpToPx(this).toInt()
+    private val timePaddingBottom = TIME_PADDING_BOTTOM.dpToPx(this).toInt()
     private val ioDispatcher = context.getAppComponent().getDispatcherIO()
     private var imageJob: Job? = null
 
@@ -127,6 +129,15 @@ class MessageView @JvmOverloads constructor(
         var offsetX = paddingLeft
         var offsetY = paddingTop
         var maxChildWidth = 0
+
+        measureChildWithMargins(
+            binding.timeTextView,
+            widthMeasureSpec,
+            offsetX,
+            heightMeasureSpec,
+            offsetY
+        )
+
         if (binding.avatarImageView.isVisible) {
             measureChildWithMargins(
                 binding.avatarImageView,
@@ -180,32 +191,38 @@ class MessageView @JvmOverloads constructor(
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         var offsetX = paddingLeft
         var offsetY = paddingTop
-        val textWidth = maxOf(
-            binding.nameTextView.getWidthWithMargins(),
-            binding.contentTextView.getWidthWithMargins()
-        )
+        with(binding) {
+            val textWidth = maxOf(
+                nameTextView.getWidthWithMargins(),
+                contentTextView.getWidthWithMargins()
+            )
 
-        if (binding.avatarImageView.isVisible) {
-            binding.avatarImageView.layoutWithMargins(offsetX, offsetY)
-            offsetX += binding.avatarImageView.getWidthWithMargins()
-        }
-
-
-        if (binding.nameTextView.isVisible) {
-            binding.nameTextView.layoutWithMargins(offsetX, offsetY, textWidth)
-            offsetY += binding.nameTextView.getHeightWithMargins()
-        }
-
-        binding.contentTextView.layoutWithMargins(offsetX, offsetY, textWidth)
-        offsetY += binding.contentTextView.getHeightWithMargins()
-
-        if (reactionsGravity == FlexBoxGravity.END) {
-            val reactionsWidth = binding.reactionsFlexBoxLayout.getWidthWithMargins()
-            if (reactionsWidth < textWidth) {
-                offsetX += textWidth - reactionsWidth
+            if (avatarImageView.isVisible) {
+                avatarImageView.layoutWithMargins(offsetX, offsetY)
+                offsetX += avatarImageView.getWidthWithMargins()
             }
+
+
+            if (nameTextView.isVisible) {
+                nameTextView.layoutWithMargins(offsetX, offsetY, textWidth)
+                offsetY += nameTextView.getHeightWithMargins()
+            }
+
+            contentTextView.layoutWithMargins(offsetX, offsetY, textWidth)
+            offsetY += contentTextView.getHeightWithMargins()
+            timeTextView.layoutWithMargins(
+                offsetX + textWidth - timeTextView.measuredWidth - timePaddingEnd,
+                offsetY - timeTextView.measuredHeight - timePaddingBottom
+            )
+
+            if (reactionsGravity == FlexBoxGravity.END) {
+                val reactionsWidth = reactionsFlexBoxLayout.getWidthWithMargins()
+                if (reactionsWidth < textWidth) {
+                    offsetX += textWidth - reactionsWidth
+                }
+            }
+            reactionsFlexBoxLayout.layoutWithMargins(offsetX, offsetY)
         }
-        binding.reactionsFlexBoxLayout.layoutWithMargins(offsetX, offsetY)
     }
 
     override fun generateLayoutParams(attrs: AttributeSet?): LayoutParams {
@@ -258,8 +275,9 @@ class MessageView @JvmOverloads constructor(
         userId = message.user.userId
         name = message.user.fullName
         content = message.content
-        date = message.date
+        datetime = message.datetime
         subject = message.subject
+        binding.timeTextView.text = datetime.timeString
         this.reactionsGravity = reactionsGravity
         setReactions(message.reactions)
     }
@@ -297,5 +315,7 @@ class MessageView @JvmOverloads constructor(
 
         const val REACTION_PADDING_HORIZONTAL = 10f
         const val REACTION_PADDING_VERTICAL = 7f
+        const val TIME_PADDING_END = 12f
+        const val TIME_PADDING_BOTTOM = 4f
     }
 }

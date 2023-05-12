@@ -37,6 +37,17 @@
         android:textSize="16sp"
         tools:text="@tools:sample/full_names" />
 
+    <TextView
+        android:id="@+id/timeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@id/contentTextView"
+        android:layout_alignBottom="@id/contentTextView"
+        android:textColor="?attr/text_300_color"
+        android:textSize="10sp"
+        tools:ignore="SmallSp"
+        tools:text="11:11" />
+
     <com.spinoza.messenger_tfs.presentation.feature.messages.ui.FlexBoxLayout
         android:id="@+id/reactionsFlexBoxLayout"
         android:layout_width="match_parent"
