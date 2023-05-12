@@ -12,7 +12,7 @@ sealed class PeopleScreenEvent {
 
         object Load : Ui()
 
-        class Filter(val value: String) : Ui()
+        class Filter(val value: CharSequence?) : Ui()
 
         class ShowUserInfo(val userId: Long) : Ui()
 

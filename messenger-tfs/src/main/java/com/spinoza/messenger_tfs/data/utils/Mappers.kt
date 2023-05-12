@@ -9,6 +9,7 @@ import com.spinoza.messenger_tfs.data.network.model.event.EventTypeDto
 import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventDto
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.event.StreamEventDto
+import com.spinoza.messenger_tfs.data.network.model.event.SubscriptionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.network.model.presence.PresenceDto
@@ -153,11 +154,21 @@ fun List<EventType>.toStringsList(): List<String> {
     return map { it.toDto().value }
 }
 
-fun List<StreamEventDto>.listToDomain(channelsFilter: ChannelsFilter): List<ChannelEvent> {
+fun List<StreamEventDto>.toDomain(channelsFilter: ChannelsFilter): List<ChannelEvent> {
     val events = mutableListOf<ChannelEvent>()
     map { streamEventDto ->
         streamEventDto.streams.forEach { streamDto ->
             events.add(streamEventDto.toDomain(streamDto, channelsFilter))
+        }
+    }
+    return events
+}
+
+fun List<SubscriptionEventDto>.listToDomain(channelsFilter: ChannelsFilter): List<ChannelEvent> {
+    val events = mutableListOf<ChannelEvent>()
+    map { subscriptionEventDto ->
+        subscriptionEventDto.streams.forEach { streamDto ->
+            events.add(subscriptionEventDto.dtoToDomain(streamDto, channelsFilter))
         }
     }
     return events
@@ -204,6 +215,7 @@ private fun TopicDto.toDbModel(channel: Channel): TopicDbModel {
 private fun EventType.toDto(): EventTypeDto = when (this) {
     EventType.PRESENCE -> EventTypeDto.PRESENCE
     EventType.CHANNEL -> EventTypeDto.STREAM
+    EventType.CHANNEL_SUBSCRIPTION -> EventTypeDto.CHANNEL_SUBSCRIPTION
     EventType.MESSAGE -> EventTypeDto.MESSAGE
     EventType.UPDATE_MESSAGE -> EventTypeDto.UPDATE_MESSAGE
     EventType.DELETE_MESSAGE -> EventTypeDto.DELETE_MESSAGE
@@ -219,6 +231,17 @@ private fun StreamEventDto.toDomain(
         else EventOperation.CREATE
     return ChannelEvent(id, operation, streamDto.dtoToDomain(channelsFilter))
 }
+
+private fun SubscriptionEventDto.dtoToDomain(
+    streamDto: StreamDto,
+    channelsFilter: ChannelsFilter,
+): ChannelEvent {
+    val operation =
+        if (operation == EventOperation.REMOVE.value) EventOperation.REMOVE
+        else EventOperation.ADD
+    return ChannelEvent(id, operation, streamDto.dtoToDomain(channelsFilter))
+}
+
 
 private fun PresenceEventDto.toDomain(): PresenceEvent {
     var presenceValue = User.Presence.OFFLINE

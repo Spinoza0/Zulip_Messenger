@@ -80,6 +80,11 @@ interface WebRepository {
         channelsFilter: ChannelsFilter,
     ): Result<List<ChannelEvent>>
 
+    suspend fun getChannelSubscriptionEvents(
+        queue: EventsQueue,
+        channelsFilter: ChannelsFilter,
+    ): Result<List<ChannelEvent>>
+
     suspend fun getMessageEvent(
         queue: EventsQueue,
         filter: MessagesFilter,

@@ -14,10 +14,6 @@ sealed class ChannelsPageScreenEvent {
 
         object Load : Ui()
 
-        object RegisterEventQueue : Ui()
-
-        object DeleteEventQueue : Ui()
-
         class Filter(val filter: ChannelsFilter) : Ui()
 
         class OnChannelClick(val value: ChannelItem) : Ui()

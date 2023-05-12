@@ -15,6 +15,7 @@ import com.spinoza.messenger_tfs.data.network.model.event.PresenceEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.event.StreamEventsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.SubscriptionEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.event.UpdateMessageEventsResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
@@ -373,7 +374,7 @@ class WebRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<Long> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val topicName = if (subject.isBlank()) filter.topic.name else subject
+            val topicName = subject.ifBlank { filter.topic.name }
             val sendMessageResponse = apiRequest<SendMessageResponse> {
                 apiService.sendMessageToStream(
                     filter.channel.channelId,
@@ -448,19 +449,34 @@ class WebRepositoryImpl @Inject constructor(
     override suspend fun getChannelEvents(
         queue: EventsQueue,
         channelsFilter: ChannelsFilter,
-    ): Result<List<ChannelEvent>> =
-        withContext(ioDispatcher) {
-            runCatchingNonCancellation {
-                val eventResponseBody = getNonHeartBeatEventResponse(queue)
-                val eventResponse = jsonConverter.decodeFromString(
-                    StreamEventsResponse.serializer(), eventResponseBody
-                )
-                if (eventResponse.result != RESULT_SUCCESS) {
-                    throw RepositoryError(eventResponse.msg)
-                }
-                eventResponse.events.listToDomain(channelsFilter)
+    ): Result<List<ChannelEvent>> = withContext(ioDispatcher) {
+        runCatchingNonCancellation {
+            val eventResponseBody = getNonHeartBeatEventResponse(queue)
+            val eventResponse = jsonConverter.decodeFromString(
+                StreamEventsResponse.serializer(), eventResponseBody
+            )
+            if (eventResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(eventResponse.msg)
             }
+            eventResponse.events.toDomain(channelsFilter)
         }
+    }
+
+    override suspend fun getChannelSubscriptionEvents(
+        queue: EventsQueue,
+        channelsFilter: ChannelsFilter,
+    ): Result<List<ChannelEvent>> = withContext(ioDispatcher) {
+        runCatchingNonCancellation {
+            val eventResponseBody = getNonHeartBeatEventResponse(queue)
+            val eventResponse = jsonConverter.decodeFromString(
+                SubscriptionEventsResponse.serializer(), eventResponseBody
+            )
+            if (eventResponse.result != RESULT_SUCCESS) {
+                throw RepositoryError(eventResponse.msg)
+            }
+            eventResponse.events.listToDomain(channelsFilter)
+        }
+    }
 
     override suspend fun getMessageEvent(
         queue: EventsQueue,

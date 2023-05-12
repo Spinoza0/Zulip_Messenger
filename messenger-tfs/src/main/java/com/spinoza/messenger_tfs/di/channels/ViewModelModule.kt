@@ -15,6 +15,7 @@ import com.spinoza.messenger_tfs.domain.usecase.channels.GetTopicsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.UnsubscribeFromChannelUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelSubscriptionEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.presentation.feature.channels.viewmodel.ChannelsFragmentSharedViewModel
@@ -51,6 +52,7 @@ interface ViewModelModule {
             getChannelSubscriptionStatusUseCase: GetChannelSubscriptionStatusUseCase,
             getTopicUseCase: GetTopicUseCase,
             getChannelEventsUseCase: GetChannelEventsUseCase,
+            getChannelSubscriptionEventsUseCase: GetChannelSubscriptionEventsUseCase,
             createChannelUseCase: CreateChannelUseCase,
             unsubscribeFromChannelUseCase: UnsubscribeFromChannelUseCase,
             deleteChannelUseCase: DeleteChannelUseCase,
@@ -73,6 +75,7 @@ interface ViewModelModule {
                 deleteChannelUseCase,
                 getTopicUseCase,
                 getChannelEventsUseCase,
+                getChannelSubscriptionEventsUseCase,
                 registerEventQueueUseCase,
                 deleteEventQueueUseCase,
                 defaultDispatcher,

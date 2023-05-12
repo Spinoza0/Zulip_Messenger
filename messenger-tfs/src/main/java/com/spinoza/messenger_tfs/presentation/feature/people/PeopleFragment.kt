@@ -107,7 +107,7 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
 
     private fun setupListeners() {
         binding.editTextSearch.doOnTextChanged { text, _, _, _ ->
-            store.accept(PeopleScreenEvent.Ui.Filter(text.toString()))
+            store.accept(PeopleScreenEvent.Ui.Filter(text))
         }
     }
 
@@ -151,7 +151,7 @@ class PeopleFragment : ElmFragment<PeopleScreenEvent, PeopleScreenEffect, People
 
     override fun onResume() {
         super.onResume()
-        store.accept(PeopleScreenEvent.Ui.Filter(binding.editTextSearch.text.toString()))
+        store.accept(PeopleScreenEvent.Ui.Filter(binding.editTextSearch.text))
     }
 
     override fun onPause() {

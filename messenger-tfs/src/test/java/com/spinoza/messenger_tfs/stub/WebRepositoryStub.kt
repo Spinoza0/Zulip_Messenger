@@ -137,6 +137,13 @@ class WebRepositoryStub : WebRepository {
         return Result.failure(RepositoryError(ERROR_MSG))
     }
 
+    override suspend fun getChannelSubscriptionEvents(
+        queue: EventsQueue,
+        channelsFilter: ChannelsFilter,
+    ): Result<List<ChannelEvent>> {
+        return Result.failure(RepositoryError(ERROR_MSG))
+    }
+
     override suspend fun getMessageEvent(
         queue: EventsQueue,
         filter: MessagesFilter,

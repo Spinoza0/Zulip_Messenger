@@ -255,7 +255,8 @@ class ChannelsPageFragment : Fragment() {
 
     private fun confirmDeleteChannel(channel: Channel) {
         AlertDialog.Builder(requireContext())
-            .setMessage(getString(R.string.confirm_delete_channel))
+            .setTitle(getString(R.string.confirm_delete_channel))
+            .setMessage(channel.name)
             .setCancelable(false)
             .setPositiveButton(getString(R.string.yes)) { _, _ ->
                 store.accept(ChannelsPageScreenEvent.Ui.DeleteChannel(channel.channelId))
@@ -301,13 +302,11 @@ class ChannelsPageFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         store.accept(ChannelsPageScreenEvent.Ui.UpdateMessageCount)
-        store.accept(ChannelsPageScreenEvent.Ui.RegisterEventQueue)
     }
 
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
-        store.accept(ChannelsPageScreenEvent.Ui.DeleteEventQueue)
     }
 
     override fun onDestroyView() {

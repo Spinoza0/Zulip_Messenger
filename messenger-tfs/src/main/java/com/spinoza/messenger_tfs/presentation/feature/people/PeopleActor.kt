@@ -24,6 +24,7 @@ import com.spinoza.messenger_tfs.presentation.util.EventsQueueHolder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -56,12 +57,14 @@ class PeopleActor @Inject constructor(
     private var usersCache = mutableListOf<User>()
     private var isUsersCacheChanged = false
     private var usersFilter = ""
+    private var eventsQueueJob: Job? = null
 
     @Volatile
     private var isLoading = false
 
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
+            eventsQueueJob?.cancel()
             lifecycleScope.launch {
                 eventsQueue.deleteQueue()
             }
@@ -75,7 +78,7 @@ class PeopleActor @Inject constructor(
 
     override fun execute(command: PeopleScreenCommand): Flow<PeopleScreenEvent.Internal> = flow {
         val event = when (command) {
-            is PeopleScreenCommand.SetNewFilter -> setNewFilter(command.filter.trim())
+            is PeopleScreenCommand.SetNewFilter -> setNewFilter(command.filter)
             is PeopleScreenCommand.GetFilteredList ->
                 if (usersCache.isNotEmpty()) {
                     PeopleScreenEvent.Internal.UsersLoaded(usersCache.toSortedList(usersFilter))
@@ -114,10 +117,11 @@ class PeopleActor @Inject constructor(
         return event
     }
 
-    private suspend fun setNewFilter(filter: String): PeopleScreenEvent.Internal {
-        searchQueryState.emit(filter)
+    private suspend fun setNewFilter(filter: CharSequence?): PeopleScreenEvent.Internal {
+        val newFilter = filter.toString().trim()
+        searchQueryState.emit(newFilter)
         delay(DELAY_BEFORE_CHECK_FILTER)
-        if (filter == usersFilter) {
+        if (newFilter == usersFilter) {
             return PeopleScreenEvent.Internal.FilterChanged
         }
         return PeopleScreenEvent.Internal.Idle
@@ -156,7 +160,8 @@ class PeopleActor @Inject constructor(
     }
 
     private fun handleOnSuccessQueueRegistration() {
-        lifecycleScope.launch(defaultDispatcher) {
+        eventsQueueJob?.cancel()
+        eventsQueueJob = lifecycleScope.launch(defaultDispatcher) {
             var lastUpdatingTimeStamp = 0L
             while (isActive) {
                 getPresenceEventsUseCase(eventsQueue.queue).onSuccess { events ->
