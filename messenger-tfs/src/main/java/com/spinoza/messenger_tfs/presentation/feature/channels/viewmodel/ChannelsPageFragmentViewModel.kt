@@ -236,7 +236,7 @@ class ChannelsPageFragmentViewModel(
                 .onSuccess { isSubscribed ->
                     _effects.emit(
                         ChannelsPageScreenEffect.ShowChannelMenu(
-                            event.view, event.channelItem,
+                            event.channelItem,
                             !isSubscribed, isSubscribed, authorizationStorage.isAdmin()
                         )
                     )

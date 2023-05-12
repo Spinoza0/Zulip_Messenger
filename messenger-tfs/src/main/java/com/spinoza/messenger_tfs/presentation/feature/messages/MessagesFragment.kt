@@ -15,13 +15,14 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.databinding.DialogMessageActionsBinding
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.databinding.MessagesDialogInputFieldBinding
 import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
@@ -425,65 +426,57 @@ class MessagesFragment :
     }
 
     private fun showMessageMenu(effect: MessagesScreenEffect.ShowMessageMenu) {
-        val popupMenu = PopupMenu(requireContext(), binding.textViewTopic)
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogBinding = DialogMessageActionsBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
         val isMessageWithAttachments = effect.urls.isNotEmpty()
-        popupMenu.inflate(R.menu.menu_actions_with_message)
-        popupMenu.menu.findItem(R.id.itemSaveAttachments).isVisible = isMessageWithAttachments
-        popupMenu.menu.findItem(R.id.itemEditMessage).isVisible = effect.isEditMessageVisible
-        popupMenu.menu.findItem(R.id.itemEditTopic).isVisible = effect.isEditTopicVisible
-        popupMenu.menu.findItem(R.id.itemDeleteMessage).isVisible = effect.isDeleteMessageVisible
-        popupMenu.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.itemAddReaction -> {
-                    addReaction(effect.messageView)
-                    true
-                }
-
-                R.id.itemCopyToClipboard -> {
-                    store.accept(
-                        MessagesScreenEvent.Ui.CopyToClipboard(
-                            requireContext(), effect.messageView, isMessageWithAttachments
-                        )
+        with(dialogBinding) {
+            itemSaveAttachments.isVisible = isMessageWithAttachments
+            itemEditMessage.isVisible = effect.isEditMessageVisible
+            itemEditTopic.isVisible = effect.isEditTopicVisible
+            itemDeleteMessage.isVisible = effect.isDeleteMessageVisible
+            itemAddReaction.setOnClickListener {
+                addReaction(effect.messageView)
+                dialog.dismiss()
+            }
+            itemCopyToClipboard.setOnClickListener {
+                store.accept(
+                    MessagesScreenEvent.Ui.CopyToClipboard(
+                        requireContext(), effect.messageView, isMessageWithAttachments
                     )
-                    true
-                }
-
-                R.id.itemEditMessage -> {
-                    store.accept(
-                        MessagesScreenEvent.Ui.GetRawMessageContent(
-                            effect.messageView, isMessageWithAttachments
-                        )
+                )
+                dialog.dismiss()
+            }
+            itemEditMessage.setOnClickListener {
+                store.accept(
+                    MessagesScreenEvent.Ui.GetRawMessageContent(
+                        effect.messageView, isMessageWithAttachments
                     )
-                    true
-                }
-
-                R.id.itemEditTopic -> {
-                    showEditTopicDialog(effect.messageView)
-                    true
-                }
-
-                R.id.itemDeleteMessage -> {
-                    store.accept(MessagesScreenEvent.Ui.ConfirmDeleteMessage(effect.messageView))
-                    true
-                }
-
-                R.id.itemSaveAttachments -> {
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                        if (externalStoragePermission.isGranted()) {
-                            saveAttachments(effect.urls)
-                        } else {
-                            externalStoragePermission.request { saveAttachments(effect.urls) }
-                        }
-                    } else {
+                )
+                dialog.dismiss()
+            }
+            itemEditTopic.setOnClickListener {
+                showEditTopicDialog(effect.messageView)
+                dialog.dismiss()
+            }
+            itemDeleteMessage.setOnClickListener {
+                store.accept(MessagesScreenEvent.Ui.ConfirmDeleteMessage(effect.messageView))
+                dialog.dismiss()
+            }
+            itemSaveAttachments.setOnClickListener {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    if (externalStoragePermission.isGranted()) {
                         saveAttachments(effect.urls)
+                    } else {
+                        externalStoragePermission.request { saveAttachments(effect.urls) }
                     }
-                    true
+                } else {
+                    saveAttachments(effect.urls)
                 }
-
-                else -> false
+                dialog.dismiss()
             }
         }
-        popupMenu.show()
+        dialog.show()
     }
 
     private fun getVisibleMessagesIds(

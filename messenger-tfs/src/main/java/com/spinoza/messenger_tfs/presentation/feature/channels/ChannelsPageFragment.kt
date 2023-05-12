@@ -103,8 +103,8 @@ class ChannelsPageFragment : Fragment() {
                         val messagesFilter = MessagesFilter(channelItem.channel, Topic())
                         store.accept(ChannelsPageScreenEvent.Ui.OpenMessagesScreen(messagesFilter))
                     },
-                    { channelItem, view ->
-                        store.accept(ChannelsPageScreenEvent.Ui.ShowChannelMenu(channelItem, view))
+                    { channelItem ->
+                        store.accept(ChannelsPageScreenEvent.Ui.ShowChannelMenu(channelItem))
                     }
                 ) { channelItem ->
                     store.accept(ChannelsPageScreenEvent.Ui.OnChannelClick(channelItem))
@@ -209,22 +209,24 @@ class ChannelsPageFragment : Fragment() {
         val dialogBinding = DialogChannelActionsBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
         val channelName = effect.channelItem.channel.name
-        dialogBinding.textViewTitle.text =
-            String.format(getString(R.string.channel_name_template), channelName)
-        dialogBinding.textViewSubscribe.isVisible = effect.isItemSubscribeVisible
-        dialogBinding.textViewUnsubscribe.isVisible = effect.isItemUnsubscribeVisible
-        dialogBinding.textViewDelete.isVisible = effect.isItemDeleteVisible
-        dialogBinding.textViewSubscribe.setOnClickListener {
-            store.accept(ChannelsPageScreenEvent.Ui.SubscribeToChannel(channelName))
-            dialog.dismiss()
-        }
-        dialogBinding.textViewUnsubscribe.setOnClickListener {
-            store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(channelName))
-            dialog.dismiss()
-        }
-        dialogBinding.textViewDelete.setOnClickListener {
-            confirmDeleteChannel(effect.channelItem.channel)
-            dialog.dismiss()
+        with(dialogBinding) {
+            textViewTitle.text =
+                String.format(getString(R.string.channel_name_template), channelName)
+            textViewSubscribe.isVisible = effect.isItemSubscribeVisible
+            textViewUnsubscribe.isVisible = effect.isItemUnsubscribeVisible
+            textViewDelete.isVisible = effect.isItemDeleteVisible
+            textViewSubscribe.setOnClickListener {
+                store.accept(ChannelsPageScreenEvent.Ui.SubscribeToChannel(channelName))
+                dialog.dismiss()
+            }
+            textViewUnsubscribe.setOnClickListener {
+                store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(channelName))
+                dialog.dismiss()
+            }
+            textViewDelete.setOnClickListener {
+                confirmDeleteChannel(effect.channelItem.channel)
+                dialog.dismiss()
+            }
         }
         dialog.show()
     }

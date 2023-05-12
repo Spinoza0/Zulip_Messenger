@@ -2,7 +2,6 @@ package com.spinoza.messenger_tfs.presentation.feature.channels.adapter
 
 import android.graphics.Typeface
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
@@ -14,7 +13,7 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
 class ChannelDelegate(
     private val channel_name_template: String,
     private val onChannelClickListener: (ChannelItem) -> Unit,
-    private val onChannelLongClickListener: (ChannelItem, View) -> Unit,
+    private val onChannelLongClickListener: (ChannelItem) -> Unit,
     private val onArrowClickListener: (ChannelItem) -> Unit,
 ) : AdapterDelegate {
 
@@ -62,7 +61,7 @@ class ChannelDelegate(
             channel_name_template: String,
             item: ChannelDelegateItem,
             onChannelClickListener: (ChannelItem) -> Unit,
-            onChannelLongClickListener: (ChannelItem, View) -> Unit,
+            onChannelLongClickListener: (ChannelItem) -> Unit,
             onArrowClickListener: (ChannelItem) -> Unit,
         ) {
             val channelItem = (item.content() as ChannelItem)
@@ -79,15 +78,15 @@ class ChannelDelegate(
                     onArrowClickListener.invoke(channelItem)
                 }
                 frameLayoutChannel.setOnLongClickListener {
-                    onChannelLongClickListener.invoke(channelItem, binding.root)
+                    onChannelLongClickListener.invoke(channelItem)
                     true
                 }
                 textViewChannel.setOnLongClickListener {
-                    onChannelLongClickListener.invoke(channelItem, binding.root)
+                    onChannelLongClickListener.invoke(channelItem)
                     true
                 }
                 textViewArrowArea.setOnLongClickListener {
-                    onChannelLongClickListener.invoke(channelItem, binding.root)
+                    onChannelLongClickListener.invoke(channelItem)
                     true
                 }
                 if (channelItem.isFolded) {

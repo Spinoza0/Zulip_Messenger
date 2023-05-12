@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels.model
 
-import android.view.View
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 
@@ -28,7 +27,7 @@ sealed class ChannelsPageScreenEvent {
 
         class CreateChannel(val name: CharSequence?, val description: CharSequence?) : Ui()
 
-        class ShowChannelMenu(val channelItem: ChannelItem, val view: View) : Ui()
+        class ShowChannelMenu(val channelItem: ChannelItem) : Ui()
 
         class SubscribeToChannel(val name: String) : Ui()
 
