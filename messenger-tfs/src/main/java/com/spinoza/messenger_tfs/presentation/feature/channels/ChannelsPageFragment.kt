@@ -25,6 +25,7 @@ import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.CreateChannelDialogBinding
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.di.channels.DaggerChannelsComponent
+import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
@@ -210,7 +211,8 @@ class ChannelsPageFragment : Fragment() {
     private fun showChannelMenu(effect: ChannelsPageScreenEffect.ShowChannelMenu) {
         val popupMenu = PopupMenu(requireContext(), effect.view)
         popupMenu.inflate(R.menu.menu_actions_with_channel)
-        val title = SpannableStringBuilder(effect.title).apply {
+        val channelName = effect.channelItem.channel.name
+        val title = SpannableStringBuilder(channelName).apply {
             setSpan(
                 StyleSpan(Typeface.BOLD), FIRST_POSITION, this.length,
                 Spannable.SPAN_INCLUSIVE_INCLUSIVE
@@ -229,17 +231,19 @@ class ChannelsPageFragment : Fragment() {
         popupMenu.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.itemSubscribeChannel -> {
-                    store.accept(ChannelsPageScreenEvent.Ui.SubscribeToChannel(effect.title))
+                    store.accept(
+                        ChannelsPageScreenEvent.Ui.SubscribeToChannel(channelName)
+                    )
                     true
                 }
 
                 R.id.itemUnsubscribeChannel -> {
-                    store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(effect.title))
+                    store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(channelName))
                     true
                 }
 
                 R.id.itemDeleteChannel -> {
-                    //
+                    confirmDeleteChannel(effect.channelItem.channel)
                     true
                 }
 
@@ -247,6 +251,19 @@ class ChannelsPageFragment : Fragment() {
             }
         }
         popupMenu.show()
+    }
+
+    private fun confirmDeleteChannel(channel: Channel) {
+        AlertDialog.Builder(requireContext())
+            .setMessage(getString(R.string.confirm_delete_channel))
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.yes)) { _, _ ->
+                store.accept(ChannelsPageScreenEvent.Ui.DeleteChannel(channel.channelId))
+            }
+            .setNegativeButton(getString(R.string.no)) { _, _ ->
+            }
+            .create()
+            .show()
     }
 
     private fun showCreateChannelDialog() {

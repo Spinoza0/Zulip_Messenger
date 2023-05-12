@@ -37,5 +37,7 @@ sealed class ChannelsPageScreenEvent {
         class SubscribeToChannel(val name: String) : Ui()
 
         class UnsubscribeFromChannel(val name: String) : Ui()
+
+        class DeleteChannel(val channelId: Long) : Ui()
     }
 }

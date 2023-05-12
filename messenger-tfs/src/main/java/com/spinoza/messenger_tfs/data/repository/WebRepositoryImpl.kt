@@ -273,6 +273,14 @@ class WebRepositoryImpl @Inject constructor(
             }
         }
 
+    override suspend fun deleteChannel(channelId: Long): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                apiRequest<BasicResponse> { apiService.deleteStream(channelId) }
+                true
+            }
+        }
+
     override suspend fun getChannelSubscriptionStatus(channelId: Long): Result<Boolean> =
         withContext(ioDispatcher) {
             runCatchingNonCancellation {

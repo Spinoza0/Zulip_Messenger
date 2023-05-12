@@ -40,6 +40,7 @@ class ChannelsPageFragmentViewModel(
     private val getChannelSubscriptionStatusUseCase: GetChannelSubscriptionStatusUseCase,
     private val createChannelUseCase: CreateChannelUseCase,
     private val unsubscribeFromChannelUseCase: UnsubscribeFromChannelUseCase,
+    private val deleteChannelUseCase: DeleteChannelUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
@@ -97,6 +98,8 @@ class ChannelsPageFragmentViewModel(
 
             is ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel ->
                 unsubscribeFromChannel(event.name)
+
+            is ChannelsPageScreenEvent.Ui.DeleteChannel -> deleteChannel(event.channelId)
         }
     }
 
@@ -211,13 +214,23 @@ class ChannelsPageFragmentViewModel(
         }
     }
 
+    private fun deleteChannel(channelId: Long) {
+        vmScope.launch {
+            deleteChannelUseCase(channelId).onSuccess {
+                loadItems()
+            }.onFailure {
+                handleErrors(it)
+            }
+        }
+    }
+
     private fun showChannelMenu(event: ChannelsPageScreenEvent.Ui.ShowChannelMenu) {
         vmScope.launch {
             getChannelSubscriptionStatusUseCase(event.channelItem.channel.channelId)
                 .onSuccess { isSubscribed ->
                     _effects.emit(
                         ChannelsPageScreenEffect.ShowChannelMenu(
-                            event.view, event.channelItem.channel.name,
+                            event.view, event.channelItem,
                             !isSubscribed, isSubscribed, authorizationStorage.isAdmin()
                         )
                     )

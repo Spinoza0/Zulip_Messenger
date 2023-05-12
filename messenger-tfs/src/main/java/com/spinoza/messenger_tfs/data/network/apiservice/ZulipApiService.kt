@@ -166,6 +166,9 @@ interface ZulipApiService {
         @Query(QUERY_STREAM_PRINCIPALS) principals: String,
     ): BasicResponse
 
+    @DELETE("streams/{$QUERY_STREAM_ID}")
+    suspend fun deleteStream(@Path(QUERY_STREAM_ID) streamId: Long): BasicResponse
+
     companion object {
 
         const val RESULT_SUCCESS = "success"

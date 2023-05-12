@@ -6,7 +6,7 @@ sealed class ChannelsPageScreenEffect {
 
     class ShowChannelMenu(
         val view: View,
-        val title: String,
+        val channelItem: ChannelItem,
         val isItemSubscribeVisible: Boolean,
         val isItemUnsubscribeVisible: Boolean,
         val isItemDeleteVisible: Boolean,
