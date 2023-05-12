@@ -37,6 +37,7 @@ class ChannelsPageFragmentViewModel(
     private val getTopicsUseCase: GetTopicsUseCase,
     private val getStoredChannelsUseCase: GetStoredChannelsUseCase,
     private val getChannelsUseCase: GetChannelsUseCase,
+    private val getChannelSubscriptionStatusUseCase: GetChannelSubscriptionStatusUseCase,
     private val createChannelUseCase: CreateChannelUseCase,
     private val getTopicUseCase: GetTopicUseCase,
     private val getChannelEventsUseCase: GetChannelEventsUseCase,
@@ -87,6 +88,7 @@ class ChannelsPageFragmentViewModel(
             is ChannelsPageScreenEvent.Ui.DeleteEventQueue -> deleteEventQueue()
             is ChannelsPageScreenEvent.Ui.CheckLoginStatus -> checkLoginStatus()
             is ChannelsPageScreenEvent.Ui.CreateChannel -> createChannel(event)
+            is ChannelsPageScreenEvent.Ui.ShowChannelMenu -> showChannelMenu(event)
         }
     }
 
@@ -190,6 +192,22 @@ class ChannelsPageFragmentViewModel(
             }.onFailure {
                 handleErrors(it)
             }
+        }
+    }
+
+    private fun showChannelMenu(event: ChannelsPageScreenEvent.Ui.ShowChannelMenu) {
+        vmScope.launch {
+            getChannelSubscriptionStatusUseCase(event.channelItem.channel.channelId)
+                .onSuccess { isSubscribed ->
+                    _effects.emit(
+                        ChannelsPageScreenEffect.ShowChannelMenu(
+                            event.view, event.channelItem.channel.name,
+                            !isSubscribed, isSubscribed, authorizationStorage.isAdmin()
+                        )
+                    )
+                }.onFailure {
+                    handleErrors(it)
+                }
         }
     }
 

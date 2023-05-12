@@ -1,6 +1,16 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels.model
 
+import android.view.View
+
 sealed class ChannelsPageScreenEffect {
+
+    class ShowChannelMenu(
+        val view: View,
+        val title: String,
+        val isItemSubscribeVisible: Boolean,
+        val isItemUnsubscribeVisible: Boolean,
+        val isItemDeleteVisible: Boolean,
+    ) : ChannelsPageScreenEffect()
 
     sealed class Failure : ChannelsPageScreenEffect() {
 

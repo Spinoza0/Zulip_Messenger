@@ -20,6 +20,7 @@ import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
+import com.spinoza.messenger_tfs.data.network.model.stream.StreamSubscriptionStatusResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.SubscriptionItemDto
 import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
@@ -257,6 +258,19 @@ class WebRepositoryImpl @Inject constructor(
                 val param = Json.encodeToString(subscriptions)
                 apiRequest<BasicResponse> { apiService.subscribeToStream(param) }
                 true
+            }
+        }
+
+    override suspend fun getChannelSubscriptionStatus(channelId: Long): Result<Boolean> =
+        withContext(ioDispatcher) {
+            runCatchingNonCancellation {
+                val response = apiRequest<StreamSubscriptionStatusResponse> {
+                    apiService.getStreamSubscriptionStatus(
+                        authorizationStorage.getUserId(),
+                        channelId
+                    )
+                }
+                response.isSubscribed
             }
         }
 

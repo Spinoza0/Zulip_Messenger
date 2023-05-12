@@ -1,12 +1,19 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels
 
 import android.app.AlertDialog
+import android.graphics.Typeface
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.AbsoluteSizeSpan
+import android.text.style.StyleSpan
+import android.text.style.UnderlineSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -26,7 +33,6 @@ import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.CreateChannelDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.TopicDelegate
-import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEffect
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenState
@@ -96,16 +102,24 @@ class ChannelsPageFragment : Fragment() {
             addDelegate(
                 ChannelDelegate(
                     getString(R.string.channel_name_template),
-                    ::onChannelClickListener,
-                    ::onArrowClickListener
-                )
+                    { channelItem ->
+                        val messagesFilter = MessagesFilter(channelItem.channel, Topic())
+                        store.accept(ChannelsPageScreenEvent.Ui.OpenMessagesScreen(messagesFilter))
+                    },
+                    { channelItem, view ->
+                        store.accept(ChannelsPageScreenEvent.Ui.ShowChannelMenu(channelItem, view))
+                    }
+                ) { channelItem ->
+                    store.accept(ChannelsPageScreenEvent.Ui.OnChannelClick(channelItem))
+                }
             )
             addDelegate(
                 TopicDelegate(
                     requireContext().getThemeColor(R.attr.even_topic_color),
-                    requireContext().getThemeColor(R.attr.odd_topic_color),
-                    ::onTopicClickListener
-                )
+                    requireContext().getThemeColor(R.attr.odd_topic_color)
+                ) { messagesFilter ->
+                    store.accept(ChannelsPageScreenEvent.Ui.OpenMessagesScreen(messagesFilter))
+                }
             )
             addDelegate(CreateChannelDelegate {
                 showCreateChannelDialog()
@@ -135,19 +149,6 @@ class ChannelsPageFragment : Fragment() {
             }
         })
         binding.recyclerViewChannels.itemAnimator = null
-    }
-
-    private fun onChannelClickListener(channelItem: ChannelItem) {
-        val messagesFilter = MessagesFilter(channelItem.channel, Topic())
-        store.accept(ChannelsPageScreenEvent.Ui.OpenMessagesScreen(messagesFilter))
-    }
-
-    private fun onArrowClickListener(channelItem: ChannelItem) {
-        store.accept(ChannelsPageScreenEvent.Ui.OnChannelClick(channelItem))
-    }
-
-    private fun onTopicClickListener(messagesFilter: MessagesFilter) {
-        store.accept(ChannelsPageScreenEvent.Ui.OpenMessagesScreen(messagesFilter))
     }
 
     private fun setupObservers() {
@@ -183,6 +184,7 @@ class ChannelsPageFragment : Fragment() {
 
     private fun handleEffect(effect: ChannelsPageScreenEffect) {
         when (effect) {
+            is ChannelsPageScreenEffect.ShowChannelMenu -> showChannelMenu(effect)
             is ChannelsPageScreenEffect.Failure.Error ->
                 showError("${getString(R.string.error_channels)} ${effect.value}")
 
@@ -203,6 +205,48 @@ class ChannelsPageFragment : Fragment() {
                 )
             }
         }
+    }
+
+    private fun showChannelMenu(effect: ChannelsPageScreenEffect.ShowChannelMenu) {
+        val popupMenu = PopupMenu(requireContext(), effect.view)
+        popupMenu.inflate(R.menu.menu_actions_with_channel)
+        val title = SpannableStringBuilder(effect.title).apply {
+            setSpan(
+                StyleSpan(Typeface.BOLD), FIRST_POSITION, this.length,
+                Spannable.SPAN_INCLUSIVE_INCLUSIVE
+            )
+            setSpan(
+                AbsoluteSizeSpan(TITLE_FONT_SIZE_SP, true), FIRST_POSITION, this.length,
+                Spannable.SPAN_INCLUSIVE_INCLUSIVE
+            )
+            setSpan(UnderlineSpan(), FIRST_POSITION, length, Spannable.SPAN_INCLUSIVE_INCLUSIVE)
+        }
+        popupMenu.menu.findItem(R.id.itemTitle).title = title
+        popupMenu.menu.findItem(R.id.itemSubscribeChannel).isVisible = effect.isItemSubscribeVisible
+        popupMenu.menu.findItem(R.id.itemUnsubscribeChannel).isVisible =
+            effect.isItemUnsubscribeVisible
+        popupMenu.menu.findItem(R.id.itemDeleteChannel).isVisible = effect.isItemDeleteVisible
+        popupMenu.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.itemSubscribeChannel -> {
+                    //
+                    true
+                }
+
+                R.id.itemUnsubscribeChannel -> {
+                    //
+                    true
+                }
+
+                R.id.itemDeleteChannel -> {
+                    //
+                    true
+                }
+
+                else -> false
+            }
+        }
+        popupMenu.show()
     }
 
     private fun showCreateChannelDialog() {
@@ -260,6 +304,8 @@ class ChannelsPageFragment : Fragment() {
 
     companion object {
 
+        private const val FIRST_POSITION = 0
+        private const val TITLE_FONT_SIZE_SP = 18
         private const val PARAM_IS_SUBSCRIBED = "isSubscribed"
 
         fun newInstance(isSubscribed: Boolean): ChannelsPageFragment {

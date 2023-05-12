@@ -38,6 +38,8 @@ interface WebRepository {
 
     suspend fun deleteMessage(messageId: Long): Result<Boolean>
 
+    suspend fun getChannelSubscriptionStatus(channelId: Long): Result<Boolean>
+
     suspend fun createChannel(name: String, description: String): Result<Boolean>
 
     suspend fun getChannels(channelsFilter: ChannelsFilter): Result<List<Channel>>

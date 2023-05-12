@@ -32,6 +32,9 @@
     <string name="arrow">Стрелка</string>
     <string name="new_messages">нов.сообщ.</string>
     <string name="channel_name_template">#%s</string>
+    <string name="subscribe_to_channel">Подписаться</string>
+    <string name="unsubscribe_from_channel">Отписаться</string>
+    <string name="delete_channel">Удалить</string>
 
     <!-- Fragment People -->
     <string name="users">Пользователи…</string>
@@ -54,6 +57,7 @@
     <!-- Dialog -->
     <string name="check_internet_connection">Проверьте соединение с интернетом</string>
     <string name="confirm_delete_message">Вы уверены, что хотите удалить сообщение?</string>
+    <string name="confirm_delete_channel">Вы уверены, что хотите удалить канал?</string>
     <string name="create_channel">Создать канал</string>
     <string name="channel_name">Название канала…</string>
     <string name="channel_description">Описание канала…</string>

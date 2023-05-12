@@ -4,14 +4,15 @@ import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
 import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
-import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.WebLimitationsResponse
+import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.AllPresencesResponse
 import com.spinoza.messenger_tfs.data.network.model.presence.PresenceResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.AllStreamsResponse
+import com.spinoza.messenger_tfs.data.network.model.stream.StreamSubscriptionStatusResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.SubscribedStreamsResponse
 import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.network.model.user.AllUsersResponse
@@ -87,6 +88,12 @@ interface ZulipApiService {
 
     @GET("realm/presence")
     suspend fun getAllPresences(): Response<AllPresencesResponse>
+
+    @GET("users/{$QUERY_USER_ID}/subscriptions/{$QUERY_STREAM_ID}")
+    suspend fun getStreamSubscriptionStatus(
+        @Path(QUERY_USER_ID) userId: Long,
+        @Path(QUERY_STREAM_ID) streamId: Long,
+    ): StreamSubscriptionStatusResponse
 
     @GET("users/me/subscriptions")
     suspend fun getSubscribedStreams(): SubscribedStreamsResponse

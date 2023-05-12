@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.channels.adapter
 
 import android.graphics.Typeface
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
@@ -13,6 +14,7 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelItem
 class ChannelDelegate(
     private val channel_name_template: String,
     private val onChannelClickListener: (ChannelItem) -> Unit,
+    private val onChannelLongClickListener: (ChannelItem, View) -> Unit,
     private val onArrowClickListener: (ChannelItem) -> Unit,
 ) : AdapterDelegate {
 
@@ -35,6 +37,7 @@ class ChannelDelegate(
             channel_name_template,
             item as ChannelDelegateItem,
             onChannelClickListener,
+            onChannelLongClickListener,
             onArrowClickListener
         )
     }
@@ -59,6 +62,7 @@ class ChannelDelegate(
             channel_name_template: String,
             item: ChannelDelegateItem,
             onChannelClickListener: (ChannelItem) -> Unit,
+            onChannelLongClickListener: (ChannelItem, View) -> Unit,
             onArrowClickListener: (ChannelItem) -> Unit,
         ) {
             val channelItem = (item.content() as ChannelItem)
@@ -74,7 +78,18 @@ class ChannelDelegate(
                 textViewArrowArea.setOnClickListener {
                     onArrowClickListener.invoke(channelItem)
                 }
-
+                frameLayoutChannel.setOnLongClickListener {
+                    onChannelLongClickListener.invoke(channelItem, binding.root)
+                    true
+                }
+                textViewChannel.setOnLongClickListener {
+                    onChannelLongClickListener.invoke(channelItem, binding.root)
+                    true
+                }
+                textViewArrowArea.setOnLongClickListener {
+                    onChannelLongClickListener.invoke(channelItem, binding.root)
+                    true
+                }
                 if (channelItem.isFolded) {
                     imageViewArrow.setImageResource(R.drawable.ic_arrow_down)
                     textViewChannel.setTypeface(null, Typeface.NORMAL)

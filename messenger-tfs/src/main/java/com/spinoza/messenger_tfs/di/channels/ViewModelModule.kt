@@ -5,6 +5,7 @@ import com.spinoza.messenger_tfs.di.ChannelIsSubscribed
 import com.spinoza.messenger_tfs.di.DispatcherDefault
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.usecase.channels.CreateChannelUseCase
+import com.spinoza.messenger_tfs.domain.usecase.channels.GetChannelSubscriptionStatusUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredChannelsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.GetStoredTopicsUseCase
@@ -45,6 +46,7 @@ interface ViewModelModule {
             getTopicsUseCase: GetTopicsUseCase,
             getStoredChannelsUseCase: GetStoredChannelsUseCase,
             getChannelsUseCase: GetChannelsUseCase,
+            getChannelSubscriptionStatusUseCase: GetChannelSubscriptionStatusUseCase,
             getTopicUseCase: GetTopicUseCase,
             getChannelEventsUseCase: GetChannelEventsUseCase,
             createChannelUseCase: CreateChannelUseCase,
@@ -61,6 +63,7 @@ interface ViewModelModule {
                 getTopicsUseCase,
                 getStoredChannelsUseCase,
                 getChannelsUseCase,
+                getChannelSubscriptionStatusUseCase,
                 createChannelUseCase,
                 getTopicUseCase,
                 getChannelEventsUseCase,
