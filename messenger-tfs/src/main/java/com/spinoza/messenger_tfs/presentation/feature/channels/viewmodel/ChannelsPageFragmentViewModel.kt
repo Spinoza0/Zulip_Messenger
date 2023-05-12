@@ -181,8 +181,15 @@ class ChannelsPageFragmentViewModel(
     }
 
     private fun createChannel(event: ChannelsPageScreenEvent.Ui.CreateChannel) {
-        vmScope.launch {
-            TODO()
+        val name = event.name.toString()
+        if (name.isNotBlank()) vmScope.launch {
+            _state.emit(state.value.copy(isLoading = true))
+            createChannelUseCase(name.trim(), event.description.toString().trim()).onSuccess {
+                _state.emit(state.value.copy(isLoading = false))
+                loadItems()
+            }.onFailure {
+                handleErrors(it)
+            }
         }
     }
 

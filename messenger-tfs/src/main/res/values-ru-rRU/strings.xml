@@ -24,11 +24,6 @@
     <string name="delete_message">Удалить сообщение</string>
     <string name="save_attachments">Сохранить вложения</string>
     <string name="downloading_result">Результат загрузки</string>
-    <string name="yes">Да</string>
-    <string name="no">Нет</string>
-    <string name="save">Сохранить</string>
-    <string name="cancel">Отмена</string>
-    <string name="confirm_delete_message">Вы уверены, что хотите удалить сообщение?</string>
 
     <!-- Fragment Channels -->
     <string name="search">Искать…</string>
@@ -37,7 +32,6 @@
     <string name="arrow">Стрелка</string>
     <string name="new_messages">нов.сообщ.</string>
     <string name="channel_name_template">#%s</string>
-    <string name="create_channel">Создать канал</string>
 
     <!-- Fragment People -->
     <string name="users">Пользователи…</string>
@@ -57,6 +51,20 @@
     <string name="people">Пользователи</string>
     <string name="profile">Профиль</string>
 
+    <!-- Dialog -->
+    <string name="check_internet_connection">Проверьте соединение с интернетом</string>
+    <string name="confirm_delete_message">Вы уверены, что хотите удалить сообщение?</string>
+    <string name="create_channel">Создать канал</string>
+    <string name="channel_name">Название канала…</string>
+    <string name="channel_description">Описание канала…</string>
+    <string name="ok">Ок</string>
+    <string name="close">Закрыть экран</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="create">Создать</string>
+
     <!-- Errors -->
     <string name="error_user_loading">Ошибка загрузки пользователя.</string>
     <string name="error_messages">Ошибка работы с сообщениями.</string>
@@ -69,8 +77,5 @@
     <string name="error_file_size">Файл слишком большой.</string>
     <string name="error_unknown_file_type">Неизвестный тип файла.</string>
     <string name="error_downloading">ошибка загрузки</string>
-    <string name="check_internet_connection">Проверьте соединение с интернетом</string>
-    <string name="ok">Ок</string>
-    <string name="close">Закрыть экран</string>
 
 </resources>

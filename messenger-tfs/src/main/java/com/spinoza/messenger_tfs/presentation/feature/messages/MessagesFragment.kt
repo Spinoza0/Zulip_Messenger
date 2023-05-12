@@ -11,7 +11,6 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
@@ -24,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
+import com.spinoza.messenger_tfs.databinding.MessagesDialogInputFieldBinding
 import com.spinoza.messenger_tfs.di.messages.DaggerMessagesComponent
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Emoji
@@ -386,9 +386,10 @@ class MessagesFragment :
 
     private fun showInputTextDialog(
         title: String, messageId: Long, content: String, isMessage: Boolean, maxLength: Int,
-        positiveCallback: (Long, CharSequence) -> Unit,
+        positiveCallback: (Long, CharSequence?) -> Unit,
     ) {
-        val input = EditText(requireContext()).apply {
+        val inputField = MessagesDialogInputFieldBinding.inflate(layoutInflater)
+        with(inputField.input) {
             maxLines = MAX_LINES
             inputType = InputType.TYPE_CLASS_TEXT
             filters = arrayOf(InputFilter.LengthFilter(maxLength))
@@ -399,10 +400,10 @@ class MessagesFragment :
         }
         AlertDialog.Builder(requireContext())
             .setTitle(title)
-            .setView(input)
+            .setView(inputField.root)
             .setCancelable(false)
             .setPositiveButton(getString(R.string.save)) { _, _ ->
-                positiveCallback(messageId, input.text)
+                positiveCallback(messageId, inputField.input.text)
             }
             .setNegativeButton(getString(R.string.cancel)) { _, _ ->
             }

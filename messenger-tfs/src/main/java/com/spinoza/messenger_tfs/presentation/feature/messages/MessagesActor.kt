@@ -551,7 +551,7 @@ class MessagesActor @Inject constructor(
     private suspend fun editMessageContent(
         command: MessagesScreenCommand.EditMessageContent,
     ): MessagesScreenEvent.Internal {
-        editMessageUseCase(command.messageId, content = command.content.toString())
+        editMessageUseCase(command.messageId, content = command.content.toString().trim())
             .onSuccess {
                 return MessagesScreenEvent.Internal.MessageContentChanged
             }
@@ -564,7 +564,7 @@ class MessagesActor @Inject constructor(
     private suspend fun editMessageTopic(
         command: MessagesScreenCommand.EditMessageTopic,
     ): MessagesScreenEvent.Internal {
-        val newTopicName = command.topic.toString()
+        val newTopicName = command.topic.toString().trim()
         editMessageUseCase(command.messageId, topic = newTopicName)
             .onSuccess {
                 return MessagesScreenEvent.Internal.MessageTopicChanged(newTopicName)

@@ -11,9 +11,9 @@ interface WebLimitation {
         serverPresenceOfflineThresholdSeconds: Int,
     )
 
-    fun getMaxStreamName(): Int
+    fun getMaxChannelName(): Int
 
-    fun getMaxStreamDescription(): Int
+    fun getMaxChannelDescription(): Int
 
     fun getMaxTopicName(): Int
 

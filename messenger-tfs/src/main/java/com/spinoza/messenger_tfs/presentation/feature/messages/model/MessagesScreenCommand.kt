@@ -56,10 +56,10 @@ sealed class MessagesScreenCommand {
     ) :
         MessagesScreenCommand()
 
-    class EditMessageContent(val messageId: Long, val content: CharSequence) :
+    class EditMessageContent(val messageId: Long, val content: CharSequence?) :
         MessagesScreenCommand()
 
-    class EditMessageTopic(val messageId: Long, val topic: CharSequence) :
+    class EditMessageTopic(val messageId: Long, val topic: CharSequence?) :
         MessagesScreenCommand()
 
     class GetRawMessageContent(

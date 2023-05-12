@@ -5,8 +5,8 @@ import javax.inject.Inject
 
 class WebLimitationImpl @Inject constructor() : WebLimitation {
 
-    private var maxStreamNameLength: Int = MAX_STREAM_NAME_LENGTH
-    private var maxStreamDescriptionLength: Int = MAX_STREAM_DESCRIPTION_LENGTH
+    private var maxChannelNameLength: Int = MAX_CHANNEL_NAME_LENGTH
+    private var maxChannelDescriptionLength: Int = MAX_CHANNEL_DESCRIPTION_LENGTH
     private var maxTopicLength: Int = MAX_TOPIC_LENGTH
     private var maxMessageLength: Int = MAX_MESSAGE_LENGTH
     private var serverPresencePingIntervalSeconds: Int = SERVER_PRESENCE_PING_INTERVAL_SECONDS
@@ -21,17 +21,17 @@ class WebLimitationImpl @Inject constructor() : WebLimitation {
         serverPresencePingIntervalSeconds: Int,
         serverPresenceOfflineThresholdSeconds: Int,
     ) {
-        this.maxStreamNameLength = maxStreamNameLength
-        this.maxStreamDescriptionLength = maxStreamDescriptionLength
+        this.maxChannelNameLength = maxStreamNameLength
+        this.maxChannelDescriptionLength = maxStreamDescriptionLength
         this.maxTopicLength = maxTopicLength
         this.maxMessageLength = maxMessageLength
         this.serverPresencePingIntervalSeconds = serverPresencePingIntervalSeconds
         this.serverPresenceOfflineThresholdSeconds = serverPresenceOfflineThresholdSeconds
     }
 
-    override fun getMaxStreamName(): Int = maxStreamNameLength
+    override fun getMaxChannelName(): Int = maxChannelNameLength
 
-    override fun getMaxStreamDescription(): Int = maxStreamDescriptionLength
+    override fun getMaxChannelDescription(): Int = maxChannelDescriptionLength
 
     override fun getMaxTopicName(): Int = maxTopicLength
 
@@ -44,8 +44,8 @@ class WebLimitationImpl @Inject constructor() : WebLimitation {
 
     private companion object {
 
-        const val MAX_STREAM_NAME_LENGTH = 60
-        const val MAX_STREAM_DESCRIPTION_LENGTH = 1024
+        const val MAX_CHANNEL_NAME_LENGTH = 60
+        const val MAX_CHANNEL_DESCRIPTION_LENGTH = 1024
         const val MAX_TOPIC_LENGTH = 60
         const val MAX_MESSAGE_LENGTH = 10000
         const val SERVER_PRESENCE_PING_INTERVAL_SECONDS = 60

@@ -1,6 +1,9 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.text.InputFilter
+import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,11 +15,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.databinding.CreateChannelDialogBinding
 import com.spinoza.messenger_tfs.databinding.FragmentChannelsPageBinding
 import com.spinoza.messenger_tfs.di.channels.DaggerChannelsComponent
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
+import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.CreateChannelDelegate
@@ -49,6 +54,9 @@ class ChannelsPageFragment : Fragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelFactory
+
+    @Inject
+    lateinit var webLimitation: WebLimitation
 
     private val store: ChannelsPageFragmentViewModel by viewModels { viewModelFactory }
 
@@ -198,7 +206,31 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun showCreateChannelDialog() {
-        TODO()
+        val dialogFields = CreateChannelDialogBinding.inflate(layoutInflater)
+        with(dialogFields.inputChannelName) {
+            inputType = InputType.TYPE_CLASS_TEXT
+            filters = arrayOf(InputFilter.LengthFilter(webLimitation.getMaxChannelName()))
+        }
+        with(dialogFields.inputChannelDescription) {
+            inputType = InputType.TYPE_CLASS_TEXT
+            filters = arrayOf(InputFilter.LengthFilter(webLimitation.getMaxChannelDescription()))
+        }
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.create_channel))
+            .setView(dialogFields.root)
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.create)) { _, _ ->
+                store.accept(
+                    ChannelsPageScreenEvent.Ui.CreateChannel(
+                        dialogFields.inputChannelName.text,
+                        dialogFields.inputChannelDescription.text
+                    )
+                )
+            }
+            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
+            }
+            .create()
+            .show()
     }
 
     private fun parseParams() {

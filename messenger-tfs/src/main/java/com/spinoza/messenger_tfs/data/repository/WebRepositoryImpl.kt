@@ -168,19 +168,19 @@ class WebRepositoryImpl @Inject constructor(
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
             val messagesResponse = apiRequest<MessagesResponse> {
+                val narrow = filter.createNarrowJsonForMessages()
                 when (messagesPageType) {
-                    // TODO: refactoring -> single request
                     MessagesPageType.FIRST_UNREAD -> apiService.getMessages(
                         numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                         numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
                     )
 
                     MessagesPageType.NEWEST -> apiGetMessages(
                         numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
                         numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchorId = messagesCache.getLastMessageId(filter),
                         ZulipApiService.ANCHOR_NEWEST
                     )
@@ -188,7 +188,7 @@ class WebRepositoryImpl @Inject constructor(
                     MessagesPageType.OLDEST -> apiGetMessages(
                         numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                         numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchorId = messagesCache.getFirstMessageId(filter),
                         ZulipApiService.ANCHOR_OLDEST
                     )
@@ -196,7 +196,7 @@ class WebRepositoryImpl @Inject constructor(
                     MessagesPageType.AFTER_STORED -> apiGetMessages(
                         numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
                         numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchorId = messagesCache.getLastMessageId(filter),
                         ZulipApiService.ANCHOR_NEWEST
                     )
@@ -204,7 +204,7 @@ class WebRepositoryImpl @Inject constructor(
                     MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
                         numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
                         numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                        narrow = filter.createNarrowJsonForMessages(),
+                        narrow = narrow,
                         anchor = ZulipApiService.ANCHOR_NEWEST
                     )
                 }

@@ -44,7 +44,7 @@ class CreateChannelDelegate(private val onClickListener: () -> Unit) : AdapterDe
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(onClickListener: () -> Unit) {
-            binding.root.setOnClickListener { onClickListener() }
+            binding.buttonCreateChannel.setOnClickListener { onClickListener() }
         }
     }
 }

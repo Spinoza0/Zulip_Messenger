@@ -56,7 +56,7 @@ interface ZulipApiService {
 
     @POST("register")
     suspend fun getWebLimitations(
-        @Query(QUERY_FETCH_EVENT_TYPES) fetchEventTypes: String = "[\"realm\"]",
+        @Query(QUERY_FETCH_EVENT_TYPES) fetchEventTypes: String = QUERY_WEB_LIMITATION,
     ): WebLimitationsResponse
 
     @POST("messages/flags")
@@ -178,9 +178,11 @@ interface ZulipApiService {
         private const val QUERY_QUEUE_ID = "queue_id"
         private const val QUERY_LAST_EVENT_ID = "last_event_id"
         private const val QUERY_EVENT_TYPES = "event_types"
-        private const val QUERY_FETCH_EVENT_TYPES = "fetch_event_types"
         private const val QUERY_APPLY_MARKDOWN = "apply_markdown"
         private const val QUERY_TO = "to"
+
+        private const val QUERY_FETCH_EVENT_TYPES = "fetch_event_types"
+        private const val QUERY_WEB_LIMITATION = "[\"realm\"]"
 
         private const val QUERY_MESSAGE_IDS = "messages"
         private const val QUERY_OPERATION = "op"

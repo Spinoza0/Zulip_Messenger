@@ -29,6 +29,6 @@ sealed class ChannelsPageScreenEvent {
 
         class ScrollStateIdle(val canScrollUp: Boolean, val canScrollDown: Boolean) : Ui()
 
-        class CreateChannel(val name: String, val description: String) : Ui()
+        class CreateChannel(val name: CharSequence?, val description: CharSequence?) : Ui()
     }
 }

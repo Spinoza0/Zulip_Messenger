@@ -75,11 +75,14 @@ sealed class MessagesScreenEvent {
         class EditMessageContent(
             val messageId: Long,
             val oldContent: String,
-            val content: CharSequence,
+            val content: CharSequence?,
         ) : Ui()
 
-        class EditMessageTopic(val messageId: Long, val oldTopic: String, val topic: CharSequence) :
-            Ui()
+        class EditMessageTopic(
+            val messageId: Long,
+            val oldTopic: String,
+            val topic: CharSequence?,
+        ) : Ui()
 
         class ShowChooseReactionDialog(val messageView: MessageView) : Ui()
 
