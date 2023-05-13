@@ -8,7 +8,8 @@ import com.spinoza.messenger_tfs.data.network.attachment.AttachmentHandlerImpl
 import com.spinoza.messenger_tfs.data.repository.ChannelRepositoryImpl
 import com.spinoza.messenger_tfs.data.repository.DaoRepositoryImpl
 import com.spinoza.messenger_tfs.data.repository.EventsRepositoryImpl
-import com.spinoza.messenger_tfs.data.repository.WebRepositoryImpl
+import com.spinoza.messenger_tfs.data.repository.MessageRepositoryImpl
+import com.spinoza.messenger_tfs.data.repository.UserRepositoryImpl
 import com.spinoza.messenger_tfs.di.ApplicationScope
 import com.spinoza.messenger_tfs.di.BaseUrl
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
@@ -18,7 +19,8 @@ import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.repository.ChannelRepository
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
 import com.spinoza.messenger_tfs.domain.repository.EventsRepository
-import com.spinoza.messenger_tfs.domain.repository.WebRepository
+import com.spinoza.messenger_tfs.domain.repository.MessageRepository
+import com.spinoza.messenger_tfs.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -34,7 +36,11 @@ interface DataModule {
 
     @ApplicationScope
     @Binds
-    fun bindWebRepository(impl: WebRepositoryImpl): WebRepository
+    fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
+
+    @ApplicationScope
+    @Binds
+    fun bindMessageRepository(impl: MessageRepositoryImpl): MessageRepository
 
     @ApplicationScope
     @Binds

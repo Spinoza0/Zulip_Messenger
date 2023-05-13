@@ -11,7 +11,8 @@ import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.repository.ChannelRepository
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
 import com.spinoza.messenger_tfs.domain.repository.EventsRepository
-import com.spinoza.messenger_tfs.domain.repository.WebRepository
+import com.spinoza.messenger_tfs.domain.repository.MessageRepository
+import com.spinoza.messenger_tfs.domain.repository.UserRepository
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.presentation.navigation.AppRouter
 import dagger.BindsInstance
@@ -26,7 +27,9 @@ interface ApplicationComponent {
 
     fun getContext(): Context
 
-    fun getWebRepository(): WebRepository
+    fun getUserRepository(): UserRepository
+
+    fun getMessageRepository(): MessageRepository
 
     fun getEventsRepository(): EventsRepository
 

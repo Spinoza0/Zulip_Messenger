@@ -4,17 +4,8 @@ import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
-import com.spinoza.messenger_tfs.domain.model.User
 
-interface WebRepository {
-
-    suspend fun logIn(email: String, password: String): Result<Boolean>
-
-    suspend fun getOwnUser(): Result<User>
-
-    suspend fun getUser(userId: Long): Result<User>
-
-    suspend fun getAllUsers(): Result<List<User>>
+interface MessageRepository {
 
     suspend fun getMessages(
         messagesPageType: MessagesPageType,
@@ -40,8 +31,6 @@ interface WebRepository {
         emoji: Emoji,
         filter: MessagesFilter,
     ): Result<MessagesResult>
-
-    suspend fun setOwnStatusActive()
 
     suspend fun setMessagesFlagToRead(messageIds: List<Long>)
 }

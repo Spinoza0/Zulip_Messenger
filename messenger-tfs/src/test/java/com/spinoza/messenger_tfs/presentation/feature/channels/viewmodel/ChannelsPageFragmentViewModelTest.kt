@@ -21,7 +21,7 @@ import com.spinoza.messenger_tfs.stub.AuthorizationStorageStub
 import com.spinoza.messenger_tfs.stub.ChannelRepositoryStub
 import com.spinoza.messenger_tfs.stub.DaoRepositoryStub
 import com.spinoza.messenger_tfs.stub.EventsRepositoryStub
-import com.spinoza.messenger_tfs.stub.WebRepositoryStub
+import com.spinoza.messenger_tfs.stub.UserRepositoryStub
 import com.spinoza.messenger_tfs.util.MainDispatcherRule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.runTest
@@ -52,7 +52,7 @@ class ChannelsPageFragmentViewModelTest {
     }
 
     private fun createViewModel(scope: CoroutineScope?): ChannelsPageFragmentViewModel {
-        val webRepository = WebRepositoryStub()
+        val userRepository = UserRepositoryStub()
         val eventsRepository = EventsRepositoryStub()
         val channelRepository = ChannelRepositoryStub()
         val daoRepository = DaoRepositoryStub()
@@ -60,7 +60,7 @@ class ChannelsPageFragmentViewModelTest {
             isSubscribed = true,
             authorizationStorage = AuthorizationStorageStub(),
             router = AppRouterStub(),
-            logInUseCase = LogInUseCase(webRepository),
+            logInUseCase = LogInUseCase(userRepository),
             getStoredChannelsUseCase = GetStoredChannelsUseCase(daoRepository),
             getStoredTopicsUseCase = GetStoredTopicsUseCase(daoRepository),
             getTopicsUseCase = GetTopicsUseCase(channelRepository),
