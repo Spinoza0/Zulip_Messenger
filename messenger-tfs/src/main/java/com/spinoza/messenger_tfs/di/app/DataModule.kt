@@ -1,6 +1,8 @@
 package com.spinoza.messenger_tfs.di.app
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.spinoza.messenger_tfs.data.cache.MessagesCache
+import com.spinoza.messenger_tfs.data.cache.MessagesCacheImpl
 import com.spinoza.messenger_tfs.data.network.WebLimitationImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
@@ -49,6 +51,10 @@ interface DataModule {
     @ApplicationScope
     @Binds
     fun bindChannelRepository(impl: ChannelRepositoryImpl): ChannelRepository
+
+    @ApplicationScope
+    @Binds
+    fun bindMessagesCache(impl: MessagesCacheImpl): MessagesCache
 
     @ApplicationScope
     @Binds
