@@ -129,15 +129,17 @@ class EventsRepositoryImpl @Inject constructor(
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
             }
+            var lastEventId = queue.lastEventId
             if (messagesCache.isNotEmpty() &&
                 filter.topic.lastMessageId == messagesCache.getLastMessageId(filter)
             ) {
                 eventResponse.events.forEach { messageEventDto ->
                     messagesCache.add(messageEventDto.message, isLastMessageVisible)
+                    lastEventId = messageEventDto.id
                 }
             }
             MessageEvent(
-                eventResponse.events.last().id,
+                lastEventId,
                 MessagesResult(
                     messagesCache.getMessages(filter),
                     MessagePosition(),
@@ -160,16 +162,17 @@ class EventsRepositoryImpl @Inject constructor(
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
             }
+            var lastEventId = queue.lastEventId
             eventResponse.events.forEach { updateMessageEventDto ->
                 messagesCache.update(
                     updateMessageEventDto.messageId,
                     updateMessageEventDto.subject,
                     updateMessageEventDto.renderedContent
                 )
+                lastEventId = updateMessageEventDto.id
             }
             UpdateMessageEvent(
-                eventResponse.events.last().id,
-                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
+                lastEventId, MessagesResult(messagesCache.getMessages(filter), MessagePosition())
             )
         }
     }
@@ -187,12 +190,13 @@ class EventsRepositoryImpl @Inject constructor(
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
             }
+            var lastEventId = queue.lastEventId
             eventResponse.events.forEach { deleteMessageEventDto ->
                 messagesCache.remove(deleteMessageEventDto.messageId)
+                lastEventId = deleteMessageEventDto.id
             }
             DeleteMessageEvent(
-                eventResponse.events.last().id,
-                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
+                lastEventId, MessagesResult(messagesCache.getMessages(filter), MessagePosition())
             )
         }
     }
@@ -210,12 +214,13 @@ class EventsRepositoryImpl @Inject constructor(
             if (eventResponse.result != RESULT_SUCCESS) {
                 throw RepositoryError(eventResponse.msg)
             }
+            var lastEventId = queue.lastEventId
             eventResponse.events.forEach { reactionEventDto ->
                 messagesCache.updateReaction(reactionEventDto)
+                lastEventId = reactionEventDto.id
             }
             ReactionEvent(
-                eventResponse.events.last().id,
-                MessagesResult(messagesCache.getMessages(filter), MessagePosition())
+                lastEventId, MessagesResult(messagesCache.getMessages(filter), MessagePosition())
             )
         }
     }
