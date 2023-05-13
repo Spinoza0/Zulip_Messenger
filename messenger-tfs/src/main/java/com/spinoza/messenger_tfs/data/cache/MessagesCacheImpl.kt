@@ -16,7 +16,6 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.event.EventOperation
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
-import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.TreeSet
@@ -49,7 +48,7 @@ class MessagesCacheImpl @Inject constructor(
         dataMutex.withLock {
             data.remove(messageDto)
             data.add(messageDto)
-            saveToDatabase(!isLastMessageVisible, messageDto.subject, filter)
+            saveToDatabase(!isLastMessageVisible, filter)
         }
     }
 
@@ -59,16 +58,17 @@ class MessagesCacheImpl @Inject constructor(
         filter: MessagesFilter,
     ) {
         dataMutex.withLock {
-            messagesDto.forEach { data.remove(it) }
-            data.addAll(messagesDto)
-            if (data.isNotEmpty()) {
-                val subject = if (messagesDto.isNotEmpty()) {
-                    messagesDto.first().subject
+            if (messagesPageType == MessagesPageType.AFTER_STORED) {
+                if (filter.topic.name.isEmpty()) {
+                    data.clear()
                 } else {
-                    EMPTY_STRING
+                    data.removeIfSubjectNotMatchFilter(filter)
                 }
-                saveToDatabase(messagesPageType == MessagesPageType.OLDEST, subject, filter)
+            } else {
+                messagesDto.forEach { data.remove(it) }
             }
+            data.addAll(messagesDto)
+            saveToDatabase(messagesPageType == MessagesPageType.OLDEST, filter)
         }
     }
 
@@ -168,11 +168,10 @@ class MessagesCacheImpl @Inject constructor(
 
     private suspend fun saveToDatabase(
         isReducingFromTail: Boolean,
-        subject: String,
         filter: MessagesFilter,
     ) {
-        if (data.size > MAX_CACHE_SIZE && subject.isNotEmpty() && filter.topic.name.isNotEmpty()) {
-            data.removeIf { !it.subject.equals(subject, ignoreCase = true) }
+        if (data.size > MAX_CACHE_SIZE && filter.topic.name.isNotEmpty()) {
+            data.removeIfSubjectNotMatchFilter(filter)
         }
         if (data.size > MAX_CACHE_SIZE) {
             val delta = data.size - MAX_CACHE_SIZE
@@ -184,6 +183,10 @@ class MessagesCacheImpl @Inject constructor(
         }
         messengerDao.removeMessages()
         messengerDao.insertMessages(data.toDbModel())
+    }
+
+    private fun TreeSet<MessageDto>.removeIfSubjectNotMatchFilter(filter: MessagesFilter) {
+        this.removeIf { !filter.isEqualTopicName(it.subject) }
     }
 
     private companion object {
