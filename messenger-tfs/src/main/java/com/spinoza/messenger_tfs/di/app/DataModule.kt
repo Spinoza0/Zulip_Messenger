@@ -103,6 +103,7 @@ interface DataModule {
             return retrofit.create(ZulipApiService::class.java)
         }
 
+        @ApplicationScope
         @Provides
         fun provideJsonConverter(): Json = Json {
             ignoreUnknownKeys = true

@@ -134,7 +134,7 @@ class EventsRepositoryImpl @Inject constructor(
                 filter.topic.lastMessageId == messagesCache.getLastMessageId(filter)
             ) {
                 eventResponse.events.forEach { messageEventDto ->
-                    messagesCache.add(messageEventDto.message, isLastMessageVisible)
+                    messagesCache.add(messageEventDto.message, isLastMessageVisible, filter)
                     lastEventId = messageEventDto.id
                 }
             }

@@ -13,9 +13,13 @@ interface MessagesCache {
 
     suspend fun reload()
 
-    suspend fun add(messageDto: MessageDto, isLastMessageVisible: Boolean)
+    suspend fun add(messageDto: MessageDto, isLastMessageVisible: Boolean, filter: MessagesFilter)
 
-    suspend fun addAll(messagesDto: List<MessageDto>, messagesPageType: MessagesPageType)
+    suspend fun addAll(
+        messagesDto: List<MessageDto>,
+        messagesPageType: MessagesPageType,
+        filter: MessagesFilter,
+    )
 
     suspend fun update(messageId: Long, subject: String?, content: String?)
 

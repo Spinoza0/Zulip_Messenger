@@ -93,7 +93,7 @@ class MessageRepositoryImpl @Inject constructor(
                 MessagesPageType.LAST -> MessagePosition(MessagePosition.Type.LAST_POSITION)
                 else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
-            messagesCache.addAll(messagesResponse.messages, messagesPageType)
+            messagesCache.addAll(messagesResponse.messages, messagesPageType, filter)
             MessagesResult(messagesCache.getMessages(filter), position)
         }
     }

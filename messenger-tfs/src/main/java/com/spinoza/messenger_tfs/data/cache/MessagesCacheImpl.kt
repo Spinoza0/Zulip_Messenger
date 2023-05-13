@@ -41,15 +41,23 @@ class MessagesCacheImpl @Inject constructor(
         }
     }
 
-    override suspend fun add(messageDto: MessageDto, isLastMessageVisible: Boolean) {
+    override suspend fun add(
+        messageDto: MessageDto,
+        isLastMessageVisible: Boolean,
+        filter: MessagesFilter,
+    ) {
         dataMutex.withLock {
             data.remove(messageDto)
             data.add(messageDto)
-            saveToDatabase(!isLastMessageVisible, messageDto.subject)
+            saveToDatabase(!isLastMessageVisible, messageDto.subject, filter)
         }
     }
 
-    override suspend fun addAll(messagesDto: List<MessageDto>, messagesPageType: MessagesPageType) {
+    override suspend fun addAll(
+        messagesDto: List<MessageDto>,
+        messagesPageType: MessagesPageType,
+        filter: MessagesFilter,
+    ) {
         dataMutex.withLock {
             messagesDto.forEach { data.remove(it) }
             data.addAll(messagesDto)
@@ -59,7 +67,7 @@ class MessagesCacheImpl @Inject constructor(
                 } else {
                     EMPTY_STRING
                 }
-                saveToDatabase(messagesPageType == MessagesPageType.OLDEST, subject)
+                saveToDatabase(messagesPageType == MessagesPageType.OLDEST, subject, filter)
             }
         }
     }
@@ -158,9 +166,13 @@ class MessagesCacheImpl @Inject constructor(
         data.add(messageDto)
     }
 
-    private suspend fun saveToDatabase(isReducingFromTail: Boolean, subject: String) {
-        if (data.size > MAX_CACHE_SIZE && subject.isNotEmpty()) {
-            data.removeIf { it.subject != subject }
+    private suspend fun saveToDatabase(
+        isReducingFromTail: Boolean,
+        subject: String,
+        filter: MessagesFilter,
+    ) {
+        if (data.size > MAX_CACHE_SIZE && subject.isNotEmpty() && filter.topic.name.isNotEmpty()) {
+            data.removeIf { !it.subject.equals(subject, ignoreCase = true) }
         }
         if (data.size > MAX_CACHE_SIZE) {
             val delta = data.size - MAX_CACHE_SIZE
