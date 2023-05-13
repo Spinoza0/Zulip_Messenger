@@ -49,8 +49,8 @@
             android:textColor="?attr/text_300_color"
             android:textColorHint="?attr/text_300_color"
             android:visibility="gone"
-            tools:visibility="visible"
-            tools:ignore="VisualLintTextFieldSize" />
+            tools:ignore="VisualLintTextFieldSize"
+            tools:visibility="visible" />
 
         <EditText
             android:id="@+id/editTextPassword"
@@ -66,26 +66,20 @@
             android:textColor="?attr/text_300_color"
             android:textColorHint="?attr/text_300_color"
             android:visibility="gone"
-            tools:visibility="visible"
-            tools:ignore="VisualLintTextFieldSize" />
+            tools:ignore="VisualLintTextFieldSize"
+            tools:visibility="visible" />
 
         <Button
             android:id="@+id/buttonLogin"
+            style="@style/ButtonStyle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:layout_margin="16dp"
-            android:backgroundTint="?attr/background_600_color"
             android:enabled="false"
-            android:gravity="center_horizontal"
-            android:paddingVertical="14dp"
             android:text="@string/log_in"
-            android:textAllCaps="false"
-            android:textColor="?attr/text_300_color"
-            android:textSize="20sp"
             android:visibility="gone"
             app:cornerRadius="31dp"
-            tools:visibility="visible"
-            tools:ignore="VisualLintButtonSize" />
+            tools:ignore="VisualLintButtonSize"
+            tools:visibility="visible" />
 
         <TextView
             android:id="@+id/textViewForgotPassword"

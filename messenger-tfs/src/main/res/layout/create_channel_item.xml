@@ -7,16 +7,11 @@
 
     <Button
         android:id="@+id/buttonCreateChannel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/ButtonStyle"
         android:layout_marginVertical="4dp"
         android:backgroundTint="?attr/background_500_color"
-        android:paddingHorizontal="56dp"
         android:paddingVertical="8dp"
         android:text="@string/create_channel"
-        android:textAllCaps="false"
-        android:textColor="?attr/text_200_color"
-        android:textSize="18sp"
         app:cornerRadius="31dp" />
 
 </RelativeLayout>

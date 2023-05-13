@@ -98,16 +98,9 @@
 
     <Button
         android:id="@+id/buttonLogout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/ButtonStyle"
         android:layout_marginTop="30dp"
-        android:backgroundTint="?attr/background_600_color"
-        android:paddingHorizontal="56dp"
-        android:paddingVertical="14dp"
         android:text="@string/log_out"
-        android:textAllCaps="false"
-        android:textColor="?attr/text_200_color"
-        android:textSize="20sp"
         android:visibility="gone"
         app:cornerRadius="31dp"
         app:layout_constraintBaseline_toBottomOf="parent"

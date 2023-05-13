@@ -28,4 +28,16 @@
         <item name="android:textSize">18sp</item>
     </style>
 
+    <style name="ButtonStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">56dp</item>
+        <item name="android:paddingEnd">56dp</item>
+        <item name="android:paddingTop">14dp</item>
+        <item name="android:paddingBottom">14dp</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">?attr/text_200_color</item>
+        <item name="android:backgroundTint">?attr/background_600_color</item>
+    </style>
 </resources>
