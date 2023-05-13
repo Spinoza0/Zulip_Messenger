@@ -221,16 +221,19 @@ class ChannelsPageFragment : Fragment() {
             textViewDelete.isVisible = effect.isItemDeleteVisible
             textViewSubscribe.setOnClickListener {
                 store.accept(ChannelsPageScreenEvent.Ui.SubscribeToChannel(channelName))
-                dialog.off(isShowingChannelMenu)
+                dialog.dismiss()
             }
             textViewUnsubscribe.setOnClickListener {
                 store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(channelName))
-                dialog.off(isShowingChannelMenu)
+                dialog.dismiss()
             }
             textViewDelete.setOnClickListener {
                 confirmDeleteChannel(effect.channelItem.channel)
-                dialog.off(isShowingChannelMenu)
+                dialog.dismiss()
             }
+        }
+        dialog.setOnDismissListener {
+            isShowingChannelMenu.set(false)
         }
         dialog.show()
     }

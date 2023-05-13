@@ -18,18 +18,20 @@ class ExternalStoragePermission @Inject constructor(private val fragment: Messag
         }
     }
 
-    fun isGranted(): Boolean = isGranted(
-        ActivityCompat.checkSelfPermission(
-            fragment.requireActivity(),
-            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
+    fun isGranted(permissionType: Type): Boolean = isGranted(
+        ActivityCompat.checkSelfPermission(fragment.requireActivity(), permissionType.value)
     )
 
-    fun request(onGrantedCallback: () -> Unit) {
+    fun request(permissionType: Type, onGrantedCallback: () -> Unit) {
         this.onGrantedCallback = onGrantedCallback
-        requestPermissionLauncher.launch(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        requestPermissionLauncher.launch(permissionType.value)
     }
 
     private fun isGranted(permission: Int): Boolean =
         PackageManager.PERMISSION_GRANTED == permission
+
+    enum class Type(val value: String) {
+        READ(android.Manifest.permission.READ_EXTERNAL_STORAGE),
+        WRITE(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    }
 }

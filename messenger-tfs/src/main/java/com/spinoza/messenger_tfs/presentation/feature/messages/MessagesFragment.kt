@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +15,7 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.core.view.isVisible
 import androidx.core.widget.doOnTextChanged
@@ -22,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.R
+import com.spinoza.messenger_tfs.databinding.DialogAttachFileBinding
 import com.spinoza.messenger_tfs.databinding.DialogMessageActionsBinding
 import com.spinoza.messenger_tfs.databinding.FragmentMessagesBinding
 import com.spinoza.messenger_tfs.databinding.MessagesDialogInputFieldBinding
@@ -100,10 +103,12 @@ class MessagesFragment :
 
     private var messagesFilter = MessagesFilter()
     private var onBackPressedCallback: OnBackPressedCallback? = null
-    private var pickMedia: ActivityResultLauncher<PickVisualMediaRequest>? = null
+    private var pickImageLauncher: ActivityResultLauncher<PickVisualMediaRequest>? = null
+    private var pickFileLauncher: ActivityResultLauncher<Intent>? = null
     private var recyclerViewState: Parcelable? = null
     private var recyclerViewStateOnDestroy: Parcelable? = null
     private val isShowingMessageMenu = AtomicBoolean(false)
+    private val isShowingAddAttachmentMenu = AtomicBoolean(false)
     private val topicNameTemplate by lazy { getString(R.string.messages_topic_template) }
 
     override val storeHolder:
@@ -117,7 +122,14 @@ class MessagesFragment :
     override fun onAttach(context: Context) {
         super.onAttach(context)
         DaggerMessagesComponent.factory().create(context.getAppComponent(), this).inject(this)
-        pickMedia = registerForActivityResult(PickVisualMedia()) { handlePickMediaResult(it) }
+        pickImageLauncher =
+            registerForActivityResult(PickVisualMedia()) { handlePickFileResult(it) }
+        pickFileLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result != null && result.data != null) {
+                    result.data?.let { intent -> handlePickFileResult(intent.data) }
+                }
+            }
     }
 
     override fun onCreateView(
@@ -254,7 +266,7 @@ class MessagesFragment :
                 )
             }
             imageViewAction.setOnLongClickListener {
-                addAttachment()
+                showAddAttachmentMenu()
                 true
             }
             editTextTopicName.doOnTextChanged { text, _, _, _ ->
@@ -332,7 +344,7 @@ class MessagesFragment :
                 }
             }
 
-            is MessagesScreenEffect.AddAttachment -> addAttachment()
+            is MessagesScreenEffect.AddAttachment -> showAddAttachmentMenu()
             is MessagesScreenEffect.FileUploaded -> {
                 val filename = effect.value.name
                 val url = effect.value.url
@@ -441,7 +453,7 @@ class MessagesFragment :
             itemDeleteMessage.isVisible = effect.isDeleteMessageVisible
             itemAddReaction.setOnClickListener {
                 addReaction(effect.messageView)
-                dialog.off(isShowingMessageMenu)
+                dialog.dismiss()
             }
             itemCopyToClipboard.setOnClickListener {
                 store.accept(
@@ -449,7 +461,7 @@ class MessagesFragment :
                         requireContext(), effect.messageView, isMessageWithAttachments
                     )
                 )
-                dialog.off(isShowingMessageMenu)
+                dialog.dismiss()
             }
             itemEditMessage.setOnClickListener {
                 store.accept(
@@ -457,30 +469,71 @@ class MessagesFragment :
                         effect.messageView, isMessageWithAttachments
                     )
                 )
-                dialog.off(isShowingMessageMenu)
+                dialog.dismiss()
             }
             itemEditTopic.setOnClickListener {
                 showEditTopicDialog(effect.messageView)
-                dialog.off(isShowingMessageMenu)
+                dialog.dismiss()
             }
             itemDeleteMessage.setOnClickListener {
                 store.accept(MessagesScreenEvent.Ui.ConfirmDeleteMessage(effect.messageView))
-                dialog.off(isShowingMessageMenu)
+                dialog.dismiss()
             }
             itemSaveAttachments.setOnClickListener {
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                    if (externalStoragePermission.isGranted()) {
+                    if (externalStoragePermission.isGranted(ExternalStoragePermission.Type.WRITE)) {
                         saveAttachments(effect.urls)
                     } else {
-                        externalStoragePermission.request { saveAttachments(effect.urls) }
+                        externalStoragePermission.request(ExternalStoragePermission.Type.WRITE) {
+                            saveAttachments(effect.urls)
+                        }
                     }
                 } else {
                     saveAttachments(effect.urls)
                 }
-                dialog.off(isShowingMessageMenu)
+                dialog.dismiss()
             }
         }
+        dialog.setOnDismissListener {
+            isShowingMessageMenu.set(false)
+        }
         dialog.show()
+    }
+
+    private fun showAddAttachmentMenu() {
+        if (isShowingAddAttachmentMenu.get()) return
+        isShowingAddAttachmentMenu.set(true)
+        val dialog = BottomSheetDialog(requireContext())
+        val dialogBinding = DialogAttachFileBinding.inflate(layoutInflater)
+        dialog.setContentView(dialogBinding.root)
+        with(dialogBinding) {
+            itemAttachImage.setOnClickListener {
+                pickImageLauncher?.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
+                dialog.dismiss()
+            }
+            itemAttachFile.setOnClickListener {
+                if (externalStoragePermission.isGranted(ExternalStoragePermission.Type.READ)) {
+                    pickFile()
+                } else {
+                    externalStoragePermission.request(ExternalStoragePermission.Type.READ) {
+                        pickFile()
+                    }
+                }
+                dialog.dismiss()
+            }
+        }
+        dialog.setOnDismissListener {
+            isShowingAddAttachmentMenu.set(false)
+        }
+        dialog.show()
+    }
+
+    private fun pickFile() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = TYPE_ALL_FILES
+        }
+        pickFileLauncher?.launch(intent)
     }
 
     private fun getVisibleMessagesIds(
@@ -509,15 +562,11 @@ class MessagesFragment :
         return lastVisibleItemPosition == messagesAdapter.itemCount.minus(LAST_ITEM_OFFSET)
     }
 
-    private fun addAttachment() {
-        pickMedia?.launch(PickVisualMediaRequest(PickVisualMedia.ImageOnly))
-    }
-
     private fun saveAttachments(urls: List<String>) {
         store.accept(MessagesScreenEvent.Ui.SaveAttachments(requireContext(), urls))
     }
 
-    private fun handlePickMediaResult(uri: Uri?) {
+    private fun handlePickFileResult(uri: Uri?) {
         if (uri != null) {
             store.accept(
                 MessagesScreenEvent.Ui.UploadFile(requireContext().applicationContext, uri)
@@ -640,6 +689,7 @@ class MessagesFragment :
         private const val LAST_ITEM_OFFSET = 1
         private const val CHANNEL_NAME = "Downloads"
         private const val CHANNEL_ID = "downloads_channel"
+        private const val TYPE_ALL_FILES = "*/*"
         private const val BORDER_POSITION = BuildConfig.MESSAGES_BORDER_POSITION
 
         fun newInstance(messagesFilter: MessagesFilter): MessagesFragment {

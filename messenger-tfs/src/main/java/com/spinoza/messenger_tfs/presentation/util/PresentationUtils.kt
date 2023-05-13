@@ -13,12 +13,10 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.di.app.ApplicationComponent
 import com.spinoza.messenger_tfs.presentation.feature.app.App
-import java.util.concurrent.atomic.AtomicBoolean
 
 fun Context.getAppComponent(): ApplicationComponent = (this.applicationContext as App).appComponent
 
@@ -94,11 +92,6 @@ private fun Fragment.isNetworkConnected(): Boolean {
     val cm =
         requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     return cm.activeNetwork != null && cm.getNetworkCapabilities(cm.activeNetwork) != null
-}
-
-fun BottomSheetDialog.off(dialogFlag: AtomicBoolean) {
-    dialogFlag.set(false)
-    this.dismiss()
 }
 
 const val DIRECTION_UP = -1
