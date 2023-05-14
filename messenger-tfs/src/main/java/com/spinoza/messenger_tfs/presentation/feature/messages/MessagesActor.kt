@@ -144,7 +144,11 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.NewTopicName -> newTopicName(command.value)
                 is MessagesScreenCommand.LoadFirstPage -> loadFirstPage(command)
                 is MessagesScreenCommand.LoadPreviousPage -> loadPreviousPage(command)
+                is MessagesScreenCommand.LoadCurrentWithPreviousPage ->
+                    loadCurrentWithPreviousPage(command)
+
                 is MessagesScreenCommand.LoadNextPage -> loadNextPage(command)
+                is MessagesScreenCommand.LoadCurrentWithNextPage -> loadCurrentWithNextPage(command)
                 is MessagesScreenCommand.LoadLastPage -> loadLastPage(command)
                 is MessagesScreenCommand.SetMessagesRead -> setMessageReadFlags(command.messageIds)
                 is MessagesScreenCommand.UpdateReaction ->
@@ -177,9 +181,19 @@ class MessagesActor @Inject constructor(
                                 result = loadPreviousPage(lastCommand)
                             }
 
+                            is MessagesScreenCommand.LoadCurrentWithPreviousPage -> {
+                                lastLoadCommand = null
+                                result = loadCurrentWithPreviousPage(lastCommand)
+                            }
+
                             is MessagesScreenCommand.LoadNextPage -> {
                                 lastLoadCommand = null
                                 result = loadNextPage(lastCommand)
+                            }
+
+                            is MessagesScreenCommand.LoadCurrentWithNextPage -> {
+                                lastLoadCommand = null
+                                result = loadCurrentWithNextPage(lastCommand)
                             }
 
                             is MessagesScreenCommand.LoadLastPage -> {
@@ -282,10 +296,22 @@ class MessagesActor @Inject constructor(
         return loadMessages(command, MessagesPageType.OLDEST)
     }
 
+    private suspend fun loadCurrentWithPreviousPage(
+        command: MessagesScreenCommand,
+    ): MessagesScreenEvent.Internal {
+        return loadMessages(command, MessagesPageType.CURRENT_WITH_OLDEST)
+    }
+
     private suspend fun loadNextPage(
         command: MessagesScreenCommand,
     ): MessagesScreenEvent.Internal {
         return loadMessages(command, MessagesPageType.NEWEST)
+    }
+
+    private suspend fun loadCurrentWithNextPage(
+        command: MessagesScreenCommand,
+    ): MessagesScreenEvent.Internal {
+        return loadMessages(command, MessagesPageType.CURRENT_WITH_NEWEST)
     }
 
     private suspend fun loadLastPage(

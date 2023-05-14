@@ -26,7 +26,11 @@ sealed class MessagesScreenCommand {
 
     object LoadPreviousPage : MessagesScreenCommand()
 
+    object LoadCurrentWithPreviousPage : MessagesScreenCommand()
+
     object LoadNextPage : MessagesScreenCommand()
+
+    object LoadCurrentWithNextPage : MessagesScreenCommand()
 
     object LoadLastPage : MessagesScreenCommand()
 

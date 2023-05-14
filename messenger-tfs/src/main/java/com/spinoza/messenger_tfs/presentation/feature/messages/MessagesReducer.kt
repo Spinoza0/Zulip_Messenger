@@ -192,11 +192,12 @@ class MessagesReducer @Inject constructor(
             if (isDraggingWithoutScroll) {
                 isDraggingWithoutScroll = false
                 if (!event.canScrollUp) {
-                    commands { +MessagesScreenCommand.LoadPreviousPage }
+                    commands { +MessagesScreenCommand.LoadCurrentWithPreviousPage }
                 }
                 if (!event.canScrollDown) {
-                    commands { +MessagesScreenCommand.LoadNextPage }
+                    commands { +MessagesScreenCommand.LoadCurrentWithNextPage }
                 }
+                state { copy(isLongOperation = true) }
             } else {
                 val list = visibleMessageIds.toList()
                 if (visibleMessageIds.size > MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS) {
