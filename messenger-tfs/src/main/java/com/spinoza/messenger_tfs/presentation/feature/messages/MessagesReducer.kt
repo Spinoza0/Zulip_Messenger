@@ -73,7 +73,7 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
             state {
                 copy(
-                    messages = event.value,
+                    isLongOperation = false, messages = event.value,
                     isNewMessageExisting = event.value.isNewMessageExisting
                 )
             }
@@ -87,17 +87,17 @@ class MessagesReducer @Inject constructor(
         }
 
         is MessagesScreenEvent.Internal.UpdateMessagesEventFromQueue -> {
-            state { copy(messages = event.value) }
+            state { copy(isLongOperation = false, messages = event.value) }
             commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
         }
 
         is MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue -> {
-            state { copy(messages = event.value) }
+            state { copy(isLongOperation = false, messages = event.value) }
             commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
         }
 
         is MessagesScreenEvent.Internal.ReactionsEventFromQueue -> {
-            state { copy(messages = event.value) }
+            state { copy(isLongOperation = false, messages = event.value) }
             commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible) }
         }
 
@@ -345,8 +345,10 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Ui.ConfirmDeleteMessage ->
             effects { +MessagesScreenEffect.ConfirmDeleteMessage(event.messageView.messageId) }
 
-        is MessagesScreenEvent.Ui.DeleteMessage ->
+        is MessagesScreenEvent.Ui.DeleteMessage -> {
+            state { copy(isLongOperation = true) }
             commands { +MessagesScreenCommand.DeleteMessage(event.messageId) }
+        }
 
         is MessagesScreenEvent.Ui.CheckLoginStatus -> {
             if (!authorizationStorage.isUserLoggedIn()) {
