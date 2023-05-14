@@ -369,14 +369,16 @@ class MessagesActor @Inject constructor(
 
     private fun startUpdatingInfo() {
         updatingInfoJob?.cancel()
-        val delayBeforeUpdateStatusActive =
+        val presencePingIntervalSeconds =
             webLimitation.getPresencePingIntervalSeconds() - DELAY_BEFORE_UPDATE_STATUS_ACTIVE * 2
         updatingInfoJob = lifecycleScope.launch {
             while (isActive) {
-                messagesFilter = getUpdatedMessageFilterUserCase(messagesFilter)
+                if(messagesFilter.topic.name.isNotEmpty()) {
+                    messagesFilter = getUpdatedMessageFilterUserCase(messagesFilter)
+                }
                 delay(DELAY_BEFORE_UPDATE_STATUS_ACTIVE)
                 setOwnStatusActiveUseCase()
-                delay(delayBeforeUpdateStatusActive)
+                delay(presencePingIntervalSeconds)
             }
         }
     }
