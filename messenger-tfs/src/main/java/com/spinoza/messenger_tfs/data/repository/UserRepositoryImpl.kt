@@ -72,7 +72,13 @@ class UserRepositoryImpl @Inject constructor(
         runCatchingNonCancellation {
             apiRequest<OwnUserResponse> { apiService.getOwnUser() }
         }.onSuccess {
-            authorizationStorage.saveData(it.userId, it.isAdmin, email, password, apiKey)
+            authorizationStorage.saveData(
+                it.userId,
+                it.isAdmin || it.isOwner,
+                email,
+                password,
+                apiKey
+            )
             return true
         }
         return false

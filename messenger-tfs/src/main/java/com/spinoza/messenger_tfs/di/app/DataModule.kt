@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.di.app
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.cache.MessagesCache
 import com.spinoza.messenger_tfs.data.cache.MessagesCacheImpl
 import com.spinoza.messenger_tfs.data.network.WebLimitationImpl
@@ -94,6 +95,13 @@ interface DataModule {
                         authorizationStorage.getAuthHeaderValue()
                     ).build()
                 }
+                .addInterceptor { chain ->
+                    val originalRequest = chain.request()
+                    val requestWithUserAgent = originalRequest.newBuilder()
+                        .header(HEADER_USER_AGENT, APPLICATION_NAME)
+                        .build()
+                    chain.proceed(requestWithUserAgent)
+                }
                 .build()
             val retrofit = Retrofit.Builder()
                 .baseUrl("$baseUrl/api/v1/")
@@ -111,6 +119,8 @@ interface DataModule {
         }
 
         private const val MEDIA_TYPE_JSON = "application/json"
+        private const val HEADER_USER_AGENT = "User-Agent"
+        private const val APPLICATION_NAME = BuildConfig.APPLICATION_NAME
         private const val TIME_OUT_SECONDS = 15L
     }
 }
