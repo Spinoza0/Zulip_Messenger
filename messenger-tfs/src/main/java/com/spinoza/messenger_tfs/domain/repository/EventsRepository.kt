@@ -15,7 +15,7 @@ interface EventsRepository {
 
     suspend fun registerEventQueue(
         eventTypes: List<EventType>,
-        messagesFilter: MessagesFilter,
+        filter: MessagesFilter,
     ): Result<EventsQueue>
 
     suspend fun deleteEventQueue(queueId: String)

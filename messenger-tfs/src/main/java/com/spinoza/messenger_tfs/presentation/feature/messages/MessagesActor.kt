@@ -373,7 +373,7 @@ class MessagesActor @Inject constructor(
             webLimitation.getPresencePingIntervalSeconds() - DELAY_BEFORE_UPDATE_STATUS_ACTIVE * 2
         updatingInfoJob = lifecycleScope.launch {
             while (isActive) {
-                if(messagesFilter.topic.name.isNotEmpty()) {
+                if (messagesFilter.topic.name.isNotEmpty()) {
                     messagesFilter = getUpdatedMessageFilterUserCase(messagesFilter)
                 }
                 delay(DELAY_BEFORE_UPDATE_STATUS_ACTIVE)
@@ -402,7 +402,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         return getEvent(
             messagesQueue, getMessageEventUseCase, ::onSuccessMessageEvent,
-            MessagesScreenEvent.Internal.EmptyMessagesQueueEvent,
+            MessagesScreenEvent.Internal.EmptyMessagesQueueEvent(messagesFilter.topic.copy()),
             isLastMessageVisible
         )
     }
@@ -412,7 +412,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         return getEvent(
             updateMessagesQueue, getUpdateMessageEventUseCase, ::onSuccessUpdateMessageEvent,
-            MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent,
+            MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent(messagesFilter.topic.copy()),
             isLastMessageVisible
         )
     }
@@ -422,7 +422,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         return getEvent(
             deleteMessagesQueue, getDeleteMessageEventUseCase, ::onSuccessDeleteMessageEvent,
-            MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent,
+            MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent(messagesFilter.topic.copy()),
             isLastMessageVisible
         )
     }
@@ -432,7 +432,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         return getEvent(
             reactionsQueue, getReactionEventUseCase, ::onSuccessReactionEvent,
-            MessagesScreenEvent.Internal.EmptyReactionsQueueEvent,
+            MessagesScreenEvent.Internal.EmptyReactionsQueueEvent(messagesFilter.topic.copy()),
             isLastMessageVisible
         )
     }
@@ -618,6 +618,7 @@ class MessagesActor @Inject constructor(
     private fun List<Message>.groupByDate(userId: Long): List<DelegateAdapterItem> {
         val messageAdapterItemList = mutableListOf<DelegateAdapterItem>()
         val dates = TreeSet<MessageDateTime>()
+        val topic = messagesFilter.topic.copy()
         forEach {
             dates.add(it.datetime)
         }
@@ -629,7 +630,7 @@ class MessagesActor @Inject constructor(
                 message.datetime.dateString == messageDate.dateString
             }
             allDayMessages.forEach { message ->
-                if (messagesFilter.topic.name.isEmpty() &&
+                if (topic.name.isEmpty() &&
                     (isDateChanged || !lastTopicName.equals(message.subject, ignoreCase = true))
                 ) {
                     lastTopicName = message.subject

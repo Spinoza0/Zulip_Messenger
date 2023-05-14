@@ -2,10 +2,12 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
+import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
+import com.spinoza.messenger_tfs.domain.util.nameEquals
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessageDraft
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
@@ -37,6 +39,7 @@ class MessagesReducer @Inject constructor(
     private var isLastMessageVisible = false
     private var messageSentId = Message.UNDEFINED_ID
     private var isDraggingWithoutScroll = false
+    private var topic = Topic()
 
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {
@@ -99,16 +102,24 @@ class MessagesReducer @Inject constructor(
         }
 
         is MessagesScreenEvent.Internal.EmptyMessagesQueueEvent ->
-            commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
+            if (event.topic.nameEquals(topic.name)) {
+                commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
+            } else effects {}
 
         is MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent ->
-            commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
+            if (event.topic.nameEquals(topic.name)) {
+                commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
+            } else effects {}
 
         is MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent ->
-            commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
+            if (event.topic.nameEquals(topic.name)) {
+                commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
+            } else effects {}
 
         is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent ->
-            commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible) }
+            if (event.topic.nameEquals(topic.name)) {
+                commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible) }
+            } else effects {}
 
         is MessagesScreenEvent.Internal.MessageSent -> {
             if (event.messageId != Message.UNDEFINED_ID) {
@@ -220,8 +231,10 @@ class MessagesReducer @Inject constructor(
             }
         }
 
-        is MessagesScreenEvent.Ui.Load ->
+        is MessagesScreenEvent.Ui.Load -> {
+            topic = event.filter.topic.copy()
             commands { +MessagesScreenCommand.LoadStored(event.filter) }
+        }
 
         is MessagesScreenEvent.Ui.LoadPreviousPage ->
             commands { +MessagesScreenCommand.LoadPreviousPage }

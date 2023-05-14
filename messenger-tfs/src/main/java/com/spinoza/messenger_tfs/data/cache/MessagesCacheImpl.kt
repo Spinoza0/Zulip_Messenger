@@ -6,7 +6,6 @@ import com.spinoza.messenger_tfs.data.network.model.event.ReactionEventDto
 import com.spinoza.messenger_tfs.data.network.model.message.MessageDto
 import com.spinoza.messenger_tfs.data.network.model.message.ReactionDto
 import com.spinoza.messenger_tfs.data.utils.dbModelToDto
-import com.spinoza.messenger_tfs.data.utils.isEqualTopicName
 import com.spinoza.messenger_tfs.data.utils.toDbModel
 import com.spinoza.messenger_tfs.data.utils.toDomain
 import com.spinoza.messenger_tfs.data.utils.toReactionDto
@@ -16,6 +15,7 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.event.EventOperation
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
+import com.spinoza.messenger_tfs.domain.util.nameEquals
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.util.TreeSet
@@ -62,7 +62,7 @@ class MessagesCacheImpl @Inject constructor(
                 if (filter.topic.name.isEmpty()) {
                     data.clear()
                 } else {
-                    data.removeIfSubjectNotMatchFilter(filter)
+                    data.removeIfSubjectMatchFilter(filter)
                 }
             } else {
                 messagesDto.forEach { data.remove(it) }
@@ -93,12 +93,12 @@ class MessagesCacheImpl @Inject constructor(
     }
 
     override fun getFirstMessageId(filter: MessagesFilter): Long {
-        val message = data.find { filter.isEqualTopicName(it.subject) }
+        val message = data.find { filter.topic.nameEquals(it.subject) }
         return message?.id ?: Message.UNDEFINED_ID
     }
 
     override fun getLastMessageId(filter: MessagesFilter): Long {
-        val message = data.findLast { filter.isEqualTopicName(it.subject) }
+        val message = data.findLast { filter.topic.nameEquals(it.subject) }
         return message?.id ?: Message.UNDEFINED_ID
     }
 
@@ -153,7 +153,7 @@ class MessagesCacheImpl @Inject constructor(
                 }
             val topicMessages =
                 if (filter.topic.name.isNotEmpty()) {
-                    streamMessages.filter { filter.isEqualTopicName(it.subject) }
+                    streamMessages.filter { filter.topic.nameEquals(it.subject) }
                 } else {
                     streamMessages
                 }
@@ -185,8 +185,12 @@ class MessagesCacheImpl @Inject constructor(
         messengerDao.insertMessages(data.toDbModel())
     }
 
+    private fun TreeSet<MessageDto>.removeIfSubjectMatchFilter(filter: MessagesFilter) {
+        this.removeIf { filter.topic.nameEquals(it.subject) }
+    }
+
     private fun TreeSet<MessageDto>.removeIfSubjectNotMatchFilter(filter: MessagesFilter) {
-        this.removeIf { !filter.isEqualTopicName(it.subject) }
+        this.removeIf { !filter.topic.nameEquals(it.subject) }
     }
 
     private companion object {

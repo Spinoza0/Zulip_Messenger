@@ -9,7 +9,6 @@ import com.spinoza.messenger_tfs.data.network.model.message.SingleMessageRespons
 import com.spinoza.messenger_tfs.data.network.model.stream.TopicsResponse
 import com.spinoza.messenger_tfs.data.utils.apiRequest
 import com.spinoza.messenger_tfs.data.utils.createNarrowJsonForMessages
-import com.spinoza.messenger_tfs.data.utils.isEqualTopicName
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.data.utils.toDto
 import com.spinoza.messenger_tfs.di.DispatcherIO
@@ -21,6 +20,8 @@ import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.repository.MessageRepository
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
+import com.spinoza.messenger_tfs.domain.util.nameEquals
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -41,46 +42,51 @@ class MessageRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
+            val topic = filter.topic.copy()
             val messagesResponse = apiRequest<MessagesResponse> {
                 val narrow = filter.createNarrowJsonForMessages()
+                val numBefore: Int
+                val numAfter: Int
+                var anchorId = Message.UNDEFINED_ID
+                var anchor = EMPTY_STRING
                 when (messagesPageType) {
-                    MessagesPageType.FIRST_UNREAD -> apiService.getMessages(
-                        numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
-                        numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
-                        narrow = narrow,
+                    MessagesPageType.FIRST_UNREAD -> {
+                        numBefore = ZulipApiService.HALF_MESSAGES_PACKET
+                        numAfter = ZulipApiService.HALF_MESSAGES_PACKET
                         anchor = ZulipApiService.ANCHOR_FIRST_UNREAD
-                    )
+                    }
 
-                    MessagesPageType.NEWEST -> apiGetMessages(
-                        numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                        numAfter = ZulipApiService.MAX_MESSAGES_PACKET,
-                        narrow = narrow,
-                        anchorId = messagesCache.getLastMessageId(filter),
-                        ZulipApiService.ANCHOR_NEWEST
-                    )
-
-                    MessagesPageType.OLDEST -> apiGetMessages(
-                        numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
-                        numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                        narrow = narrow,
-                        anchorId = messagesCache.getFirstMessageId(filter),
-                        ZulipApiService.ANCHOR_OLDEST
-                    )
-
-                    MessagesPageType.AFTER_STORED -> apiGetMessages(
-                        numBefore = ZulipApiService.HALF_MESSAGES_PACKET,
-                        numAfter = ZulipApiService.HALF_MESSAGES_PACKET,
-                        narrow = narrow,
-                        anchorId = messagesCache.getLastMessageId(filter),
-                        ZulipApiService.ANCHOR_NEWEST
-                    )
-
-                    MessagesPageType.LAST, MessagesPageType.STORED -> apiService.getMessages(
-                        numBefore = ZulipApiService.MAX_MESSAGES_PACKET,
-                        numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET,
-                        narrow = narrow,
+                    MessagesPageType.NEWEST -> {
+                        numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET
+                        numAfter = ZulipApiService.MAX_MESSAGES_PACKET
+                        anchorId = messagesCache.getLastMessageId(filter)
                         anchor = ZulipApiService.ANCHOR_NEWEST
-                    )
+                    }
+
+                    MessagesPageType.OLDEST -> {
+                        numBefore = ZulipApiService.MAX_MESSAGES_PACKET
+                        numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET
+                        anchorId = messagesCache.getFirstMessageId(filter)
+                        anchor = ZulipApiService.ANCHOR_OLDEST
+                    }
+
+                    MessagesPageType.AFTER_STORED -> {
+                        numBefore = ZulipApiService.HALF_MESSAGES_PACKET
+                        numAfter = ZulipApiService.HALF_MESSAGES_PACKET
+                        anchorId = messagesCache.getLastMessageId(filter)
+                        anchor = ZulipApiService.ANCHOR_NEWEST
+                    }
+
+                    MessagesPageType.LAST, MessagesPageType.STORED -> {
+                        numBefore = ZulipApiService.MAX_MESSAGES_PACKET
+                        numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET
+                        anchor = ZulipApiService.ANCHOR_NEWEST
+                    }
+                }
+                if (anchorId != Message.UNDEFINED_ID) {
+                    apiService.getMessages(numBefore, numAfter, narrow, anchorId)
+                } else {
+                    apiService.getMessages(numBefore, numAfter, narrow, anchor)
                 }
             }
             val position = when (messagesPageType) {
@@ -94,7 +100,8 @@ class MessageRepositoryImpl @Inject constructor(
                 else -> MessagePosition(MessagePosition.Type.UNDEFINED)
             }
             messagesCache.addAll(messagesResponse.messages, messagesPageType, filter)
-            MessagesResult(messagesCache.getMessages(filter), position)
+            val messages = messagesCache.getMessages(filter)
+            MessagesResult(topic, messages, position)
         }
     }
 
@@ -129,7 +136,7 @@ class MessageRepositoryImpl @Inject constructor(
                     apiService.getTopics(filter.channel.channelId)
                 }
                 val newTopic = topicsResponse.topics.find {
-                    filter.isEqualTopicName(it.name)
+                    filter.topic.nameEquals(it.name)
                 }
                 if (newTopic != null) {
                     topic = topic.copy(lastMessageId = newTopic.maxId)
@@ -146,11 +153,7 @@ class MessageRepositoryImpl @Inject constructor(
         runCatchingNonCancellation {
             val topicName = subject.ifBlank { filter.topic.name }
             val sendMessageResponse = apiRequest<SendMessageResponse> {
-                apiService.sendMessageToStream(
-                    filter.channel.channelId,
-                    topicName,
-                    content
-                )
+                apiService.sendMessageToStream(filter.channel.channelId, topicName, content)
             }
             sendMessageResponse.messageId
         }
@@ -162,11 +165,12 @@ class MessageRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
+            val topic = filter.topic.copy()
             val ownUserId = authorizationStorage.getUserId()
             messagesCache.updateReaction(messageId, ownUserId, emoji.toDto(ownUserId))
+            val messages = messagesCache.getMessages(filter)
             val result = MessagesResult(
-                messagesCache.getMessages(filter),
-                MessagePosition(MessagePosition.Type.EXACTLY, messageId)
+                topic, messages, MessagePosition(MessagePosition.Type.EXACTLY, messageId)
             )
             updateReactionOnServer(messageId, emoji)
             result
@@ -179,20 +183,6 @@ class MessageRepositoryImpl @Inject constructor(
                 apiService.setMessageFlagsToRead(Json.encodeToString(messageIds))
             }
         }
-
-    private suspend fun apiGetMessages(
-        numBefore: Int,
-        numAfter: Int,
-        narrow: String,
-        anchorId: Long,
-        anchor: String,
-    ): MessagesResponse {
-        return if (anchorId != Message.UNDEFINED_ID) {
-            apiService.getMessages(numBefore, numAfter, narrow, anchorId)
-        } else {
-            apiService.getMessages(numBefore, numAfter, narrow, anchor)
-        }
-    }
 
     private fun updateReactionOnServer(messageId: Long, emoji: Emoji) {
         CoroutineScope(ioDispatcher).launch {

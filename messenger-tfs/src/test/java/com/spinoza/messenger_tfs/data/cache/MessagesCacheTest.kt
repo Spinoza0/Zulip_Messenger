@@ -8,7 +8,6 @@ import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.stub.AuthorizationStorageStub
 import com.spinoza.messenger_tfs.stub.MessagesGenerator
 import com.spinoza.messenger_tfs.stub.MessengerDaoStub
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -16,7 +15,6 @@ import org.junit.Assert.assertNotEquals
 import org.junit.Before
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class MessagesCacheTest {
 
     private val messagesGenerator = MessagesGenerator()
@@ -40,7 +38,7 @@ class MessagesCacheTest {
         val messagesCache = createEmptyMessagesCache()
         val message = messagesGenerator.getNextMessageDto()
 
-        messagesCache.add(message, false)
+        messagesCache.add(message, false, provideMessagesFilter())
 
         assertEquals(true, messagesCache.isNotEmpty())
     }
@@ -51,7 +49,7 @@ class MessagesCacheTest {
         val messages = messagesGenerator.getListOfMessagesDto()
         val messagesPageType = provideMessagePageType()
 
-        messagesCache.addAll(messages, messagesPageType)
+        messagesCache.addAll(messages, messagesPageType, provideMessagesFilter())
 
         assertEquals(true, messagesCache.isNotEmpty())
     }
@@ -61,7 +59,7 @@ class MessagesCacheTest {
         val messagesCache = createEmptyMessagesCache()
         val message = messagesGenerator.getNextMessageDto()
 
-        messagesCache.add(message, false)
+        messagesCache.add(message, false, provideMessagesFilter())
         messagesCache.reload()
 
         assertNotEquals(true, messagesCache.isNotEmpty())
@@ -69,14 +67,15 @@ class MessagesCacheTest {
 
     @Test
     fun `should updateReaction changes reactions`() = runTest {
-        val messagesCache = createNotEmptyMessagesCache()
+        val filter = provideMessagesFilter()
+        val messagesCache = createNotEmptyMessagesCache(filter)
         val id = messagesGenerator.getLastId()
-        val messagesBefore = messagesCache.getMessages(provideMessagesFilter())
+        val messagesBefore = messagesCache.getMessages(filter)
         val reactionsBefore = messagesBefore.find { it.user.userId == id }?.reactions
         val newReactionDto = createReactionDto()
 
         messagesCache.updateReaction(messagesGenerator.getLastId(), ownUserId, newReactionDto)
-        val messagesAfter = messagesCache.getMessages(provideMessagesFilter())
+        val messagesAfter = messagesCache.getMessages(filter)
         val reactionsAfter = messagesAfter.find { it.user.userId == id }?.reactions
 
         assertNotEquals(reactionsBefore, reactionsAfter)
@@ -94,22 +93,28 @@ class MessagesCacheTest {
     @Test
     fun `should getMessages returns not empty list after adding messages`() = runTest {
         val messagesCache = createEmptyMessagesCache()
+        val filter = provideMessagesFilter()
 
-        messagesCache.addAll(messagesGenerator.getListOfMessagesDto(), provideMessagePageType())
+        messagesCache.addAll(
+            messagesGenerator.getListOfMessagesDto(),
+            provideMessagePageType(),
+            filter
+        )
 
-        val messages = messagesCache.getMessages(provideMessagesFilter())
+        val messages = messagesCache.getMessages(filter)
         assertEquals(true, messages.isNotEmpty())
     }
 
     @Test
     fun `should remove method removes the message from messagesCache`() = runTest {
-        val messagesCache = createNotEmptyMessagesCache()
-        val messagesBefore = messagesCache.getMessages(provideMessagesFilter())
+        val filter = provideMessagesFilter()
+        val messagesCache = createNotEmptyMessagesCache(filter)
+        val messagesBefore = messagesCache.getMessages(filter)
         val messagesSizeBefore = messagesBefore.size
         val lastMessageId = messagesBefore.last().id
 
         messagesCache.remove(lastMessageId)
-        val messagesAfter = messagesCache.getMessages(provideMessagesFilter())
+        val messagesAfter = messagesCache.getMessages(filter)
         val messagesSizeAfter = messagesAfter.size
 
         assertNotEquals(messagesSizeAfter, messagesSizeBefore)
@@ -118,24 +123,24 @@ class MessagesCacheTest {
 
     @Test
     fun `should getFirstMessageId returns id of the first message`() = runTest {
-        val messagesCache = createNotEmptyMessagesCache()
-        val messagesFilter = provideMessagesFilter()
-        val messages = messagesCache.getMessages(messagesFilter)
+        val filter = provideMessagesFilter()
+        val messagesCache = createNotEmptyMessagesCache(filter)
+        val messages = messagesCache.getMessages(filter)
         val rawFirstMessageId = messages.first().id
 
-        val firstMessageId = messagesCache.getFirstMessageId(messagesFilter)
+        val firstMessageId = messagesCache.getFirstMessageId(filter)
 
         assertEquals(firstMessageId, rawFirstMessageId)
     }
 
     @Test
     fun `should getLastMessageId returns id of the last message`() = runTest {
-        val messagesCache = createNotEmptyMessagesCache()
-        val messagesFilter = provideMessagesFilter()
-        val messages = messagesCache.getMessages(messagesFilter)
+        val filter = provideMessagesFilter()
+        val messagesCache = createNotEmptyMessagesCache(filter)
+        val messages = messagesCache.getMessages(filter)
         val rawLastMessageId = messages.last().id
 
-        val lastMessageId = messagesCache.getLastMessageId(messagesFilter)
+        val lastMessageId = messagesCache.getLastMessageId(filter)
 
         assertEquals(lastMessageId, rawLastMessageId)
     }
@@ -143,28 +148,32 @@ class MessagesCacheTest {
     @Test
     fun `should result of the getLastMessageId not equals result of the getFirstMessageId`() =
         runTest {
-            val messagesCache = createNotEmptyMessagesCache()
-            val messagesFilter = provideMessagesFilter()
+            val filter = provideMessagesFilter()
+            val messagesCache = createNotEmptyMessagesCache(filter)
 
-            val messages = messagesCache.getMessages(messagesFilter)
-            val firstMessageId = messagesCache.getFirstMessageId(messagesFilter)
-            val lastMessageId = messagesCache.getLastMessageId(messagesFilter)
+            val messages = messagesCache.getMessages(filter)
+            val firstMessageId = messagesCache.getFirstMessageId(filter)
+            val lastMessageId = messagesCache.getLastMessageId(filter)
 
             assertEquals(true, messages.size > 1)
             assertNotEquals(firstMessageId, lastMessageId)
         }
 
     private fun createEmptyMessagesCache(): MessagesCache {
-        return MessagesCache(
+        return MessagesCacheImpl(
             MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY),
             AuthorizationStorageStub()
         )
     }
 
-    private fun createNotEmptyMessagesCache(): MessagesCache = runBlocking {
+    private fun createNotEmptyMessagesCache(filter: MessagesFilter): MessagesCache = runBlocking {
         val messengerDao = MessengerDaoStub(messagesGenerator, MessengerDaoStub.Type.EMPTY)
-        val messagesCache = MessagesCache(messengerDao, AuthorizationStorageStub())
-        messagesCache.addAll(messagesGenerator.getListOfMessagesDto(), provideMessagePageType())
+        val messagesCache = MessagesCacheImpl(messengerDao, AuthorizationStorageStub())
+        messagesCache.addAll(
+            messagesGenerator.getListOfMessagesDto(),
+            provideMessagePageType(),
+            filter
+        )
         messagesCache
     }
 
