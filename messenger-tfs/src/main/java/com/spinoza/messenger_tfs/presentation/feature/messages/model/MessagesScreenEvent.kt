@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
-import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
 import com.spinoza.messenger_tfs.presentation.feature.messages.ui.MessageView
 
@@ -13,6 +12,10 @@ sealed class MessagesScreenEvent {
     sealed class Ui : MessagesScreenEvent() {
 
         object Init : Ui()
+
+        class SubscribeOnEvents(val filter: MessagesFilter) : Ui()
+
+        object UnsubscribeFromEvents : Ui()
 
         object CheckLoginStatus : Ui()
 
@@ -104,13 +107,17 @@ sealed class MessagesScreenEvent {
 
         object LogOut : Internal()
 
-        class EmptyMessagesQueueEvent(val topic: Topic) : Internal()
+        object SubscribedOnEvents : Internal()
 
-        class EmptyUpdateMessagesQueueEvent(val topic: Topic) : Internal()
+        object UnsubscribedFromEvents : Internal()
 
-        class EmptyDeleteMessagesQueueEvent(val topic: Topic) : Internal()
+        object EmptyMessagesQueueEvent : Internal()
 
-        class EmptyReactionsQueueEvent(val topic: Topic) : Internal()
+        object EmptyUpdateMessagesQueueEvent : Internal()
+
+        object EmptyDeleteMessagesQueueEvent : Internal()
+
+        object EmptyReactionsQueueEvent : Internal()
 
         class NextPageExists(val value: Boolean, val isGoingToLastMessage: Boolean) : Internal()
 

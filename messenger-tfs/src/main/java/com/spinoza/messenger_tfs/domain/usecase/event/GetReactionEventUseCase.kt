@@ -7,7 +7,7 @@ import com.spinoza.messenger_tfs.domain.repository.EventsRepository
 import javax.inject.Inject
 
 class GetReactionEventUseCase @Inject constructor(private val repository: EventsRepository) :
-    EventUseCase<ReactionEvent> {
+    MessagesEventUseCase<ReactionEvent> {
 
     override suspend operator fun invoke(
         queue: EventsQueue,

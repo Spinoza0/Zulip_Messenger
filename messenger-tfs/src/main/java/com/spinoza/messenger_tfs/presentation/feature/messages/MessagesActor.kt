@@ -16,6 +16,7 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesPageType
 import com.spinoza.messenger_tfs.domain.model.MessagesResult
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
+import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.model.event.DeleteMessageEvent
 import com.spinoza.messenger_tfs.domain.model.event.EventType
 import com.spinoza.messenger_tfs.domain.model.event.MessageEvent
@@ -24,11 +25,11 @@ import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
-import com.spinoza.messenger_tfs.domain.usecase.event.EventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetReactionEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetUpdateMessageEventUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.MessagesEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.domain.usecase.messages.DeleteMessageUseCase
@@ -123,10 +124,7 @@ class MessagesActor @Inject constructor(
     private val lifecycleObserver = object : DefaultLifecycleObserver {
         override fun onDestroy(owner: LifecycleOwner) {
             lifecycleScope.launch {
-                messagesQueue.deleteQueue()
-                updateMessagesQueue.deleteQueue()
-                deleteMessagesQueue.deleteQueue()
-                reactionsQueue.deleteQueue()
+                unsubscribeFromEvents()
                 updatingInfoJob?.cancel()
             }
         }
@@ -135,6 +133,7 @@ class MessagesActor @Inject constructor(
     init {
         lifecycle.addObserver(lifecycleObserver)
         subscribeToNewMessageDraftChanges()
+        startUpdatingInfo()
     }
 
     override fun execute(command: MessagesScreenCommand): Flow<MessagesScreenEvent.Internal> =
@@ -219,10 +218,41 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.GetRawMessageContent -> getRawMessageContent(command)
                 is MessagesScreenCommand.SaveAttachments -> saveAttachments(command)
                 is MessagesScreenCommand.DeleteMessage -> deleteMessage(command.messageId)
+                is MessagesScreenCommand.SubscribeOnEvents -> subscribeOnEvents(command.filter)
+                is MessagesScreenCommand.UnsubscribeFromEvents -> unsubscribeFromEvents()
                 is MessagesScreenCommand.LogIn -> logIn()
             }
             emit(event)
         }
+
+    private fun subscribeOnEvents(filter: MessagesFilter): MessagesScreenEvent.Internal {
+        val filterWithoutTopic = filter.copy(topic = Topic())
+        messagesQueue.registerQueue(
+            eventTypes = listOf(EventType.MESSAGE),
+            filter = filterWithoutTopic
+        )
+        updateMessagesQueue.registerQueue(
+            eventTypes = listOf(EventType.UPDATE_MESSAGE),
+            filter = filterWithoutTopic
+        )
+        deleteMessagesQueue.registerQueue(
+            eventTypes = listOf(EventType.DELETE_MESSAGE),
+            filter = filterWithoutTopic
+        )
+        reactionsQueue.registerQueue(
+            eventTypes = listOf(EventType.REACTION),
+            filter = filterWithoutTopic
+        )
+        return MessagesScreenEvent.Internal.SubscribedOnEvents
+    }
+
+    private suspend fun unsubscribeFromEvents(): MessagesScreenEvent.Internal {
+        messagesQueue.deleteQueue()
+        updateMessagesQueue.deleteQueue()
+        deleteMessagesQueue.deleteQueue()
+        reactionsQueue.deleteQueue()
+        return getIdleEvent()
+    }
 
     private suspend fun logIn(): MessagesScreenEvent.Internal {
         var event: MessagesScreenEvent.Internal = MessagesScreenEvent.Internal.Idle
@@ -282,12 +312,7 @@ class MessagesActor @Inject constructor(
             } else {
                 MessagesPageType.AFTER_STORED
             }
-        val event = loadMessages(command, messagesPageType)
-        if (event is MessagesScreenEvent.Internal.Messages) {
-            registerEventQueues()
-            startUpdatingInfo()
-        }
-        return event
+        return loadMessages(command, messagesPageType)
     }
 
     private suspend fun loadPreviousPage(
@@ -394,7 +419,6 @@ class MessagesActor @Inject constructor(
     }
 
     private fun startUpdatingInfo() {
-        updatingInfoJob?.cancel()
         val presencePingIntervalSeconds =
             webLimitation.getPresencePingIntervalSeconds() - DELAY_BEFORE_UPDATE_STATUS_ACTIVE * 2
         updatingInfoJob = lifecycleScope.launch {
@@ -428,7 +452,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         return getEvent(
             messagesQueue, getMessageEventUseCase, ::onSuccessMessageEvent,
-            MessagesScreenEvent.Internal.EmptyMessagesQueueEvent(messagesFilter.topic.copy()),
+            MessagesScreenEvent.Internal.EmptyMessagesQueueEvent,
             isLastMessageVisible
         )
     }
@@ -438,7 +462,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         return getEvent(
             updateMessagesQueue, getUpdateMessageEventUseCase, ::onSuccessUpdateMessageEvent,
-            MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent(messagesFilter.topic.copy()),
+            MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent,
             isLastMessageVisible
         )
     }
@@ -448,7 +472,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         return getEvent(
             deleteMessagesQueue, getDeleteMessageEventUseCase, ::onSuccessDeleteMessageEvent,
-            MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent(messagesFilter.topic.copy()),
+            MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent,
             isLastMessageVisible
         )
     }
@@ -458,7 +482,7 @@ class MessagesActor @Inject constructor(
     ): MessagesScreenEvent.Internal {
         return getEvent(
             reactionsQueue, getReactionEventUseCase, ::onSuccessReactionEvent,
-            MessagesScreenEvent.Internal.EmptyReactionsQueueEvent(messagesFilter.topic.copy()),
+            MessagesScreenEvent.Internal.EmptyReactionsQueueEvent,
             isLastMessageVisible
         )
     }
@@ -509,7 +533,7 @@ class MessagesActor @Inject constructor(
 
     private suspend fun <T> getEvent(
         eventsQueue: EventsQueueHolder,
-        useCase: EventUseCase<T>,
+        useCase: MessagesEventUseCase<T>,
         onSuccessCallback: (EventsQueueHolder, T) -> MessagesScreenEvent.Internal,
         emptyEvent: MessagesScreenEvent.Internal,
         isLastMessageVisible: Boolean,
@@ -518,8 +542,6 @@ class MessagesActor @Inject constructor(
             useCase(eventsQueue.queue, messagesFilter, isLastMessageVisible)
                 .onSuccess { event ->
                     return@withContext onSuccessCallback(eventsQueue, event)
-                }.onFailure {
-                    registerEventQueues()
                 }
         }
         delay(DELAY_BEFORE_CHECK_EVENTS)
@@ -543,13 +565,6 @@ class MessagesActor @Inject constructor(
             return MessagesScreenEvent.Internal.StoredMessages(messagesResultDelegate)
         }
         return MessagesScreenEvent.Internal.Messages(messagesResultDelegate)
-    }
-
-    private fun registerEventQueues() {
-        messagesQueue.registerQueue(listOf(EventType.MESSAGE))
-        updateMessagesQueue.registerQueue(listOf(EventType.UPDATE_MESSAGE))
-        deleteMessagesQueue.registerQueue(listOf(EventType.DELETE_MESSAGE))
-        reactionsQueue.registerQueue(listOf(EventType.REACTION))
     }
 
     private suspend fun uploadFile(

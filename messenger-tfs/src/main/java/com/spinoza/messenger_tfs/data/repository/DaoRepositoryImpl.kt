@@ -28,7 +28,6 @@ class DaoRepositoryImpl @Inject constructor(
         runCatchingNonCancellation {
             messagesCache.reload()
             MessagesResult(
-                filter.topic,
                 messagesCache.getMessages(filter),
                 MessagePosition(MessagePosition.Type.LAST_POSITION)
             )

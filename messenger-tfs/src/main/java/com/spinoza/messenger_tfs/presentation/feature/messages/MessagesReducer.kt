@@ -2,12 +2,10 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagePosition
-import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.network.WebUtil
 import com.spinoza.messenger_tfs.domain.util.getCurrentTimestamp
-import com.spinoza.messenger_tfs.domain.util.nameEquals
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessageDraft
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenCommand
 import com.spinoza.messenger_tfs.presentation.feature.messages.model.MessagesScreenEffect
@@ -39,7 +37,7 @@ class MessagesReducer @Inject constructor(
     private var isLastMessageVisible = false
     private var messageSentId = Message.UNDEFINED_ID
     private var isDraggingWithoutScroll = false
-    private var topic = Topic()
+    private var isSubscriptionOnEventsExist = false
 
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {
@@ -61,13 +59,7 @@ class MessagesReducer @Inject constructor(
                     messages = event.value
                 )
             }
-            commands {
-                +MessagesScreenCommand.LoadFirstPage(event.value.messages.isEmpty())
-                +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
-            }
+            commands { +MessagesScreenCommand.LoadFirstPage(event.value.messages.isEmpty()) }
         }
 
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
@@ -101,25 +93,21 @@ class MessagesReducer @Inject constructor(
             commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible) }
         }
 
-        is MessagesScreenEvent.Internal.EmptyMessagesQueueEvent ->
-            if (event.topic.nameEquals(topic.name)) {
-                commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
-            } else effects {}
+        is MessagesScreenEvent.Internal.EmptyMessagesQueueEvent -> if (isSubscriptionOnEventsExist)
+            commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
+        else effects {}
 
-        is MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent ->
-            if (event.topic.nameEquals(topic.name)) {
-                commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
-            } else effects {}
+        is MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent -> if (isSubscriptionOnEventsExist)
+            commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
+        else effects {}
 
-        is MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent ->
-            if (event.topic.nameEquals(topic.name)) {
-                commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
-            } else effects {}
+        is MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent -> if (isSubscriptionOnEventsExist)
+            commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
+        else effects {}
 
-        is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent ->
-            if (event.topic.nameEquals(topic.name)) {
-                commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible) }
-            } else effects {}
+        is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent -> if (isSubscriptionOnEventsExist)
+            commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible) }
+        else effects {}
 
         is MessagesScreenEvent.Internal.MessageSent -> {
             if (event.messageId != Message.UNDEFINED_ID) {
@@ -174,6 +162,17 @@ class MessagesReducer @Inject constructor(
             state { copy(isLoading = false, isLongOperation = false, isSendingMessage = false) }
             effects { +MessagesScreenEffect.Failure.ErrorNetwork(event.value) }
         }
+
+        is MessagesScreenEvent.Internal.SubscribedOnEvents -> commands {
+            isSubscriptionOnEventsExist = true
+            +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
+            +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
+            +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
+            +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
+        }
+
+        is MessagesScreenEvent.Internal.UnsubscribedFromEvents ->
+            isSubscriptionOnEventsExist = false
 
         is MessagesScreenEvent.Internal.LogOut -> router.exit()
         is MessagesScreenEvent.Internal.LoginSuccess -> {}
@@ -232,10 +231,8 @@ class MessagesReducer @Inject constructor(
             }
         }
 
-        is MessagesScreenEvent.Ui.Load -> {
-            topic = event.filter.topic.copy()
+        is MessagesScreenEvent.Ui.Load ->
             commands { +MessagesScreenCommand.LoadStored(event.filter) }
-        }
 
         is MessagesScreenEvent.Ui.LoadPreviousPage ->
             commands { +MessagesScreenCommand.LoadPreviousPage }
@@ -360,6 +357,12 @@ class MessagesReducer @Inject constructor(
             }
             effects { }
         }
+
+        is MessagesScreenEvent.Ui.SubscribeOnEvents ->
+            commands { +MessagesScreenCommand.SubscribeOnEvents(event.filter) }
+
+        is MessagesScreenEvent.Ui.UnsubscribeFromEvents ->
+            commands { +MessagesScreenCommand.UnsubscribeFromEvents }
 
         is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.Init -> {}

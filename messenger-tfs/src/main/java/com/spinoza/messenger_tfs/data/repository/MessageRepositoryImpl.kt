@@ -42,7 +42,6 @@ class MessageRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val topic = filter.topic.copy()
             val messagesResponse = apiRequest<MessagesResponse> {
                 val narrow = filter.createNarrowJsonForMessages()
                 val numBefore: Int
@@ -123,7 +122,7 @@ class MessageRepositoryImpl @Inject constructor(
             }
             messagesCache.addAll(messagesResponse.messages, messagesPageType, filter)
             val messages = messagesCache.getMessages(filter)
-            MessagesResult(topic, messages, position)
+            MessagesResult(messages, position)
         }
     }
 
@@ -187,13 +186,11 @@ class MessageRepositoryImpl @Inject constructor(
         filter: MessagesFilter,
     ): Result<MessagesResult> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val topic = filter.topic.copy()
             val ownUserId = authorizationStorage.getUserId()
             messagesCache.updateReaction(messageId, ownUserId, emoji.toDto(ownUserId))
             val messages = messagesCache.getMessages(filter)
-            val result = MessagesResult(
-                topic, messages, MessagePosition(MessagePosition.Type.EXACTLY, messageId)
-            )
+            val result =
+                MessagesResult(messages, MessagePosition(MessagePosition.Type.EXACTLY, messageId))
             updateReactionOnServer(messageId, emoji)
             result
         }

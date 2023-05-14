@@ -7,7 +7,7 @@ import com.spinoza.messenger_tfs.domain.repository.EventsRepository
 import javax.inject.Inject
 
 class GetDeleteMessageEventUseCase @Inject constructor(private val repository: EventsRepository) :
-    EventUseCase<DeleteMessageEvent> {
+    MessagesEventUseCase<DeleteMessageEvent> {
 
     override suspend operator fun invoke(
         queue: EventsQueue,

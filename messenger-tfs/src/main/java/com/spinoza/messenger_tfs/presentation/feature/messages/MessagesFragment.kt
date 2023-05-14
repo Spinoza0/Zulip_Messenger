@@ -339,7 +339,10 @@ class MessagesFragment :
 
             is MessagesScreenEffect.Failure.ErrorNetwork -> {
                 showError("${getString(R.string.error_network)} ${effect.value}")
-                showCheckInternetConnectionDialog({ store.accept(MessagesScreenEvent.Ui.Reload) }) {
+                showCheckInternetConnectionDialog({
+                    store.accept(MessagesScreenEvent.Ui.Reload)
+                    store.accept(MessagesScreenEvent.Ui.SubscribeOnEvents(messagesFilter))
+                }) {
                     goBack()
                 }
             }
@@ -649,12 +652,14 @@ class MessagesFragment :
         if (isMessagesListEmpty()) {
             loadMessages(messagesFilter.topic.name)
         }
+        store.accept(MessagesScreenEvent.Ui.SubscribeOnEvents(messagesFilter))
     }
 
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
         binding.shimmerSending.off()
+        store.accept(MessagesScreenEvent.Ui.UnsubscribeFromEvents)
     }
 
     override fun onStop() {

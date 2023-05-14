@@ -122,7 +122,6 @@ class EventsRepositoryImpl @Inject constructor(
         isLastMessageVisible: Boolean,
     ): Result<MessageEvent> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val topic = filter.topic.copy()
             val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
                 MessageEventsResponse.serializer(), responseBody
@@ -142,9 +141,7 @@ class EventsRepositoryImpl @Inject constructor(
             val messages = messagesCache.getMessages(filter)
             MessageEvent(
                 lastEventId,
-                MessagesResult(
-                    topic, messages, MessagePosition(), eventResponse.events.isNotEmpty()
-                )
+                MessagesResult(messages, MessagePosition(), eventResponse.events.isNotEmpty())
             )
         }
     }
@@ -155,7 +152,6 @@ class EventsRepositoryImpl @Inject constructor(
         isLastMessageVisible: Boolean,
     ): Result<UpdateMessageEvent> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val topic = filter.topic.copy()
             val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
                 UpdateMessageEventsResponse.serializer(), responseBody
@@ -173,7 +169,7 @@ class EventsRepositoryImpl @Inject constructor(
                 lastEventId = updateMessageEventDto.id
             }
             val messages = messagesCache.getMessages(filter)
-            UpdateMessageEvent(lastEventId, MessagesResult(topic, messages, MessagePosition()))
+            UpdateMessageEvent(lastEventId, MessagesResult(messages, MessagePosition()))
         }
     }
 
@@ -183,7 +179,6 @@ class EventsRepositoryImpl @Inject constructor(
         isLastMessageVisible: Boolean,
     ): Result<DeleteMessageEvent> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val topic = filter.topic.copy()
             val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
                 DeleteMessageEventsResponse.serializer(), responseBody
@@ -197,7 +192,7 @@ class EventsRepositoryImpl @Inject constructor(
                 lastEventId = deleteMessageEventDto.id
             }
             val messages = messagesCache.getMessages(filter)
-            DeleteMessageEvent(lastEventId, MessagesResult(topic, messages, MessagePosition()))
+            DeleteMessageEvent(lastEventId, MessagesResult(messages, MessagePosition()))
         }
     }
 
@@ -207,7 +202,6 @@ class EventsRepositoryImpl @Inject constructor(
         isLastMessageVisible: Boolean,
     ): Result<ReactionEvent> = withContext(ioDispatcher) {
         runCatchingNonCancellation {
-            val topic = filter.topic.copy()
             val responseBody = getNonHeartBeatEventResponse(queue)
             val eventResponse = jsonConverter.decodeFromString(
                 ReactionEventsResponse.serializer(), responseBody
@@ -221,7 +215,7 @@ class EventsRepositoryImpl @Inject constructor(
                 lastEventId = reactionEventDto.id
             }
             val messages = messagesCache.getMessages(filter)
-            ReactionEvent(lastEventId, MessagesResult(topic, messages, MessagePosition()))
+            ReactionEvent(lastEventId, MessagesResult(messages, MessagePosition()))
         }
     }
 
