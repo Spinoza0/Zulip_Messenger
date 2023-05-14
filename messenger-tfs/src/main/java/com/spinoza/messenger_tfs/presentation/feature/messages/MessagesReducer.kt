@@ -130,10 +130,10 @@ class MessagesReducer @Inject constructor(
         }
 
         is MessagesScreenEvent.Internal.MessageContentChanged ->
-            state { copy(isSendingMessage = false) }
+            state { copy(isLongOperation = false) }
 
         is MessagesScreenEvent.Internal.MessageTopicChanged -> {
-            state { copy(isSendingMessage = false) }
+            state { copy(isLongOperation = false) }
             effects { +MessagesScreenEffect.MessageTopicChanged(event.newTopicName) }
         }
 
