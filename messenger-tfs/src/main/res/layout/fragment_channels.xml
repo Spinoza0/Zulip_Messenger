@@ -14,7 +14,8 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextSearch"
-            style="@style/ChannelSearchEditFieldStyle"
+            style="@style/SearchFieldStyle"
+            android:hint="@string/search"
             android:paddingVertical="16dp"
             tools:ignore="VisualLintTextFieldSize" />
 

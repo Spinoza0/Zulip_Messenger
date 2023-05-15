@@ -10,20 +10,9 @@
 
     <com.google.android.material.textfield.TextInputEditText
         android:id="@+id/editTextSearch"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/background_500_color"
-        android:drawableEnd="@drawable/ic_search"
-        android:drawablePadding="8dp"
-        android:drawableTint="?attr/text_200_color"
+        style="@style/SearchFieldStyle"
         android:hint="@string/users"
-        android:maxLines="1"
         android:paddingVertical="8dp"
-        android:paddingStart="50dp"
-        android:paddingEnd="28dp"
-        android:textColor="?attr/text_200_color"
-        android:textColorHint="?attr/text_200_color"
-        android:textSize="22sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -31,11 +20,7 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewUsers"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginVertical="24dp"
-        android:orientation="vertical"
+        style="@style/PeopleRecyclerViewStyle"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -46,11 +31,7 @@
 
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmerLarge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginVertical="24dp"
-        android:visibility="gone"
+        style="@style/PeopleShimmerStyle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editTextSearch"
         app:shimmer_duration="500"
