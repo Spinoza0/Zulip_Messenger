@@ -94,12 +94,12 @@ class MessagesCacheImpl @Inject constructor(
 
     override suspend fun getFirstMessageId(filter: MessagesFilter): Long {
         val messages = getFilteredMessages(filter)
-        return if (messages.isEmpty()) Message.UNDEFINED_ID else messages.first().streamId
+        return if (messages.isEmpty()) Message.UNDEFINED_ID else messages.first().id
     }
 
     override suspend fun getLastMessageId(filter: MessagesFilter): Long {
         val messages = getFilteredMessages(filter)
-        return if (messages.isEmpty()) Message.UNDEFINED_ID else messages.last().streamId
+        return if (messages.isEmpty()) Message.UNDEFINED_ID else messages.last().id
     }
 
     override suspend fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
