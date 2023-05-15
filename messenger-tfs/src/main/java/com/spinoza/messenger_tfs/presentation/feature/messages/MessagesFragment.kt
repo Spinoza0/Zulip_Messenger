@@ -68,6 +68,7 @@ import com.spinoza.messenger_tfs.presentation.util.on
 import com.spinoza.messenger_tfs.presentation.util.restoreInstanceState
 import com.spinoza.messenger_tfs.presentation.util.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.util.showError
+import com.spinoza.messenger_tfs.presentation.util.showToast
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
@@ -370,6 +371,7 @@ class MessagesFragment :
             .setMessage(getString(R.string.confirm_delete_message))
             .setCancelable(false)
             .setPositiveButton(getString(R.string.yes)) { _, _ ->
+                showToast(getString(R.string.message_delete_request_sent))
                 store.accept(MessagesScreenEvent.Ui.DeleteMessage(messageId))
             }
             .setNegativeButton(getString(R.string.no)) { _, _ ->
@@ -566,6 +568,7 @@ class MessagesFragment :
     }
 
     private fun saveAttachments(urls: List<String>) {
+        showToast(getString(R.string.download_will_start_soon))
         store.accept(MessagesScreenEvent.Ui.SaveAttachments(requireContext(), urls))
     }
 

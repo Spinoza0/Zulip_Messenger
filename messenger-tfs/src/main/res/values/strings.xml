@@ -71,6 +71,10 @@
     <string name="cancel">Cancel</string>
     <string name="create">Create</string>
 
+    <!-- Toast -->
+    <string name="download_will_start_soon">Download will start soon</string>
+    <string name="message_delete_request_sent">Message delete request sent</string>
+
     <!-- Errors -->
     <string name="error_user_loading">User loading error.</string>
     <string name="error_messages">Error while working with messages.</string>

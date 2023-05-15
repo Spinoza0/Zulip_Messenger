@@ -71,6 +71,10 @@
     <string name="cancel">Отмена</string>
     <string name="create">Создать</string>
 
+    <!-- Toast -->
+    <string name="download_will_start_soon">Загрузка начнется в ближайшее время</string>
+    <string name="message_delete_request_sent">Запрос на удаление сообщения отправлен</string>
+
     <!-- Errors -->
     <string name="error_user_loading">Ошибка загрузки пользователя.</string>
     <string name="error_messages">Ошибка работы с сообщениями.</string>

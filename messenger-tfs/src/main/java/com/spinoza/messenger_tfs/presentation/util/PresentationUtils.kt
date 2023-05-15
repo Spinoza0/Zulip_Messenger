@@ -52,8 +52,12 @@ fun Fragment.showError(text: String) {
             show()
         }
     } else {
-        Toast.makeText(requireContext(), text, Toast.LENGTH_LONG).show()
+        showToast(text)
     }
+}
+
+fun Fragment.showToast(text: String) {
+    Toast.makeText(requireContext(), text, Toast.LENGTH_LONG).show()
 }
 
 fun Fragment.showCheckInternetConnectionDialog(onOkClick: () -> Unit, onCloseClick: () -> Unit) {

@@ -342,10 +342,8 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Ui.ConfirmDeleteMessage ->
             effects { +MessagesScreenEffect.ConfirmDeleteMessage(event.messageView.messageId) }
 
-        is MessagesScreenEvent.Ui.DeleteMessage -> {
-            state { copy(isLongOperation = true) }
+        is MessagesScreenEvent.Ui.DeleteMessage ->
             commands { +MessagesScreenCommand.DeleteMessage(event.messageId) }
-        }
 
         is MessagesScreenEvent.Ui.CheckLoginStatus -> {
             if (!authorizationStorage.isUserLoggedIn()) {
