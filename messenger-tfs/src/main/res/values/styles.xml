@@ -26,6 +26,31 @@
         <item name="android:textSize">18sp</item>
     </style>
 
+    <style name="ChannelSearchEditFieldStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">?attr/background_500_color</item>
+        <item name="android:drawableEnd">@drawable/ic_search</item>
+        <item name="android:drawablePadding">8dp</item>
+        <item name="android:drawableTint">?attr/text_200_color</item>
+        <item name="android:hint">@string/search</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:paddingStart">50dp</item>
+        <item name="android:paddingEnd">28dp</item>
+        <item name="android:textColor">?attr/text_200_color</item>
+        <item name="android:textColorHint">?attr/text_200_color</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+
+    <style name="ChannelSearchUnderlineStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_gravity">bottom</item>
+        <item name="android:layout_marginStart">20dp</item>
+        <item name="android:layout_marginEnd">90dp</item>
+        <item name="android:background">?attr/background_250_color</item>
+    </style>
+
     <style name="ToolbarTitleStyle">
         <item name="android:textSize">24sp</item>
     </style>
