@@ -20,5 +20,7 @@ fun Topic.nameEquals(otherName: String): Boolean {
     return name.equals(otherName, true)
 }
 
+const val NO_ITEMS = 0
+const val LAST_ITEM_OFFSET = 1
 const val MILLIS_IN_SECOND = 1000L
 const val EMPTY_STRING = ""

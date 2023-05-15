@@ -36,6 +36,8 @@ import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
+import com.spinoza.messenger_tfs.domain.util.LAST_ITEM_OFFSET
+import com.spinoza.messenger_tfs.domain.util.NO_ITEMS
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.StickyDateInHeaderItemDecoration
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.date.DateDelegate
@@ -302,7 +304,7 @@ class MessagesFragment :
                     scrollAfterSubmitMessages(it)
                 }
             }
-            progressBarLoadingPage.isVisible = state.isLongOperation
+            progressBarMessages.isVisible = state.isLongOperation
             fabViewArrow.isVisible = state.isNextMessageExisting || state.isNewMessageExisting
         }
     }
@@ -686,9 +688,7 @@ class MessagesFragment :
 
         private const val PARAM_CHANNEL_FILTER = "messagesFilter"
         private const val PARAM_RECYCLERVIEW_STATE = "recyclerViewState"
-        private const val NO_ITEMS = 0
         private const val MAX_LINES = 5
-        private const val LAST_ITEM_OFFSET = 1
         private const val CHANNEL_NAME = "Downloads"
         private const val CHANNEL_ID = "downloads_channel"
         private const val TYPE_ALL_FILES = "*/*"

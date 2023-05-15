@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
+import com.spinoza.messenger_tfs.domain.util.LAST_ITEM_OFFSET
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.OwnMessageDelegateItem
 import com.spinoza.messenger_tfs.presentation.feature.messages.adapter.messages.UserMessageDelegateItem
@@ -89,10 +90,8 @@ fun RecyclerView.smoothScrollToMessage(messageId: Long) {
 }
 
 fun RecyclerView.smoothScrollToLastPosition() {
-    val lastItemPosition = adapter?.itemCount?.minus(LAST_POSITION_OFFSET)
+    val lastItemPosition = adapter?.itemCount?.minus(LAST_ITEM_OFFSET)
     if (lastItemPosition != null) {
         smoothScrollToTargetPosition(lastItemPosition)
     }
 }
-
-private const val LAST_POSITION_OFFSET = 1

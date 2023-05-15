@@ -218,10 +218,8 @@
     </com.facebook.shimmer.ShimmerFrameLayout>
 
     <ProgressBar
-        android:id="@+id/progressBarLoadingPage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
+        android:id="@+id/progressBarMessages"
+        style="@style/ProgressBarStyle"
         app:layout_constraintBottom_toBottomOf="@id/recyclerViewMessages"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
