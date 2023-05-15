@@ -342,7 +342,7 @@ class MessagesFragment :
                 showError("${getString(R.string.error_network)} ${effect.value}")
                 showCheckInternetConnectionDialog({
                     store.accept(MessagesScreenEvent.Ui.Reload)
-                    store.accept(MessagesScreenEvent.Ui.SubscribeOnEvents(messagesFilter))
+                    store.accept(MessagesScreenEvent.Ui.OnResume(messagesFilter))
                 }) {
                     goBack()
                 }
@@ -647,14 +647,14 @@ class MessagesFragment :
         if (isMessagesListEmpty()) {
             loadMessages(messagesFilter.topic.name)
         }
-        store.accept(MessagesScreenEvent.Ui.SubscribeOnEvents(messagesFilter))
+        store.accept(MessagesScreenEvent.Ui.OnResume(messagesFilter))
     }
 
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
         binding.shimmerSending.off()
-        store.accept(MessagesScreenEvent.Ui.UnsubscribeFromEvents)
+        store.accept(MessagesScreenEvent.Ui.OnPause)
     }
 
     override fun onStop() {

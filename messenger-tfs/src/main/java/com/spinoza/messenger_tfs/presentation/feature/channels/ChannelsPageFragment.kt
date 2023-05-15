@@ -280,12 +280,13 @@ class ChannelsPageFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        store.accept(ChannelsPageScreenEvent.Ui.UpdateMessageCount)
+        store.accept(ChannelsPageScreenEvent.Ui.OnResume)
     }
 
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
+        store.accept(ChannelsPageScreenEvent.Ui.OnPause)
     }
 
     override fun onDestroyView() {

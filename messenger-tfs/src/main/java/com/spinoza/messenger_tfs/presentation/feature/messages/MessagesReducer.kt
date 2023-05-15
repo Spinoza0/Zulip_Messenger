@@ -356,10 +356,10 @@ class MessagesReducer @Inject constructor(
             effects { }
         }
 
-        is MessagesScreenEvent.Ui.SubscribeOnEvents ->
+        is MessagesScreenEvent.Ui.OnResume ->
             commands { +MessagesScreenCommand.SubscribeOnEvents(event.filter) }
 
-        is MessagesScreenEvent.Ui.UnsubscribeFromEvents ->
+        is MessagesScreenEvent.Ui.OnPause ->
             commands { +MessagesScreenCommand.UnsubscribeFromEvents }
 
         is MessagesScreenEvent.Ui.Exit -> router.exit()

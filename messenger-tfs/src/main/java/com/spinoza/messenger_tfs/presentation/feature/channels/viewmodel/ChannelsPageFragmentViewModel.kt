@@ -71,6 +71,7 @@ class ChannelsPageFragmentViewModel(
     private var channelEventsJob: Job? = null
     private var subscriptionEventsJob: Job? = null
     private var updateMessagesCountJob: Job? = null
+    private var updateTopicsCycleJob: Job? = null
     private var isDraggingWithoutScroll = false
 
     @Volatile
@@ -78,7 +79,6 @@ class ChannelsPageFragmentViewModel(
 
     init {
         subscribeToChannelsQueryChanges()
-        updateTopicsMessageCount()
     }
 
     fun accept(event: ChannelsPageScreenEvent) {
@@ -88,7 +88,6 @@ class ChannelsPageFragmentViewModel(
             is ChannelsPageScreenEvent.Ui.ScrollStateDragging -> isDraggingWithoutScroll = true
             is ChannelsPageScreenEvent.Ui.ScrollStateIdle -> scrollStateIdleHandler(event)
             is ChannelsPageScreenEvent.Ui.Load -> loadItems()
-            is ChannelsPageScreenEvent.Ui.UpdateMessageCount -> updateMessagesCount()
             is ChannelsPageScreenEvent.Ui.OnChannelClick -> onChannelClickListener(event.value)
             is ChannelsPageScreenEvent.Ui.OpenMessagesScreen ->
                 router.navigateTo(Screens.Messages(event.messagesFilter))
@@ -105,18 +104,21 @@ class ChannelsPageFragmentViewModel(
                 unsubscribeFromChannel(event.name)
 
             is ChannelsPageScreenEvent.Ui.DeleteChannel -> deleteChannel(event.channelId)
+            is ChannelsPageScreenEvent.Ui.OnResume -> {
+                startUpdateTopicsCycle()
+                subscribeOnEvents()
+            }
+
+            is ChannelsPageScreenEvent.Ui.OnPause -> {
+                unsubscribeFromEvents()
+                stopUpdateMessagesCountJob()
+                updateTopicsCycleJob?.cancel()
+            }
         }
     }
 
     override fun onCleared() {
         super.onCleared()
-        channelEventsJob?.cancel()
-        subscriptionEventsJob?.cancel()
-        vmScope.launch {
-            channelEvents.deleteQueue()
-            subscriptionEvents.deleteQueue()
-        }
-        stopUpdateMessagesCountJob()
         cache.clear()
     }
 
@@ -176,7 +178,6 @@ class ChannelsPageFragmentViewModel(
             isLoading = false
             result.onSuccess { newChannels ->
                 updateChannelsList(newChannels)
-                registerEventsQueues()
             }.onFailure {
                 handleErrors(it)
             }
@@ -251,7 +252,7 @@ class ChannelsPageFragmentViewModel(
         getTopicUseCase(messagesFilter).onSuccess { newTopic ->
             if (messagesFilter.topic.messageCount != newTopic.messageCount) {
                 cache[itemIndex] = TopicDelegateItem(messagesFilter.copy(topic = newTopic))
-                _state.emit(state.value.copy(items = cache.groupByChannel()))
+                runCatching { _state.emit(state.value.copy(items = cache.groupByChannel())) }
             }
         }
     }
@@ -276,7 +277,7 @@ class ChannelsPageFragmentViewModel(
                 if (oldChannelItem.isFolded) {
                     unfoldChannel(channelItem)
                 } else {
-                    _state.emit(state.value.copy(items = cache.groupByChannel()))
+                    runCatching { _state.emit(state.value.copy(items = cache.groupByChannel())) }
                 }
                 updateMessagesCount()
             }
@@ -386,7 +387,7 @@ class ChannelsPageFragmentViewModel(
         addNewChannels(newCache, newChannels)
         cache.clear()
         cache.addAll(newCache)
-        _state.emit(state.value.copy(items = cache.groupByChannel()))
+        runCatching { _state.emit(state.value.copy(items = cache.groupByChannel())) }
         updateMessagesCount()
     }
 
@@ -429,7 +430,7 @@ class ChannelsPageFragmentViewModel(
     private suspend fun updateChannelTopicsList(newTopics: List<Topic>, channel: Channel) {
         removedStoredChannelTopics(channel)
         addNewTopics(newTopics, channel)
-        _state.emit(state.value.copy(items = cache.groupByChannel()))
+        runCatching { _state.emit(state.value.copy(items = cache.groupByChannel())) }
     }
 
     private fun removedStoredChannelTopics(channel: Channel) {
@@ -464,11 +465,11 @@ class ChannelsPageFragmentViewModel(
         _effects.emit(channelsPageScreenEffect)
     }
 
-    private fun updateTopicsMessageCount() {
-        vmScope.launch {
+    private fun startUpdateTopicsCycle() {
+        updateTopicsCycleJob = vmScope.launch {
             while (isActive) {
-                delay(DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO)
                 updateMessagesCount()
+                delay(DELAY_BEFORE_TOPIC_MESSAGE_COUNT_UPDATE_INFO)
             }
         }
     }
@@ -495,11 +496,26 @@ class ChannelsPageFragmentViewModel(
         return result
     }
 
-    private fun registerEventsQueues() {
+    private fun subscribeOnEvents() {
         channelEvents.registerQueue(listOf(EventType.CHANNEL), ::handleOnChannelEventsRegistration)
         subscriptionEvents.registerQueue(
             listOf(EventType.CHANNEL_SUBSCRIPTION), ::handleOnChannelSubscriptionEventsRegistration
         )
+    }
+
+    private fun unsubscribeFromEvents() {
+        channelEventsJob?.let {
+            it.cancel()
+            channelEventsJob = null
+        }
+        subscriptionEventsJob?.let {
+            it.cancel()
+            subscriptionEventsJob = null
+        }
+        vmScope.launch {
+            channelEvents.deleteQueue()
+            subscriptionEvents.deleteQueue()
+        }
     }
 
     private companion object {

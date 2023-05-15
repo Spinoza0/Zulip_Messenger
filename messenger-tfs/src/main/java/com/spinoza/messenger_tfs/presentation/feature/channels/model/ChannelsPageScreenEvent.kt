@@ -9,9 +9,11 @@ sealed class ChannelsPageScreenEvent {
 
         object CheckLoginStatus : Ui()
 
-        object UpdateMessageCount : Ui()
-
         object Load : Ui()
+
+        object OnResume : Ui()
+
+        object OnPause : Ui()
 
         class Filter(val filter: ChannelsFilter) : Ui()
 
