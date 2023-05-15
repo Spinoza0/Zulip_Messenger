@@ -7,15 +7,16 @@ import android.os.Environment
 import android.provider.OpenableColumns
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
-import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
+import com.spinoza.messenger_tfs.data.network.model.attachment.TemporaryUrlResponse
+import com.spinoza.messenger_tfs.data.network.model.attachment.UploadFileResponse
 import com.spinoza.messenger_tfs.data.utils.apiRequest
 import com.spinoza.messenger_tfs.data.utils.runCatchingNonCancellation
 import com.spinoza.messenger_tfs.di.DispatcherIO
 import com.spinoza.messenger_tfs.domain.model.RepositoryError
 import com.spinoza.messenger_tfs.domain.model.UploadedFileInfo
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
-import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
+import com.spinoza.messenger_tfs.domain.network.WebUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -28,7 +29,7 @@ import java.io.FileOutputStream
 import javax.inject.Inject
 
 class AttachmentHandlerImpl @Inject constructor(
-    private val authorizationStorage: AuthorizationStorage,
+    private val webUtil: WebUtil,
     private val apiService: ZulipApiService,
     private val webLimitation: WebLimitation,
     @DispatcherIO private val ioDispatcher: CoroutineDispatcher,
@@ -65,18 +66,18 @@ class AttachmentHandlerImpl @Inject constructor(
         }
 
     private suspend fun downloadFile(context: Context, url: String): String {
+        val temporaryUrlResponse = apiRequest<TemporaryUrlResponse> {
+            apiService.getPublicTemporaryUrl(webUtil.getStringWithoutSlashAtStart(url))
+        }
+        val temporaryUrl = webUtil.getFullUrl(temporaryUrlResponse.url)
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
         val fileName = url.getFileNameFromUrl()
         val file = File(
             Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
             fileName
         )
-        val request = DownloadManager.Request(Uri.parse(url))
+        val request = DownloadManager.Request(Uri.parse(temporaryUrl))
             .setDestinationUri(Uri.fromFile(file))
-            .addRequestHeader(
-                authorizationStorage.getAuthHeaderTitle(),
-                authorizationStorage.getAuthHeaderValue()
-            )
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
             .setTitle(file.name)
         val downloadId = downloadManager.enqueue(request)
@@ -144,7 +145,7 @@ class AttachmentHandlerImpl @Inject constructor(
     }
 
     private fun String.getFileNameFromUrl(): String {
-        return this.substringAfterLast("/").ifBlank { DEFAULT_FILE_NAME }
+        return webUtil.getFileNameFromUrl(this, DEFAULT_FILE_NAME)
     }
 
     private companion object {

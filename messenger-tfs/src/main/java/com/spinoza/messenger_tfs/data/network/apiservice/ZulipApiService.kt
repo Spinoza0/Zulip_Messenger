@@ -3,8 +3,9 @@ package com.spinoza.messenger_tfs.data.network.apiservice
 import com.spinoza.messenger_tfs.BuildConfig
 import com.spinoza.messenger_tfs.data.network.model.ApiKeyResponse
 import com.spinoza.messenger_tfs.data.network.model.BasicResponse
-import com.spinoza.messenger_tfs.data.network.model.UploadFileResponse
 import com.spinoza.messenger_tfs.data.network.model.WebLimitationsResponse
+import com.spinoza.messenger_tfs.data.network.model.attachment.TemporaryUrlResponse
+import com.spinoza.messenger_tfs.data.network.model.attachment.UploadFileResponse
 import com.spinoza.messenger_tfs.data.network.model.event.RegisterEventQueueResponse
 import com.spinoza.messenger_tfs.data.network.model.message.MessagesResponse
 import com.spinoza.messenger_tfs.data.network.model.message.SendMessageResponse
@@ -34,9 +35,9 @@ interface ZulipApiService {
     @POST("users/me/presence?status=active")
     suspend fun setOwnStatusActive()
 
-    @POST("messages/{$QUERY_MESSAGE_ID}/reactions")
+    @POST("messages/{$PATH_MESSAGE_ID}/reactions")
     suspend fun addReaction(
-        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Path(PATH_MESSAGE_ID) messageId: Long,
         @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): BasicResponse
 
@@ -77,22 +78,22 @@ interface ZulipApiService {
     @GET("users/me")
     suspend fun getOwnUser(): OwnUserResponse
 
-    @GET("users/{$QUERY_USER_ID}")
-    suspend fun getUser(@Path(QUERY_USER_ID) userId: Long): UserResponse
+    @GET("users/{$PATH_USER_ID}")
+    suspend fun getUser(@Path(PATH_USER_ID) userId: Long): UserResponse
 
     @GET("users")
     suspend fun getAllUsers(): AllUsersResponse
 
-    @GET("users/{$QUERY_USER_ID}/presence")
-    suspend fun getUserPresence(@Path(QUERY_USER_ID) userId: Long): PresenceResponse
+    @GET("users/{$PATH_USER_ID}/presence")
+    suspend fun getUserPresence(@Path(PATH_USER_ID) userId: Long): PresenceResponse
 
     @GET("realm/presence")
     suspend fun getAllPresences(): Response<AllPresencesResponse>
 
-    @GET("users/{$QUERY_USER_ID}/subscriptions/{$QUERY_STREAM_ID}")
+    @GET("users/{$PATH_USER_ID}/subscriptions/{$PATH_STREAM_ID}")
     suspend fun getStreamSubscriptionStatus(
-        @Path(QUERY_USER_ID) userId: Long,
-        @Path(QUERY_STREAM_ID) streamId: Long,
+        @Path(PATH_USER_ID) userId: Long,
+        @Path(PATH_STREAM_ID) streamId: Long,
     ): StreamSubscriptionStatusResponse
 
     @GET("users/me/subscriptions")
@@ -101,8 +102,8 @@ interface ZulipApiService {
     @GET("streams")
     suspend fun getAllStreams(): AllStreamsResponse
 
-    @GET("users/me/{$QUERY_STREAM_ID}/topics")
-    suspend fun getTopics(@Path(QUERY_STREAM_ID) streamId: Long): TopicsResponse
+    @GET("users/me/{$PATH_STREAM_ID}/topics")
+    suspend fun getTopics(@Path(PATH_STREAM_ID) streamId: Long): TopicsResponse
 
     @GET("messages")
     suspend fun getMessages(
@@ -122,9 +123,9 @@ interface ZulipApiService {
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): MessagesResponse
 
-    @GET("messages/{$QUERY_MESSAGE_ID}")
+    @GET("messages/{$PATH_MESSAGE_ID}")
     suspend fun getSingleMessage(
-        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Path(PATH_MESSAGE_ID) messageId: Long,
         @Query(QUERY_APPLY_MARKDOWN) applyMarkdown: Boolean = DEFAULT_APPLY_MARKDOWN,
     ): SingleMessageResponse
 
@@ -134,28 +135,33 @@ interface ZulipApiService {
         @Query(QUERY_LAST_EVENT_ID) lastEventId: Long,
     ): Response<ResponseBody>
 
-    @PATCH("messages/{$QUERY_MESSAGE_ID}")
+    @GET("user_uploads/{$PATH_REALM_ID_STR_WITH_FILENAME}")
+    suspend fun getPublicTemporaryUrl(
+        @Path(PATH_REALM_ID_STR_WITH_FILENAME) fileUrlWithoutDomain: String,
+    ): TemporaryUrlResponse
+
+    @PATCH("messages/{$PATH_MESSAGE_ID}")
     suspend fun editMessageTopic(
-        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Path(PATH_MESSAGE_ID) messageId: Long,
         @Query(QUERY_TOPIC) topic: String,
         @Query(QUERY_SEND_NOTIFICATION_TO_OLD_THREAD) sendNotificationToOldThread: Boolean = true,
         @Query(QUERY_SEND_NOTIFICATION_TO_NEW_THREAD) sendNotificationToNewThread: Boolean = true,
     ): BasicResponse
 
-    @PATCH("messages/{$QUERY_MESSAGE_ID}")
+    @PATCH("messages/{$PATH_MESSAGE_ID}")
     suspend fun editMessageContent(
-        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Path(PATH_MESSAGE_ID) messageId: Long,
         @Query(QUERY_CONTENT) content: String,
     ): BasicResponse
 
-    @DELETE("messages/{$QUERY_MESSAGE_ID}/reactions")
+    @DELETE("messages/{$PATH_MESSAGE_ID}/reactions")
     suspend fun removeReaction(
-        @Path(QUERY_MESSAGE_ID) messageId: Long,
+        @Path(PATH_MESSAGE_ID) messageId: Long,
         @Query(QUERY_EMOJI_NAME) emojiName: String,
     ): BasicResponse
 
-    @DELETE("messages/{$QUERY_MESSAGE_ID}")
-    suspend fun deleteMessage(@Path(QUERY_MESSAGE_ID) messageId: Long): BasicResponse
+    @DELETE("messages/{$PATH_MESSAGE_ID}")
+    suspend fun deleteMessage(@Path(PATH_MESSAGE_ID) messageId: Long): BasicResponse
 
     @DELETE("events")
     suspend fun deleteEventQueue(@Query(QUERY_QUEUE_ID) queueId: String): BasicResponse
@@ -166,8 +172,8 @@ interface ZulipApiService {
         @Query(QUERY_STREAM_PRINCIPALS) principals: String,
     ): BasicResponse
 
-    @DELETE("streams/{$QUERY_STREAM_ID}")
-    suspend fun deleteStream(@Path(QUERY_STREAM_ID) streamId: Long): BasicResponse
+    @DELETE("streams/{$PATH_STREAM_ID}")
+    suspend fun deleteStream(@Path(PATH_STREAM_ID) streamId: Long): BasicResponse
 
     companion object {
 
@@ -184,13 +190,10 @@ interface ZulipApiService {
         private const val QUERY_STREAM_PRINCIPALS = "principals"
         private const val QUERY_USERNAME = "username"
         private const val QUERY_PASSWORD = "password"
-        private const val QUERY_USER_ID = "user_id"
         private const val QUERY_NARROW = "narrow"
         private const val QUERY_ANCHOR = "anchor"
         private const val QUERY_NUM_BEFORE = "num_before"
         private const val QUERY_NUM_AFTER = "num_after"
-        private const val QUERY_STREAM_ID = "stream_id"
-        private const val QUERY_MESSAGE_ID = "message_id"
         private const val QUERY_EMOJI_NAME = "emoji_name"
         private const val QUERY_QUEUE_ID = "queue_id"
         private const val QUERY_LAST_EVENT_ID = "last_event_id"
@@ -207,6 +210,11 @@ interface ZulipApiService {
 
         private const val QUERY_FLAG = "flag"
         private const val QUERY_FLAG_READ = "read"
+
+        private const val PATH_USER_ID = "user_id"
+        private const val PATH_STREAM_ID = "stream_id"
+        private const val PATH_MESSAGE_ID = "message_id"
+        private const val PATH_REALM_ID_STR_WITH_FILENAME = "realm_id_str_with_filename"
 
         private const val QUERY_TOPIC = "topic"
         private const val QUERY_TYPE = "type"
