@@ -37,6 +37,7 @@ class MessagesReducer @Inject constructor(
     private var isLastMessageVisible = false
     private var messageSentId = Message.UNDEFINED_ID
     private var isDraggingWithoutScroll = false
+    private var isSubscriptionOnEventsExist = false
 
     override fun Result.internal(event: MessagesScreenEvent.Internal) = when (event) {
         is MessagesScreenEvent.Internal.Messages -> {
@@ -58,19 +59,13 @@ class MessagesReducer @Inject constructor(
                     messages = event.value
                 )
             }
-            commands {
-                +MessagesScreenCommand.LoadFirstPage(event.value.messages.isEmpty())
-                +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
-                +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
-            }
+            commands { +MessagesScreenCommand.LoadFirstPage(event.value.messages.isEmpty()) }
         }
 
         is MessagesScreenEvent.Internal.MessagesEventFromQueue -> {
             state {
                 copy(
-                    messages = event.value,
+                    isLongOperation = false, messages = event.value,
                     isNewMessageExisting = event.value.isNewMessageExisting
                 )
             }
@@ -84,31 +79,35 @@ class MessagesReducer @Inject constructor(
         }
 
         is MessagesScreenEvent.Internal.UpdateMessagesEventFromQueue -> {
-            state { copy(messages = event.value) }
+            state { copy(isLongOperation = false, messages = event.value) }
             commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
         }
 
         is MessagesScreenEvent.Internal.DeleteMessagesEventFromQueue -> {
-            state { copy(messages = event.value) }
+            state { copy(isLongOperation = false, messages = event.value) }
             commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
         }
 
         is MessagesScreenEvent.Internal.ReactionsEventFromQueue -> {
-            state { copy(messages = event.value) }
+            state { copy(isLongOperation = false, messages = event.value) }
             commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible) }
         }
 
-        is MessagesScreenEvent.Internal.EmptyMessagesQueueEvent ->
+        is MessagesScreenEvent.Internal.EmptyMessagesQueueEvent -> if (isSubscriptionOnEventsExist)
             commands { +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible) }
+        else effects {}
 
-        is MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent ->
+        is MessagesScreenEvent.Internal.EmptyUpdateMessagesQueueEvent -> if (isSubscriptionOnEventsExist)
             commands { +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible) }
+        else effects {}
 
-        is MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent ->
+        is MessagesScreenEvent.Internal.EmptyDeleteMessagesQueueEvent -> if (isSubscriptionOnEventsExist)
             commands { +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible) }
+        else effects {}
 
-        is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent ->
+        is MessagesScreenEvent.Internal.EmptyReactionsQueueEvent -> if (isSubscriptionOnEventsExist)
             commands { +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible) }
+        else effects {}
 
         is MessagesScreenEvent.Internal.MessageSent -> {
             if (event.messageId != Message.UNDEFINED_ID) {
@@ -119,10 +118,10 @@ class MessagesReducer @Inject constructor(
         }
 
         is MessagesScreenEvent.Internal.MessageContentChanged ->
-            state { copy(isSendingMessage = false) }
+            state { copy(isLongOperation = false) }
 
         is MessagesScreenEvent.Internal.MessageTopicChanged -> {
-            state { copy(isSendingMessage = false) }
+            state { copy(isLongOperation = false) }
             effects { +MessagesScreenEffect.MessageTopicChanged(event.newTopicName) }
         }
 
@@ -164,6 +163,17 @@ class MessagesReducer @Inject constructor(
             effects { +MessagesScreenEffect.Failure.ErrorNetwork(event.value) }
         }
 
+        is MessagesScreenEvent.Internal.SubscribedOnEvents -> commands {
+            isSubscriptionOnEventsExist = true
+            +MessagesScreenCommand.GetMessagesEvent(isLastMessageVisible)
+            +MessagesScreenCommand.GetUpdateMessagesEvent(isLastMessageVisible)
+            +MessagesScreenCommand.GetDeleteMessagesEvent(isLastMessageVisible)
+            +MessagesScreenCommand.GetReactionsEvent(isLastMessageVisible)
+        }
+
+        is MessagesScreenEvent.Internal.UnsubscribedFromEvents ->
+            isSubscriptionOnEventsExist = false
+
         is MessagesScreenEvent.Internal.LogOut -> router.exit()
         is MessagesScreenEvent.Internal.LoginSuccess -> {}
         is MessagesScreenEvent.Internal.Idle -> {}
@@ -181,11 +191,12 @@ class MessagesReducer @Inject constructor(
             if (isDraggingWithoutScroll) {
                 isDraggingWithoutScroll = false
                 if (!event.canScrollUp) {
-                    commands { +MessagesScreenCommand.LoadPreviousPage }
+                    commands { +MessagesScreenCommand.LoadCurrentWithPreviousPage }
                 }
                 if (!event.canScrollDown) {
-                    commands { +MessagesScreenCommand.LoadNextPage }
+                    commands { +MessagesScreenCommand.LoadCurrentWithNextPage }
                 }
+                state { copy(isLongOperation = true) }
             } else {
                 val list = visibleMessageIds.toList()
                 if (visibleMessageIds.size > MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS) {
@@ -331,8 +342,10 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Ui.ConfirmDeleteMessage ->
             effects { +MessagesScreenEffect.ConfirmDeleteMessage(event.messageView.messageId) }
 
-        is MessagesScreenEvent.Ui.DeleteMessage ->
+        is MessagesScreenEvent.Ui.DeleteMessage -> {
+            state { copy(isLongOperation = true) }
             commands { +MessagesScreenCommand.DeleteMessage(event.messageId) }
+        }
 
         is MessagesScreenEvent.Ui.CheckLoginStatus -> {
             if (!authorizationStorage.isUserLoggedIn()) {
@@ -345,17 +358,23 @@ class MessagesReducer @Inject constructor(
             effects { }
         }
 
+        is MessagesScreenEvent.Ui.SubscribeOnEvents ->
+            commands { +MessagesScreenCommand.SubscribeOnEvents(event.filter) }
+
+        is MessagesScreenEvent.Ui.UnsubscribeFromEvents ->
+            commands { +MessagesScreenCommand.UnsubscribeFromEvents }
+
         is MessagesScreenEvent.Ui.Exit -> router.exit()
         is MessagesScreenEvent.Ui.Init -> {}
     }
 
     private fun MessageView.isMessageEditable(): Boolean {
-        return (getCurrentTimestamp() - this.date.fullTimeStamp) <
+        return (getCurrentTimestamp() - this.datetime.fullTimeStamp) <
                 webLimitation.getMessageContentEditLimitSeconds()
     }
 
     private fun MessageView.isTopicEditable(): Boolean {
-        return (getCurrentTimestamp() - this.date.fullTimeStamp) <
+        return (getCurrentTimestamp() - this.datetime.fullTimeStamp) <
                 webLimitation.getTopicEditingLimitSeconds()
     }
 

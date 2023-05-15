@@ -1,20 +1,29 @@
 package com.spinoza.messenger_tfs.di.app
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.spinoza.messenger_tfs.BuildConfig
+import com.spinoza.messenger_tfs.data.cache.MessagesCache
+import com.spinoza.messenger_tfs.data.cache.MessagesCacheImpl
 import com.spinoza.messenger_tfs.data.network.WebLimitationImpl
 import com.spinoza.messenger_tfs.data.network.WebUtilImpl
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService
 import com.spinoza.messenger_tfs.data.network.attachment.AttachmentHandlerImpl
+import com.spinoza.messenger_tfs.data.repository.ChannelRepositoryImpl
 import com.spinoza.messenger_tfs.data.repository.DaoRepositoryImpl
-import com.spinoza.messenger_tfs.data.repository.WebRepositoryImpl
+import com.spinoza.messenger_tfs.data.repository.EventsRepositoryImpl
+import com.spinoza.messenger_tfs.data.repository.MessageRepositoryImpl
+import com.spinoza.messenger_tfs.data.repository.UserRepositoryImpl
 import com.spinoza.messenger_tfs.di.ApplicationScope
 import com.spinoza.messenger_tfs.di.BaseUrl
 import com.spinoza.messenger_tfs.domain.network.AttachmentHandler
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
 import com.spinoza.messenger_tfs.domain.network.WebUtil
+import com.spinoza.messenger_tfs.domain.repository.ChannelRepository
 import com.spinoza.messenger_tfs.domain.repository.DaoRepository
-import com.spinoza.messenger_tfs.domain.repository.WebRepository
+import com.spinoza.messenger_tfs.domain.repository.EventsRepository
+import com.spinoza.messenger_tfs.domain.repository.MessageRepository
+import com.spinoza.messenger_tfs.domain.repository.UserRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -30,7 +39,23 @@ interface DataModule {
 
     @ApplicationScope
     @Binds
-    fun bindWebRepository(impl: WebRepositoryImpl): WebRepository
+    fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
+
+    @ApplicationScope
+    @Binds
+    fun bindMessageRepository(impl: MessageRepositoryImpl): MessageRepository
+
+    @ApplicationScope
+    @Binds
+    fun bindEventsRepository(impl: EventsRepositoryImpl): EventsRepository
+
+    @ApplicationScope
+    @Binds
+    fun bindChannelRepository(impl: ChannelRepositoryImpl): ChannelRepository
+
+    @ApplicationScope
+    @Binds
+    fun bindMessagesCache(impl: MessagesCacheImpl): MessagesCache
 
     @ApplicationScope
     @Binds
@@ -70,6 +95,13 @@ interface DataModule {
                         authorizationStorage.getAuthHeaderValue()
                     ).build()
                 }
+                .addInterceptor { chain ->
+                    val originalRequest = chain.request()
+                    val requestWithUserAgent = originalRequest.newBuilder()
+                        .header(HEADER_USER_AGENT, APPLICATION_NAME)
+                        .build()
+                    chain.proceed(requestWithUserAgent)
+                }
                 .build()
             val retrofit = Retrofit.Builder()
                 .baseUrl("$baseUrl/api/v1/")
@@ -79,6 +111,7 @@ interface DataModule {
             return retrofit.create(ZulipApiService::class.java)
         }
 
+        @ApplicationScope
         @Provides
         fun provideJsonConverter(): Json = Json {
             ignoreUnknownKeys = true
@@ -86,6 +119,8 @@ interface DataModule {
         }
 
         private const val MEDIA_TYPE_JSON = "application/json"
+        private const val HEADER_USER_AGENT = "User-Agent"
+        private const val APPLICATION_NAME = BuildConfig.APPLICATION_NAME
         private const val TIME_OUT_SECONDS = 15L
     }
 }

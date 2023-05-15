@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.spinoza.messenger_tfs.databinding.DateItemBinding
-import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.MessageDateTime
 import com.spinoza.messenger_tfs.presentation.adapter.AdapterDelegate
 import com.spinoza.messenger_tfs.presentation.adapter.DelegateAdapterItem
 
@@ -21,7 +21,7 @@ class DateDelegate : AdapterDelegate {
         item: DelegateAdapterItem,
         position: Int,
     ) {
-        (holder as ViewHolder).bind(item.content() as MessageDate)
+        (holder as ViewHolder).bind(item.content() as MessageDateTime)
     }
 
     override fun onBindViewHolder(
@@ -39,7 +39,7 @@ class DateDelegate : AdapterDelegate {
 
     class ViewHolder(private val binding: DateItemBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(model: MessageDate) {
+        fun bind(model: MessageDateTime) {
             binding.textViewDate.text = model.dateString
         }
     }

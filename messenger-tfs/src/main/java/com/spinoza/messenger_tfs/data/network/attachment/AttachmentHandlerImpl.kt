@@ -123,11 +123,11 @@ class AttachmentHandlerImpl @Inject constructor(
                 output.flush()
             }
         }
-        if (fileSize <= MIN_FILE_SIZE) {
-            throw RepositoryError(context.getString(R.string.error_uri))
+        if (fileSize == EMPTY_FILE) {
+            throw RepositoryError(context.getString(R.string.error_file_empty))
         }
         if (fileSize >= (webLimitation.getMaxFileUploadSizeMib() * MIB_SIZE)) {
-            throw RepositoryError(context.getString(R.string.error_file_size))
+            throw RepositoryError(context.getString(R.string.error_file_big))
         }
         return tempFile
     }
@@ -154,7 +154,7 @@ class AttachmentHandlerImpl @Inject constructor(
         const val MIB_SIZE = 1024 * 1024
         const val END_OF_FILE = -1
         const val NO_OFFSET = 0
-        const val MIN_FILE_SIZE = 0L
+        const val EMPTY_FILE = 0L
         const val DEFAULT_FILE_NAME = "file"
         const val TEMP_FILE_NAME = "temp_file"
     }

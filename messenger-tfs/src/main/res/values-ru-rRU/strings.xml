@@ -22,6 +22,8 @@
     <string name="edit_message">Редактировать сообщение</string>
     <string name="edit_topic">Изменить тему</string>
     <string name="delete_message">Удалить сообщение</string>
+    <string name="attach_image">Прикрепить изображение</string>
+    <string name="attach_file">Прикрепить файл</string>
     <string name="save_attachments">Сохранить вложения</string>
     <string name="downloading_result">Результат загрузки</string>
 
@@ -78,7 +80,8 @@
     <string name="error_login">Ошибка проверки почты и пароля.</string>
     <string name="error_file_not_found">Файл не найден.</string>
     <string name="error_uri">Неверный uri.</string>
-    <string name="error_file_size">Файл слишком большой.</string>
+    <string name="error_file_empty">Файл пустой.</string>
+    <string name="error_file_big">Файл слишком большой.</string>
     <string name="error_unknown_file_type">Неизвестный тип файла.</string>
     <string name="error_downloading">ошибка загрузки</string>
 

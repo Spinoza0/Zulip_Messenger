@@ -48,6 +48,7 @@ import com.spinoza.messenger_tfs.presentation.util.on
 import com.spinoza.messenger_tfs.presentation.util.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.util.showError
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 class ChannelsPageFragment : Fragment() {
@@ -68,6 +69,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private var isSubscribed = true
+    private val isShowingChannelMenu = AtomicBoolean(false)
 
     private var _binding: FragmentChannelsPageBinding? = null
     private val binding: FragmentChannelsPageBinding
@@ -103,8 +105,8 @@ class ChannelsPageFragment : Fragment() {
                         val messagesFilter = MessagesFilter(channelItem.channel, Topic())
                         store.accept(ChannelsPageScreenEvent.Ui.OpenMessagesScreen(messagesFilter))
                     },
-                    { channelItem, view ->
-                        store.accept(ChannelsPageScreenEvent.Ui.ShowChannelMenu(channelItem, view))
+                    { channelItem ->
+                        store.accept(ChannelsPageScreenEvent.Ui.ShowChannelMenu(channelItem))
                     }
                 ) { channelItem ->
                     store.accept(ChannelsPageScreenEvent.Ui.OnChannelClick(channelItem))
@@ -205,26 +207,33 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun showChannelMenu(effect: ChannelsPageScreenEffect.ShowChannelMenu) {
+        if(isShowingChannelMenu.get()) return
+        isShowingChannelMenu.set(true)
         val dialog = BottomSheetDialog(requireContext())
         val dialogBinding = DialogChannelActionsBinding.inflate(layoutInflater)
         dialog.setContentView(dialogBinding.root)
         val channelName = effect.channelItem.channel.name
-        dialogBinding.textViewTitle.text =
-            String.format(getString(R.string.channel_name_template), channelName)
-        dialogBinding.textViewSubscribe.isVisible = effect.isItemSubscribeVisible
-        dialogBinding.textViewUnsubscribe.isVisible = effect.isItemUnsubscribeVisible
-        dialogBinding.textViewDelete.isVisible = effect.isItemDeleteVisible
-        dialogBinding.textViewSubscribe.setOnClickListener {
-            store.accept(ChannelsPageScreenEvent.Ui.SubscribeToChannel(channelName))
-            dialog.dismiss()
+        with(dialogBinding) {
+            textViewTitle.text =
+                String.format(getString(R.string.channel_name_template), channelName)
+            textViewSubscribe.isVisible = effect.isItemSubscribeVisible
+            textViewUnsubscribe.isVisible = effect.isItemUnsubscribeVisible
+            textViewDelete.isVisible = effect.isItemDeleteVisible
+            textViewSubscribe.setOnClickListener {
+                store.accept(ChannelsPageScreenEvent.Ui.SubscribeToChannel(channelName))
+                dialog.dismiss()
+            }
+            textViewUnsubscribe.setOnClickListener {
+                store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(channelName))
+                dialog.dismiss()
+            }
+            textViewDelete.setOnClickListener {
+                confirmDeleteChannel(effect.channelItem.channel)
+                dialog.dismiss()
+            }
         }
-        dialogBinding.textViewUnsubscribe.setOnClickListener {
-            store.accept(ChannelsPageScreenEvent.Ui.UnsubscribeFromChannel(channelName))
-            dialog.dismiss()
-        }
-        dialogBinding.textViewDelete.setOnClickListener {
-            confirmDeleteChannel(effect.channelItem.channel)
-            dialog.dismiss()
+        dialog.setOnDismissListener {
+            isShowingChannelMenu.set(false)
         }
         dialog.show()
     }

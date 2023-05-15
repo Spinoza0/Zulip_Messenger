@@ -24,14 +24,14 @@ class EventsQueueHolder(
     fun registerQueue(
         eventTypes: List<EventType>,
         onSuccessCallback: (() -> Unit)? = null,
-        messagesFilter: MessagesFilter = MessagesFilter(),
+        filter: MessagesFilter = MessagesFilter(),
     ) {
         lifecycleScope.launch {
             if (isQueueRegistered) {
                 deleteQueue()
             }
             while (isActive && !isQueueRegistered) {
-                registerEventQueueUseCase(eventTypes, messagesFilter).onSuccess {
+                registerEventQueueUseCase(eventTypes, filter).onSuccess {
                     queue = it
                     onSuccessCallback?.invoke()
                     isQueueRegistered = true

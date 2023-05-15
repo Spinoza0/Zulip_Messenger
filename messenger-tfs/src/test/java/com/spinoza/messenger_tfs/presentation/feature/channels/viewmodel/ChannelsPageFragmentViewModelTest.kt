@@ -12,23 +12,24 @@ import com.spinoza.messenger_tfs.domain.usecase.channels.GetTopicsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.channels.UnsubscribeFromChannelUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelEventsUseCase
+import com.spinoza.messenger_tfs.domain.usecase.event.GetChannelSubscriptionEventsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.RegisterEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.login.LogInUseCase
 import com.spinoza.messenger_tfs.presentation.feature.channels.model.ChannelsPageScreenEvent
 import com.spinoza.messenger_tfs.stub.AppRouterStub
 import com.spinoza.messenger_tfs.stub.AuthorizationStorageStub
+import com.spinoza.messenger_tfs.stub.ChannelRepositoryStub
 import com.spinoza.messenger_tfs.stub.DaoRepositoryStub
-import com.spinoza.messenger_tfs.stub.WebRepositoryStub
+import com.spinoza.messenger_tfs.stub.EventsRepositoryStub
+import com.spinoza.messenger_tfs.stub.UserRepositoryStub
 import com.spinoza.messenger_tfs.util.MainDispatcherRule
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class ChannelsPageFragmentViewModelTest {
 
     @get:Rule
@@ -51,27 +52,34 @@ class ChannelsPageFragmentViewModelTest {
     }
 
     private fun createViewModel(scope: CoroutineScope?): ChannelsPageFragmentViewModel {
-        val webRepository = WebRepositoryStub()
+        val userRepository = UserRepositoryStub()
+        val eventsRepository = EventsRepositoryStub()
+        val channelRepository = ChannelRepositoryStub()
         val daoRepository = DaoRepositoryStub()
         return ChannelsPageFragmentViewModel(
             isSubscribed = true,
             authorizationStorage = AuthorizationStorageStub(),
             router = AppRouterStub(),
-            logInUseCase = LogInUseCase(webRepository),
+            logInUseCase = LogInUseCase(userRepository),
             getStoredChannelsUseCase = GetStoredChannelsUseCase(daoRepository),
             getStoredTopicsUseCase = GetStoredTopicsUseCase(daoRepository),
-            getTopicsUseCase = GetTopicsUseCase(webRepository),
-            getChannelsUseCase = GetChannelsUseCase(webRepository),
-            getTopicUseCase = GetTopicUseCase(webRepository),
-            getChannelEventsUseCase = GetChannelEventsUseCase(webRepository),
-            registerEventQueueUseCase = RegisterEventQueueUseCase(webRepository),
-            deleteEventQueueUseCase = DeleteEventQueueUseCase(webRepository),
+            getTopicsUseCase = GetTopicsUseCase(channelRepository),
+            getChannelsUseCase = GetChannelsUseCase(channelRepository),
+            getTopicUseCase = GetTopicUseCase(channelRepository),
+            getChannelEventsUseCase = GetChannelEventsUseCase(eventsRepository),
+            registerEventQueueUseCase = RegisterEventQueueUseCase(eventsRepository),
+            deleteEventQueueUseCase = DeleteEventQueueUseCase(eventsRepository),
             defaultDispatcher = mainDispatcherRule.testDispatcher,
             customCoroutineScope = scope,
-            getChannelSubscriptionStatusUseCase = GetChannelSubscriptionStatusUseCase(webRepository),
-            createChannelUseCase = CreateChannelUseCase(webRepository),
-            deleteChannelUseCase = DeleteChannelUseCase(webRepository),
-            unsubscribeFromChannelUseCase = UnsubscribeFromChannelUseCase(webRepository)
+            getChannelSubscriptionStatusUseCase = GetChannelSubscriptionStatusUseCase(
+                channelRepository
+            ),
+            createChannelUseCase = CreateChannelUseCase(channelRepository),
+            deleteChannelUseCase = DeleteChannelUseCase(channelRepository),
+            unsubscribeFromChannelUseCase = UnsubscribeFromChannelUseCase(channelRepository),
+            getChannelSubscriptionEventsUseCase = GetChannelSubscriptionEventsUseCase(
+                eventsRepository
+            )
         )
     }
 }

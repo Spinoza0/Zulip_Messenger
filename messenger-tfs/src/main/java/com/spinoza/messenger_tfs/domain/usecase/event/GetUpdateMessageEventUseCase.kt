@@ -3,11 +3,11 @@ package com.spinoza.messenger_tfs.domain.usecase.event
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.event.EventsQueue
 import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
-import com.spinoza.messenger_tfs.domain.repository.WebRepository
+import com.spinoza.messenger_tfs.domain.repository.EventsRepository
 import javax.inject.Inject
 
-class GetUpdateMessageEventUseCase @Inject constructor(private val repository: WebRepository) :
-    EventUseCase<UpdateMessageEvent> {
+class GetUpdateMessageEventUseCase @Inject constructor(private val repository: EventsRepository) :
+    MessagesEventUseCase<UpdateMessageEvent> {
 
     override suspend operator fun invoke(
         queue: EventsQueue,

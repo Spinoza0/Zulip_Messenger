@@ -17,6 +17,7 @@ android {
         versionCode 1
         versionName "1.0"
 
+        buildConfigField "String", "APPLICATION_NAME", "\"Messenger-TFS\""
         buildConfigField "String", "ZULIP_SERVER_URL", "\"https://tinkoff-android-spring-2023.zulipchat.com\""
         buildConfigField "String", "DATABASE_NAME", "\"messenger-tfs-cache.db\""
         buildConfigField "int", "MESSAGES_BORDER_POSITION", "5"

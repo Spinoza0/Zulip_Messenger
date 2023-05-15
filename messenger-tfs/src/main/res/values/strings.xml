@@ -22,6 +22,8 @@
     <string name="edit_message">Edit message</string>
     <string name="edit_topic">Edit topic</string>
     <string name="delete_message">Delete message</string>
+    <string name="attach_image">Attach image</string>
+    <string name="attach_file">Attach file</string>
     <string name="save_attachments">Save attachments</string>
     <string name="downloading_result">Downloading result</string>
 
@@ -78,7 +80,8 @@
     <string name="error_login">Error checking email and password.</string>
     <string name="error_file_not_found">File not found.</string>
     <string name="error_uri">Invalid uri.</string>
-    <string name="error_file_size">File is too big.</string>
+    <string name="error_file_empty">File is empty.</string>
+    <string name="error_file_big">File is too big.</string>
     <string name="error_unknown_file_type">Unknown file type.</string>
     <string name="error_downloading">downloading error</string>
 

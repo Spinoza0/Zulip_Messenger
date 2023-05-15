@@ -46,10 +46,6 @@ fun MessagesFilter.createNarrowJsonForEvents(): String {
     return Json.encodeToString(narrow)
 }
 
-fun MessagesFilter.isEqualTopicName(otherName: String): Boolean {
-    return topic.name.equals(otherName, true)
-}
-
 inline fun <reified T> Response<T>?.getBodyOrThrow(): T {
     return this?.body() ?: throw RuntimeException("Empty response body")
 }

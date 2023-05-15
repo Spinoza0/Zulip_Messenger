@@ -22,7 +22,7 @@ import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
-import com.spinoza.messenger_tfs.domain.model.MessageDate
+import com.spinoza.messenger_tfs.domain.model.MessageDateTime
 import com.spinoza.messenger_tfs.domain.model.ReactionParam
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.model.User
@@ -37,6 +37,7 @@ import com.spinoza.messenger_tfs.domain.util.splitToWords
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 import java.util.TreeSet
 
 fun TreeSet<MessageDto>.toDbModel(): List<MessageDbModel> {
@@ -69,9 +70,14 @@ fun List<StreamDto>.toDbModel(channelsFilter: ChannelsFilter): List<StreamDbMode
 }
 
 fun MessageDto.toDomain(userId: Long): Message {
-    val dateTimestamp = timestamp.getDateFromTimestamp()
+    val dateTimestamp = timestamp.getDateFromUnixTimestamp()
     return Message(
-        date = MessageDate(dateTimestamp.unixTimeToString(), dateTimestamp, timestamp),
+        datetime = MessageDateTime(
+            dateTimestamp.unixTimeToDateString(),
+            timestamp.unixTimeToTimeString(),
+            dateTimestamp,
+            timestamp
+        ),
         user = User(
             userId = senderId,
             email = senderEmail,
@@ -346,16 +352,23 @@ private fun StreamDto.toDbModel(channelsFilter: ChannelsFilter): StreamDbModel {
     )
 }
 
-private fun Long.unixTimeToString(): String {
+private fun Long.unixTimeToDateString(): String {
     return SimpleDateFormat(
         DATE_FORMAT,
         Locale.getDefault()
     ).format(Date(this * MILLIS_IN_SECOND))
 }
 
-private fun Long.getDateFromTimestamp(): Long {
+private fun Long.getDateFromUnixTimestamp(): Long {
     return this - (this % SECONDS_IN_DAY)
 }
 
+private fun Long.unixTimeToTimeString(): String {
+    val timeFormat = SimpleDateFormat(TIME_FORMAT, Locale.getDefault())
+    timeFormat.timeZone = TimeZone.getDefault()
+    return timeFormat.format(Date(this * 1000))
+}
+
 private const val DATE_FORMAT = "dd.MM.yyyy"
+private const val TIME_FORMAT = "HH:mm"
 private const val SECONDS_IN_DAY = 24 * 60 * 60

@@ -10,42 +10,24 @@
 
     <TextView
         android:id="@+id/textViewTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
+        style="@style/MenuItemStyle"
         android:layout_marginVertical="16dp"
-        android:textColor="?attr/text_300_color"
         android:textSize="20sp"
         android:textStyle="bold"
         tools:text="title" />
 
     <TextView
         android:id="@+id/textViewSubscribe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/subscribe_to_channel"
-        android:textColor="?attr/text_300_color"
-        android:textSize="18sp" />
+        style="@style/MenuItemStyle"
+        android:text="@string/subscribe_to_channel" />
 
     <TextView
         android:id="@+id/textViewUnsubscribe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/unsubscribe_from_channel"
-        android:textColor="?attr/text_300_color"
-        android:textSize="18sp" />
+        style="@style/MenuItemStyle"
+        android:text="@string/unsubscribe_from_channel" />
 
     <TextView
         android:id="@+id/textViewDelete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="16dp"
-        android:text="@string/delete_channel"
-        android:textColor="?attr/text_300_color"
-        android:textSize="18sp" />
+        style="@style/MenuItemStyle"
+        android:text="@string/delete_channel" />
 </LinearLayout>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="4dp"
+    android:background="?attr/background_500_color"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/itemAddReaction"
+        style="@style/MenuItemStyle"
+        android:layout_marginVertical="16dp"
+        android:text="@string/add_reaction" />
+
+    <TextView
+        android:id="@+id/itemCopyToClipboard"
+        style="@style/MenuItemStyle"
+        android:text="@string/copy_to_clipboard" />
+
+    <TextView
+        android:id="@+id/itemEditMessage"
+        style="@style/MenuItemStyle"
+        android:text="@string/edit_message" />
+
+    <TextView
+        android:id="@+id/itemEditTopic"
+        style="@style/MenuItemStyle"
+        android:text="@string/edit_topic" />
+
+    <TextView
+        android:id="@+id/itemDeleteMessage"
+        style="@style/MenuItemStyle"
+        android:text="@string/delete_message" />
+
+    <TextView
+        android:id="@+id/itemSaveAttachments"
+        style="@style/MenuItemStyle"
+        android:text="@string/save_attachments" />
+</LinearLayout>

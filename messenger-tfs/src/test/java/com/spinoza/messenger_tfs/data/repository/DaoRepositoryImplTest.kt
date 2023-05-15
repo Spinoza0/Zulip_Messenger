@@ -1,6 +1,6 @@
 package com.spinoza.messenger_tfs.data.repository
 
-import com.spinoza.messenger_tfs.data.cache.MessagesCache
+import com.spinoza.messenger_tfs.data.cache.MessagesCacheImpl
 import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
@@ -9,14 +9,12 @@ import com.spinoza.messenger_tfs.stub.AuthorizationStorageStub
 import com.spinoza.messenger_tfs.stub.MessagesGenerator
 import com.spinoza.messenger_tfs.stub.MessengerDaoStub
 import com.spinoza.messenger_tfs.util.MainDispatcherRule
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class DaoRepositoryImplTest {
 
     @get:Rule
@@ -71,7 +69,7 @@ class DaoRepositoryImplTest {
     private fun createDaoRepository(type: MessengerDaoStub.Type): DaoRepository {
         val messengerDao = MessengerDaoStub(messagesGenerator, type)
         return DaoRepositoryImpl(
-            MessagesCache(messengerDao, AuthorizationStorageStub()),
+            MessagesCacheImpl(messengerDao, AuthorizationStorageStub()),
             messengerDao,
             mainDispatcherRule.testDispatcher
         )

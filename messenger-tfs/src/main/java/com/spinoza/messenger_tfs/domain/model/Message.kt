@@ -1,7 +1,7 @@
 package com.spinoza.messenger_tfs.domain.model
 
 data class Message(
-    val date: MessageDate,
+    val datetime: MessageDateTime,
     val user: User,
     val content: String,
     val subject: String,

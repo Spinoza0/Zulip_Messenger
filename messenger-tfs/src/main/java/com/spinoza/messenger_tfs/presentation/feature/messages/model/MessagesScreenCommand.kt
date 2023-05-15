@@ -12,6 +12,10 @@ sealed class MessagesScreenCommand {
 
     object Reload : MessagesScreenCommand()
 
+    class SubscribeOnEvents(val filter: MessagesFilter) : MessagesScreenCommand()
+
+    object UnsubscribeFromEvents : MessagesScreenCommand()
+
     class GetMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
 
     class GetUpdateMessagesEvent(val isLastMessageVisible: Boolean) : MessagesScreenCommand()
@@ -26,7 +30,11 @@ sealed class MessagesScreenCommand {
 
     object LoadPreviousPage : MessagesScreenCommand()
 
+    object LoadCurrentWithPreviousPage : MessagesScreenCommand()
+
     object LoadNextPage : MessagesScreenCommand()
+
+    object LoadCurrentWithNextPage : MessagesScreenCommand()
 
     object LoadLastPage : MessagesScreenCommand()
 
