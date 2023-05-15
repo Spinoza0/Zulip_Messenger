@@ -64,7 +64,7 @@
     <string name="channel_name">Название канала…</string>
     <string name="channel_description">Описание канала…</string>
     <string name="ok">Ок</string>
-    <string name="close">Закрыть экран</string>
+    <string name="close_screen">Закрыть экран</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="save">Сохранить</string>

@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.feature.channels
 
-import android.app.AlertDialog
 import android.os.Bundle
 import android.text.InputFilter
 import android.text.InputType
@@ -46,6 +45,7 @@ import com.spinoza.messenger_tfs.presentation.util.getThemeColor
 import com.spinoza.messenger_tfs.presentation.util.off
 import com.spinoza.messenger_tfs.presentation.util.on
 import com.spinoza.messenger_tfs.presentation.util.showCheckInternetConnectionDialog
+import com.spinoza.messenger_tfs.presentation.util.showConfirmationDialog
 import com.spinoza.messenger_tfs.presentation.util.showError
 import kotlinx.coroutines.launch
 import java.util.concurrent.atomic.AtomicBoolean
@@ -207,7 +207,7 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun showChannelMenu(effect: ChannelsPageScreenEffect.ShowChannelMenu) {
-        if(isShowingChannelMenu.get()) return
+        if (isShowingChannelMenu.get()) return
         isShowingChannelMenu.set(true)
         val dialog = BottomSheetDialog(requireContext())
         val dialogBinding = DialogChannelActionsBinding.inflate(layoutInflater)
@@ -239,17 +239,13 @@ class ChannelsPageFragment : Fragment() {
     }
 
     private fun confirmDeleteChannel(channel: Channel) {
-        AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.confirm_delete_channel))
-            .setMessage(channel.name)
-            .setCancelable(false)
-            .setPositiveButton(getString(R.string.yes)) { _, _ ->
+        showConfirmationDialog(
+            title = getString(R.string.confirm_delete_channel),
+            message = channel.name,
+            onPositiveClickCallback = {
                 store.accept(ChannelsPageScreenEvent.Ui.DeleteChannel(channel.channelId))
             }
-            .setNegativeButton(getString(R.string.no)) { _, _ ->
-            }
-            .create()
-            .show()
+        )
     }
 
     private fun showCreateChannelDialog() {
@@ -262,11 +258,12 @@ class ChannelsPageFragment : Fragment() {
             inputType = InputType.TYPE_CLASS_TEXT
             filters = arrayOf(InputFilter.LengthFilter(webLimitation.getMaxChannelDescription()))
         }
-        AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.create_channel))
-            .setView(dialogFields.root)
-            .setCancelable(false)
-            .setPositiveButton(getString(R.string.create)) { _, _ ->
+        showConfirmationDialog(
+            title = getString(R.string.create_channel),
+            view = dialogFields.root,
+            positiveButtonTitleResId = R.string.create,
+            negativeButtonTitleResId = R.string.cancel,
+            onPositiveClickCallback = {
                 store.accept(
                     ChannelsPageScreenEvent.Ui.CreateChannel(
                         dialogFields.inputChannelName.text,
@@ -274,10 +271,7 @@ class ChannelsPageFragment : Fragment() {
                     )
                 )
             }
-            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
-            }
-            .create()
-            .show()
+        )
     }
 
     private fun parseParams() {

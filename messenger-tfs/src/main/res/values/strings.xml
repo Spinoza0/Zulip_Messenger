@@ -64,7 +64,7 @@
     <string name="channel_name">Channel name…</string>
     <string name="channel_description">Channel description…</string>
     <string name="ok">OK</string>
-    <string name="close">Close screen</string>
+    <string name="close_screen">Close screen</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="save">Save</string>
