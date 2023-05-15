@@ -82,6 +82,71 @@
         <item name="android:background">?attr/background_250_color</item>
     </style>
 
+    <style name="MessagesTopicTitleStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">?attr/background_500_color</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:paddingStart">36dp</item>
+        <item name="android:paddingEnd">36dp</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:textColor">?attr/text_500_color</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
+    <style name="MessagesRecyclerViewStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:layout_marginStart">12dp</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
+
+    <style name="MessagesEditTopicNameStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">10dp</item>
+        <item name="android:layout_marginEnd">16dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:background">@drawable/shape_channel_new_message_text</item>
+        <item name="android:textColor">?attr/text_300_color</item>
+        <item name="android:textColorHint">?attr/text_300_color</item>
+        <item name="android:hint">@string/topic_name</item>
+        <item name="android:visibility">gone</item>
+    </style>
+
+    <style name="MessagesEditMessageStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">10dp</item>
+        <item name="android:layout_marginEnd">12dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:hint">@string/write_message</item>
+        <item name="android:inputType">textMultiLine</item>
+        <item name="android:maxLines">3</item>
+        <item name="android:background">@drawable/shape_channel_new_message_text</item>
+        <item name="android:textColor">?attr/text_300_color</item>
+        <item name="android:textColorHint">?attr/text_300_color</item>
+    </style>
+
+    <style name="MessagesImageActionStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginEnd">16dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+        <item name="android:background">?attr/background_500_color</item>
+    </style>
+
     <style name="ToolbarTitleStyle">
         <item name="android:textSize">24sp</item>
     </style>

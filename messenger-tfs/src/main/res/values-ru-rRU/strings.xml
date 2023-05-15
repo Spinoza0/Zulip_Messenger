@@ -88,5 +88,6 @@
     <string name="error_file_big">Файл слишком большой.</string>
     <string name="error_unknown_file_type">Неизвестный тип файла.</string>
     <string name="error_downloading">ошибка загрузки</string>
+    <string name="too_many_attempts">Слишком много попыток, повторите позже</string>
 
 </resources>
