@@ -92,14 +92,14 @@ class MessagesCacheImpl @Inject constructor(
         }
     }
 
-    override fun getFirstMessageId(filter: MessagesFilter): Long {
-        val message = data.find { filter.topic.nameEquals(it.subject) }
-        return message?.id ?: Message.UNDEFINED_ID
+    override suspend fun getFirstMessageId(filter: MessagesFilter): Long {
+        val messages = getFilteredMessages(filter)
+        return if (messages.isEmpty()) Message.UNDEFINED_ID else messages.first().streamId
     }
 
-    override fun getLastMessageId(filter: MessagesFilter): Long {
-        val message = data.findLast { filter.topic.nameEquals(it.subject) }
-        return message?.id ?: Message.UNDEFINED_ID
+    override suspend fun getLastMessageId(filter: MessagesFilter): Long {
+        val messages = getFilteredMessages(filter)
+        return if (messages.isEmpty()) Message.UNDEFINED_ID else messages.last().streamId
     }
 
     override suspend fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto) {
@@ -144,6 +144,10 @@ class MessagesCacheImpl @Inject constructor(
     }
 
     override suspend fun getMessages(filter: MessagesFilter): List<Message> {
+        return getFilteredMessages(filter).toDomain(authorizationStorage.getUserId())
+    }
+
+    private suspend fun getFilteredMessages(filter: MessagesFilter): Collection<MessageDto> {
         dataMutex.withLock {
             val streamMessages =
                 if (filter.channel.channelId != Channel.UNDEFINED_ID) {
@@ -157,7 +161,7 @@ class MessagesCacheImpl @Inject constructor(
                 } else {
                     streamMessages
                 }
-            return topicMessages.toDomain(authorizationStorage.getUserId())
+            return topicMessages
         }
     }
 

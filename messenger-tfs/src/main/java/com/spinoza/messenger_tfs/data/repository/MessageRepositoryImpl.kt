@@ -59,7 +59,11 @@ class MessageRepositoryImpl @Inject constructor(
                         numBefore = ZulipApiService.EMPTY_MESSAGES_PACKET
                         numAfter = ZulipApiService.MAX_MESSAGES_PACKET
                         anchorId = messagesCache.getLastMessageId(filter)
-                        anchor = ZulipApiService.ANCHOR_NEWEST
+                        anchor = if (anchorId == Message.UNDEFINED_ID) {
+                            ZulipApiService.ANCHOR_FIRST_UNREAD
+                        } else {
+                            ZulipApiService.ANCHOR_NEWEST
+                        }
                     }
 
                     MessagesPageType.CURRENT_WITH_NEWEST -> {
@@ -77,7 +81,11 @@ class MessageRepositoryImpl @Inject constructor(
                         numBefore = ZulipApiService.MAX_MESSAGES_PACKET
                         numAfter = ZulipApiService.EMPTY_MESSAGES_PACKET
                         anchorId = messagesCache.getFirstMessageId(filter)
-                        anchor = ZulipApiService.ANCHOR_OLDEST
+                        anchor = if (anchorId == Message.UNDEFINED_ID) {
+                            ZulipApiService.ANCHOR_FIRST_UNREAD
+                        } else {
+                            ZulipApiService.ANCHOR_OLDEST
+                        }
                     }
 
                     MessagesPageType.CURRENT_WITH_OLDEST -> {

@@ -25,9 +25,9 @@ interface MessagesCache {
 
     suspend fun remove(messageId: Long)
 
-    fun getFirstMessageId(filter: MessagesFilter): Long
+    suspend fun getFirstMessageId(filter: MessagesFilter): Long
 
-    fun getLastMessageId(filter: MessagesFilter): Long
+    suspend fun getLastMessageId(filter: MessagesFilter): Long
 
     suspend fun updateReaction(messageId: Long, userId: Long, reactionDto: ReactionDto)
 
