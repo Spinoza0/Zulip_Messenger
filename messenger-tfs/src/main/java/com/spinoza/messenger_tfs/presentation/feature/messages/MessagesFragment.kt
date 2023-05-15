@@ -217,17 +217,16 @@ class MessagesFragment :
                 loadMessages(it)
             })
         }
+        binding.recyclerViewMessages.itemAnimator = null
         binding.recyclerViewMessages.adapter = messagesAdapter
         binding.recyclerViewMessages.addItemDecoration(StickyDateInHeaderItemDecoration())
         binding.recyclerViewMessages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
 
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val firstVisiblePosition = recyclerView.findFirstVisibleItemPosition()
                 val lastVisiblePosition = recyclerView.findLastVisibleItemPosition()
                 store.accept(
                     MessagesScreenEvent.Ui.MessagesOnScrolled(
-                        getVisibleMessagesIds(firstVisiblePosition, lastVisiblePosition),
                         isNextMessageExisting(lastVisiblePosition),
                         isLastMessageVisible(lastVisiblePosition)
                     )
@@ -240,11 +239,14 @@ class MessagesFragment :
                     store.accept(MessagesScreenEvent.Ui.MessagesScrollStateDragging)
                 }
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    val firstVisiblePosition = recyclerView.findFirstVisibleItemPosition()
+                    val lastVisiblePosition = recyclerView.findLastVisibleItemPosition()
                     store.accept(
                         MessagesScreenEvent.Ui.MessagesScrollStateIdle(
+                            getVisibleMessagesIds(firstVisiblePosition, lastVisiblePosition),
                             recyclerView.canScrollVertically(DIRECTION_UP),
                             recyclerView.canScrollVertically(DIRECTION_DOWN),
-                            isNextMessageExisting(recyclerView.findLastVisibleItemPosition())
+                            isNextMessageExisting(lastVisiblePosition)
                         )
                     )
                 }

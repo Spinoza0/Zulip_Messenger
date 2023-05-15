@@ -89,8 +89,10 @@ fun RecyclerView.smoothScrollToMessage(messageId: Long) {
 }
 
 fun RecyclerView.smoothScrollToLastPosition() {
-    val lastItemPosition = adapter?.itemCount?.minus(1)
+    val lastItemPosition = adapter?.itemCount?.minus(LAST_POSITION_OFFSET)
     if (lastItemPosition != null) {
         smoothScrollToTargetPosition(lastItemPosition)
     }
 }
+
+private const val LAST_POSITION_OFFSET = 1
