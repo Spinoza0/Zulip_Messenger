@@ -1,4 +1,4 @@
-package com.spinoza.messenger_tfs.data.network.model
+package com.spinoza.messenger_tfs.data.network.model.attachment
 
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipResponse
 import kotlinx.serialization.SerialName

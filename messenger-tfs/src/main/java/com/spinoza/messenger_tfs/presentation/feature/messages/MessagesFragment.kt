@@ -1,6 +1,5 @@
 package com.spinoza.messenger_tfs.presentation.feature.messages
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -67,7 +66,9 @@ import com.spinoza.messenger_tfs.presentation.util.off
 import com.spinoza.messenger_tfs.presentation.util.on
 import com.spinoza.messenger_tfs.presentation.util.restoreInstanceState
 import com.spinoza.messenger_tfs.presentation.util.showCheckInternetConnectionDialog
+import com.spinoza.messenger_tfs.presentation.util.showConfirmationDialog
 import com.spinoza.messenger_tfs.presentation.util.showError
+import com.spinoza.messenger_tfs.presentation.util.showToast
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
@@ -341,7 +342,7 @@ class MessagesFragment :
                 showError("${getString(R.string.error_network)} ${effect.value}")
                 showCheckInternetConnectionDialog({
                     store.accept(MessagesScreenEvent.Ui.Reload)
-                    store.accept(MessagesScreenEvent.Ui.SubscribeOnEvents(messagesFilter))
+                    store.accept(MessagesScreenEvent.Ui.OnResume(messagesFilter))
                 }) {
                     goBack()
                 }
@@ -366,16 +367,13 @@ class MessagesFragment :
     }
 
     private fun confirmDeleteMessage(messageId: Long) {
-        AlertDialog.Builder(requireContext())
-            .setMessage(getString(R.string.confirm_delete_message))
-            .setCancelable(false)
-            .setPositiveButton(getString(R.string.yes)) { _, _ ->
+        showConfirmationDialog(
+            message = getString(R.string.confirm_delete_message),
+            onPositiveClickCallback = {
+                showToast(getString(R.string.message_delete_request_sent))
                 store.accept(MessagesScreenEvent.Ui.DeleteMessage(messageId))
             }
-            .setNegativeButton(getString(R.string.no)) { _, _ ->
-            }
-            .create()
-            .show()
+        )
     }
 
     private fun showEditTopicDialog(messageView: MessageView) {
@@ -416,17 +414,13 @@ class MessagesFragment :
             }
             setText(content)
         }
-        AlertDialog.Builder(requireContext())
-            .setTitle(title)
-            .setView(inputField.root)
-            .setCancelable(false)
-            .setPositiveButton(getString(R.string.save)) { _, _ ->
-                positiveCallback(messageId, inputField.input.text)
-            }
-            .setNegativeButton(getString(R.string.cancel)) { _, _ ->
-            }
-            .create()
-            .show()
+        showConfirmationDialog(
+            title = title,
+            positiveButtonTitleResId = R.string.save,
+            negativeButtonTitleResId = R.string.cancel,
+            view = inputField.root,
+            onPositiveClickCallback = { positiveCallback(messageId, inputField.input.text) }
+        )
     }
 
     private fun showNotification(value: Map<String, Boolean>) {
@@ -566,6 +560,7 @@ class MessagesFragment :
     }
 
     private fun saveAttachments(urls: List<String>) {
+        showToast(getString(R.string.download_will_start_soon))
         store.accept(MessagesScreenEvent.Ui.SaveAttachments(requireContext(), urls))
     }
 
@@ -652,14 +647,14 @@ class MessagesFragment :
         if (isMessagesListEmpty()) {
             loadMessages(messagesFilter.topic.name)
         }
-        store.accept(MessagesScreenEvent.Ui.SubscribeOnEvents(messagesFilter))
+        store.accept(MessagesScreenEvent.Ui.OnResume(messagesFilter))
     }
 
     override fun onPause() {
         super.onPause()
         binding.shimmerLarge.off()
         binding.shimmerSending.off()
-        store.accept(MessagesScreenEvent.Ui.UnsubscribeFromEvents)
+        store.accept(MessagesScreenEvent.Ui.OnPause)
     }
 
     override fun onStop() {

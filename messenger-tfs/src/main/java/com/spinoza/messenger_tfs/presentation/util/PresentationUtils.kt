@@ -16,6 +16,7 @@ import com.facebook.shimmer.ShimmerFrameLayout
 import com.google.android.material.snackbar.Snackbar
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.di.app.ApplicationComponent
+import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
 import com.spinoza.messenger_tfs.presentation.feature.app.App
 
 fun Context.getAppComponent(): ApplicationComponent = (this.applicationContext as App).appComponent
@@ -52,26 +53,50 @@ fun Fragment.showError(text: String) {
             show()
         }
     } else {
-        Toast.makeText(requireContext(), text, Toast.LENGTH_LONG).show()
+        showToast(text)
     }
 }
 
+fun Fragment.showToast(text: String) {
+    Toast.makeText(requireContext(), text, Toast.LENGTH_LONG).show()
+}
+
 fun Fragment.showCheckInternetConnectionDialog(onOkClick: () -> Unit, onCloseClick: () -> Unit) {
-    AlertDialog.Builder(requireContext())
-        .setMessage(getString(R.string.check_internet_connection))
-        .setCancelable(false)
-        .setPositiveButton(getString(R.string.ok)) { _, _ ->
+    showConfirmationDialog(
+        message = getString(R.string.check_internet_connection),
+        positiveButtonTitleResId = R.string.ok,
+        negativeButtonTitleResId = R.string.close_screen,
+        onPositiveClickCallback = {
             if (isNetworkConnected()) {
                 onOkClick()
             } else {
                 showCheckInternetConnectionDialog(onOkClick, onCloseClick)
             }
         }
-        .setNegativeButton(getString(R.string.close)) { _, _ ->
-            onCloseClick()
+    ) { onCloseClick() }
+}
+
+fun Fragment.showConfirmationDialog(
+    onPositiveClickCallback: () -> Unit,
+    positiveButtonTitleResId: Int = R.string.yes,
+    negativeButtonTitleResId: Int = R.string.no,
+    title: String = EMPTY_STRING,
+    message: String = EMPTY_STRING,
+    view: View? = null,
+    onNegativeClickCallback: (() -> Unit)? = null,
+) {
+    val dialogBuilder = AlertDialog.Builder(requireContext())
+        .setCancelable(false)
+        .setPositiveButton(getString(positiveButtonTitleResId)) { _, _ ->
+            onPositiveClickCallback()
         }
-        .create()
-        .show()
+        .setNegativeButton(getString(negativeButtonTitleResId)) { _, _ ->
+            onNegativeClickCallback?.invoke()
+        }
+    if (title.isNotEmpty()) dialogBuilder.setTitle(title)
+    if (message.isNotEmpty()) dialogBuilder.setMessage(message)
+    if (view != null) dialogBuilder.setView(view)
+    dialogBuilder.create().show()
 }
 
 fun Fragment.closeApplication() {

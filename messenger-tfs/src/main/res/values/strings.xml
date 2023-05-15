@@ -64,12 +64,16 @@
     <string name="channel_name">Channel name…</string>
     <string name="channel_description">Channel description…</string>
     <string name="ok">OK</string>
-    <string name="close">Close screen</string>
+    <string name="close_screen">Close screen</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="create">Create</string>
+
+    <!-- Toast -->
+    <string name="download_will_start_soon">Download will start soon</string>
+    <string name="message_delete_request_sent">Message delete request sent</string>
 
     <!-- Errors -->
     <string name="error_user_loading">User loading error.</string>

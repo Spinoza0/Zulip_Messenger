@@ -65,7 +65,7 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
         super.onViewCreated(view, savedInstanceState)
         setupListeners()
         binding.textViewForgotPassword.movementMethod = LinkMovementMethod.getInstance()
-        store.accept(LoginScreenEvent.Ui.CheckLoginStatus(getParamLogout()))
+        checkLoginStatus()
     }
 
     override fun render(state: LoginScreenState) {
@@ -86,7 +86,9 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
 
             is LoginScreenEffect.Failure.ErrorNetwork -> {
                 showError("${getString(R.string.error_network)} ${effect.value}")
-                showCheckInternetConnectionDialog({ }) {
+                showCheckInternetConnectionDialog({
+                    checkLoginStatus()
+                }) {
                     store.accept(LoginScreenEvent.Ui.Exit)
                 }
             }
@@ -114,6 +116,10 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
 
     private fun getParamLogout(): Boolean {
         return arguments?.getBoolean(PARAM_LOGOUT, false) ?: false
+    }
+
+    private fun checkLoginStatus() {
+        store.accept(LoginScreenEvent.Ui.CheckLoginStatus(getParamLogout()))
     }
 
     override fun onDestroyView() {

@@ -342,10 +342,8 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Ui.ConfirmDeleteMessage ->
             effects { +MessagesScreenEffect.ConfirmDeleteMessage(event.messageView.messageId) }
 
-        is MessagesScreenEvent.Ui.DeleteMessage -> {
-            state { copy(isLongOperation = true) }
+        is MessagesScreenEvent.Ui.DeleteMessage ->
             commands { +MessagesScreenCommand.DeleteMessage(event.messageId) }
-        }
 
         is MessagesScreenEvent.Ui.CheckLoginStatus -> {
             if (!authorizationStorage.isUserLoggedIn()) {
@@ -358,10 +356,10 @@ class MessagesReducer @Inject constructor(
             effects { }
         }
 
-        is MessagesScreenEvent.Ui.SubscribeOnEvents ->
+        is MessagesScreenEvent.Ui.OnResume ->
             commands { +MessagesScreenCommand.SubscribeOnEvents(event.filter) }
 
-        is MessagesScreenEvent.Ui.UnsubscribeFromEvents ->
+        is MessagesScreenEvent.Ui.OnPause ->
             commands { +MessagesScreenCommand.UnsubscribeFromEvents }
 
         is MessagesScreenEvent.Ui.Exit -> router.exit()

@@ -13,9 +13,9 @@ sealed class MessagesScreenEvent {
 
         object Init : Ui()
 
-        class SubscribeOnEvents(val filter: MessagesFilter) : Ui()
+        class OnResume(val filter: MessagesFilter) : Ui()
 
-        object UnsubscribeFromEvents : Ui()
+        object OnPause : Ui()
 
         object CheckLoginStatus : Ui()
 
