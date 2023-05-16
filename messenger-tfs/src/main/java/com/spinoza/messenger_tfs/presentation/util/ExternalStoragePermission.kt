@@ -1,6 +1,7 @@
 package com.spinoza.messenger_tfs.presentation.util
 
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import com.spinoza.messenger_tfs.presentation.feature.messages.MessagesFragment
@@ -18,13 +19,27 @@ class ExternalStoragePermission @Inject constructor(private val fragment: Messag
         }
     }
 
-    fun isGranted(permissionType: Type): Boolean = isGranted(
-        ActivityCompat.checkSelfPermission(fragment.requireActivity(), permissionType.value)
-    )
+    fun isGranted(permissionType: Type): Boolean {
+        return if (permissionType == Type.READ ||
+            (permissionType == Type.WRITE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        ) {
+            true
+        } else {
+            isGranted(
+                ActivityCompat.checkSelfPermission(fragment.requireContext(), permissionType.value)
+            )
+        }
+    }
 
     fun request(permissionType: Type, onGrantedCallback: () -> Unit) {
         this.onGrantedCallback = onGrantedCallback
-        requestPermissionLauncher.launch(permissionType.value)
+        if (permissionType == Type.READ ||
+            (permissionType == Type.WRITE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+        ) {
+            onGrantedCallback()
+        } else {
+            requestPermissionLauncher.launch(permissionType.value)
+        }
     }
 
     private fun isGranted(permission: Int): Boolean =

@@ -3,7 +3,6 @@ package com.spinoza.messenger_tfs.presentation.feature.messages
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.text.InputFilter
@@ -480,16 +479,12 @@ class MessagesFragment :
                 dialog.dismiss()
             }
             itemSaveAttachments.setOnClickListener {
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                    if (externalStoragePermission.isGranted(ExternalStoragePermission.Type.WRITE)) {
-                        saveAttachments(effect.urls)
-                    } else {
-                        externalStoragePermission.request(ExternalStoragePermission.Type.WRITE) {
-                            saveAttachments(effect.urls)
-                        }
-                    }
-                } else {
+                if (externalStoragePermission.isGranted(ExternalStoragePermission.Type.WRITE)) {
                     saveAttachments(effect.urls)
+                } else {
+                    externalStoragePermission.request(ExternalStoragePermission.Type.WRITE) {
+                        saveAttachments(effect.urls)
+                    }
                 }
                 dialog.dismiss()
             }
