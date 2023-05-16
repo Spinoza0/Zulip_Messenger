@@ -107,8 +107,9 @@ class AttachmentHandlerImpl @Inject constructor(
         val inputStream = context.contentResolver.openInputStream(this)
             ?: throw RepositoryError(context.getString(R.string.error_uri))
         val buffer = ByteArray(TEMP_FILE_BUFFER_SIZE)
-        val filesDir = context.filesDir
-        val tempFile = File(filesDir, TEMP_FILE_NAME).also { it.deleteOnExit() }
+        val tempFile = File.createTempFile(TEMP_NAME, TEMP_EXTENSION, context.filesDir).also {
+            it.deleteOnExit()
+        }
         var fileSize = 0L
         val bufferedOutputStream = withContext(ioDispatcher) {
             BufferedOutputStream(FileOutputStream(tempFile), TEMP_FILE_BUFFER_SIZE)
@@ -157,6 +158,7 @@ class AttachmentHandlerImpl @Inject constructor(
         const val NO_OFFSET = 0
         const val EMPTY_FILE = 0L
         const val DEFAULT_FILE_NAME = "file"
-        const val TEMP_FILE_NAME = "temp_file"
+        const val TEMP_NAME = "temp_file"
+        const val TEMP_EXTENSION = "tmp"
     }
 }
