@@ -126,8 +126,20 @@ private fun getErrorMessage(fragment: Fragment, errorData: String) = when {
     errorData.contains(ERROR_BAD_REQUEST) ->
         fragment.getString(R.string.error_bad_request)
 
+    errorData.contains(ERROR_UNAUTHORIZED) ->
+        fragment.getString(R.string.error_unauthorized)
+
+    errorData.contains(ERROR_FORBIDDEN) ->
+        fragment.getString(R.string.error_forbidden)
+
+    errorData.contains(ERROR_URL_NOT_FOUND) ->
+        fragment.getString(R.string.error_url_not_found)
+
     errorData.contains(ERROR_TOO_MANY_ATTEMPTS) ->
         fragment.getString(R.string.error_too_many_attempts)
+
+    errorData.contains(ERROR_INTERNAL_SERVER_PROBLEM) ->
+        fragment.getString(R.string.error_internal_server_problem)
 
     else -> errorData
 }
@@ -135,4 +147,8 @@ private fun getErrorMessage(fragment: Fragment, errorData: String) = when {
 const val DIRECTION_UP = -1
 const val DIRECTION_DOWN = 1
 private const val ERROR_BAD_REQUEST = "HTTP 400"
+private const val ERROR_UNAUTHORIZED = "HTTP 401"
+private const val ERROR_FORBIDDEN = "HTTP 403"
+private const val ERROR_URL_NOT_FOUND = "HTTP 404"
 private const val ERROR_TOO_MANY_ATTEMPTS = "HTTP 429"
+private const val ERROR_INTERNAL_SERVER_PROBLEM = "HTTP 500"
