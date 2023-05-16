@@ -191,10 +191,10 @@ class ChannelsPageFragment : Fragment() {
         when (effect) {
             is ChannelsPageScreenEffect.ShowChannelMenu -> showChannelMenu(effect)
             is ChannelsPageScreenEffect.Failure.Error ->
-                showError("${getString(R.string.error_channels)} ${effect.value}")
+                showError(getString(R.string.error_channels), effect.value)
 
             is ChannelsPageScreenEffect.Failure.Network ->
-                showCheckInternetConnectionDialog({
+                showCheckInternetConnectionDialog(effect.value, {
                     store.accept(ChannelsPageScreenEvent.Ui.Load)
                 }) {
                     closeApplication()

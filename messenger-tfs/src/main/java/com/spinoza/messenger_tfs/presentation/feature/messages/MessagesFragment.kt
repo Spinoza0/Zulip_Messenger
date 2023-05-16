@@ -340,11 +340,10 @@ class MessagesFragment :
 
             is MessagesScreenEffect.ConfirmDeleteMessage -> confirmDeleteMessage(effect.messageId)
             is MessagesScreenEffect.Failure.ErrorMessages ->
-                showError("${getString(R.string.error_messages)} ${effect.value}")
+                showError(getString(R.string.error_messages), effect.value)
 
             is MessagesScreenEffect.Failure.ErrorNetwork -> {
-                showError("${getString(R.string.error_network)} ${effect.value}")
-                showCheckInternetConnectionDialog({
+                showCheckInternetConnectionDialog(effect.value, {
                     store.accept(MessagesScreenEvent.Ui.Reload)
                     store.accept(MessagesScreenEvent.Ui.OnResume(messagesFilter))
                 }) {
