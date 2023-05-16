@@ -13,7 +13,6 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import com.facebook.shimmer.ShimmerFrameLayout
-import com.google.android.material.snackbar.Snackbar
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.di.app.ApplicationComponent
 import com.spinoza.messenger_tfs.domain.util.EMPTY_STRING
@@ -45,32 +44,34 @@ fun RecyclerView.restoreInstanceState(state: Parcelable?) {
     layoutManager?.onRestoreInstanceState(state)
 }
 
-fun Fragment.showError(text: String) {
-    val viewSnackBar = requireActivity().findViewById<View>(android.R.id.content)
-    if (viewSnackBar != null) {
-        Snackbar.make(viewSnackBar, text, Snackbar.LENGTH_INDEFINITE).apply {
-            setAction(android.R.string.ok) { }
-            show()
-        }
-    } else {
-        showToast(text)
-    }
+fun Fragment.showError(text: String, errorData: String) {
+    showConfirmationDialog(
+        title = text,
+        message = getErrorMessage(this, errorData),
+        positiveButtonTitleResId = R.string.ok,
+        onPositiveClickCallback = {}
+    )
 }
 
 fun Fragment.showToast(text: String) {
     Toast.makeText(requireContext(), text, Toast.LENGTH_LONG).show()
 }
 
-fun Fragment.showCheckInternetConnectionDialog(onOkClick: () -> Unit, onCloseClick: () -> Unit) {
+fun Fragment.showCheckInternetConnectionDialog(
+    errorData: String,
+    onOkClick: () -> Unit,
+    onCloseClick: () -> Unit,
+) {
     showConfirmationDialog(
-        message = getString(R.string.check_internet_connection),
+        title = getString(R.string.check_internet_connection),
+        message = getErrorMessage(this, errorData),
         positiveButtonTitleResId = R.string.ok,
         negativeButtonTitleResId = R.string.close_screen,
         onPositiveClickCallback = {
             if (isNetworkConnected()) {
                 onOkClick()
             } else {
-                showCheckInternetConnectionDialog(onOkClick, onCloseClick)
+                showCheckInternetConnectionDialog(errorData, onOkClick, onCloseClick)
             }
         }
     ) { onCloseClick() }
@@ -79,7 +80,7 @@ fun Fragment.showCheckInternetConnectionDialog(onOkClick: () -> Unit, onCloseCli
 fun Fragment.showConfirmationDialog(
     onPositiveClickCallback: () -> Unit,
     positiveButtonTitleResId: Int = R.string.yes,
-    negativeButtonTitleResId: Int = R.string.no,
+    negativeButtonTitleResId: Int? = R.string.no,
     title: String = EMPTY_STRING,
     message: String = EMPTY_STRING,
     view: View? = null,
@@ -90,9 +91,11 @@ fun Fragment.showConfirmationDialog(
         .setPositiveButton(getString(positiveButtonTitleResId)) { _, _ ->
             onPositiveClickCallback()
         }
-        .setNegativeButton(getString(negativeButtonTitleResId)) { _, _ ->
-            onNegativeClickCallback?.invoke()
-        }
+    if (negativeButtonTitleResId != null) dialogBuilder.setNegativeButton(
+        getString(negativeButtonTitleResId)
+    ) { _, _ ->
+        onNegativeClickCallback?.invoke()
+    }
     if (title.isNotEmpty()) dialogBuilder.setTitle(title)
     if (message.isNotEmpty()) dialogBuilder.setMessage(message)
     if (view != null) dialogBuilder.setView(view)
@@ -119,5 +122,33 @@ private fun Fragment.isNetworkConnected(): Boolean {
     return cm.activeNetwork != null && cm.getNetworkCapabilities(cm.activeNetwork) != null
 }
 
+private fun getErrorMessage(fragment: Fragment, errorData: String) = when {
+    errorData.contains(ERROR_BAD_REQUEST) ->
+        fragment.getString(R.string.error_bad_request)
+
+    errorData.contains(ERROR_UNAUTHORIZED) ->
+        fragment.getString(R.string.error_unauthorized)
+
+    errorData.contains(ERROR_FORBIDDEN) ->
+        fragment.getString(R.string.error_forbidden)
+
+    errorData.contains(ERROR_URL_NOT_FOUND) ->
+        fragment.getString(R.string.error_url_not_found)
+
+    errorData.contains(ERROR_TOO_MANY_ATTEMPTS) ->
+        fragment.getString(R.string.error_too_many_attempts)
+
+    errorData.contains(ERROR_INTERNAL_SERVER_PROBLEM) ->
+        fragment.getString(R.string.error_internal_server_problem)
+
+    else -> errorData
+}
+
 const val DIRECTION_UP = -1
 const val DIRECTION_DOWN = 1
+private const val ERROR_BAD_REQUEST = "HTTP 400"
+private const val ERROR_UNAUTHORIZED = "HTTP 401"
+private const val ERROR_FORBIDDEN = "HTTP 403"
+private const val ERROR_URL_NOT_FOUND = "HTTP 404"
+private const val ERROR_TOO_MANY_ATTEMPTS = "HTTP 429"
+private const val ERROR_INTERNAL_SERVER_PROBLEM = "HTTP 500"

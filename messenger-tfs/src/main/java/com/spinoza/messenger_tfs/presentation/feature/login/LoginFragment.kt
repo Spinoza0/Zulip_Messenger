@@ -19,7 +19,6 @@ import com.spinoza.messenger_tfs.presentation.feature.login.model.LoginScreenSta
 import com.spinoza.messenger_tfs.presentation.util.getAppComponent
 import com.spinoza.messenger_tfs.presentation.util.showCheckInternetConnectionDialog
 import com.spinoza.messenger_tfs.presentation.util.showError
-import com.spinoza.messenger_tfs.presentation.util.showToast
 import vivid.money.elmslie.android.base.ElmFragment
 import vivid.money.elmslie.android.storeholder.LifecycleAwareStoreHolder
 import vivid.money.elmslie.android.storeholder.StoreHolder
@@ -82,20 +81,11 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
     override fun handleEffect(effect: LoginScreenEffect) {
         when (effect) {
             is LoginScreenEffect.ButtonStatus -> binding.buttonLogin.isEnabled = effect.isEnabled
-            is LoginScreenEffect.Failure.ErrorLogin -> {
-                val error = if (effect.value.contains(ERROR_TOO_MANY_ATTEMPTS)) {
-                    getString(R.string.too_many_attempts)
-                } else {
-                    "${getString(R.string.error_login)} ${effect.value}"
-                }
-                showToast(error)
-            }
+            is LoginScreenEffect.Failure.ErrorLogin ->
+                showError(getString(R.string.error_login), effect.value)
 
             is LoginScreenEffect.Failure.ErrorNetwork -> {
-                showError("${getString(R.string.error_network)} ${effect.value}")
-                showCheckInternetConnectionDialog({
-                    checkLoginStatus()
-                }) {
+                showCheckInternetConnectionDialog(effect.value, { checkLoginStatus() }) {
                     store.accept(LoginScreenEvent.Ui.Exit)
                 }
             }
@@ -137,7 +127,6 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
     companion object {
 
         private const val PARAM_LOGOUT = "logout"
-        private const val ERROR_TOO_MANY_ATTEMPTS = "HTTP 429"
 
         fun newInstance(logout: Boolean = false): LoginFragment {
             return LoginFragment().apply {

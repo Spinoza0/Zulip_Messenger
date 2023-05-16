@@ -88,6 +88,11 @@
     <string name="error_file_big">Файл слишком большой.</string>
     <string name="error_unknown_file_type">Неизвестный тип файла.</string>
     <string name="error_downloading">ошибка загрузки</string>
-    <string name="too_many_attempts">Слишком много попыток, повторите позже</string>
+    <string name="error_bad_request">Ошибка при запросе к серверу</string>
+    <string name="error_unauthorized">Проблема с авторизацией</string>
+    <string name="error_forbidden">Доступ запрещен</string>
+    <string name="error_url_not_found">Интернет ресурс не найден</string>
+    <string name="error_too_many_attempts">Слишком много попыток, повторите позже</string>
+    <string name="error_internal_server_problem">Внутренняя проблема на сервере</string>
 
 </resources>

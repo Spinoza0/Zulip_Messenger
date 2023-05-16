@@ -88,6 +88,11 @@
     <string name="error_file_big">File is too big.</string>
     <string name="error_unknown_file_type">Unknown file type.</string>
     <string name="error_downloading">downloading error</string>
-    <string name="too_many_attempts">Too many attempts, try again later</string>
+    <string name="error_bad_request">Bad request</string>
+    <string name="error_unauthorized">Authorization problem</string>
+    <string name="error_forbidden">Access is denied</string>
+    <string name="error_url_not_found">Internet resource not found</string>
+    <string name="error_too_many_attempts">Too many attempts, try again later</string>
+    <string name="error_internal_server_problem">Internal problem on the server</string>
 
 </resources>

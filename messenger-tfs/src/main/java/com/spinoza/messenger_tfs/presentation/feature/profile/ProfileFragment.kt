@@ -80,10 +80,10 @@ open class ProfileFragment :
     override fun handleEffect(effect: ProfileScreenEffect) {
         when (effect) {
             is ProfileScreenEffect.Failure.ErrorUserLoading ->
-                showError("${getString(R.string.error_user_loading)} ${effect.value}")
+                showError(getString(R.string.error_user_loading), effect.value)
 
             is ProfileScreenEffect.Failure.ErrorNetwork ->
-                showError("${getString(R.string.error_network)} ${effect.value}")
+                showError(getString(R.string.error_network), effect.value)
         }
     }
 
