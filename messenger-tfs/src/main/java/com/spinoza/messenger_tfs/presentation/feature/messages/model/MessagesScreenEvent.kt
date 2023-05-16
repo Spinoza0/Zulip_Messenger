@@ -32,12 +32,12 @@ sealed class MessagesScreenEvent {
         object ScrollToLastMessage : Ui()
 
         class MessagesOnScrolled(
-            val visibleMessagesIds: List<Long>,
             val isNextMessageExisting: Boolean,
             val isLastMessageVisible: Boolean,
         ) : Ui()
 
         class MessagesScrollStateIdle(
+            val visibleMessagesIds: List<Long>,
             val canScrollUp: Boolean,
             val canScrollDown: Boolean,
             val isNextMessageExisting: Boolean,

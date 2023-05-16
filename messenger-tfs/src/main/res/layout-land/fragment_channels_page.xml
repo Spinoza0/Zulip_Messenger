@@ -47,4 +47,13 @@
         </LinearLayout>
     </com.facebook.shimmer.ShimmerFrameLayout>
 
+    <ProgressBar
+        android:id="@+id/progressBarChannels"
+        style="@style/ProgressBarStyle"
+        app:layout_constraintBottom_toBottomOf="@id/recyclerViewChannels"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/recyclerViewChannels"
+        tools:visibility="visible" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

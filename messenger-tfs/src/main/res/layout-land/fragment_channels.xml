@@ -14,29 +14,12 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextSearch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/background_500_color"
-            android:drawableEnd="@drawable/ic_search"
-            android:drawablePadding="8dp"
-            android:drawableTint="?attr/text_200_color"
+            style="@style/SearchFieldStyle"
             android:hint="@string/search"
-            android:maxLines="1"
             android:paddingVertical="4dp"
-            android:paddingStart="50dp"
-            android:paddingEnd="28dp"
-            android:textColor="?attr/text_200_color"
-            android:textColorHint="?attr/text_200_color"
-            android:textSize="22sp"
             tools:ignore="VisualLintTextFieldSize" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_gravity="bottom"
-            android:layout_marginStart="20dp"
-            android:layout_marginEnd="90dp"
-            android:background="?attr/background_250_color" />
+        <TextView style="@style/ChannelSearchUnderlineStyle" />
 
     </FrameLayout>
 

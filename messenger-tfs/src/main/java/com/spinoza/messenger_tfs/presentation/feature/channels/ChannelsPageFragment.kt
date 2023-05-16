@@ -25,6 +25,7 @@ import com.spinoza.messenger_tfs.domain.model.ChannelsFilter
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
 import com.spinoza.messenger_tfs.domain.model.Topic
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
+import com.spinoza.messenger_tfs.domain.util.NO_ITEMS
 import com.spinoza.messenger_tfs.presentation.adapter.MainDelegateAdapter
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.ChannelDelegate
 import com.spinoza.messenger_tfs.presentation.feature.channels.adapter.CreateChannelDelegate
@@ -172,9 +173,14 @@ class ChannelsPageFragment : Fragment() {
 
     private fun handleState(state: ChannelsPageScreenState) {
         if (state.isLoading) {
-            binding.shimmerLarge.on()
+            if (isChannelsListEmpty()) {
+                binding.shimmerLarge.on()
+            } else {
+                binding.progressBarChannels.isVisible = true
+            }
         } else {
             binding.shimmerLarge.off()
+            binding.progressBarChannels.isVisible = false
         }
         state.items?.let {
             channelsAdapter.submitList(it)
@@ -294,6 +300,10 @@ class ChannelsPageFragment : Fragment() {
         channelsAdapter.clear()
         binding.recyclerViewChannels.adapter = null
         _binding = null
+    }
+
+    private fun isChannelsListEmpty(): Boolean {
+        return channelsAdapter.itemCount == NO_ITEMS
     }
 
     private fun SearchQuery.isSubscribed() = screenPosition % 2 == 0

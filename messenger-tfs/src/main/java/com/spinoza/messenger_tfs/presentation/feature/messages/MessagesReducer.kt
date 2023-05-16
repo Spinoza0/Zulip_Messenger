@@ -33,7 +33,6 @@ class MessagesReducer @Inject constructor(
     MessagesScreenEvent.Ui::class, MessagesScreenEvent.Internal::class
 ) {
 
-    private val visibleMessageIds = mutableSetOf<Long>()
     private var isLastMessageVisible = false
     private var messageSentId = Message.UNDEFINED_ID
     private var isDraggingWithoutScroll = false
@@ -182,7 +181,6 @@ class MessagesReducer @Inject constructor(
     override fun Result.ui(event: MessagesScreenEvent.Ui) = when (event) {
         is MessagesScreenEvent.Ui.MessagesOnScrolled -> {
             isDraggingWithoutScroll = false
-            visibleMessageIds.addAll(event.visibleMessagesIds)
             isLastMessageVisible = event.isLastMessageVisible
             state { copy(isNextMessageExisting = event.isNextMessageExisting) }
         }
@@ -198,11 +196,7 @@ class MessagesReducer @Inject constructor(
                 }
                 state { copy(isLongOperation = true) }
             } else {
-                val list = visibleMessageIds.toList()
-                if (visibleMessageIds.size > MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS) {
-                    visibleMessageIds.clear()
-                }
-                commands { +MessagesScreenCommand.SetMessagesRead(list) }
+                commands { +MessagesScreenCommand.SetMessagesRead(event.visibleMessagesIds) }
             }
             state { copy(isNextMessageExisting = event.isNextMessageExisting) }
         }
@@ -378,10 +372,5 @@ class MessagesReducer @Inject constructor(
 
     private fun MessageView.isOwn(): Boolean {
         return this.userId == authorizationStorage.getUserId()
-    }
-
-    private companion object {
-
-        const val MAX_NUMBER_OF_SAVED_VISIBLE_MESSAGE_IDS = 50
     }
 }

@@ -35,7 +35,7 @@ class MainDelegateAdapter @Inject constructor() :
         position: Int,
         payloads: MutableList<Any>,
     ) {
-        if (position != RecyclerView.NO_POSITION) {
+        if (position.isValid()) {
             var isListenerInvoked = false
             onReachEndListener?.let { listener ->
                 if (position + borderPosition >= itemCount) {
@@ -54,7 +54,7 @@ class MainDelegateAdapter @Inject constructor() :
     }
 
     override fun getItemViewType(position: Int): Int {
-        return if (position != RecyclerView.NO_POSITION)
+        return if (position.isValid())
             delegates.indexOfFirst { it.isOfViewType(currentList[position]) }
         else
             RecyclerView.NO_POSITION
@@ -63,6 +63,8 @@ class MainDelegateAdapter @Inject constructor() :
     public override fun getItem(position: Int): DelegateAdapterItem {
         return super.getItem(position)
     }
+
+    private fun Int.isValid() = this != RecyclerView.NO_POSITION && this < itemCount
 
     private companion object {
 

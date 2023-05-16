@@ -15,57 +15,35 @@
 
         <ImageView
             android:id="@+id/imageViewLogo"
-            android:layout_width="128dp"
-            android:layout_height="128dp"
+            style="@style/LoginLogoStyle"
             android:layout_gravity="center_horizontal"
             android:layout_margin="16dp"
-            android:adjustViewBounds="true"
             android:contentDescription="@string/logo"
             android:src="@mipmap/ic_launcher_round" />
 
         <TextView
             android:id="@+id/textViewTitle"
+            style="@style/LoginTitleStyle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:layout_marginBottom="20dp"
             android:gravity="center_horizontal"
-            android:text="@string/app_name"
-            android:textColor="?attr/text_300_color"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
+            android:text="@string/app_name" />
 
         <EditText
             android:id="@+id/editTextEmail"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
+            style="@style/LoginEditFieldStyle"
             android:autofillHints="emailAddress"
-            android:background="@drawable/shape_channel_new_message_text"
             android:hint="@string/email"
             android:inputType="textEmailAddress"
-            android:paddingHorizontal="20dp"
-            android:paddingVertical="16dp"
-            android:textColor="?attr/text_300_color"
-            android:textColorHint="?attr/text_300_color"
-            android:visibility="gone"
             tools:ignore="VisualLintTextFieldSize"
             tools:visibility="visible" />
 
         <EditText
             android:id="@+id/editTextPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            android:background="@drawable/shape_channel_new_message_text"
+            style="@style/LoginEditFieldStyle"
             android:hint="@string/password"
             android:importantForAutofill="no"
             android:inputType="textPassword"
-            android:paddingHorizontal="20dp"
-            android:paddingVertical="16dp"
-            android:textColor="?attr/text_300_color"
-            android:textColorHint="?attr/text_300_color"
-            android:visibility="gone"
             tools:ignore="VisualLintTextFieldSize"
             tools:visibility="visible" />
 
@@ -96,10 +74,8 @@
 
     <ProgressBar
         android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/ProgressBarStyle"
         android:layout_gravity="center"
-        android:visibility="gone"
         tools:visibility="visible" />
 
 </FrameLayout>

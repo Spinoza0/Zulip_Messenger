@@ -88,5 +88,6 @@
     <string name="error_file_big">File is too big.</string>
     <string name="error_unknown_file_type">Unknown file type.</string>
     <string name="error_downloading">downloading error</string>
+    <string name="too_many_attempts">Too many attempts, try again later</string>
 
 </resources>
