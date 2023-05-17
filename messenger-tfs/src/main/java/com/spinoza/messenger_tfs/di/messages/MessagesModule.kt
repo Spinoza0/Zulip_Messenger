@@ -18,6 +18,7 @@ import vivid.money.elmslie.coroutines.ElmStoreCompat
 @Module
 interface MessagesModule {
 
+    @Suppress("unused")
     @Binds
     fun bindNotificator(impl: NotificatorImpl): Notificator
 

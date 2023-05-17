@@ -30,6 +30,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 @Module
 interface ViewModelModule {
 
+    @Suppress("unused")
     @IntoMap
     @ViewModelKey(ChannelsFragmentSharedViewModel::class)
     @Binds

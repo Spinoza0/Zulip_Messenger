@@ -16,6 +16,7 @@ import dagger.Provides
 @Module
 interface StorageModule {
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindAuthorizationStorage(impl: AuthorizationStorageImpl): AuthorizationStorage
