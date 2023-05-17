@@ -2,7 +2,9 @@ package com.spinoza.messenger_tfs.presentation.feature.login
 
 import android.content.Context
 import android.os.Bundle
+import android.text.method.HideReturnsTransformationMethod
 import android.text.method.LinkMovementMethod
+import android.text.method.PasswordTransformationMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -73,6 +75,7 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
             progressBar.isVisible = state.isCheckingLogin
             editTextEmail.isVisible = state.isNeedLogin
             editTextPassword.isVisible = state.isNeedLogin
+            imageViewPasswordVisibility.isVisible = state.isNeedLogin
             buttonLogin.isVisible = state.isNeedLogin
             textViewForgotPassword.isVisible = state.isNeedLogin
         }
@@ -100,6 +103,9 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
             editTextPassword.doOnTextChanged { text, _, _, _ ->
                 store.accept(LoginScreenEvent.Ui.NewPasswordText(text))
             }
+            imageViewPasswordVisibility.setOnClickListener {
+                changePasswordVisibility()
+            }
             buttonLogin.setOnClickListener {
                 store.accept(
                     LoginScreenEvent.Ui.ButtonPressed(
@@ -108,6 +114,21 @@ class LoginFragment : ElmFragment<LoginScreenEvent, LoginScreenEffect, LoginScre
                     )
                 )
             }
+        }
+    }
+
+    private fun changePasswordVisibility() {
+        with(binding) {
+            if (editTextPassword.transformationMethod is PasswordTransformationMethod) {
+                imageViewPasswordVisibility.setImageResource(R.drawable.ic_password_hide)
+                editTextPassword.transformationMethod =
+                    HideReturnsTransformationMethod.getInstance()
+            } else {
+                imageViewPasswordVisibility.setImageResource(R.drawable.ic_password_show)
+                editTextPassword.transformationMethod =
+                    PasswordTransformationMethod.getInstance()
+            }
+            editTextPassword.setSelection(editTextPassword.length())
         }
     }
 
