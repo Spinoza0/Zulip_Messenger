@@ -8,7 +8,6 @@ import com.spinoza.messenger_tfs.screen.MessagesScreen
 import com.spinoza.messenger_tfs.util.ServerType
 import com.spinoza.messenger_tfs.util.setupDispatcher
 import okhttp3.mockwebserver.MockWebServer
-import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -34,9 +33,13 @@ class MessagesTest : TestCase() {
             channelsPageScreen.channels.childAt<ChannelsPageScreen.TopicScreenItem>(1)
             { topic.click() }
         }
-        step("Messages screen is not empty") {
+        step("Messages list is visible") {
             messagesScreen.messagesList.isVisible()
-            assertEquals(true, messagesScreen.messagesList.getSize() > 0)
+        }
+        step("Long click on message opens popup menu") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1)
+            { longClick() }
+            messagesScreen.itemCopyToClipboard.isVisible()
         }
     }
 
