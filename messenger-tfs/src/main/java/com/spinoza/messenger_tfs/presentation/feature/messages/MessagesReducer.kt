@@ -173,6 +173,9 @@ class MessagesReducer @Inject constructor(
         is MessagesScreenEvent.Internal.UnsubscribedFromEvents ->
             isSubscriptionOnEventsExist = false
 
+        is MessagesScreenEvent.Internal.Topics ->
+            effects { +MessagesScreenEffect.Topics(event.topics) }
+
         is MessagesScreenEvent.Internal.LogOut -> router.exit()
         is MessagesScreenEvent.Internal.LoginSuccess -> {}
         is MessagesScreenEvent.Internal.Idle -> {}
@@ -350,8 +353,10 @@ class MessagesReducer @Inject constructor(
             effects { }
         }
 
-        is MessagesScreenEvent.Ui.OnResume ->
-            commands { +MessagesScreenCommand.SubscribeOnEvents(event.filter) }
+        is MessagesScreenEvent.Ui.OnResume -> commands {
+            +MessagesScreenCommand.SubscribeOnEvents(event.filter)
+            +MessagesScreenCommand.GetTopics(event.filter.channel)
+        }
 
         is MessagesScreenEvent.Ui.OnPause ->
             commands { +MessagesScreenCommand.UnsubscribeFromEvents }

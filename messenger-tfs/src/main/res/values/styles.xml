@@ -145,6 +145,7 @@
         <item name="android:textColor">?attr/text_300_color</item>
         <item name="android:textColorHint">?attr/text_300_color</item>
         <item name="android:hint">@string/topic_name</item>
+        <item name="android:completionThreshold">1</item>
         <item name="android:visibility">gone</item>
     </style>
 

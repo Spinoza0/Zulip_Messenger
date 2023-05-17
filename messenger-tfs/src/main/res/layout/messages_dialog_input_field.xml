@@ -4,11 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <com.google.android.material.textfield.TextInputEditText
+    <AutoCompleteTextView
         android:id="@+id/input"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="20dp"
-        tools:ignore="VisualLintTextFieldSize,SpeakableTextPresentCheck" />
+        android:completionThreshold="1"
+        tools:ignore="LabelFor,SpeakableTextPresentCheck,VisualLintTextFieldSize" />
 
 </FrameLayout>

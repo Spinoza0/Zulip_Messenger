@@ -150,5 +150,7 @@ sealed class MessagesScreenEvent {
         class ErrorNetwork(val value: String) : Internal()
 
         class ErrorMessages(val value: String) : Internal()
+
+        class Topics(val topics: List<String>) : Internal()
     }
 }
