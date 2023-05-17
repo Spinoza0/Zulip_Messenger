@@ -97,6 +97,9 @@ class MessagesTest : TestCase() {
             messagesScreen.itemAddReaction.isVisible()
             messagesScreen.itemCopyToClipboard.isVisible()
         }
+        step("Click on copy to clipboard menu item") {
+            messagesScreen.itemCopyToClipboard.click()
+        }
     }
 
     @Test
