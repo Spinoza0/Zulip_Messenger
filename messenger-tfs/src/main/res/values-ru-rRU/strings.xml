@@ -9,6 +9,7 @@
     <string name="log_in">Войти</string>
     <string name="forgot_password"><a href="https://tinkoff-android-spring-2023.zulipchat.com/accounts/password/reset">Забыли пароль?</a>
     </string>
+    <string name="password_visibility">Видимость пароля</string>
 
     <!-- Fragment Messages -->
     <string name="message">Сообщение</string>

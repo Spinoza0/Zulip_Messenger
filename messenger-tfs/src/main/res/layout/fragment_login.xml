@@ -38,14 +38,29 @@
             tools:ignore="VisualLintTextFieldSize"
             tools:visibility="visible" />
 
-        <EditText
-            android:id="@+id/editTextPassword"
-            style="@style/LoginEditFieldStyle"
-            android:hint="@string/password"
-            android:importantForAutofill="no"
-            android:inputType="textPassword"
-            tools:ignore="VisualLintTextFieldSize"
-            tools:visibility="visible" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/editTextPassword"
+                style="@style/LoginEditFieldStyle"
+                android:hint="@string/password"
+                android:importantForAutofill="no"
+                android:inputType="textPassword"
+                android:paddingEnd="48dp"
+                tools:ignore="RtlSymmetry,VisualLintTextFieldSize"
+                tools:visibility="visible" />
+
+            <ImageView
+                android:id="@+id/imageViewPasswordVisibility"
+                style="@style/LoginPasswordStyle"
+                android:layout_gravity="center|end"
+                android:layout_marginEnd="32dp"
+                android:contentDescription="@string/password_visibility"
+                tools:visibility="visible" />
+
+        </FrameLayout>
 
         <Button
             android:id="@+id/buttonLogin"
