@@ -36,6 +36,8 @@ fun MockWebServer.setupDispatcher(
         { setBody(loadFromAssets(redirectData)) }
         returnsForPath("/api/v1/users/604180/subscriptions/380669")
         { setBody(loadFromAssets("subscription_status.json")) }
+        returnsForPath("/api/v1/users") { setBody(loadFromAssets("users_list.json")) }
+        returnsForPath("/api/v1/users/605301") { setBody(loadFromAssets("user.json")) }
     }
     when (type) {
         ServerType.WITH_MESSAGES ->

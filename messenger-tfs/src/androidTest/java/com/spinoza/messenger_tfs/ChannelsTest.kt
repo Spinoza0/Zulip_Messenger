@@ -6,7 +6,6 @@ import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.screen.ChannelsPageScreen
 import com.spinoza.messenger_tfs.util.setupDispatcher
 import okhttp3.mockwebserver.MockWebServer
-import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -24,7 +23,7 @@ class ChannelsTest : TestCase() {
         val channelsPageScreen = ChannelsPageScreen()
 
         step("Show channels") {
-            assertEquals(true, channelsPageScreen.channels.getSize() > 0)
+            channelsPageScreen.channels.isVisible()
         }
     }
 
@@ -63,6 +62,9 @@ class ChannelsTest : TestCase() {
         }
         step("Bottom dialog is visible") {
             channelsPageScreen.channelUnsubscribe.isVisible()
+        }
+        step("Click on unsubscribe menu item") {
+            channelsPageScreen.channelUnsubscribe.click()
         }
     }
 }
