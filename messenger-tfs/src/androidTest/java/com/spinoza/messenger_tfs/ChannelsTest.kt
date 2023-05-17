@@ -25,6 +25,11 @@ class ChannelsTest : TestCase() {
         step("Show channels") {
             channelsPageScreen.channels.isVisible()
         }
+        step("Channel is visible") {
+            channelsPageScreen.channels.childAt<ChannelsPageScreen.ChannelScreenItem>(1) {
+                arrowArea.isDisplayed()
+            }
+        }
     }
 
     @Test
