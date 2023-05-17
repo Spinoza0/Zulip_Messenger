@@ -4,6 +4,7 @@ import android.view.View
 import com.kaspersky.kaspresso.screens.KScreen
 import com.spinoza.messenger_tfs.R
 import com.spinoza.messenger_tfs.presentation.feature.channels.ChannelsPageFragment
+import io.github.kakaocup.kakao.common.views.KView
 import io.github.kakaocup.kakao.recycler.KRecyclerItem
 import io.github.kakaocup.kakao.recycler.KRecyclerView
 import io.github.kakaocup.kakao.text.KTextView
@@ -22,7 +23,10 @@ class ChannelsPageScreen : KScreen<ChannelsPageScreen>() {
         }
     )
 
+    val channelUnsubscribe = KView { withId(R.id.textViewUnsubscribe) }
+
     class ChannelScreenItem(parent: Matcher<View>) : KRecyclerItem<ChannelScreenItem>(parent) {
+        val channel = KTextView(parent) { withId(R.id.textViewChannel) }
         val arrowArea = KTextView(parent) { withId(R.id.textViewArrowArea) }
     }
 

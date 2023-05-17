@@ -1,16 +1,14 @@
 package com.spinoza.messenger_tfs
 
-import androidx.test.espresso.NoMatchingViewException
 import androidx.test.ext.junit.rules.activityScenarioRule
 import com.kaspersky.kaspresso.testcases.api.testcase.TestCase
 import com.spinoza.messenger_tfs.presentation.feature.app.MainActivity
 import com.spinoza.messenger_tfs.screen.ChannelsPageScreen
 import com.spinoza.messenger_tfs.screen.MessagesScreen
-import com.spinoza.messenger_tfs.util.MockRequestDispatcher
-import com.spinoza.messenger_tfs.util.loadFromAssets
+import com.spinoza.messenger_tfs.util.ServerType
+import com.spinoza.messenger_tfs.util.setupDispatcher
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
 import org.junit.Rule
 import org.junit.Test
 
@@ -24,7 +22,7 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldOpenNotEmptyMessagesScreen() = run {
-        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        mockServer.setupDispatcher()
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
 
@@ -44,7 +42,7 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldOpenEmptyMessagesScreen() = run {
-        setupMockServerDispatcher(ServerType.WITHOUT_MESSAGES)
+        mockServer.setupDispatcher(ServerType.WITHOUT_MESSAGES)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
 
@@ -64,7 +62,7 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldOpenMessagesScreenWithError() = run {
-        setupMockServerDispatcher(ServerType.WITH_GETTING_MESSAGES_ERROR)
+        mockServer.setupDispatcher(ServerType.WITH_GETTING_MESSAGES_ERROR)
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
 
@@ -83,7 +81,7 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldLongClickOnMessageOpensPopupMenu() = run {
-        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        mockServer.setupDispatcher()
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
 
@@ -103,7 +101,7 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldMessageWithReactionsIsVisible() = run {
-        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        mockServer.setupDispatcher()
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
 
@@ -121,7 +119,7 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldMessageWithoutReactionsIsVisible() = run {
-        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        mockServer.setupDispatcher()
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
 
@@ -139,7 +137,7 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldMessageWithOwnUserReactionIsVisible() = run {
-        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        mockServer.setupDispatcher()
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
 
@@ -158,7 +156,7 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldMessagesIsGroupedByDate() = run {
-        setupMockServerDispatcher(ServerType.WITH_MESSAGES)
+        mockServer.setupDispatcher()
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
 
@@ -178,10 +176,9 @@ class MessagesTest : TestCase() {
 
     @Test
     fun shouldClickOnUserReactionAddsReaction() = run {
-        setupMockServerDispatcher(
-            ServerType.WITH_MESSAGES,
-            "/api/v1/messages/346542882",
-            "changed_346542882_message.json"
+        mockServer.setupDispatcher(
+            redirectPath = "/api/v1/messages/346542882",
+            redirectData = "changed_346542882_message.json"
         )
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -196,7 +193,7 @@ class MessagesTest : TestCase() {
         step("The message contains only other user's reactions") {
             messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex) {
                 this.userReaction.isDisplayed()
-                assertThrows(NoMatchingViewException::class.java) { this.ownReaction.isNotDisplayed() }
+                this.ownReaction.doesNotExist()
             }
         }
         step("Add own reaction") {
@@ -206,17 +203,16 @@ class MessagesTest : TestCase() {
         step("The message contains own user reaction") {
             messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex) {
                 this.ownReaction.isDisplayed()
-                assertThrows(NoMatchingViewException::class.java) { this.userReaction.isNotDisplayed() }
+                this.userReaction.doesNotExist()
             }
         }
     }
 
     @Test
     fun shouldClickOnOwnReactionDeletesReaction() = run {
-        setupMockServerDispatcher(
-            ServerType.WITH_MESSAGES,
-            "/api/v1/messages/351668250",
-            "changed_351668250_message.json"
+        mockServer.setupDispatcher(
+            redirectPath = "/api/v1/messages/351668250",
+            redirectData = "changed_351668250_message.json"
         )
         val channelsPageScreen = ChannelsPageScreen()
         val messagesScreen = MessagesScreen()
@@ -231,7 +227,7 @@ class MessagesTest : TestCase() {
         step("The message contains own user reaction") {
             messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex) {
                 this.ownReaction.isDisplayed()
-                assertThrows(NoMatchingViewException::class.java) { this.userReaction.isNotDisplayed() }
+                this.userReaction.doesNotExist()
             }
         }
         step("Delete own reaction") {
@@ -241,51 +237,8 @@ class MessagesTest : TestCase() {
         step("The message does not contain own user reaction") {
             messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(messageIndex) {
                 this.userReaction.isDisplayed()
-                assertThrows(NoMatchingViewException::class.java) { this.ownReaction.isNotDisplayed() }
+                this.ownReaction.doesNotExist()
             }
         }
     }
-
-    private fun setupMockServerDispatcher(
-        type: ServerType,
-        redirectPath: String = "no_value",
-        redirectData: String = "messages_list.json",
-    ) {
-        val universalPaths = listOf(
-            MockRequestDispatcher.REDIRECT_FROM_KEY,
-            "/api/v1/register",
-            "/api/v1/fetch_api_key"
-        )
-        val dispatcher = MockRequestDispatcher(universalPaths, redirectPath).apply {
-            returnsForPath("/api/v1/fetch_api_key")
-            { setBody(loadFromAssets("fetch_api_key.json")) }
-            returnsForPath("/api/v1/users/me")
-            { setBody(loadFromAssets("own_user.json")) }
-            returnsForPath("/api/v1/users/me/subscriptions")
-            { setBody(loadFromAssets("streams_list.json")) }
-            returnsForPath("/api/v1/users/me/380669/topics")
-            { setBody(loadFromAssets("topics_list.json")) }
-            returnsForPath("/api/v1/users/604180/presence")
-            { setBody(loadFromAssets("default.json")) }
-            returnsForPath("/api/v1/register")
-            { setBody(loadFromAssets("default.json")) }
-            returnsForPath(MockRequestDispatcher.REDIRECT_DATA_KEY)
-            { setBody(loadFromAssets(redirectData)) }
-        }
-        when (type) {
-            ServerType.WITH_MESSAGES ->
-                dispatcher.returnsForPath(MockRequestDispatcher.REDIRECT_FROM_KEY)
-                { setBody(loadFromAssets("messages_list.json")) }
-
-            ServerType.WITHOUT_MESSAGES ->
-                dispatcher.returnsForPath(MockRequestDispatcher.REDIRECT_FROM_KEY)
-                { setBody(loadFromAssets("empty_messages_list.json")) }
-
-            ServerType.WITH_GETTING_MESSAGES_ERROR ->
-                dispatcher.returnsForPath(MockRequestDispatcher.REDIRECT_FROM_KEY) { setBody("[]") }
-        }
-        mockServer.dispatcher = dispatcher
-    }
-
-    enum class ServerType { WITH_MESSAGES, WITHOUT_MESSAGES, WITH_GETTING_MESSAGES_ERROR }
 }
