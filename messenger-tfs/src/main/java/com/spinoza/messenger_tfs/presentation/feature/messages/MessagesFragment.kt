@@ -380,6 +380,8 @@ class MessagesFragment :
     private fun confirmDeleteMessage(messageId: Long) {
         showConfirmationDialog(
             message = getString(R.string.confirm_delete_message),
+            positiveButtonTitleResId = R.string.yes,
+            negativeButtonTitleResId = R.string.no,
             onPositiveClickCallback = {
                 showToast(getString(R.string.message_delete_request_sent))
                 store.accept(MessagesScreenEvent.Ui.DeleteMessage(messageId))

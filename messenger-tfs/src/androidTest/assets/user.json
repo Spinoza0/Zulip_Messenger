@@ -1,0 +1,21 @@
+{
+  "result": "success",
+  "msg": "",
+  "user": {
+    "email": "user605301@t.zulipchat.com",
+    "user_id": 605301,
+    "avatar_version": 1,
+    "is_admin": true,
+    "is_owner": false,
+    "is_guest": false,
+    "is_billing_admin": false,
+    "role": 200,
+    "is_bot": false,
+    "full_name": "full_name",
+    "timezone": "Asia/Yekaterinburg",
+    "is_active": true,
+    "date_joined": "2023-04-01T17:27:32.959100+00:00",
+    "avatar_url": "https://secure.gravatar.com/avatar/90158da28cb6ab956345daa855bc0a05?d=identicon&version=1",
+    "delivery_email": null
+  }
+}

@@ -78,9 +78,9 @@ fun Fragment.showCheckInternetConnectionDialog(
 }
 
 fun Fragment.showConfirmationDialog(
+    positiveButtonTitleResId: Int,
     onPositiveClickCallback: () -> Unit,
-    positiveButtonTitleResId: Int = R.string.yes,
-    negativeButtonTitleResId: Int? = R.string.no,
+    negativeButtonTitleResId: Int? = null,
     title: String = EMPTY_STRING,
     message: String = EMPTY_STRING,
     view: View? = null,

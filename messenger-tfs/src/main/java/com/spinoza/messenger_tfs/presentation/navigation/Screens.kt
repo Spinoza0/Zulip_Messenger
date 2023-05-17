@@ -10,6 +10,7 @@ import com.spinoza.messenger_tfs.presentation.feature.channels.ChannelsFragment
 import com.spinoza.messenger_tfs.presentation.feature.profile.OwnUserProfileFragment
 import com.spinoza.messenger_tfs.presentation.feature.people.PeopleFragment
 
+@Suppress("FunctionName")
 object Screens {
 
     fun Login(logout: Boolean = false) = FragmentScreen { LoginFragment.newInstance(logout) }

@@ -14,7 +14,5 @@ data class ReactionDto(
     companion object {
 
         const val REACTION_TYPE_UNICODE_EMOJI = "unicode_emoji"
-        const val REACTION_TYPE_REALM_EMOJI = "realm_emoji"
-        const val REACTION_TYPE_ZULIP_EXTRA_EMOJI = "zulip_extra_emoji"
     }
 }

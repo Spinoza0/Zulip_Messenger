@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.data.network.apiservice
 
 import com.spinoza.messenger_tfs.data.network.apiservice.ZulipApiService.Companion.RESULT_SUCCESS
 
+@Suppress("unused")
 interface ZulipResponse {
 
     val result: String

@@ -37,38 +37,47 @@ import java.util.concurrent.TimeUnit
 @Module
 interface DataModule {
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindMessageRepository(impl: MessageRepositoryImpl): MessageRepository
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindEventsRepository(impl: EventsRepositoryImpl): EventsRepository
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindChannelRepository(impl: ChannelRepositoryImpl): ChannelRepository
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindMessagesCache(impl: MessagesCacheImpl): MessagesCache
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindDaoRepository(impl: DaoRepositoryImpl): DaoRepository
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindWebUtil(impl: WebUtilImpl): WebUtil
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindAttachmentHandler(impl: AttachmentHandlerImpl): AttachmentHandler
 
+    @Suppress("unused")
     @ApplicationScope
     @Binds
     fun bindWebLimitation(impl: WebLimitationImpl): WebLimitation

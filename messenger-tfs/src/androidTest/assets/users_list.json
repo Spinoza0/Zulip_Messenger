@@ -1,0 +1,57 @@
+{
+  "result": "success",
+  "msg": "",
+  "members": [
+    {
+      "email": "user605301@t.zulipchat.com",
+      "user_id": 605301,
+      "avatar_version": 1,
+      "is_admin": true,
+      "is_owner": false,
+      "is_guest": false,
+      "is_billing_admin": false,
+      "role": 200,
+      "is_bot": false,
+      "full_name": "full_name 1",
+      "timezone": "Asia/Yekaterinburg",
+      "is_active": true,
+      "date_joined": "2023-04-01T17:27:32.959100+00:00",
+      "avatar_url": "https://secure.gravatar.com/avatar/90158da28cb6ab956345daa855bc0a05?d=identicon&version=1",
+      "delivery_email": null
+    },
+    {
+      "email": "user605848@t.zulipchat.com",
+      "user_id": 605848,
+      "avatar_version": 1,
+      "is_admin": true,
+      "is_owner": false,
+      "is_guest": false,
+      "is_billing_admin": false,
+      "role": 200,
+      "is_bot": false,
+      "full_name": "full_name 2",
+      "timezone": "Europe/Moscow",
+      "is_active": true,
+      "date_joined": "2023-04-03T11:20:45.687267+00:00",
+      "avatar_url": "https://secure.gravatar.com/avatar/4b830b32734510c9b23ee92ef030bb06?d=identicon&version=1",
+      "delivery_email": "1234567@gmail.com"
+    },
+    {
+      "email": "user606739@t.zulipchat.com",
+      "user_id": 606739,
+      "avatar_version": 1,
+      "is_admin": false,
+      "is_owner": false,
+      "is_guest": false,
+      "is_billing_admin": false,
+      "role": 400,
+      "is_bot": false,
+      "full_name": "full_name 3",
+      "timezone": "Europe/Moscow",
+      "is_active": true,
+      "date_joined": "2023-04-04T15:01:04.148050+00:00",
+      "avatar_url": "https://secure.gravatar.com/avatar/dc96407810a7be0976209887d406da1e?d=identicon&version=1",
+      "delivery_email": "12345@gmail.com"
+    }
+  ]
+}
