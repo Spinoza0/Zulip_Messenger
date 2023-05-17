@@ -118,6 +118,10 @@ class MessagesTest : TestCase() {
             messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1)
             { this.iconAddReaction.isDisplayed() }
         }
+        step("Click on add reaction item") {
+            messagesScreen.messagesList.childAt<MessagesScreen.MessageItem>(1)
+            { this.iconAddReaction.click() }
+        }
     }
 
     @Test
