@@ -77,17 +77,17 @@
     <string name="message_delete_request_sent">Message delete request sent</string>
 
     <!-- Errors -->
-    <string name="error_user_loading">User loading error.</string>
-    <string name="error_messages">Error while working with messages.</string>
-    <string name="error_channels">Error while working with channels.</string>
-    <string name="error_loading_users">Error loading users.</string>
-    <string name="error_network">Network error.</string>
-    <string name="error_login">Error checking email and password.</string>
-    <string name="error_file_not_found">File not found.</string>
-    <string name="error_uri">Invalid uri.</string>
-    <string name="error_file_empty">File is empty.</string>
-    <string name="error_file_big">File is too big.</string>
-    <string name="error_unknown_file_type">Unknown file type.</string>
+    <string name="error_user_loading">User loading error</string>
+    <string name="error_messages">Error while working with messages</string>
+    <string name="error_channels">Error while working with channels</string>
+    <string name="error_loading_users">Error loading users</string>
+    <string name="error_network">Network error</string>
+    <string name="error_login">Error checking email and password</string>
+    <string name="error_file_not_found">File not found</string>
+    <string name="error_uri">Invalid uri</string>
+    <string name="error_file_empty">File is empty</string>
+    <string name="error_file_big">File is too big</string>
+    <string name="error_unknown_file_type">Unknown file type</string>
     <string name="error_downloading">downloading error</string>
     <string name="error_bad_request">Bad request</string>
     <string name="error_unauthorized">Authorization problem</string>

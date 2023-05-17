@@ -77,17 +77,17 @@
     <string name="message_delete_request_sent">Запрос на удаление сообщения отправлен</string>
 
     <!-- Errors -->
-    <string name="error_user_loading">Ошибка загрузки пользователя.</string>
-    <string name="error_messages">Ошибка работы с сообщениями.</string>
-    <string name="error_channels">Ошибка работы с каналами.</string>
-    <string name="error_loading_users">Ошибка загрузки пользователей.</string>
-    <string name="error_network">Ошибка сети.</string>
-    <string name="error_login">Ошибка проверки почты и пароля.</string>
-    <string name="error_file_not_found">Файл не найден.</string>
-    <string name="error_uri">Неверный uri.</string>
-    <string name="error_file_empty">Файл пустой.</string>
-    <string name="error_file_big">Файл слишком большой.</string>
-    <string name="error_unknown_file_type">Неизвестный тип файла.</string>
+    <string name="error_user_loading">Ошибка загрузки пользователя</string>
+    <string name="error_messages">Ошибка работы с сообщениями</string>
+    <string name="error_channels">Ошибка работы с каналами</string>
+    <string name="error_loading_users">Ошибка загрузки пользователей</string>
+    <string name="error_network">Ошибка сети</string>
+    <string name="error_login">Ошибка проверки почты и пароля</string>
+    <string name="error_file_not_found">Файл не найден</string>
+    <string name="error_uri">Неверный uri</string>
+    <string name="error_file_empty">Файл пустой</string>
+    <string name="error_file_big">Файл слишком большой</string>
+    <string name="error_unknown_file_type">Неизвестный тип файла</string>
     <string name="error_downloading">ошибка загрузки</string>
     <string name="error_bad_request">Ошибка при запросе к серверу</string>
     <string name="error_unauthorized">Проблема с авторизацией</string>

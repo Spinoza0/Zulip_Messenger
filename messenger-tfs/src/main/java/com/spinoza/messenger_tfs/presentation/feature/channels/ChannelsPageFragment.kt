@@ -248,6 +248,8 @@ class ChannelsPageFragment : Fragment() {
         showConfirmationDialog(
             title = getString(R.string.confirm_delete_channel),
             message = channel.name,
+            positiveButtonTitleResId = R.string.yes,
+            negativeButtonTitleResId = R.string.no,
             onPositiveClickCallback = {
                 store.accept(ChannelsPageScreenEvent.Ui.DeleteChannel(channel.channelId))
             }
