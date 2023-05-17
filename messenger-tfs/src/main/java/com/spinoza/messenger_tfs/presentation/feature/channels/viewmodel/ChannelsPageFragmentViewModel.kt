@@ -105,6 +105,7 @@ class ChannelsPageFragmentViewModel(
 
             is ChannelsPageScreenEvent.Ui.DeleteChannel -> deleteChannel(event.channelId)
             is ChannelsPageScreenEvent.Ui.OnResume -> {
+                loadItems()
                 startUpdateTopicsCycle()
                 subscribeOnEvents()
             }
