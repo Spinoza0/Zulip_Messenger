@@ -10,6 +10,7 @@ import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.PickVisualMediaRequest
@@ -109,6 +110,7 @@ class MessagesFragment :
     private var pickFileLauncher: ActivityResultLauncher<Intent>? = null
     private var recyclerViewState: Parcelable? = null
     private var recyclerViewStateOnDestroy: Parcelable? = null
+    private var topicsArrayAdapter: ArrayAdapter<String>? = null
     private val isShowingMessageMenu = AtomicBoolean(false)
     private val isShowingAddAttachmentMenu = AtomicBoolean(false)
     private val topicNameTemplate by lazy { getString(R.string.messages_topic_template) }
@@ -359,6 +361,13 @@ class MessagesFragment :
             }
 
             is MessagesScreenEffect.FilesDownloaded -> showNotification(effect.value)
+
+            is MessagesScreenEffect.Topics -> {
+                topicsArrayAdapter = ArrayAdapter(
+                    requireContext(), android.R.layout.simple_dropdown_item_1line, effect.topics
+                )
+                binding.editTextTopicName.setAdapter(topicsArrayAdapter)
+            }
         }
     }
 
@@ -413,6 +422,9 @@ class MessagesFragment :
             filters = arrayOf(InputFilter.LengthFilter(maxLength))
             if (isMessage) {
                 inputType = inputType or InputType.TYPE_TEXT_FLAG_MULTI_LINE
+                setAdapter(null)
+            } else {
+                setAdapter(topicsArrayAdapter)
             }
             setText(content)
         }

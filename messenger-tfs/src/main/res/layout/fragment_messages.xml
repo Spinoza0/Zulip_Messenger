@@ -87,13 +87,13 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
 
-    <com.google.android.material.textfield.TextInputEditText
+    <AutoCompleteTextView
         android:id="@+id/editTextTopicName"
         style="@style/MessagesEditTopicNameStyle"
         app:layout_constraintBottom_toTopOf="@id/editTextMessage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        tools:ignore="VisualLintTextFieldSize"
+        tools:ignore="LabelFor,VisualLintTextFieldSize"
         tools:visibility="visible" />
 
     <View

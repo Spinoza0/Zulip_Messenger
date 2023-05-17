@@ -24,6 +24,7 @@ import com.spinoza.messenger_tfs.domain.model.event.ReactionEvent
 import com.spinoza.messenger_tfs.domain.model.event.UpdateMessageEvent
 import com.spinoza.messenger_tfs.domain.network.AuthorizationStorage
 import com.spinoza.messenger_tfs.domain.network.WebLimitation
+import com.spinoza.messenger_tfs.domain.usecase.channels.GetTopicsUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.DeleteEventQueueUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetDeleteMessageEventUseCase
 import com.spinoza.messenger_tfs.domain.usecase.event.GetMessageEventUseCase
@@ -99,6 +100,7 @@ class MessagesActor @Inject constructor(
     private val getUpdatedMessageFilterUserCase: GetUpdatedMessageFilterUserCase,
     private val uploadFileUseCase: UploadFileUseCase,
     private val saveAttachmentsUseCase: SaveAttachmentsUseCase,
+    private val getTopicsUseCase: GetTopicsUseCase,
     registerEventQueueUseCase: RegisterEventQueueUseCase,
     deleteEventQueueUseCase: DeleteEventQueueUseCase,
     @DispatcherDefault private val defaultDispatcher: CoroutineDispatcher,
@@ -218,6 +220,7 @@ class MessagesActor @Inject constructor(
                 is MessagesScreenCommand.GetRawMessageContent -> getRawMessageContent(command)
                 is MessagesScreenCommand.SaveAttachments -> saveAttachments(command)
                 is MessagesScreenCommand.DeleteMessage -> deleteMessage(command.messageId)
+                is MessagesScreenCommand.GetTopics -> getTopics(command)
                 is MessagesScreenCommand.SubscribeOnEvents -> subscribeOnEvents(command.filter)
                 is MessagesScreenCommand.UnsubscribeFromEvents -> unsubscribeFromEvents()
                 is MessagesScreenCommand.LogIn -> logIn()
@@ -412,6 +415,16 @@ class MessagesActor @Inject constructor(
             isLoadingMessages.set(false)
             event
         }
+
+    private suspend fun getTopics(
+        command: MessagesScreenCommand.GetTopics,
+    ): MessagesScreenEvent.Internal = withContext(defaultDispatcher) {
+        getTopicsUseCase(command.channel).onSuccess { topicEntities ->
+            val topicsNames = topicEntities.map { it.name }
+            return@withContext MessagesScreenEvent.Internal.Topics(topicsNames)
+        }
+        getIdleEvent()
+    }
 
     private suspend fun setMessageReadFlags(messageIds: List<Long>): MessagesScreenEvent.Internal {
         setMessagesFlagToReadUserCase(messageIds)

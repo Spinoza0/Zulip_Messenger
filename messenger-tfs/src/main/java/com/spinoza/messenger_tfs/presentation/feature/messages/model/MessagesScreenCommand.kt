@@ -2,6 +2,7 @@ package com.spinoza.messenger_tfs.presentation.feature.messages.model
 
 import android.content.Context
 import android.net.Uri
+import com.spinoza.messenger_tfs.domain.model.Channel
 import com.spinoza.messenger_tfs.domain.model.Emoji
 import com.spinoza.messenger_tfs.domain.model.Message
 import com.spinoza.messenger_tfs.domain.model.MessagesFilter
@@ -37,6 +38,8 @@ sealed class MessagesScreenCommand {
     object LoadCurrentWithNextPage : MessagesScreenCommand()
 
     object LoadLastPage : MessagesScreenCommand()
+
+    class GetTopics(val channel: Channel) : MessagesScreenCommand()
 
     class IsNextPageExisting(
         val messagesResultDelegate: MessagesResultDelegate,

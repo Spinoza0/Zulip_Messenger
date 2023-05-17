@@ -11,6 +11,8 @@ sealed class MessagesScreenEffect {
 
     object AddAttachment : MessagesScreenEffect()
 
+    class Topics(val topics: List<String>) : MessagesScreenEffect()
+
     class ShowMessageMenu(
         val isDeleteMessageVisible: Boolean,
         val isEditMessageVisible: Boolean,
@@ -31,7 +33,7 @@ sealed class MessagesScreenEffect {
 
     class MessageTopicChanged(val newTopicName: String) : MessagesScreenEffect()
 
-    class NewMessageDraft(val value: MessageDraft): MessagesScreenEffect()
+    class NewMessageDraft(val value: MessageDraft) : MessagesScreenEffect()
 
     sealed class Failure : MessagesScreenEffect() {
 
