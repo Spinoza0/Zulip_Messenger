@@ -2,6 +2,8 @@
 # Messenger-TFS
 # (c) Иван Синтюрин
 
+Stack: Clean architecture, Kotlin, Single Activity/Fragment, View/Custom View/Custom Layout, ViewPager2, RecyclerView Delegate Adapter, MVVM/MVI/UDF/TEA/Elmslie, Dagger 2, Coroutines/Flow, Retrofit2, JSON, Kotlinx Serialization, Glide, Cicerone, View binding, Figma, Gitlab, UI/unit tests (Kaspresso/JUnit4).
+
 Возможности приложения (часть сделана дополнительно сверх запрошенного функционала):
 
 - Авторизация пользователя (экран для ввода логина и пароля, активная кнопка для разлогина на экране профиля пользователя) с возможностью показа вводимого пароля и открытия в браузере страницы для восстановления пароля
